@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://b04k560aavh7t"]
+
+[ext_resource type="Script" uid="uid://bu8fbcl608b7v" path="res://код/скрипты/chase_level.gd" id="1_y2ri4"]
+[ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://код/скрипты/chase_fish.gd" id="3_4nqcj"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhgdb"]
+size = Vector2(1912, 38)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fvoeh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y2ri4"]
+size = Vector2(156, 190)
+
+[node name="chase_level_" type="Node2D" unique_id=628798174]
+script = ExtResource("1_y2ri4")
+
+[node name="BackGround" type="ColorRect" parent="." unique_id=827522515]
+offset_right = 1920.0
+offset_bottom = 360.0
+color = Color(0.101960786, 0.101960786, 0.18039216, 1)
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1289594338]
+position = Vector2(960, 340)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1668729617]
+position = Vector2(-4, 9)
+shape = SubResource("RectangleShape2D_bhgdb")
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=1179609709]
+position = Vector2(100, 200)
+script = ExtResource("3_4nqcj")
+run_speed = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=208929823]
+shape = SubResource("RectangleShape2D_fvoeh")
+
+[node name="FinishLine" type="Area2D" parent="." unique_id=1202764552]
+position = Vector2(1850, 180)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FinishLine" unique_id=293956538]
+position = Vector2(-68, 85)
+shape = SubResource("RectangleShape2D_y2ri4")

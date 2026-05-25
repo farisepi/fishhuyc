@@ -1,0 +1,361 @@
+[gd_scene format=3 uid="uid://q8vjx4bkl0jb"]
+
+[ext_resource type="PackedScene" uid="uid://b04k560aavh7t" path="res://код/сцены/chase_level.tscn.tscn" id="1_mtceb"]
+[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://enemy.gd" id="2_1tu47"]
+[ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://код/скрипты/grabbable_item.gd" id="3_yhh8q"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e3tiq"]
+size = Vector2(2880, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b2v6u"]
+size = Vector2(30, 50)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1tu47"]
+radius = 50.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r00te"]
+size = Vector2(52, 34)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1tu47"]
+size = Vector2(20, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yhh8q"]
+size = Vector2(25.125, 26.875)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d2bvx"]
+size = Vector2(20, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v2482"]
+size = Vector2(27, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_au5lm"]
+size = Vector2(20, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dqbk5"]
+size = Vector2(65, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vf0u2"]
+size = Vector2(40, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rvk53"]
+size = Vector2(40, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_liqbr"]
+size = Vector2(65, 214.5)
+
+[node name="chase_level_" unique_id=628798174 instance=ExtResource("1_mtceb")]
+
+[node name="BackGround" parent="." index="0" unique_id=827522515]
+offset_top = 8.0
+offset_right = 2312.0
+offset_bottom = 368.0
+
+[node name="Floor" parent="." index="1" unique_id=1289594338]
+position = Vector2(0, 340)
+
+[node name="CollisionShape2D" parent="Floor" index="0" unique_id=1668729617]
+position = Vector2(864, 19)
+shape = SubResource("RectangleShape2D_e3tiq")
+
+[node name="Player" parent="." index="2" unique_id=1179609709]
+position = Vector2(100, 300)
+run_speed = 300.0
+
+[node name="CollisionShape2D" parent="Player" index="0" unique_id=208929823]
+position = Vector2(-3, 3)
+shape = SubResource("RectangleShape2D_b2v6u")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player" index="1" unique_id=597613462]
+modulate = Color(0.2901961, 0.5411765, 1, 1)
+
+[node name="PlayerCamera" type="Camera2D" parent="Player" index="2" unique_id=763483094]
+position = Vector2(200, 0)
+
+[node name="GrabArea" type="Area2D" parent="Player" index="3" unique_id=724806365]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/GrabArea" index="0" unique_id=1721872322]
+position = Vector2(-4, 0)
+shape = SubResource("CircleShape2D_1tu47")
+
+[node name="Enemies" type="Node2D" parent="." index="3" unique_id=978516874]
+script = ExtResource("2_1tu47")
+
+[node name="Enemy1" type="CharacterBody2D" parent="Enemies" index="0" unique_id=419888494]
+position = Vector2(-100, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy1" index="0" unique_id=1858796682]
+position = Vector2(-204, 70)
+shape = SubResource("RectangleShape2D_r00te")
+
+[node name="Sprite2D" type="Sprite2D" parent="Enemies/Enemy1/CollisionShape2D" index="0" unique_id=155432255]
+modulate = Color(1, 0, 0, 1)
+
+[node name="Enemy2" type="CharacterBody2D" parent="Enemies" index="1" unique_id=1262606785]
+position = Vector2(-200, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy2" index="0" unique_id=105286964]
+position = Vector2(-168, 70)
+shape = SubResource("RectangleShape2D_r00te")
+
+[node name="Sprite2D" type="Sprite2D" parent="Enemies/Enemy2/CollisionShape2D" index="0" unique_id=1965494824]
+modulate = Color(1, 0, 0, 1)
+
+[node name="Enemy3" type="CharacterBody2D" parent="Enemies" index="2" unique_id=1928119570]
+position = Vector2(-300, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy3" index="0" unique_id=521089815]
+position = Vector2(-124, 70)
+shape = SubResource("RectangleShape2D_r00te")
+
+[node name="Sprite2D" type="Sprite2D" parent="Enemies/Enemy3/CollisionShape2D" index="0" unique_id=1077460037]
+modulate = Color(1, 0, 0, 1)
+
+[node name="Enemy4" type="CharacterBody2D" parent="Enemies" index="3" unique_id=1931071234]
+position = Vector2(-400, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy4" index="0" unique_id=625264690]
+position = Vector2(-80, 70)
+shape = SubResource("RectangleShape2D_r00te")
+
+[node name="Sprite2D" type="Sprite2D" parent="Enemies/Enemy4/CollisionShape2D" index="0" unique_id=950625949]
+modulate = Color(1, 0, 0, 1)
+
+[node name="Enemy5" type="CharacterBody2D" parent="Enemies" index="4" unique_id=894515018]
+position = Vector2(-500, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy5" index="0" unique_id=876072356]
+position = Vector2(-44, 70)
+shape = SubResource("RectangleShape2D_r00te")
+
+[node name="Sprite2D" type="Sprite2D" parent="Enemies/Enemy5/CollisionShape2D" index="0" unique_id=137688333]
+modulate = Color(1, 0, 0, 1)
+
+[node name="Items" type="Node2D" parent="." index="4" unique_id=1308584771]
+script = ExtResource("3_yhh8q")
+
+[node name="Bottle1" type="Area2D" parent="Items" index="0" unique_id=456983020]
+position = Vector2(504, 344)
+script = ExtResource("3_yhh8q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Bottle1" index="0" unique_id=1531264680]
+position = Vector2(-16, -8)
+shape = SubResource("RectangleShape2D_1tu47")
+
+[node name="Sprite2D" type="ColorRect" parent="Items/Bottle1" index="1" unique_id=1380976800]
+modulate = Color(1, 0.54901963, 0, 1)
+offset_left = 168.0
+offset_top = -24.0
+offset_right = 188.0
+offset_bottom = 6.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Box1" type="Area2D" parent="Items" index="1" unique_id=1752798925]
+position = Vector2(750, 2809)
+script = ExtResource("3_yhh8q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box1" index="0" unique_id=331384617]
+modulate = Color(1, 0.54901963, 0, 1)
+position = Vector2(-16, 0)
+shape = SubResource("RectangleShape2D_yhh8q")
+
+[node name="Sprite2D" type="ColorRect" parent="Items/Box1" index="1" unique_id=885680902]
+modulate = Color(1, 0.54901963, 0, 1)
+offset_right = 30.0
+offset_bottom = 30.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Bottle2" type="Area2D" parent="Items" index="2" unique_id=1682998909]
+position = Vector2(1056, 344)
+script = ExtResource("3_yhh8q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Bottle2" index="0" unique_id=1228906704]
+modulate = Color(1, 0.54901963, 0, 1)
+position = Vector2(-16, -8)
+shape = SubResource("RectangleShape2D_d2bvx")
+
+[node name="Sprite2D" type="ColorRect" parent="Items/Bottle2" index="1" unique_id=43350516]
+modulate = Color(1, 0.54901963, 0, 1)
+offset_left = 144.0
+offset_top = -24.0
+offset_right = 164.0
+offset_bottom = 6.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Box2" type="Area2D" parent="Items" index="3" unique_id=149144952]
+position = Vector2(1424, 280)
+script = ExtResource("3_yhh8q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box2" index="0" unique_id=443896317]
+modulate = Color(1, 0.54901963, 0, 1)
+position = Vector2(0, 56)
+shape = SubResource("RectangleShape2D_v2482")
+
+[node name="Sprite2D" type="ColorRect" parent="Items/Box2" index="1" unique_id=278449633]
+modulate = Color(1, 0.54901963, 0, 1)
+offset_left = 168.0
+offset_top = 48.0
+offset_right = 192.0
+offset_bottom = 70.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Bottle3" type="Area2D" parent="Items" index="4" unique_id=1532204881]
+modulate = Color(1, 0.54901963, 0, 1)
+position = Vector2(1672, 336)
+script = ExtResource("3_yhh8q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Bottle3" index="0" unique_id=1216913283]
+position = Vector2(16, 0)
+shape = SubResource("RectangleShape2D_au5lm")
+
+[node name="Sprite2D" type="ColorRect" parent="Items/Bottle3" index="1" unique_id=2130144853]
+modulate = Color(1, 0.54901963, 0, 1)
+offset_left = 216.0
+offset_top = -16.0
+offset_right = 236.0
+offset_bottom = 14.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="FinishLine" parent="." index="5" unique_id=1202764552]
+position = Vector2(1800, 180)
+collision_layer = 2
+
+[node name="CollisionShape2D" parent="FinishLine" index="0" unique_id=293956538]
+position = Vector2(239.5, 112)
+shape = SubResource("RectangleShape2D_dqbk5")
+
+[node name="Vaults" type="Node2D" parent="." index="6" unique_id=827982423]
+
+[node name="Vault1" type="StaticBody2D" parent="Vaults" index="0" unique_id=896403269]
+position = Vector2(704, 280)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Vaults/Vault1" index="0" unique_id=600754146]
+position = Vector2(0, 48)
+shape = SubResource("RectangleShape2D_vf0u2")
+
+[node name="ColorRect" type="ColorRect" parent="Vaults/Vault1" index="1" unique_id=308864202]
+offset_left = 144.0
+offset_top = 24.0
+offset_right = 174.0
+offset_bottom = 89.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Vault2" type="StaticBody2D" parent="Vaults" index="1" unique_id=341446399]
+position = Vector2(1300, 280)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Vaults/Vault2" index="0" unique_id=2021254438]
+position = Vector2(-4, 48)
+shape = SubResource("RectangleShape2D_rvk53")
+
+[node name="ColorRect" type="ColorRect" parent="Vaults/Vault2" index="1" unique_id=983258426]
+offset_left = 132.0
+offset_top = 24.0
+offset_right = 172.0
+offset_bottom = 89.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="Slides" type="Node2D" parent="." index="7" unique_id=1794460916]
+
+[node name="Slide1" type="StaticBody2D" parent="Slides" index="0" unique_id=262324997]
+position = Vector2(992, 272)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Slides/Slide1" index="0" unique_id=1266397004]
+position = Vector2(0, -64)
+shape = SubResource("RectangleShape2D_liqbr")
+
+[node name="ColorRect" type="ColorRect" parent="Slides/Slide1" index="1" unique_id=1340063736]
+offset_left = 176.0
+offset_top = 8.0
+offset_right = 236.0
+offset_bottom = 38.0
+color = Color(1, 0.26666668, 0.26666668, 1)
+
+[node name="Slide2" type="StaticBody2D" parent="Slides" index="1" unique_id=1863604766]
+position = Vector2(1550, 240)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Slides/Slide2" index="0" unique_id=1622476880]
+position = Vector2(10, -28.75)
+shape = SubResource("RectangleShape2D_liqbr")
+
+[node name="ColorRect" type="ColorRect" parent="Slides/Slide2" index="1" unique_id=23506367]
+offset_left = 178.0
+offset_top = 48.0
+offset_right = 238.0
+offset_bottom = 78.0
+color = Color(1, 0.26666668, 0.26666668, 1)
+
+[node name="UI" type="Control" parent="." index="8" unique_id=1852670605]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SlowOverlay" type="ColorRect" parent="UI" index="0" unique_id=1760420898]
+layout_mode = 0
+offset_left = -168.0
+offset_top = 32.0
+offset_right = 360.0
+offset_bottom = 376.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="PromptLabel" type="Label" parent="UI" index="1" unique_id=1238267411]
+layout_mode = 0
+offset_right = 270.0
+offset_bottom = 300.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemiesLabel" type="Label" parent="UI" index="2" unique_id=553598811]
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 125.0
+offset_bottom = 33.0
+text = "Врагов: 5"
+
+[node name="GameOverLabel" type="Label" parent="UI" index="3" unique_id=1116503887]
+visible = false
+layout_mode = 0
+offset_left = 220.0
+offset_top = 150.0
+offset_right = 335.0
+offset_bottom = 173.0
+text = "Тебя поймали!"
+
+[node name="WaitLabel" type="Label" parent="UI" index="4" unique_id=629849731]
+layout_mode = 0
+offset_left = 16.0
+offset_right = 97.0
+offset_bottom = 23.0
+text = "Жди лифт"
+
+[node name="IntroCutscene" type="Node2D" parent="." index="9" unique_id=1326673899]
+position = Vector2(96, -16)
+
+[node name="Door" type="ColorRect" parent="IntroCutscene" index="0" unique_id=32119105]
+offset_left = 60.0
+offset_top = 280.0
+offset_right = 100.0
+offset_bottom = 360.0
+color = Color(0.54509807, 0.27058825, 0.07450981, 1)
+
+[node name="PlayerFake" type="ColorRect" parent="IntroCutscene" index="1" unique_id=1120525321]
+offset_left = 80.0
+offset_top = 290.0
+offset_right = 110.0
+offset_bottom = 340.0
+color = Color(0.2901961, 0.5411765, 1, 1)
+
+[node name="CutsceneLabel" type="Label" parent="IntroCutscene" index="2" unique_id=139831203]
+offset_left = 220.0
+offset_top = 300.0
+offset_right = 260.0
+offset_bottom = 323.0
+
+[node name="Elevator" type="ColorRect" parent="." index="10" unique_id=1634877132]
+offset_left = 2176.0
+offset_top = 240.0
+offset_right = 2236.0
+offset_bottom = 340.0
+color = Color(0.26666668, 0.26666668, 0.26666668, 1)

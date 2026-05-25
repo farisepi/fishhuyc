@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://ba1v3ohrfskpx"]
+
+[ext_resource type="Script" uid="uid://dr5fheiebrsg8" path="res://код/скрипты/bubble.gd" id="1_giubm"]
+[ext_resource type="Texture2D" uid="uid://c5q5k7iejj25n" path="res://текстуры/эффекты/пузырик/пузырик.png" id="2_bq4ij"]
+[ext_resource type="SpriteFrames" uid="uid://dmhqjuv7q3v1y" path="res://текстуры/эффекты/пузырик/bubble_frames.tres" id="3_gqii3"]
+
+[node name="Bubble" type="Node2D" unique_id=1636927493]
+z_index = 101
+script = ExtResource("1_giubm")
+
+[node name="StaticSprite" type="Sprite2D" parent="." unique_id=1997598089]
+scale = Vector2(3, 3)
+texture = ExtResource("2_bq4ij")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 11, 11)
+
+[node name="ExplosionAnim" type="AnimatedSprite2D" parent="." unique_id=1517890892]
+visible = false
+scale = Vector2(3, 3)
+sprite_frames = ExtResource("3_gqii3")
+animation = &"pop"
+centered = false
+
+[node name="ExplodeTimer" type="Timer" parent="." unique_id=976870324]
+one_shot = true
+
+[connection signal="timeout" from="ExplodeTimer" to="." method="_on_timer_timeout"]

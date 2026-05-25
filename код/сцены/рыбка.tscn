@@ -1,0 +1,197 @@
+[gd_scene format=3 uid="uid://dr1p62m7bi368"]
+
+[ext_resource type="Script" uid="uid://bg460pgdqj2dp" path="res://код/скрипты/рыбка.gd" id="1_f8hhw"]
+[ext_resource type="Texture2D" uid="uid://c2sdufwmnt40e" path="res://текстуры/ГГ/hit/удар.png" id="2_6411s"]
+[ext_resource type="Texture2D" uid="uid://biei4tyh402qv" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0001.png" id="2_a4jka"]
+[ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://код/сцены/bubble.tscn" id="2_vguw7"]
+[ext_resource type="Texture2D" uid="uid://bantclp0cdxxi" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0002.png" id="3_g5j16"]
+[ext_resource type="Texture2D" uid="uid://bxno386c8bls6" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0003.png" id="4_fm6fd"]
+[ext_resource type="Texture2D" uid="uid://vbmbwulcy0na" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0004.png" id="5_5ndnw"]
+[ext_resource type="Texture2D" uid="uid://b4e6mafykfa33" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0005.png" id="6_p1bbl"]
+[ext_resource type="Texture2D" uid="uid://xqa5xv3spqf3" path="res://текстуры/ГГ/idle/3F3F3F283F3F3F)_0006.png" id="7_18y4f"]
+[ext_resource type="Texture2D" uid="uid://bcqkkpeh4ena6" path="res://текстуры/ГГ/walk/рыбкаидет_0001.png" id="8_p1bbl"]
+[ext_resource type="Texture2D" uid="uid://bfhgjonwyiamy" path="res://текстуры/ГГ/walk/рыбкаидет_0002.png" id="9_18y4f"]
+[ext_resource type="Texture2D" uid="uid://6kgxcxnbhirh" path="res://текстуры/ГГ/walk/рыбкаидет_0003.png" id="10_j26bl"]
+[ext_resource type="Texture2D" uid="uid://b854gv6mgoq2u" path="res://текстуры/ГГ/walk/рыбкаидет_0004.png" id="11_40kp8"]
+[ext_resource type="Texture2D" uid="uid://37gl8q8k3wi8" path="res://текстуры/ГГ/walk/рыбкаидет_0005.png" id="12_tjnpq"]
+[ext_resource type="Texture2D" uid="uid://c2imnfnnrdjxb" path="res://текстуры/ГГ/wake/пробуждение_0001.png" id="15_5rfu3"]
+[ext_resource type="Texture2D" uid="uid://c1bfo5qsgflkb" path="res://текстуры/ГГ/wake/пробуждение_0002.png" id="16_cmea6"]
+[ext_resource type="Texture2D" uid="uid://cs40ydrntry2" path="res://текстуры/ГГ/wake/пробуждение_0003.png" id="17_gqdwe"]
+[ext_resource type="Texture2D" uid="uid://y6chv0te6edl" path="res://текстуры/ГГ/wake/пробуждение_0004.png" id="18_cdqcg"]
+[ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://код/скрипты/cutscene_camera.gd" id="24_cmea6"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_p1bbl"]
+radius = 11.0
+height = 37.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vguw7"]
+atlas = ExtResource("2_6411s")
+region = Rect2(0, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k2v36"]
+atlas = ExtResource("2_6411s")
+region = Rect2(64, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7n72p"]
+atlas = ExtResource("2_6411s")
+region = Rect2(128, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_drdvx"]
+atlas = ExtResource("2_6411s")
+region = Rect2(192, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rfu3"]
+atlas = ExtResource("2_6411s")
+region = Rect2(256, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cmea6"]
+atlas = ExtResource("2_6411s")
+region = Rect2(320, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gqdwe"]
+atlas = ExtResource("2_6411s")
+region = Rect2(384, 0, 64, 44)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_n600t"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vguw7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k2v36")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7n72p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_drdvx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5rfu3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cmea6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gqdwe")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 11.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_a4jka")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_g5j16")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_fm6fd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_5ndnw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_18y4f")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_cmea6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_gqdwe")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_cdqcg")
+}],
+"loop": false,
+"name": &"wake",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_40kp8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_40kp8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_tjnpq")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 7.0
+}]
+
+[node name="рыбка" type="CharacterBody2D" unique_id=294675082]
+script = ExtResource("1_f8hhw")
+bubble_scene = ExtResource("2_vguw7")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1551150667]
+position = Vector2(6.9499817, -3.0816608e-07)
+rotation = -1.5707964
+shape = SubResource("CapsuleShape2D_p1bbl")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=560175834]
+position = Vector2(8, 0)
+scale = Vector2(1.1875, 1.1999999)
+sprite_frames = SubResource("SpriteFrames_n600t")
+animation = &"wake"
+autoplay = "idle"
+
+[node name="PlayerCamera" type="Camera2D" parent="." unique_id=675897869]
+zoom = Vector2(2, 2)
+limit_left = 2
+limit_top = 9
+limit_right = 960
+limit_bottom = 664
+position_smoothing_enabled = true
+script = ExtResource("24_cmea6")
