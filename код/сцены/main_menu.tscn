@@ -235,6 +235,7 @@ script = ExtResource("2_68j6e")
 metadata/_edit_use_anchors_ = true
 
 [node name="SaveButton" type="Button" parent="." unique_id=112604908]
+visible = false
 offset_left = 426.0
 offset_top = -243.0
 offset_right = 686.0
