@@ -37,6 +37,8 @@ func get_key_text(action: String) -> String:
 			return e.as_text()
 	return "Не назначено"
 
+# Функция получения текстуры клавиши
+# Проверяет существование файла .tres и .png
 func get_key_texture(action: String) -> Texture2D:
 	var events = InputMap.action_get_events(action)
 	for e in events:
@@ -45,6 +47,12 @@ func get_key_texture(action: String) -> Texture2D:
 			var path = TEXTURE_NORMAL_PATH + key_string + ".tres"
 			if ResourceLoader.exists(path):
 				return load(path)
+			else:
+				var png_path = TEXTURE_NORMAL_PATH + key_string + ".png"
+				if ResourceLoader.exists(png_path):
+					return load(png_path)
+				else:
+					print("Текстура не найдена: ", path, " или ", png_path)
 	return null
 
 func get_key_texture_pressed(action: String) -> Texture2D:
@@ -55,6 +63,12 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 			var path = TEXTURE_PRESSED_PATH + key_string + "_p.tres"
 			if ResourceLoader.exists(path):
 				return load(path)
+			else:
+				var png_path = TEXTURE_PRESSED_PATH + key_string + "_p.png"
+				if ResourceLoader.exists(png_path):
+					return load(png_path)
+				else:
+					print("Текстура нажатия не найдена: ", path, " или ", png_path)
 	return null
 
 func _keycode_to_string(keycode: Key) -> String:

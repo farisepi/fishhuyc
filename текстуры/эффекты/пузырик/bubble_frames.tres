@@ -1,10 +1,7 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://dmhqjuv7q3v1y"]
 
-[ext_resource type="Texture2D" uid="uid://c5q5k7iejj25n" path="res://текстуры/эффекты/пузырик/пузырик.png" id="1_q6cj6"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_q6cj6"]
-atlas = ExtResource("1_q6cj6")
-region = Rect2(0, 0, 11, 11)
+[ext_resource type="Texture2D" uid="uid://dagv538sqlyfc" path="res://текстуры/эффекты/пузырик/пузырик.tres" id="1_ebwsc"]
+[ext_resource type="Texture2D" uid="uid://dsjmupmqroyog" path="res://текстуры/эффекты/пузырик/пузырик.png" id="1_q6cj6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ebwsc"]
 atlas = ExtResource("1_q6cj6")
@@ -26,7 +23,15 @@ region = Rect2(44, 0, 11, 11)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_q6cj6")
+"texture": ExtResource("1_ebwsc")
+}],
+"loop": false,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ebwsc")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ebwsc")

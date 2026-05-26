@@ -163,6 +163,88 @@ func _ready() -> void:
 	start_chatter()
 	_spawn_bubbles()
 
+
+# ============================================
+# БЛОК 1. _get_player_camera() — НОВАЯ функция
+# ============================================
+
+# Функция получения камеры игрока
+# Сначала ищет PlayerCamera у рыбки, затем через вьюпорт
+# Возвращает Camera2D или null
+func _get_player_camera() -> Camera2D:
+	if player and player.has_node("PlayerCamera"):
+		return player.get_node("PlayerCamera") as Camera2D
+	return get_viewport().get_camera_2d()
+
+
+# ============================================
+# БЛОК 2. _get_random_position_in_viewport() — НОВАЯ функция
+# ============================================
+
+# Функция получения случайной позиции в пределах видимой области камеры
+# Учитывает зум камеры
+# Параметр margin_bottom — отступ снизу (чтобы пузыри появлялись у нижнего края)
+# Возвращает Vector2 с координатами в глобальном пространстве
+func _get_random_position_in_viewport(margin_bottom: float = 100.0) -> Vector2:
+	var viewport = get_viewport()
+	var viewport_size = viewport.get_visible_rect().size
+	var camera = _get_player_camera()
+	
+	# Если камера не найдена — возвращаем случайную позицию в экранных координатах
+	if not camera:
+		return Vector2(randf_range(0, viewport_size.x), randf_range(viewport_size.y - margin_bottom, viewport_size.y))
+	
+	var cam_pos = camera.global_position
+	var zoom = camera.zoom
+	
+	# Вычисляем реальные границы видимой области с учётом зума
+	var world_width = viewport_size.x / zoom.x
+	var world_height = viewport_size.y / zoom.y
+	
+	return Vector2(
+		cam_pos.x - world_width / 2 + randf_range(0, world_width),
+		cam_pos.y - world_height / 2 + randf_range(world_height - margin_bottom, world_height)
+	)
+
+
+# ============================================
+# БЛОК 3. _spawn_bubbles() — ИСПРАВЛЕНАЯ функция
+# ============================================
+
+# Функция запуска фоновых пузырей в прологе
+# Ждёт один кадр (чтобы сцена полностью загрузилась), затем вызывает создание первого пузыря
+func _spawn_bubbles() -> void:
+	await get_tree().process_frame
+	_make_bubble()
+
+
+# ============================================
+# БЛОК 4. _make_bubble() — ИСПРАВЛЕНАЯ функция
+# ============================================
+
+# Функция создания одного фонового пузыря в прологе
+# Позиция рассчитывается относительно камеры через _get_random_position_in_viewport()
+# После создания пузыря запускает таймер и вызывает себя снова для создания следующего
+func _make_bubble() -> void:
+	if not bubble_scene:
+		return
+	
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	
+	bubble.global_position = _get_random_position_in_viewport(100.0)
+	bubble.scale = Vector2(randf_range(0.2, 0.5), randf_range(0.2, 0.5))
+	bubble.modulate.a = 0.0
+	
+	var tween = create_tween()
+	tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.5), 0.5)
+	bubble.set_direction(Vector2.UP)
+	bubble.start_life(randf_range(3.0, 8.0))
+	
+	await get_tree().create_timer(randf_range(0.5, 1.5)).timeout
+	_make_bubble()
+
+
 func _update_interact_icon() -> void:
 	if not interact_icon:
 		return
@@ -1411,26 +1493,6 @@ func _on_dialogue_zone_body_exited(body: Node2D) -> void:
 			await tween.finished
 			interact_label.visible = false
 
-func _spawn_bubbles() -> void:
-	await get_tree().process_frame
-	_make_bubble()
-
-func _make_bubble() -> void:
-	if not bubble_scene:
-		return
-	var viewport = get_viewport().get_visible_rect().size
-	var bubble = bubble_scene.instantiate()
-	add_child(bubble)
-	bubble.global_position = Vector2(randf_range(0, viewport.x), randf_range(viewport.y - 100, viewport.y))
-	bubble.scale = Vector2(randf_range(0.2, 0.5), randf_range(0.2, 0.5))
-	bubble.modulate.a = 0.0
-	var tween = create_tween()
-	tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.5), 0.5)
-	bubble.set_direction(Vector2.UP)
-	bubble.start_life(randf_range(3.0, 8.0))
-	await get_tree().create_timer(randf_range(0.5, 1.5)).timeout
-	_make_bubble()
-
 func _show_achievement(title: String):
 	var a = Control.new()
 	a.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1469,3 +1531,39 @@ func _show_achievement(title: String):
 	await tw2.finished
 	
 	a.queue_free()
+	
+func _spawn_prologue_bubble() -> void:
+	if not bubble_scene:
+		return
+	
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	
+	bubble.can_pop = false
+	
+	bubble.global_position = Vector2(
+		randf_range(0, 1920),
+		randf_range(0, 510)
+	)
+	
+	var bubble_scale = randf_range(0.2, 0.8)
+	bubble.scale = Vector2.ONE * bubble_scale
+	
+	bubble.modulate.a = 0.0
+	
+	bubble.set_direction(
+		Vector2(
+			randf_range(-0.2, 0.2),
+			-1.0
+		)
+	)
+	
+	var tween = create_tween()
+	tween.tween_property(
+		bubble,
+		"modulate:a",
+		randf_range(0.1, 0.5),
+		0.5
+	)
+	
+	bubble.start_life(randf_range(1.0, 20.0))

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://q8vjx4bkl0jb"]
 
 [ext_resource type="PackedScene" uid="uid://b04k560aavh7t" path="res://код/сцены/chase_level.tscn.tscn" id="1_mtceb"]
-[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://enemy.gd" id="2_1tu47"]
+[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://код/скрипты/enemy.gd" id="2_1tu47"]
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://код/скрипты/grabbable_item.gd" id="3_yhh8q"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_e3tiq"]

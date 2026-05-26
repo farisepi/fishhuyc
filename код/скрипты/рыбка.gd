@@ -55,6 +55,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_clamp_to_viewport()
 
+# Функция обновления эффекта тряски камеры
+# Уменьшает shake_amount со временем
 func _update_shake(delta: float) -> void:
 	if shake_amount <= 0:
 		return
@@ -81,10 +83,14 @@ func _update_shake(delta: float) -> void:
 		else:
 			cam.offset = Vector2.ZERO
 
+# Функция анимации покачивания рыбки вверх-вниз
+# Создаёт эффект плавания на месте
 func _update_float_animation() -> void:
 	var float_offset = sin(Time.get_ticks_msec() * 0.001 * float_speed) * float_strength
 	sprite.position.y = float_offset
 
+# Функция обработки движения рыбки
+# Управляет анимацией, наклоном, пузырьками и звуками
 func _handle_movement(direction_input: Vector2, delta: float) -> void:
 	if not was_moving:
 		sprite.play("walk")
@@ -120,6 +126,8 @@ func _handle_movement(direction_input: Vector2, delta: float) -> void:
 		var vol = move_toward(UISounds.swim_player.volume_db, -36.0, delta * 24.0)
 		UISounds.set_swim_volume(min(vol, -36.0))
 
+# Функция обработки состояния покоя рыбки
+# Плавно возвращает наклон в ноль
 func _handle_idle(delta: float) -> void:
 	if was_moving:
 		sprite.play("idle")
@@ -141,28 +149,41 @@ func _spawn_bubble() -> void:
 		return
 	
 	var bubble = bubble_scene.instantiate()
-	add_child(bubble)
+	get_tree().current_scene.add_child(bubble)
 	
 	var offset_x = randf_range(20, 40) if facing_direction == -1 else randf_range(-40, -20)
 	var offset_y = randf_range(-15, 20)
 	
 	bubble.global_position = global_position + Vector2(offset_x, offset_y)
-	bubble.scale = Vector2(randf_range(0.1, 0.25), randf_range(0.1, 0.25))
+	
+	var bubble_scale = randf_range(0.1, 0.25)
+	bubble.scale = Vector2.ONE * bubble_scale
 	
 	var move_direction = Vector2.RIGHT if facing_direction == -1 else Vector2.LEFT
+	
 	bubble.set_direction(move_direction + Vector2.UP * 0.5)
 	bubble.modulate.a = 0.0
 	
 	var tween = create_tween()
-	tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.5), 0.3)
-	bubble.start_life(randf_range(1.5, 3.5))
+	tween.tween_property(
+		bubble,
+		"modulate:a",
+		randf_range(0.01, 0.5),
+		0.3
+	)
+	
+	bubble.start_life(randf_range(1.0, 3.0))
 
+# Функция ограничения позиции рыбки в пределах вьюпорта
+# Учитывает отступ для анимации покачивания
 func _clamp_to_viewport() -> void:
 	var margin = float_strength + 5.0
 	var viewport_size = get_viewport().get_visible_rect().size
 	global_position.x = clamp(global_position.x, margin, viewport_size.x - margin)
 	global_position.y = clamp(global_position.y, margin, viewport_size.y - margin)
 
+# Функция удара по стеклу (вызывается из катсцены)
+# Включает тряску камеры и звук удара
 func hit_glass() -> void:
 	if sprite:
 		var old_scale = sprite.scale
