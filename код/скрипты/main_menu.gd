@@ -298,15 +298,17 @@ func _change_scene(path: String) -> void:
 
 func _on_play_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	Global.is_new_game = true
+	Global.is_new_game = true      # Помечаем, что это НОВАЯ игра
+	Global.intro_completed = false
+	Global.prologue1_completed = false
+	Global.prologue2_completed = false
 
 	Fade.fade_out()
 
 	await get_tree().create_timer(0.3).timeout
 
-	get_tree().change_scene_to_file(
-		"res://код/сцены/save_menu.tscn"
-	)
+	# Идём в save_menu, как и было
+	get_tree().change_scene_to_file("res://код/сцены/save_menu.tscn")
 
 func _on_settings_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
