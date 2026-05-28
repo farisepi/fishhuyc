@@ -4,19 +4,10 @@ extends Node
 # НОВЫЕ ФЛАГИ ДЛЯ СИСТЕМЫ ВСТУПЛЕНИЯ
 # ============================================
 
-# Какой слот сохранения используется для новой игры
 var save_slot: int = 0
-
-# Флаг: это новая игра? (устанавливается в main_menu.gd)
 var is_new_game: bool = false
-
-# Флаг: вступление (7 картинок) уже показано?
 var intro_completed: bool = false
-
-# Флаг: первый пролог (сцена с рабочими) уже пройден?
 var prologue1_completed: bool = false
-
-# Флаг: второй пролог (переходная сцена) уже показан?
 var prologue2_completed: bool = false
 
 # ============================================
@@ -34,3 +25,7 @@ var chatter_current_text: String = ""
 var chatter_char_index: int = 0
 var camera_sensitivity: float = 0.0
 var prologue_completed: bool = false
+
+func _ready() -> void:
+	var theme = load("res://Textures/Font/Font_Settings.tres")
+	get_tree().root.theme = theme

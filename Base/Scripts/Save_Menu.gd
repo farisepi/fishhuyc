@@ -211,12 +211,12 @@ func _show_overwrite_confirm(index: int):
 func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
-		get_tree().change_scene_to_file("res://код/сцены/пролог.tscn")
+		get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return
 	
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://код/сцены/main_menu.tscn")
+	get_tree().change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

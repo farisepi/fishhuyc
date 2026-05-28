@@ -232,7 +232,6 @@ theme_override_styles/hover = ExtResource("5_il11y")
 text = "Начать игру
 "
 script = ExtResource("2_68j6e")
-metadata/_edit_use_anchors_ = true
 
 [node name="SaveButton" type="Button" parent="." unique_id=112604908]
 visible = false

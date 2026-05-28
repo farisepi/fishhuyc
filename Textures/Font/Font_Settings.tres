@@ -1,0 +1,7 @@
+[gd_resource type="Theme" format=3 uid="uid://xn42njt3j5ve"]
+
+[ext_resource type="FontFile" uid="uid://cfxdkl08e6hca" path="res://Textures/Font/Bitcell_Font.ttf" id="1_bbrbg"]
+
+[resource]
+default_font = ExtResource("1_bbrbg")
+default_font_size = 23
