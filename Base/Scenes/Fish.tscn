@@ -1,0 +1,197 @@
+[gd_scene format=3 uid="uid://dr1p62m7bi368"]
+
+[ext_resource type="Script" uid="uid://bg460pgdqj2dp" path="res://Base/Scripts/Fish.gd" id="1_f8hhw"]
+[ext_resource type="Texture2D" uid="uid://d2mga2jrwod2i" path="res://Textures/Characters/Main_Character/Fish/Hit/1.png" id="2_6411s"]
+[ext_resource type="Texture2D" uid="uid://0uum3wf4qnbj" path="res://Textures/Characters/Main_Character/idle/1.png" id="2_a4jka"]
+[ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_vguw7"]
+[ext_resource type="Texture2D" uid="uid://ke6pme5sikpm" path="res://Textures/Characters/Main_Character/idle/2.png" id="3_g5j16"]
+[ext_resource type="Texture2D" uid="uid://cguwufpg0ik3m" path="res://Textures/Characters/Main_Character/idle/3.png" id="4_fm6fd"]
+[ext_resource type="Texture2D" uid="uid://5c7uocet8ar7" path="res://Textures/Characters/Main_Character/idle/4.png" id="5_5ndnw"]
+[ext_resource type="Texture2D" uid="uid://c0pxuhj4eby73" path="res://Textures/Characters/Main_Character/idle/5.png" id="6_p1bbl"]
+[ext_resource type="Texture2D" uid="uid://nr88aubkkhjr" path="res://Textures/Characters/Main_Character/idle/6.png" id="7_18y4f"]
+[ext_resource type="Texture2D" uid="uid://5frstge6c8ai" path="res://Textures/Characters/Main_Character/Fish/Walk/1.png" id="8_p1bbl"]
+[ext_resource type="Texture2D" uid="uid://ditu47n3dl3fu" path="res://Textures/Characters/Main_Character/Fish/Walk/2.png" id="9_18y4f"]
+[ext_resource type="Texture2D" uid="uid://dipip2gphb5lo" path="res://Textures/Characters/Main_Character/Fish/Walk/3.png" id="10_j26bl"]
+[ext_resource type="Texture2D" uid="uid://p3i4n7ra0x13" path="res://Textures/Characters/Main_Character/Fish/Walk/4.png" id="11_40kp8"]
+[ext_resource type="Texture2D" uid="uid://fwhabl4a0igx" path="res://Textures/Characters/Main_Character/Fish/Walk/5.png" id="12_tjnpq"]
+[ext_resource type="Texture2D" uid="uid://c2imnfnnrdjxb" path="res://Textures/Characters/Main_Character/Fish/Wake/1.png" id="15_5rfu3"]
+[ext_resource type="Texture2D" uid="uid://c1bfo5qsgflkb" path="res://Textures/Characters/Main_Character/Fish/Wake/2.png" id="16_cmea6"]
+[ext_resource type="Texture2D" uid="uid://cs40ydrntry2" path="res://Textures/Characters/Main_Character/Fish/Wake/3.png" id="17_gqdwe"]
+[ext_resource type="Texture2D" uid="uid://y6chv0te6edl" path="res://Textures/Characters/Main_Character/Fish/Wake/4.png" id="18_cdqcg"]
+[ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Base/Scripts/Cutscene_Camera.gd" id="24_cmea6"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_p1bbl"]
+radius = 11.0
+height = 37.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vguw7"]
+atlas = ExtResource("2_6411s")
+region = Rect2(0, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k2v36"]
+atlas = ExtResource("2_6411s")
+region = Rect2(64, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7n72p"]
+atlas = ExtResource("2_6411s")
+region = Rect2(128, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_drdvx"]
+atlas = ExtResource("2_6411s")
+region = Rect2(192, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5rfu3"]
+atlas = ExtResource("2_6411s")
+region = Rect2(256, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cmea6"]
+atlas = ExtResource("2_6411s")
+region = Rect2(320, 0, 64, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gqdwe"]
+atlas = ExtResource("2_6411s")
+region = Rect2(384, 0, 64, 44)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_n600t"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vguw7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k2v36")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7n72p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_drdvx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5rfu3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cmea6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gqdwe")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 11.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_a4jka")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_g5j16")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_fm6fd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_5ndnw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_18y4f")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_5rfu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_cmea6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_gqdwe")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_cdqcg")
+}],
+"loop": false,
+"name": &"wake",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_40kp8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_p1bbl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_18y4f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_j26bl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_40kp8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_tjnpq")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 7.0
+}]
+
+[node name="рыбка" type="CharacterBody2D" unique_id=294675082]
+script = ExtResource("1_f8hhw")
+bubble_scene = ExtResource("2_vguw7")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1551150667]
+position = Vector2(6.9499817, -3.0816608e-07)
+rotation = -1.5707964
+shape = SubResource("CapsuleShape2D_p1bbl")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=560175834]
+position = Vector2(8, 0)
+scale = Vector2(1.1875, 1.1999999)
+sprite_frames = SubResource("SpriteFrames_n600t")
+animation = &"wake"
+autoplay = "idle"
+
+[node name="PlayerCamera" type="Camera2D" parent="." unique_id=675897869]
+zoom = Vector2(2, 2)
+limit_left = 2
+limit_top = 9
+limit_right = 960
+limit_bottom = 664
+position_smoothing_enabled = true
+script = ExtResource("24_cmea6")

@@ -1,7 +1,0 @@
-[gd_resource type="StyleBoxTexture" format=3 uid="uid://bxxvat40rdr8n"]
-
-[ext_resource type="Texture2D" uid="uid://cuushwstv8mml" path="res://текстуры/Интерфейс/кнопки/кнопки перехода/квадратная кнопка.png" id="1_3psbf"]
-
-[resource]
-texture = ExtResource("1_3psbf")
-modulate_color = Color(0.5391072, 0.5391072, 0.5391072, 0.78431374)

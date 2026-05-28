@@ -27,6 +27,19 @@ InputRebind="*uid://d1sd1h4pl2cmi"
 UISounds="*uid://daub0wx4q03i"
 Achievements="*uid://bsns7txmyx4di"
 
+[file_customization]
+
+folder_colors={
+"res://Base/": "red",
+"res://Base/Scenes/": "red",
+"res://Base/Scripts/": "red",
+"res://Sounds/": "purple",
+"res://Sounds/Music/": "purple",
+"res://Sounds/Music/Temporary/": "purple",
+"res://Sounds/SFX/": "purple",
+"res://Textures/": "teal"
+}
+
 [input]
 
 ui_accept={

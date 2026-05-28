@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://ba1v3ohrfskpx"]
+
+[ext_resource type="Texture2D" uid="uid://dagv538sqlyfc" path="res://Textures/Effects/Bubble/Bubble.tres" id="1_as3ai"]
+[ext_resource type="Script" uid="uid://d1p7myeg8md7" path="res://Base/Scripts/Bubble.gd" id="1_giubm"]
+[ext_resource type="Texture2D" uid="uid://dsjmupmqroyog" path="res://Textures/Effects/Bubble/Bubble_Frames.png" id="2_bq4ij"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_urqfx"]
+atlas = ExtResource("2_bq4ij")
+region = Rect2(0, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4yvwq"]
+atlas = ExtResource("2_bq4ij")
+region = Rect2(11, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_01cet"]
+atlas = ExtResource("2_bq4ij")
+region = Rect2(22, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jvlxd"]
+atlas = ExtResource("2_bq4ij")
+region = Rect2(33, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yoxmu"]
+atlas = ExtResource("2_bq4ij")
+region = Rect2(44, 0, 11, 11)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1o785"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_as3ai")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_urqfx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4yvwq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_01cet")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jvlxd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yoxmu")
+}],
+"loop": false,
+"name": &"pop",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gqii3"]
+radius = 8.0
+
+[node name="Bubble" type="Area2D" unique_id=181905497]
+script = ExtResource("1_giubm")
+
+[node name="VisibleOnScreenEnabler2D" type="VisibleOnScreenEnabler2D" parent="." unique_id=137227109]
+position = Vector2(-32, -32)
+rect = Rect2(-10, -10, 64, 64)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2110606397]
+position = Vector2(1, 1)
+scale = Vector2(2.590909, 2.590909)
+sprite_frames = SubResource("SpriteFrames_1o785")
+animation = &"pop"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1323073209]
+shape = SubResource("CircleShape2D_gqii3")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]
+[connection signal="screen_exited" from="VisibleOnScreenEnabler2D" to="." method="_on_visible_on_screen_enabler_2d_screen_exited"]
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

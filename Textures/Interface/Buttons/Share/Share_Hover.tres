@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://ccehocxigbms8"]
+
+[ext_resource type="Texture2D" uid="uid://cuushwstv8mml" path="res://Textures/Interface/Buttons/Share/Share.png" id="1_cbsd5"]
+
+[resource]
+texture = ExtResource("1_cbsd5")
+modulate_color = Color(0.7355655, 0.7355655, 0.7355655, 0.78431374)

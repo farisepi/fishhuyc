@@ -1,7 +1,0 @@
-[gd_resource type="StyleBoxTexture" format=3 uid="uid://d1dbikuie2cjm"]
-
-[ext_resource type="Texture2D" uid="uid://j500bn6eqk8a" path="res://текстуры/Интерфейс/кнопки/маленькая кнопка/маленькая кнопка.png" id="1_2vbo6"]
-
-[resource]
-texture = ExtResource("1_2vbo6")
-modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)
