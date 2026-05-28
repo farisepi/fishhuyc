@@ -63,7 +63,7 @@ func _on_slot_pressed(index: int):
 			Global.is_new_game = false
 			Fade.fade_out()
 			await get_tree().create_timer(0.3).timeout
-			var intro = load("res://код/скрипты/intro_simple.gd").new()
+			var intro = load("res://Base/Scripts/Intro.gd").new()
 			add_child(intro)
 			Fade.fade_in()
 		elif Global.came_from == Global.MenuSource.GAME:

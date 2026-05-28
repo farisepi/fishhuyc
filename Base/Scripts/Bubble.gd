@@ -73,7 +73,7 @@ func _pop() -> void:
 	# звук только при клике
 	var pop_sound = AudioStreamPlayer.new()
 	add_child(pop_sound)
-	pop_sound.stream = preload("res://звуки/pop.mp3")
+	pop_sound.stream = preload("res://Sounds/SFX/Pop.mp3")
 	pop_sound.volume_db = -18.0
 	pop_sound.pitch_scale = randf_range(0.95, 1.05)
 	pop_sound.play()

@@ -18,8 +18,8 @@ var rebind_delay: float = 0.0
 var config = ConfigFile.new()
 const SAVE_PATH = "user://keybinds.cfg"
 
-const TEXTURE_NORMAL_PATH = "res://текстуры/Интерфейс/иконки клавы/обычные/"
-const TEXTURE_PRESSED_PATH = "res://текстуры/Интерфейс/иконки клавы/нажатые/"
+const TEXTURE_NORMAL_PATH = "res://Textures/Interface/Keyboard/Normal/"
+const TEXTURE_PRESSED_PATH = "res://Textures/Interface/Keyboard/Pressed/"
 
 func _ready() -> void:
 	load_keybinds()

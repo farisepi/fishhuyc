@@ -57,7 +57,7 @@ func start_hit_sequence() -> void:
 	await Fade.fade_out
 	var tree = get_tree()
 	if tree:
-		tree.change_scene_to_file("res://код/сцены/main_menu.tscn")
+		tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
 
 func _on_interaction_available(available: bool) -> void:
 	can_interact = available

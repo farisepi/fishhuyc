@@ -3,31 +3,31 @@ extends CanvasLayer
 # Данные для каждого слайда
 var slides = [
 	{
-		"image": preload("res://текстуры/intro/1.png"),
+		"image": preload("res://Textures/Intro/1.png"),
 		"text": "У нас получилось. Эксперимент можно начинать."
 	},
 	{
-		"image": preload("res://текстуры/intro/2.png"),
+		"image": preload("res://Textures/Intro/2.png"),
 		"text": "Первый подопытный — крыса."
 	},
 	{
-		"image": preload("res://текстуры/intro/3.png"),
+		"image": preload("res://Textures/Intro/3.png"),
 		"text": "Чип сработал безупречно. Крыса забыла, кем была."
 	},
 	{
-		"image": preload("res://текстуры/intro/4.png"),
+		"image": preload("res://Textures/Intro/4.png"),
 		"text": "Вскоре подчинение охватило и другие виды."
 	},
 	{
-		"image": preload("res://текстуры/intro/5.jpg"),
+		"image": preload("res://Textures/Intro/5.jpg"),
 		"text": "Человечество наконец решило проблему нехватки энергии."
 	},
 	{
-		"image": preload("res://текстуры/intro/6.png"),
+		"image": preload("res://Textures/Intro/6.png"),
 		"text": "Животные перестали быть существами. Они стали инструментами."
 	},
 	{
-		"image": preload("res://текстуры/intro/7.jpg"),
+		"image": preload("res://Textures/Intro/7.png"),
 		"text": "Казалось, всё под контролем. Но что может пойти не так?"
 	}
 ]
@@ -104,8 +104,8 @@ func _stop_main_menu_music() -> void:
 
 func _music_start() -> void:
 	music_player = AudioStreamPlayer.new()
-	if ResourceLoader.exists("res://музыка/Sympho 1.mp3"):
-		music_player.stream = load("res://музыка/Sympho 1.mp3")
+	if ResourceLoader.exists("res://Sounds/Music/Temporary/Fish Slaves - Сonclusion.mp3"):
+		music_player.stream = load("res://Sounds/Music/Temporary/Fish Slaves - Сonclusion.mp3")
 		music_player.volume_db = linear_to_db(0.5)
 		add_child(music_player)
 		music_player.play()
@@ -190,7 +190,7 @@ func _start_final_fade() -> void:
 		print("Music cut at ", Time.get_ticks_msec() / 1000.0 - intro_start_time)
 	
 	print("=== INTRO FINISHED at ", Time.get_ticks_msec() / 1000.0 - intro_start_time, " ===")
-	get_tree().change_scene_to_file("res://код/сцены/пролог.tscn")
+	get_tree().change_scene_to_file("res://Base/Scripts/Level_1.gd")
 	queue_free()
 
 func _input(event: InputEvent) -> void:

@@ -22,7 +22,7 @@ func _ready() -> void:
 	Fade.fade_in()
 
 	GlobalMusic.play_music(
-		preload("res://музыка/Fish Slaves - main menu.mp3")
+		preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3")
 	)
 
 	var ui_sounds = get_node_or_null("/root/UISounds")
@@ -153,7 +153,7 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		
 		var click_sound = AudioStreamPlayer.new()
 		add_child(click_sound)
-		click_sound.stream = preload("res://звуки/logo click.mp3")
+		click_sound.stream = preload("res://Sounds/SFX/Logo_Click.mp3")
 		click_sound.volume_db = -18.0
 		click_sound.pitch_scale = randf_range(0.98, 1.02)
 		click_sound.play()
@@ -308,20 +308,20 @@ func _on_play_button_pressed() -> void:
 	await get_tree().create_timer(0.3).timeout
 
 	# Идём в save_menu, как и было
-	get_tree().change_scene_to_file("res://код/сцены/save_menu.tscn")
+	get_tree().change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_settings_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
 
 	_change_scene(
-		"res://код/сцены/settings_menu.tscn"
+		"res://Base/Scenes/Settings_Menu.tscn"
 	)
 
 func _on_achivments_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
 
 	_change_scene(
-		"res://код/сцены/achievements_menu.tscn"
+		"res://Base/Scenes/Achievements_Menu.tscn"
 	)
 
 func _on_save_button_pressed() -> void:
@@ -329,7 +329,7 @@ func _on_save_button_pressed() -> void:
 	Global.is_new_game = false
 
 	_change_scene(
-		"res://код/сцены/save_menu.tscn"
+		"res://Base/Scenes/Save_Menu.tscn"
 	)
 
 func _on_discord_button_pressed() -> void:

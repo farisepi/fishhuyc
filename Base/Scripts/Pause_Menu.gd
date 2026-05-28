@@ -52,7 +52,7 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	get_tree().paused = false
 	hide()
-	get_tree().change_scene_to_file("res://код/сцены/save_menu.tscn")
+	get_tree().change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
@@ -76,7 +76,7 @@ func _on_settings_pressed() -> void:
 	
 	var tree = get_tree()
 	if tree:
-		tree.change_scene_to_file("res://код/сцены/settings_menu.tscn")
+		tree.change_scene_to_file("res://Base/Scenes/Settings_Menu.tscn")
 
 func _on_restart_pressed() -> void:
 	UISounds.play_click()
@@ -89,7 +89,7 @@ func _on_restart_pressed() -> void:
 	
 	var tree = get_tree()
 	if tree:
-		tree.change_scene_to_file("res://код/сцены/пролог.tscn")
+		tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
@@ -99,4 +99,4 @@ func _on_exit_pressed() -> void:
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
 	var tree = get_tree()
-	if tree: tree.change_scene_to_file("res://код/сцены/main_menu.tscn")
+	if tree: tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")

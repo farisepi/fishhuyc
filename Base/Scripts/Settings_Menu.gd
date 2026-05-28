@@ -44,7 +44,7 @@ func _ready() -> void:
 		Fade.modulate.a = 0.0
 	
 	if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
-		GlobalMusic.play_music(preload("res://музыка/Fish Slaves - main menu.mp3"))
+		GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3"))
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -370,14 +370,14 @@ func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		var tree = get_tree()
-		if tree: tree.change_scene_to_file("res://код/сцены/пролог.tscn")
+		if tree: tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return
 	
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
 	var current_tree = get_tree()
 	if not current_tree: return
-	current_tree.change_scene_to_file("res://код/сцены/main_menu.tscn")
+	current_tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and InputRebind.rebinding_action.is_empty():

@@ -117,7 +117,7 @@ func _spawn_wave(name: String):
 			_spawn_enemy_at(450, 290)
 
 func _spawn_enemy_at(x: float, y: float):
-	var enemy_scene = load("res://код/enemy.tscn")
+	var enemy_scene = load("res://Base/Scripts/Enemy.gd")
 	var enemy = enemy_scene.instantiate()
 	enemy.global_position = Vector2(x, y)
 	$Enemies.add_child(enemy)
@@ -307,7 +307,7 @@ func _win():
 	player.set_physics_process(false)
 	enemies_label.text = "СВОБОДА!"
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://код/сцены/main_menu.tscn")
+	get_tree().change_scene_to_file("res://Base/Scripts/Main_Menu.gd")
 
 func _game_over():
 	if game_ended:
@@ -318,4 +318,4 @@ func _game_over():
 	player.set_physics_process(false)
 	game_over_label.visible = true
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://код/сцены/chase_level_.tscn")
+	get_tree().change_scene_to_file("res://Base/Scripts/Level_3.gd")

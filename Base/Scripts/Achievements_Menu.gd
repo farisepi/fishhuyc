@@ -23,7 +23,7 @@ func _ready() -> void:
 	Fade.fade_in()
 	
 	if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
-		GlobalMusic.play_music(preload("res://музыка/Fish Slaves - main menu.mp3"))
+		GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3"))
 	
 	ButtonEffects.setup(back_btn)
 	ButtonEffects.setup(reset_btn)
@@ -108,7 +108,7 @@ func _on_back_button_pressed() -> void:
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
 	var tree = get_tree()
-	if tree: tree.change_scene_to_file("res://код/сцены/main_menu.tscn")
+	if tree: tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
 	
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

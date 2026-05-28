@@ -10,4 +10,4 @@ func _on_play_button_pressed() -> void:
 	await Fade.fade_out()
 	var tree = get_tree()
 	if tree:
-		tree.change_scene_to_file("res://код/сцены/пролог.tscn")
+		tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")

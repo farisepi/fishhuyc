@@ -61,8 +61,8 @@ var text_glitch_timer: float = 0.0
 var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
-var scientist_icon = preload("res://текстуры/юниты/ученый/scientist_portrait.png")
-var mechanic_icon = preload("res://текстуры/юниты/рабочий/mechanic_portrait.png")
+var scientist_icon = preload("res://Textures/Characters/Scienist/Scientist_Portrait.png")
+var mechanic_icon = preload("res://Textures/Characters/Mechanic/Mechanic_Portrait.png")
 
 var interact_normal_texture: Texture2D = null
 
@@ -126,7 +126,7 @@ var chatter_phrases: Array[Dictionary] = [
 func _ready() -> void:
 	Fade.fade_in()
 	GlobalMusic.stop_music()
-	GlobalMusic.play_music(preload("res://музыка/Fish Slaves - The prisoner.mp3"))
+	GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - The prisoner.mp3"))
 	UISounds.start_factory_ambience()
 	
 	if Global.player_position != Vector2.ZERO:
@@ -1375,7 +1375,7 @@ func _show_blackout_title():
 		await tween_fade.finished
 	
 	# Переход в пролог2
-	get_tree().change_scene_to_file("res://код/сцены/пролог2.tscn")
+	get_tree().change_scene_to_file("res://Base/Scripts/Level_2.gd")
 
 func _save_progress():
 	# Проверяем, есть ли глобальная переменная save_slot
