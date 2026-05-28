@@ -9,9 +9,12 @@ extends Node2D
 @onready var wait_label: Label = $UI/WaitLabel
 @onready var player_fake: ColorRect = $IntroCutscene/PlayerFake
 @onready var door: ColorRect = $IntroCutscene/Door
+@onready var guard1: ColorRect = $IntroCutscene/Guard1
+@onready var other_guards: ColorRect = $IntroCutscene/OtherGuards
+@onready var exclamation_label: Label = $IntroCutscene/ExclamationLabel
 @onready var elevator: ColorRect = $Elevator
 
-var enemies_alive: int = 5
+var enemies_alive: int = 11
 var game_ended: bool = false
 var is_slowed: bool = false
 var slow_used: bool = false
@@ -39,32 +42,44 @@ func _ready():
 func _start_intro_cutscene():
 	player_fake.visible = true
 	door.visible = true
+	guard1.visible = true
+	other_guards.visible = true
 	
-	await get_tree().create_timer(0.5).timeout
-	
-	var tween = create_tween()
-	tween.tween_property(player_fake, "position", Vector2(120, 290), 0.4)
-	await tween.finished
-	
-	var shake = create_tween()
-	shake.set_loops(3)
-	shake.tween_property(door, "position:x", 65, 0.1)
-	shake.tween_property(door, "position:x", 55, 0.1)
-	await shake.finished
-	
-	door.position.x = -100
-	player_fake.position.x = 40
+	door.position = Vector2(2157, 278)
+	player_fake.position = Vector2(2150, 278)
+	guard1.position = Vector2(2130, 278)
+	other_guards.position = Vector2(2080, 278)
 	
 	await get_tree().create_timer(0.3).timeout
 	
+	var tween = create_tween()
+	tween.tween_property(player_fake, "position", Vector2(2130, 278), 0.3)
+	await tween.finished
+	
+	guard1.position = player_fake.position + Vector2(-15, 0)
+	await get_tree().create_timer(0.2).timeout
+	
+	player_fake.modulate = Color.RED
+	await get_tree().create_timer(0.15).timeout
+	
+	var throw_tween = create_tween()
+	throw_tween.tween_property(guard1, "position", other_guards.position, 0.3)
+	player_fake.modulate = Color(0.3, 0.5, 1.0)
+	await throw_tween.finished
+	
+	exclamation_label.position = player_fake.position + Vector2(-10, -45)
+	exclamation_label.visible = true
+	await get_tree().create_timer(0.6).timeout
+	exclamation_label.visible = false
+	
 	var run_tween = create_tween()
-	run_tween.tween_property(player_fake, "position", Vector2(100, 290), 0.3)
+	run_tween.tween_property(player_fake, "position", Vector2(2000, 278), 0.5)
 	await run_tween.finished
 	
 	$IntroCutscene.visible = false
 	player.visible = true
 	player.set_physics_process(true)
-	player.global_position = Vector2(100, 290)
+	player.global_position = Vector2(2000, 278)
 	intro_done = true
 
 func _arrive_at_elevator():
@@ -80,7 +95,7 @@ func _arrive_at_elevator():
 	await get_tree().create_timer(0.5).timeout
 	
 	var tween = create_tween()
-	tween.tween_property(player, "global_position", Vector2(elevator.global_position.x + 20, player.global_position.y), 0.5)
+	tween.tween_property(player, "global_position", Vector2(elevator.global_position.x + 30, player.global_position.y), 0.5)
 	await tween.finished
 	
 	wait_label.text = ""
@@ -95,10 +110,12 @@ func _process(delta):
 	if at_elevator:
 		return
 	
-	if not is_slowed and intro_done:
-		for enemy in $Enemies.get_children():
-			if enemy is Node2D and not enemy.is_queued_for_deletion():
-				enemy.global_position.x += 80 * delta
+	# Проверка: враг догнал рыбу
+	for enemy in $Enemies.get_children():
+		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
+			if enemy.global_position.distance_to(player.global_position) < 40:
+				_game_over()
+				return
 	
 	var stuck = false
 	
@@ -170,7 +187,7 @@ func _hit_enemy(pos: Vector2):
 	if game_ended:
 		return
 	for enemy in $Enemies.get_children():
-		if enemy is Node2D and not enemy.is_queued_for_deletion():
+		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = enemy.global_position.distance_to(pos)
 			if dist < 80:
 				enemy.queue_free()
@@ -201,4 +218,4 @@ func _game_over():
 	player.set_physics_process(false)
 	game_over_label.visible = true
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://код/сцены/main_menu.tscn")
+	get_tree().change_scene_to_file("res://код/сцены/chase_level_.tscn")

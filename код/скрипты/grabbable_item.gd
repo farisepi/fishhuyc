@@ -1,6 +1,4 @@
-# grabbable_item.gd
-extends Node2D
+extends Area2D
 
-func _ready():
+func _ready() -> void:
 	add_to_group("grabbable")
-	set_meta("item_type", "box")

@@ -20,7 +20,7 @@ func _physics_process(delta: float) -> void:
 	
 	if not is_on_floor():
 		velocity.y += gravity * delta
-	velocity.x = run_speed
+	velocity.x = run_speed * -1  # Бежим влево
 	
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_sliding and not is_crouching:
 		velocity.y = jump_velocity
@@ -43,7 +43,6 @@ func _physics_process(delta: float) -> void:
 		if slide_timer <= 0 and not Input.is_action_pressed("crouch"):
 			_end_slide()
 	
-	# Проверка Vault — автоматически перелезаем
 	if is_on_floor() and not is_sliding and not is_vaulting:
 		_check_vault()
 	
@@ -56,40 +55,38 @@ func _check_vault():
 	
 	for vault in vaults.get_children():
 		if vault is StaticBody2D:
-			var rect = Rect2(vault.global_position - Vector2(20, 25), Vector2(40, 50))
-			var player_rect = Rect2(global_position - Vector2(15, 25), Vector2(30, 50))
-			if rect.intersects(player_rect):
+			var dist = global_position.distance_to(vault.global_position)
+			if dist < 40:
 				_start_vault(vault.global_position)
 				break
 
 func _start_vault(vault_pos: Vector2):
 	is_vaulting = true
 	velocity = Vector2.ZERO
-	sprite.modulate = Color(1.0, 1.0, 0.2)  # Жёлтый — перелезает
+	sprite.modulate = Color(1.0, 1.0, 0.2)
 	
-	# Перелезаем через препятствие
 	var tween = create_tween()
-	tween.tween_property(self, "global_position:x", vault_pos.x + 60, 0.3)
+	tween.tween_property(self, "global_position:x", vault_pos.x - 60, 0.3)
 	tween.parallel().tween_property(self, "global_position:y", vault_pos.y - 50, 0.3)
 	tween.tween_property(self, "global_position:y", vault_pos.y - 20, 0.3).set_delay(0.3)
 	await tween.finished
 	
 	is_vaulting = false
-	velocity.x = run_speed
+	velocity.x = run_speed * -1
 	sprite.modulate = normal_color
 
 func _start_slide():
 	is_sliding = true
 	is_crouching = false
 	slide_timer = slide_duration
-	velocity.x = slide_speed
+	velocity.x = slide_speed * -1
 	sprite.modulate = Color(0.2, 0.3, 0.8)
 	$CollisionShape2D.scale.y = 0.3
 	$CollisionShape2D.position.y = 10
 
 func _end_slide():
 	is_sliding = false
-	velocity.x = run_speed
+	velocity.x = run_speed * -1
 	sprite.modulate = normal_color
 	$CollisionShape2D.scale.y = 1.0
 	$CollisionShape2D.position.y = 0
@@ -126,7 +123,7 @@ func _throw_item():
 	get_parent().first_item_taken = true
 	sprite.modulate = normal_color
 	
-	var target_pos = global_position + Vector2(-300, 0)
+	var target_pos = global_position + Vector2(300, 0)  # Кидаем вправо
 	var enemies = get_parent().get_node_or_null("Enemies")
 	if enemies:
 		var closest_dist = 9999.0
