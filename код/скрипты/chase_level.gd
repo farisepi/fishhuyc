@@ -13,6 +13,7 @@ extends Node2D
 @onready var other_guards: ColorRect = $IntroCutscene/OtherGuards
 @onready var exclamation_label: Label = $IntroCutscene/ExclamationLabel
 @onready var elevator: ColorRect = $Elevator
+@onready var forklift: CharacterBody2D = $Forklift
 
 var enemies_alive: int = 11
 var game_ended: bool = false
@@ -23,21 +24,103 @@ var stuck_timer: float = 0.0
 const STUCK_TIME: float = 2.0
 var at_elevator: bool = false
 var intro_done: bool = false
+var forklift_hits: int = 0
+var wave1_done: bool = false
+var wave2_done: bool = false
+var wave3_done: bool = false
 
 func _ready():
 	player.visible = false
 	player.set_physics_process(false)
+	forklift.visible = false
+	forklift.set_physics_process(false)
 	finish_line.body_entered.connect(func(body):
 		if body == player and not game_ended:
 			_arrive_at_elevator()
 	)
-	enemies_alive = $Enemies.get_child_count()
+	_setup_wave_triggers()
+	_setup_falling_boxes()
+	enemies_alive = $Enemies.get_child_count() + 1
 	_update_ui()
 	game_over_label.set_anchors_preset(Control.PRESET_CENTER)
 	game_over_label.position = Vector2(0, 0)
 	wait_label.set_anchors_preset(Control.PRESET_CENTER)
 	wait_label.position = Vector2(0, 80)
 	_start_intro_cutscene()
+
+func _setup_wave_triggers():
+	for trigger in $WaveTriggers.get_children():
+		if trigger is Area2D:
+			trigger.body_entered.connect(func(body):
+				if body == player:
+					_spawn_wave(trigger.name)
+			)
+
+func _setup_falling_boxes():
+	for box in $FallingBoxes.get_children():
+		if box is StaticBody2D:
+			_start_falling_box(box)
+
+func _start_falling_box(box: StaticBody2D):
+	var start_y = box.position.y
+	while not game_ended:
+		await get_tree().create_timer(randf_range(4.0, 7.0))
+		if game_ended:
+			break
+		box.position.y = start_y
+		var tween = create_tween()
+		tween.tween_property(box, "position:y", 340, 0.8)
+		await tween.finished
+		var dist = box.global_position.distance_to(player.global_position)
+		if dist < 50:
+			player.velocity.x *= 0.5
+			await get_tree().create_timer(1.0).timeout
+			player.velocity.x = player.run_speed * -1
+		for enemy in $Enemies.get_children():
+			if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
+				var e_dist = box.global_position.distance_to(enemy.global_position)
+				if e_dist < 50:
+					enemy.queue_free()
+					enemies_alive -= 1
+					_update_ui()
+		box.position.y = start_y
+
+func _spawn_wave(name: String):
+	match name:
+		"WaveTrigger1":
+			if wave1_done:
+				return
+			wave1_done = true
+			_spawn_enemy_at(1550, 290)
+			_spawn_enemy_at(1500, 290)
+			_spawn_enemy_at(1450, 290)
+		"WaveTrigger2":
+			if wave2_done:
+				return
+			wave2_done = true
+			_spawn_enemy_at(1050, 290)
+			_spawn_enemy_at(1000, 290)
+			forklift.visible = true
+			forklift.global_position = Vector2(1400, 270)
+			forklift.set_physics_process(false)
+			var tween = create_tween()
+			tween.tween_property(forklift, "global_position", Vector2(1350, 270), 0.5)
+			await tween.finished
+			await get_tree().create_timer(0.5).timeout
+			forklift.set_physics_process(true)
+		"WaveTrigger3":
+			if wave3_done:
+				return
+			wave3_done = true
+			_spawn_enemy_at(550, 290)
+			_spawn_enemy_at(500, 290)
+			_spawn_enemy_at(450, 290)
+
+func _spawn_enemy_at(x: float, y: float):
+	var enemy_scene = load("res://код/enemy.tscn")
+	var enemy = enemy_scene.instantiate()
+	enemy.global_position = Vector2(x, y)
+	$Enemies.add_child(enemy)
 
 func _start_intro_cutscene():
 	player_fake.visible = true
@@ -110,10 +193,19 @@ func _process(delta):
 	if at_elevator:
 		return
 	
-	# Проверка: враг догнал рыбу
+	if forklift.visible and forklift.is_physics_processing():
+		if forklift.global_position.distance_to(player.global_position) < 50:
+			_game_over()
+	
+	if $ConveyorBelt.get_node("CollisionShape2D"):
+		var conv_rect = Rect2($ConveyorBelt.global_position - Vector2(100, 5), Vector2(200, 10))
+		var player_rect = Rect2(player.global_position - Vector2(15, 25), Vector2(30, 50))
+		if conv_rect.intersects(player_rect):
+			player.velocity.x = player.run_speed * -0.3
+	
 	for enemy in $Enemies.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
-			if enemy.global_position.distance_to(player.global_position) < 40:
+			if enemy.global_position.distance_to(player.global_position) < 30:
 				_game_over()
 				return
 	
@@ -194,6 +286,14 @@ func _hit_enemy(pos: Vector2):
 				enemies_alive -= 1
 				_update_ui()
 				break
+	if forklift.visible:
+		var dist = forklift.global_position.distance_to(pos)
+		if dist < 80:
+			forklift_hits += 1
+			if forklift_hits >= 2:
+				forklift.queue_free()
+				enemies_alive -= 1
+				_update_ui()
 
 func _update_ui():
 	enemies_label.text = "Врагов: " + str(enemies_alive)
