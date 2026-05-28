@@ -223,6 +223,7 @@ text = "Вверх
 "
 
 [node name="MoveUpButton" type="Button" parent="ControlsPage" unique_id=565267772]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 272.0
 offset_top = 184.0
@@ -239,6 +240,7 @@ scale = Vector2(1.5, 1.5)
 text = "Вниз"
 
 [node name="MoveDownButton" type="Button" parent="ControlsPage" unique_id=708118919]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 272.0
 offset_top = 232.0
@@ -255,6 +257,7 @@ scale = Vector2(1.5, 1.5)
 text = "Влево"
 
 [node name="MoveLeftButton" type="Button" parent="ControlsPage" unique_id=1597221555]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 280.0
 offset_top = 336.0
@@ -271,6 +274,7 @@ scale = Vector2(1.5, 1.5)
 text = "Вправо"
 
 [node name="MoveRightButton" type="Button" parent="ControlsPage" unique_id=1453332579]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 280.0
 offset_top = 280.0
@@ -287,6 +291,7 @@ scale = Vector2(1.5, 1.5)
 text = "Прыжок"
 
 [node name="JumpButton" type="Button" parent="ControlsPage" unique_id=695658269]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 296.0
 offset_top = 392.0
@@ -303,6 +308,7 @@ scale = Vector2(1.5, 1.5)
 text = "Взаимодействие"
 
 [node name="InteractButton" type="Button" parent="ControlsPage" unique_id=1220683337]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 408.0
 offset_top = 496.0
@@ -319,6 +325,7 @@ scale = Vector2(1.5, 1.5)
 text = "Пауза"
 
 [node name="PauseButton" type="Button" parent="ControlsPage" unique_id=1251175926]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 280.0
 offset_top = 440.0
@@ -337,6 +344,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="InventoryButton" type="Button" parent="ControlsPage" unique_id=86391702]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 536.0
 offset_top = 208.0
@@ -355,6 +363,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CrouchButton" type="Button" parent="ControlsPage" unique_id=1073419493]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 0
 offset_left = 536.0
 offset_top = 280.0

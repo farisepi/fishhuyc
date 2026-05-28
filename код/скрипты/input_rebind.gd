@@ -44,18 +44,19 @@ func get_key_texture(action: String) -> Texture2D:
 	for e in events:
 		if e is InputEventKey:
 			var key_string = _keycode_to_string(e.keycode)
-			# Пробуем загрузить .tres
 			var tres_path = TEXTURE_NORMAL_PATH + key_string + ".tres"
+			var png_path = TEXTURE_NORMAL_PATH + key_string + ".png"
+			
+			print("Ищу текстуру для: ", key_string)
+			print("  Проверяю: ", tres_path, " -> ", ResourceLoader.exists(tres_path))
+			print("  Проверяю: ", png_path, " -> ", ResourceLoader.exists(png_path))
+			
 			if ResourceLoader.exists(tres_path):
 				return load(tres_path)
-			# Пробуем загрузить .png
-			var png_path = TEXTURE_NORMAL_PATH + key_string + ".png"
-			if ResourceLoader.exists(png_path):
+			elif ResourceLoader.exists(png_path):
 				return load(png_path)
-			# Пробуем найти в кэше импорта
-			var import_path = "res://.godot/imported/" + key_string + ".png-*.ctex"
-			# Если ничего не нашли — возвращаем null
-			print("Текстура клавиши не найдена для: " + key_string)
+			else:
+				print("Текстура не найдена: ", key_string)
 	return null
 
 func get_key_texture_pressed(action: String) -> Texture2D:
@@ -63,15 +64,15 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 	for e in events:
 		if e is InputEventKey:
 			var key_string = _keycode_to_string(e.keycode)
-			var path = TEXTURE_PRESSED_PATH + key_string + "_p.tres"
-			if ResourceLoader.exists(path):
-				return load(path)
+			var tres_path = TEXTURE_PRESSED_PATH + key_string + "_p.tres"
+			var png_path = TEXTURE_PRESSED_PATH + key_string + "_p.png"
+			
+			if ResourceLoader.exists(tres_path):
+				return load(tres_path)
+			elif ResourceLoader.exists(png_path):
+				return load(png_path)
 			else:
-				var png_path = TEXTURE_PRESSED_PATH + key_string + "_p.png"
-				if ResourceLoader.exists(png_path):
-					return load(png_path)
-				else:
-					print("Текстура нажатия не найдена: ", path, " или ", png_path)
+				print("Текстура нажатия не найдена: ", key_string)
 	return null
 
 func _keycode_to_string(keycode: Key) -> String:
@@ -87,6 +88,7 @@ func _keycode_to_string(keycode: Key) -> String:
 		_: return OS.get_keycode_string(keycode).to_lower()
 
 func start_rebind(action: String) -> void:
+	print("start_rebind called with action: ", action)
 	rebinding_action = action
 	rebind_delay = 0.2
 
@@ -94,10 +96,10 @@ func _input(event: InputEvent) -> void:
 	if rebinding_action.is_empty():
 		return
 	
-	if rebind_delay > 0:
-		return
-	
 	if event is InputEventKey and event.pressed:
+		if rebind_delay > 0:
+			return
+		
 		_clear_action(rebinding_action)
 		var new_event = InputEventKey.new()
 		new_event.keycode = event.keycode

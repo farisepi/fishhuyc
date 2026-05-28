@@ -52,7 +52,7 @@ func _on_mouse_entered() -> void:
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_pop()
 
-func _input_event(viewport, event, shape_idx) -> void:
+func _input_event(_viewport, event, _shape_idx) -> void:
 	if not clickable:
 		return
 	

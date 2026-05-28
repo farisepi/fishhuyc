@@ -330,23 +330,37 @@ func _update_button_with_icon(btn: Button, action: String) -> void:
 	if not btn:
 		return
 	
-	var texture = InputRebind.get_key_texture(action)
-	
+	# Удаляем старые иконки
 	for child in btn.get_children():
 		if child is TextureRect:
 			child.queue_free()
 	
+	btn.icon = null
+	
+	var texture = InputRebind.get_key_texture(action)
+	
 	if texture:
 		btn.text = ""
+		# Принудительный размер кнопки
+		btn.custom_minimum_size = Vector2(64, 48)
+		
 		var icon_rect = TextureRect.new()
 		icon_rect.name = "KeyIcon"
 		icon_rect.texture = texture
 		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon_rect.size = Vector2(40, 40)
-		icon_rect.position = Vector2(5, 5)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		icon_rect.anchor_right = 1.0
+		icon_rect.anchor_bottom = 1.0
+		icon_rect.offset_left = 4
+		icon_rect.offset_top = 4
+		icon_rect.offset_right = -4
+		icon_rect.offset_bottom = -4
+		
 		btn.add_child(icon_rect)
 	else:
+		btn.custom_minimum_size = Vector2(64, 48)
 		btn.text = InputRebind.get_key_text(action)
 
 func _start_rebind(action: String) -> void:

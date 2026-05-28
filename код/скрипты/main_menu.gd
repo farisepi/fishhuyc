@@ -80,7 +80,7 @@ func _ready() -> void:
 		logo_area.gui_input.connect(_on_logo_gui_input)
 
 	_reset_camera()
-	_start_background_bubbles()
+	call_deferred("_start_background_bubbles")
 
 func _process(delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -151,7 +151,6 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		
 		can_click_logo = false
 		
-		# звук клика по логотипу
 		var click_sound = AudioStreamPlayer.new()
 		add_child(click_sound)
 		click_sound.stream = preload("res://звуки/logo click.mp3")
@@ -178,7 +177,6 @@ func _logo_jelly_effect() -> void:
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.set_trans(Tween.TRANS_SINE)
 	
-	# желе-сжатие
 	tween.tween_property(
 		logo,
 		"scale",
@@ -186,7 +184,6 @@ func _logo_jelly_effect() -> void:
 		0.1
 	)
 	
-	# возвращение
 	if logo_area.get_global_rect().has_point(get_global_mouse_position()):
 		tween.tween_property(logo, "scale", hover_scale, 0.15)
 	else:
@@ -352,10 +349,9 @@ func _on_quit_button_pressed() -> void:
 
 func _start_background_bubbles() -> void:
 	while true:
-
 		for i in range(randi_range(1, 2)):
 			_make_menu_bubble()
-
+		
 		await get_tree().create_timer(
 			randf_range(0.15, 0.35)
 		).timeout
@@ -363,48 +359,27 @@ func _start_background_bubbles() -> void:
 func _make_menu_bubble() -> void:
 	if not bubble_scene:
 		return
-
+	
 	var bubble = bubble_scene.instantiate()
-
 	add_child(bubble)
-
 	bubble.z_index = -10
-
-	var viewport_size = get_viewport_rect().size
-
+	
+	var viewport_size = get_viewport().get_visible_rect().size
+	
 	bubble.global_position = Vector2(
 		randf_range(0, viewport_size.x),
 		randf_range(0, viewport_size.y)
 	)
-
+	
 	var scale_value = randf_range(0.5, 1.4)
-
 	bubble.scale = Vector2.ONE * scale_value
-
 	bubble.speed = randf_range(10.0, 25.0)
-
 	bubble.clickable = true
-
 	bubble.modulate.a = 0.0
-
+	
 	var target_alpha = randf_range(0.01, 0.75)
-
 	var alpha_tween = create_tween()
-
-	alpha_tween.tween_property(
-		bubble,
-		"modulate:a",
-		target_alpha,
-		1.0
-	)
-
-	bubble.set_direction(
-		Vector2(
-			randf_range(-0.3, 0.3),
-			randf_range(-1.0, -0.2)
-		)
-	)
-
-	bubble.start_life(
-		randf_range(6.0, 15.0)
-	)
+	alpha_tween.tween_property(bubble, "modulate:a", target_alpha, 1.0)
+	
+	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
+	bubble.start_life(randf_range(6.0, 15.0))
