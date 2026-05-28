@@ -1,6 +1,6 @@
 [gd_resource type="StyleBoxTexture" format=3 uid="uid://bxxvat40rdr8n"]
 
-[ext_resource type="Texture2D" uid="uid://dfgh2rxu0ye3p" path="res://текстуры/Интерфейс/кнопки/кнопки перехода/квадратная кнопка.png" id="1_3psbf"]
+[ext_resource type="Texture2D" uid="uid://cuushwstv8mml" path="res://текстуры/Интерфейс/кнопки/кнопки перехода/квадратная кнопка.png" id="1_3psbf"]
 
 [resource]
 texture = ExtResource("1_3psbf")

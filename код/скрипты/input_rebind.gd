@@ -44,15 +44,18 @@ func get_key_texture(action: String) -> Texture2D:
 	for e in events:
 		if e is InputEventKey:
 			var key_string = _keycode_to_string(e.keycode)
-			var path = TEXTURE_NORMAL_PATH + key_string + ".tres"
-			if ResourceLoader.exists(path):
-				return load(path)
-			else:
-				var png_path = TEXTURE_NORMAL_PATH + key_string + ".png"
-				if ResourceLoader.exists(png_path):
-					return load(png_path)
-				else:
-					print("Текстура не найдена: ", path, " или ", png_path)
+			# Пробуем загрузить .tres
+			var tres_path = TEXTURE_NORMAL_PATH + key_string + ".tres"
+			if ResourceLoader.exists(tres_path):
+				return load(tres_path)
+			# Пробуем загрузить .png
+			var png_path = TEXTURE_NORMAL_PATH + key_string + ".png"
+			if ResourceLoader.exists(png_path):
+				return load(png_path)
+			# Пробуем найти в кэше импорта
+			var import_path = "res://.godot/imported/" + key_string + ".png-*.ctex"
+			# Если ничего не нашли — возвращаем null
+			print("Текстура клавиши не найдена для: " + key_string)
 	return null
 
 func get_key_texture_pressed(action: String) -> Texture2D:

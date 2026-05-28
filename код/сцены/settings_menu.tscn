@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://текстуры/Интерфейс/кнопки/выпадающее меню/fall normal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://текстуры/Интерфейс/кнопки/маленькая кнопка/small pressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://текстуры/Интерфейс/кнопки/маленькая кнопка/small hover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://dv0sic86dmaqm" path="res://текстуры/Интерфейс/кнопки/переключатель/переключатель.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://db1lshthoy2l1" path="res://текстуры/Интерфейс/кнопки/переключатель/переключатель.png" id="7_ugdgc"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://код/скрипты/fps_counter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://код/скрипты/Camera2D.gd" id="10_l8d1f"]
 

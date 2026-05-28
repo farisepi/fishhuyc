@@ -1,7 +1,6 @@
 [gd_resource type="AtlasTexture" format=3 uid="uid://blf5q6xn0ffgu"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ewgy8"]
-load_path = "res://.godot/imported/keyboard.png-9ba278f2457586e639b99096dfd7699a.ctex"
 
 [resource]
 atlas = SubResource("CompressedTexture2D_ewgy8")
