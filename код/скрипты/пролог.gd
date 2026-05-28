@@ -1347,9 +1347,64 @@ func _show_blackout_title():
 	hide_title.tween_property(label, "modulate:a", 0.0, 0.5)
 	await hide_title.finished
 	
+	# ============================================
+	# СОХРАНЯЕМ ПРОГРЕСС
+	# ============================================
+	_save_progress()
+	
+	# ============================================
+	# ПЕРЕХОД ВО ВТОРОЙ ПРОЛОГ
+	# ============================================
 	cutscene_active = false
 	Global.came_from = Global.MenuSource.MAIN_MENU
+	Global.prologue1_completed = true
+	
+	# Затемняем экран перед переходом
+	if has_node("/root/Fade"):
+		Fade.fade_out()
+		await Fade.fade_out
+	else:
+		var temp_fade = ColorRect.new()
+		temp_fade.color = Color.BLACK
+		temp_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+		temp_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		temp_fade.z_index = 1000
+		add_child(temp_fade)
+		var tween_fade = create_tween()
+		tween_fade.tween_property(temp_fade, "modulate:a", 1.0, 0.5)
+		await tween_fade.finished
+	
+	# Переход в пролог2
 	get_tree().change_scene_to_file("res://код/сцены/пролог2.tscn")
+
+func _save_progress():
+	# Проверяем, есть ли глобальная переменная save_slot
+	if not has_node("/root/Global"):
+		print("Global не найден, сохранение невозможно")
+		return
+	
+	# Формируем путь к файлу сохранения
+	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
+	
+	# Создаём конфиг файл
+	var config = ConfigFile.new()
+	
+	# Сохраняем информацию
+	config.set_value("save", "scene", "res://код/сцены/chase_level.tscn")
+	config.set_value("save", "time", Time.get_datetime_string_from_system())
+	
+	# Сохраняем позицию игрока (если нужно)
+	if player:
+		config.set_value("save", "player_x", player.global_position.x)
+		config.set_value("save", "player_y", player.global_position.y)
+	
+	# Сохраняем файл
+	var error = config.save(save_path)
+	
+	if error == OK:
+		print("Игра успешно сохранена в слот ", Global.save_slot)
+	else:
+		print("Ошибка сохранения в слот ", Global.save_slot, ". Ошибка: ", error)
 
 func _show_achievement_flashback(title: String):
 	var canvas = CanvasLayer.new()

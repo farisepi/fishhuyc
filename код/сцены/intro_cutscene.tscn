@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://b8prmjvp4guje"]
+
+[ext_resource type="PackedScene" uid="uid://h07cjft4m0a5" path="res://код/сцены/fade_overlay.tscn" id="2_kdt3r"]
+
+[sub_resource type="GDScript" id="GDScript_6k83o"]
+script/source = "extends Control
+
+@onready var image_display: TextureRect = $ImageDisplay
+@onready var text_label: RichTextLabel = $TextLabel
+@onready var slide_timer: Timer = $SlideTimer
+@onready var background: ColorRect = $Background
+@onready var fade_overlay = $FadeOverlay
+
+var slides_texts = [
+	\"ТЕСТ 1: Давным-давно...\",
+	\"ТЕСТ 2: Подводная лаборатория...\",
+	\"ТЕСТ 3: Опасные эксперименты...\",
+]
+
+var current_slide = 0
+
+func _ready() -> void:
+	print(\"=== TEST INTRO ===\")
+	
+	# ============================================
+	# ПРИНУДИТЕЛЬНО РАСТЯГИВАЕМ ВСЕ УЗЛЫ
+	# ============================================
+	
+	# Растягиваем Background на весь экран
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.color = Color.RED
+	print(\"Background set to RED and stretched full screen\")
+	
+	# Растягиваем ImageDisplay на весь экран
+	image_display.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	image_display.texture = null
+	image_display.modulate = Color.BLUE
+	print(\"ImageDisplay set to BLUE and stretched full screen\")
+	
+	# Растягиваем TextLabel на весь экран
+	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	text_label.text = \"ТЕСТОВЫЙ ТЕКСТ\"
+	text_label.add_theme_font_size_override(\"normal_font_size\", 48)
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_color_override(\"font_color\", Color.WHITE)
+	print(\"Text label set\")
+	
+	# Отключаем затемнение
+	fade_overlay.visible = false
+	print(\"Fade overlay disabled\")
+	
+	print(\"Test ready - should see RED background, BLUE center, WHITE text\")
+"
+
+[node name="intro_cutscene" type="Control" unique_id=1526609293]
+layout_mode = 3
+anchors_preset = 0
+script = SubResource("GDScript_6k83o")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1609663355]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ImageDisplay" type="TextureRect" parent="." unique_id=877066440]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextLabel" type="RichTextLabel" parent="." unique_id=565185076]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/normal_font_size = 32
+bbcode_enabled = true
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="SlideTimer" type="Timer" parent="." unique_id=999447286]
+wait_time = 3.0
+one_shot = true
+
+[node name="FadeOverlay" parent="." unique_id=1982730245 instance=ExtResource("2_kdt3r")]
+layout_mode = 0
+
+[connection signal="timeout" from="SlideTimer" to="." method="_on_slide_timer_timeout"]
