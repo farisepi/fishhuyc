@@ -1,10 +1,12 @@
-extends CharacterBody2D
+# elevator.gd
+extends ColorRect
 
-@export var speed: float = 120.0
-@export var gravity: float = 980.0
+var is_open: bool = false
 
-func _physics_process(delta):
-	if not is_on_floor():
-		velocity.y += gravity * delta
-	velocity.x = -speed
-	move_and_slide()
+func open():
+	is_open = true
+	color = Color.GREEN
+
+func close():
+	is_open = false
+	color = Color(0.27, 0.27, 0.27)

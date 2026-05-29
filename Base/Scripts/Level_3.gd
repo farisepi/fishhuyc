@@ -3,17 +3,20 @@ extends Node2D
 @onready var player: CharacterBody2D = $Player
 @onready var finish_line: Area2D = $FinishLine
 @onready var prompt: Label = $UI/PromptLabel
-@onready var enemies_label: Label = $UI/EnemiesLabel
 @onready var game_over_label: Label = $UI/GameOverLabel
 @onready var slow_overlay: ColorRect = $UI/SlowOverlay
-@onready var wait_label: Label = $UI/WaitLabel
 @onready var player_fake: ColorRect = $IntroCutscene/PlayerFake
 @onready var door: ColorRect = $IntroCutscene/Door
 @onready var guard1: ColorRect = $IntroCutscene/Guard1
 @onready var other_guards: ColorRect = $IntroCutscene/OtherGuards
 @onready var exclamation_label: Label = $IntroCutscene/ExclamationLabel
 @onready var elevator: ColorRect = $Elevator
-@onready var forklift: CharacterBody2D = $Forklift
+@onready var forklift: CharacterBody2D = $ForkliftScene/Forklift
+@onready var moving_shelf: StaticBody2D = $ForkliftScene/MovingShelf
+@onready var tool_on_shelf: Area2D = $ForkliftScene/ToolOnShelf
+@onready var falling_shelf: StaticBody2D = $ForkliftScene/FallingShelf
+@onready var elevator_button: Area2D = $ElevatorButton
+@onready var ambush_enemy: CharacterBody2D = $AmbushEnemy
 
 var enemies_alive: int = 11
 var game_ended: bool = false
@@ -24,103 +27,36 @@ var stuck_timer: float = 0.0
 const STUCK_TIME: float = 2.0
 var at_elevator: bool = false
 var intro_done: bool = false
-var forklift_hits: int = 0
-var wave1_done: bool = false
-var wave2_done: bool = false
-var wave3_done: bool = false
+var ambush_active: bool = false
+var ambush_done: bool = false
+var has_tool: bool = false
+var shelf_climbing: bool = false
+var elevator_ready: bool = false
 
 func _ready():
 	player.visible = false
 	player.set_physics_process(false)
 	forklift.visible = false
 	forklift.set_physics_process(false)
+	moving_shelf.visible = false
+	falling_shelf.visible = false
+	tool_on_shelf.visible = false
+	ambush_enemy.set_physics_process(false)
+	
 	finish_line.body_entered.connect(func(body):
 		if body == player and not game_ended:
 			_arrive_at_elevator()
 	)
-	_setup_wave_triggers()
-	_setup_falling_boxes()
-	enemies_alive = $Enemies.get_child_count() + 1
-	_update_ui()
+	
+	if has_node("AmbushTrigger"):
+		$AmbushTrigger.body_entered.connect(func(body):
+			if body == player and not ambush_done:
+				_start_ambush()
+		)
+	
 	game_over_label.set_anchors_preset(Control.PRESET_CENTER)
 	game_over_label.position = Vector2(0, 0)
-	wait_label.set_anchors_preset(Control.PRESET_CENTER)
-	wait_label.position = Vector2(0, 80)
 	_start_intro_cutscene()
-
-func _setup_wave_triggers():
-	for trigger in $WaveTriggers.get_children():
-		if trigger is Area2D:
-			trigger.body_entered.connect(func(body):
-				if body == player:
-					_spawn_wave(trigger.name)
-			)
-
-func _setup_falling_boxes():
-	for box in $FallingBoxes.get_children():
-		if box is StaticBody2D:
-			_start_falling_box(box)
-
-func _start_falling_box(box: StaticBody2D):
-	var start_y = box.position.y
-	while not game_ended:
-		await get_tree().create_timer(randf_range(4.0, 7.0))
-		if game_ended:
-			break
-		box.position.y = start_y
-		var tween = create_tween()
-		tween.tween_property(box, "position:y", 340, 0.8)
-		await tween.finished
-		var dist = box.global_position.distance_to(player.global_position)
-		if dist < 50:
-			player.velocity.x *= 0.5
-			await get_tree().create_timer(1.0).timeout
-			player.velocity.x = player.run_speed * -1
-		for enemy in $Enemies.get_children():
-			if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
-				var e_dist = box.global_position.distance_to(enemy.global_position)
-				if e_dist < 50:
-					enemy.queue_free()
-					enemies_alive -= 1
-					_update_ui()
-		box.position.y = start_y
-
-func _spawn_wave(name: String):
-	match name:
-		"WaveTrigger1":
-			if wave1_done:
-				return
-			wave1_done = true
-			_spawn_enemy_at(1550, 290)
-			_spawn_enemy_at(1500, 290)
-			_spawn_enemy_at(1450, 290)
-		"WaveTrigger2":
-			if wave2_done:
-				return
-			wave2_done = true
-			_spawn_enemy_at(1050, 290)
-			_spawn_enemy_at(1000, 290)
-			forklift.visible = true
-			forklift.global_position = Vector2(1400, 270)
-			forklift.set_physics_process(false)
-			var tween = create_tween()
-			tween.tween_property(forklift, "global_position", Vector2(1350, 270), 0.5)
-			await tween.finished
-			await get_tree().create_timer(0.5).timeout
-			forklift.set_physics_process(true)
-		"WaveTrigger3":
-			if wave3_done:
-				return
-			wave3_done = true
-			_spawn_enemy_at(550, 290)
-			_spawn_enemy_at(500, 290)
-			_spawn_enemy_at(450, 290)
-
-func _spawn_enemy_at(x: float, y: float):
-	var enemy_scene = load("res://Base/Scripts/Enemy.gd")
-	var enemy = enemy_scene.instantiate()
-	enemy.global_position = Vector2(x, y)
-	$Enemies.add_child(enemy)
 
 func _start_intro_cutscene():
 	player_fake.visible = true
@@ -128,7 +64,6 @@ func _start_intro_cutscene():
 	guard1.visible = true
 	other_guards.visible = true
 	
-	door.position = Vector2(2157, 278)
 	player_fake.position = Vector2(2150, 278)
 	guard1.position = Vector2(2130, 278)
 	other_guards.position = Vector2(2080, 278)
@@ -165,23 +100,78 @@ func _start_intro_cutscene():
 	player.global_position = Vector2(2000, 278)
 	intro_done = true
 
+func _start_ambush():
+	ambush_active = true
+	ambush_enemy.set_physics_process(false)
+	Engine.time_scale = 0.05
+	slow_overlay.color = Color(0, 0, 0, 0.5)
+	prompt.text = "ПКМ — парировать"
+	prompt.visible = true
+	prompt.position = player.global_position + Vector2(-80, -60)
+
+func _parry_success():
+	Engine.time_scale = 1.0
+	slow_overlay.color = Color(0, 0, 0, 0)
+	prompt.visible = false
+	ambush_active = false
+	ambush_done = true
+	
+	var tween = create_tween()
+	tween.tween_property(ambush_enemy, "global_position", Vector2(1000, 290), 0.3)
+	ambush_enemy.modulate = Color.RED
+	await tween.finished
+	
+	ambush_enemy.queue_free()
+	_spawn_blood(ambush_enemy.global_position)
+
+func _spawn_blood(pos: Vector2):
+	for i in range(8):
+		var drop = ColorRect.new()
+		drop.color = Color(0.8, 0.1, 0.1)
+		drop.size = Vector2(randf_range(3, 8), randf_range(3, 8))
+		drop.position = pos + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		add_child(drop)
+		var tween = create_tween()
+		tween.tween_property(drop, "position:y", drop.position.y + randf_range(20, 60), 0.5)
+		tween.parallel().tween_property(drop, "modulate:a", 0.0, 0.5)
+		tween.finished.connect(drop.queue_free)
+
+func _start_shelf_climb():
+	shelf_climbing = true
+	player.set_physics_process(false)
+	player.velocity = Vector2.ZERO
+	prompt.visible = false
+	
+	var tween = create_tween()
+	tween.tween_property(player, "global_position", moving_shelf.global_position + Vector2(0, -60), 0.5)
+	await tween.finished
+	
+	tool_on_shelf.visible = true
+	prompt.text = "Нажми E чтобы взять инструмент"
+	prompt.visible = true
+	prompt.position = player.global_position + Vector2(-80, -60)
+
 func _arrive_at_elevator():
 	at_elevator = true
 	player.velocity = Vector2.ZERO
 	player.set_physics_process(false)
-	wait_label.text = "Жди лифт..."
-	wait_label.visible = true
 	
-	await get_tree().create_timer(2.0).timeout
+	if not elevator_ready:
+		prompt.text = "Нужно нажать кнопку!"
+		prompt.visible = true
+		await get_tree().create_timer(1.5).timeout
+		prompt.visible = false
+		player.set_physics_process(true)
+		at_elevator = false
+		return
+	
 	elevator.color = Color.GREEN
-	wait_label.text = "Заходи!"
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(1.0).timeout
 	
 	var tween = create_tween()
 	tween.tween_property(player, "global_position", Vector2(elevator.global_position.x + 30, player.global_position.y), 0.5)
 	await tween.finished
 	
-	wait_label.text = ""
 	player.visible = false
 	await get_tree().create_timer(1.0).timeout
 	_win()
@@ -193,15 +183,34 @@ func _process(delta):
 	if at_elevator:
 		return
 	
+	if ambush_active:
+		if Input.is_action_just_pressed("parry"):
+			_parry_success()
+		return
+	
+	if shelf_climbing:
+		return
+	
 	if forklift.visible and forklift.is_physics_processing():
 		if forklift.global_position.distance_to(player.global_position) < 50:
 			_game_over()
 	
-	if $ConveyorBelt.get_node("CollisionShape2D"):
-		var conv_rect = Rect2($ConveyorBelt.global_position - Vector2(100, 5), Vector2(200, 10))
-		var player_rect = Rect2(player.global_position - Vector2(15, 25), Vector2(30, 50))
-		if conv_rect.intersects(player_rect):
-			player.velocity.x = player.run_speed * -0.3
+	if has_tool and elevator_button.get_overlapping_bodies().has(player):
+		if Input.is_action_just_pressed("interact"):
+			_activate_elevator()
+	
+	if tool_on_shelf.visible and tool_on_shelf.get_overlapping_bodies().has(player):
+		if Input.is_action_just_pressed("interact") and not has_tool:
+			has_tool = true
+			tool_on_shelf.queue_free()
+			prompt.text = "Нажми E чтобы кинуть в кнопку"
+			prompt.visible = true
+			_shelf_collapse()
+	
+	if moving_shelf.visible and not shelf_climbing:
+		var dist = player.global_position.distance_to(moving_shelf.global_position)
+		if dist < 60 and Input.is_action_just_pressed("interact"):
+			_start_shelf_climb()
 	
 	for enemy in $Enemies.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
@@ -234,6 +243,29 @@ func _process(delta):
 	
 	prompt.position = player.global_position + Vector2(-80, -60)
 	_check_near_items()
+
+func _shelf_collapse():
+	falling_shelf.visible = true
+	var tween = create_tween()
+	tween.tween_property(falling_shelf, "rotation", 90, 0.5)
+	tween.parallel().tween_property(falling_shelf, "global_position", falling_shelf.global_position + Vector2(50, 100), 0.5)
+	await tween.finished
+	
+	for enemy in $Enemies.get_children():
+		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
+			var dist = enemy.global_position.distance_to(falling_shelf.global_position)
+			if dist < 80:
+				enemy.queue_free()
+				_spawn_blood(enemy.global_position)
+	
+	shelf_climbing = false
+	player.set_physics_process(true)
+
+func _activate_elevator():
+	elevator_ready = true
+	has_tool = false
+	elevator_button.modulate = Color.GREEN
+	prompt.visible = false
 
 func _check_near_items():
 	if game_ended:
@@ -283,31 +315,15 @@ func _hit_enemy(pos: Vector2):
 			var dist = enemy.global_position.distance_to(pos)
 			if dist < 80:
 				enemy.queue_free()
-				enemies_alive -= 1
-				_update_ui()
 				break
-	if forklift.visible:
-		var dist = forklift.global_position.distance_to(pos)
-		if dist < 80:
-			forklift_hits += 1
-			if forklift_hits >= 2:
-				forklift.queue_free()
-				enemies_alive -= 1
-				_update_ui()
-
-func _update_ui():
-	enemies_label.text = "Врагов: " + str(enemies_alive)
-	if enemies_alive <= 0:
-		enemies_label.text = "ВСЕ УБИТЫ! Беги к лифту!"
 
 func _win():
 	game_ended = true
 	Engine.time_scale = 1.0
 	player.velocity = Vector2.ZERO
 	player.set_physics_process(false)
-	enemies_label.text = "СВОБОДА!"
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://Base/Scripts/Main_Menu.gd")
+	get_tree().change_scene_to_file("res://код/сцены/main_menu.tscn")
 
 func _game_over():
 	if game_ended:
@@ -318,4 +334,4 @@ func _game_over():
 	player.set_physics_process(false)
 	game_over_label.visible = true
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://Base/Scripts/Level_3.gd")
+	get_tree().change_scene_to_file("res://код/сцены/Level_3.tscn")
