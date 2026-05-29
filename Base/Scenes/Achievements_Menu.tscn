@@ -105,6 +105,47 @@ offset_bottom = 31.0
 scale = Vector2(1.5, 1.5)
 text = "Флешбек"
 
+[node name="PopStarAchievement" type="Control" parent="." unique_id=1264892551]
+anchors_preset = 0
+offset_left = 188.0
+offset_top = 315.0
+offset_right = 756.0
+offset_bottom = 379.0
+
+[node name="Icon" type="TextureRect" parent="PopStarAchievement" unique_id=1329072218]
+layout_mode = 0
+offset_left = -72.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 56.0
+
+[node name="Check" type="TextureRect" parent="PopStarAchievement" unique_id=1753549082]
+layout_mode = 0
+offset_left = 584.0
+offset_top = 8.0
+offset_right = 640.0
+offset_bottom = 56.0
+
+[node name="NameLabel" type="Label" parent="PopStarAchievement" unique_id=1008983447]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 8.0
+offset_right = 116.0
+offset_bottom = 31.0
+scale = Vector2(1.5, 1.5)
+text = "Поп-звезда"
+
+[node name="DescLabel" type="Label" parent="PopStarAchievement" unique_id=667265630]
+layout_mode = 0
+offset_left = 224.0
+offset_top = -1.0
+offset_right = 464.0
+offset_bottom = 48.0
+text = "Лопнуть 100 пузырей в меню"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 1
+
 [node name="ResetButton" type="Button" parent="." unique_id=606168002]
 layout_mode = 0
 offset_left = 824.0
@@ -138,7 +179,7 @@ offset_left = 776.0
 offset_top = 88.0
 offset_right = 816.0
 offset_bottom = 120.0
-text = "0/2"
+text = "0/3"
 horizontal_alignment = 1
 vertical_alignment = 1
 

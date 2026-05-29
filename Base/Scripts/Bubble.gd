@@ -13,7 +13,6 @@ var popped: bool = false
 func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	
-	# плавное появление
 	modulate.a = 0.0
 	
 	var target_alpha = randf_range(0.01, 0.75)
@@ -21,15 +20,12 @@ func _ready() -> void:
 	var fade_tween = create_tween()
 	fade_tween.tween_property(self, "modulate:a", target_alpha, 0.6)
 	
-	# случайный размер БЕЗ растягивания
 	var scale_value = randf_range(0.15, 0.5)
 	scale = Vector2.ONE * scale_value
 	
-	# idle анимация
 	if sprite:
 		sprite.play("idle")
 	
-	# таймер жизни
 	var timer = get_tree().create_timer(life_time)
 	timer.timeout.connect(_auto_pop)
 
@@ -67,10 +63,14 @@ func _pop() -> void:
 	popped = true
 	clickable = false
 	
+	Global.bubbles_popped += 1
+	if Global.bubbles_popped >= 100:
+		Achievements.unlock_pop_star()
+		call_deferred("_notify_achievement")
+	
 	if collision:
 		collision.disabled = true
 	
-	# звук только при клике
 	var pop_sound = AudioStreamPlayer.new()
 	add_child(pop_sound)
 	pop_sound.stream = preload("res://Sounds/SFX/Pop.mp3")
@@ -78,7 +78,6 @@ func _pop() -> void:
 	pop_sound.pitch_scale = randf_range(0.95, 1.05)
 	pop_sound.play()
 	
-	# анимация взрыва
 	if sprite:
 		sprite.play("pop")
 		await sprite.animation_finished
@@ -95,9 +94,13 @@ func _auto_pop() -> void:
 	if collision:
 		collision.disabled = true
 	
-	# авто-лопание БЕЗ звука
 	if sprite:
 		sprite.play("pop")
 		await sprite.animation_finished
 	
 	queue_free()
+
+func _notify_achievement():
+	var main_menu = get_tree().current_scene
+	if main_menu and main_menu.has_method("_show_pop_star_achievement"):
+		main_menu._show_pop_star_achievement()
