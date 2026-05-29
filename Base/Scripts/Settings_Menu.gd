@@ -43,8 +43,8 @@ func _ready() -> void:
 	else:
 		Fade.modulate.a = 0.0
 	
-	if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
-		GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3"))
+	#if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
+		#GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3"))
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -330,38 +330,21 @@ func _update_button_with_icon(btn: Button, action: String) -> void:
 	if not btn:
 		return
 	
-	# Удаляем старые иконки
+	# Удаляем старые иконки если есть
 	for child in btn.get_children():
 		if child is TextureRect:
 			child.queue_free()
 	
+	# Просто показываем текст клавиши
 	btn.icon = null
+	btn.text = InputRebind.get_key_text(action)
 	
-	var texture = InputRebind.get_key_texture(action)
+	# Фиксируем размер кнопки
+	btn.custom_minimum_size = Vector2(80, 48)
+	btn.size = Vector2(80, 48)
 	
-	if texture:
-		btn.text = ""
-		# Принудительный размер кнопки
-		btn.custom_minimum_size = Vector2(64, 48)
-		
-		var icon_rect = TextureRect.new()
-		icon_rect.name = "KeyIcon"
-		icon_rect.texture = texture
-		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		
-		icon_rect.anchor_right = 1.0
-		icon_rect.anchor_bottom = 1.0
-		icon_rect.offset_left = 4
-		icon_rect.offset_top = 4
-		icon_rect.offset_right = -4
-		icon_rect.offset_bottom = -4
-		
-		btn.add_child(icon_rect)
-	else:
-		btn.custom_minimum_size = Vector2(64, 48)
-		btn.text = InputRebind.get_key_text(action)
+	# Центрируем текст (только горизонтально, вертикально центрируется автоматически)
+	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func _start_rebind(action: String) -> void:
 	InputRebind.start_rebind(action)

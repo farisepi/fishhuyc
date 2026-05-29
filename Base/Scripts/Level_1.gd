@@ -126,7 +126,7 @@ var chatter_phrases: Array[Dictionary] = [
 func _ready() -> void:
 	Fade.fade_in()
 	GlobalMusic.stop_music()
-	GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - The prisoner.mp3"))
+	#GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - The prisoner.mp3"))#
 	UISounds.start_factory_ambience()
 	
 	if Global.player_position != Vector2.ZERO:

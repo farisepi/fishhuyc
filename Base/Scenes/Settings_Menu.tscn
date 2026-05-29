@@ -33,7 +33,6 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -145,230 +144,253 @@ color = Color(0.1764706, 0.1764706, 0.1764706, 0)
 
 [node name="MusicSlider" type="HSlider" parent="AudioPage" unique_id=516089308]
 layout_mode = 0
-offset_left = 424.0
-offset_top = 184.0
-offset_right = 720.0
-offset_bottom = 256.0
+offset_left = 500.0
+offset_top = 200.0
+offset_right = 796.0
+offset_bottom = 272.0
 max_value = 1.0
 step = 0.01
 value = 0.1
 
 [node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
 layout_mode = 0
-offset_left = 424.0
-offset_top = 256.0
-offset_right = 720.0
-offset_bottom = 312.0
+offset_left = 500.0
+offset_top = 275.0
+offset_right = 796.0
+offset_bottom = 331.0
 max_value = 1.0
 step = 0.01
 value = 0.1
 
 [node name="MusicLabel" type="Label" parent="AudioPage" unique_id=1631299506]
 layout_mode = 0
-offset_left = 336.0
-offset_top = 208.0
-offset_right = 400.0
-offset_bottom = 239.0
+offset_left = 260.0
+offset_top = 224.0
+offset_right = 324.0
+offset_bottom = 255.0
+theme_override_font_sizes/font_size = 23
 text = "Музыка"
 
 [node name="AmbienceLabel" type="Label" parent="AudioPage" unique_id=121444495]
 layout_mode = 0
-offset_left = 304.0
-offset_top = 336.0
-offset_right = 397.0
-offset_bottom = 367.0
+offset_left = 260.0
+offset_top = 358.0
+offset_right = 353.0
+offset_bottom = 389.0
+theme_override_font_sizes/font_size = 23
 text = "Окружение"
 
 [node name="AmbienceSlider" type="HSlider" parent="AudioPage" unique_id=1923459666]
 layout_mode = 0
-offset_left = 424.0
-offset_top = 328.0
-offset_right = 720.0
-offset_bottom = 368.0
+offset_left = 500.0
+offset_top = 350.0
+offset_right = 796.0
+offset_bottom = 390.0
 max_value = 1.0
 step = 0.01
 value = 0.1
 
 [node name="UISoundCheck" type="CheckButton" parent="AudioPage" unique_id=818214582]
 layout_mode = 0
-offset_left = 304.0
-offset_top = 384.0
-offset_right = 503.0
-offset_bottom = 415.0
+offset_left = 255.0
+offset_top = 425.0
+offset_right = 538.0
+offset_bottom = 456.0
+theme_override_font_sizes/font_size = 23
 text = "Звуки интерфейса
 "
 
 [node name="SFXLabel" type="Label" parent="AudioPage" unique_id=11202023]
 layout_mode = 0
-offset_left = 264.0
-offset_top = 272.0
-offset_right = 419.0
-offset_bottom = 312.0
+offset_left = 260.0
+offset_top = 291.0
+offset_right = 415.0
+offset_bottom = 331.0
+theme_override_font_sizes/font_size = 23
 text = "Звуковые эффекты"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
+visible = false
 anchors_preset = 0
-offset_top = 8.0
-offset_right = 1152.0
-offset_bottom = 656.0
-
-[node name="MoveUpLabel" type="Label" parent="ControlsPage" unique_id=451924731]
-layout_mode = 0
-offset_left = 184.0
-offset_top = 184.0
-offset_right = 237.33331
-offset_bottom = 208.0
-scale = Vector2(1.5, 1.5)
-text = "Вверх
-"
+offset_left = -3.0
+offset_top = 9.0
+offset_right = 1149.0
+offset_bottom = 657.0
 
 [node name="MoveUpButton" type="Button" parent="ControlsPage" unique_id=565267772]
 custom_minimum_size = Vector2(80, 0)
+layout_mode = 1
+offset_left = 350.0
+offset_top = 159.0
+offset_right = 430.0
+offset_bottom = 207.0
+theme_override_font_sizes/font_size = 32
+
+[node name="MoveUpLabel" type="Label" parent="ControlsPage" unique_id=2052933930]
 layout_mode = 0
-offset_left = 272.0
-offset_top = 184.0
-offset_right = 344.0
-offset_bottom = 216.0
+offset_left = 180.0
+offset_top = 170.0
+offset_right = 210.0
+offset_bottom = 201.0
+scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
+text = "Вверх"
 
 [node name="MoveDownLabel" type="Label" parent="ControlsPage" unique_id=1057749602]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 232.00002
-offset_right = 226.66667
-offset_bottom = 256.0
+offset_left = 180.0
+offset_top = 230.0
+offset_right = 204.0
+offset_bottom = 244.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Вниз"
 
 [node name="MoveDownButton" type="Button" parent="ControlsPage" unique_id=708118919]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 272.0
-offset_top = 232.0
-offset_right = 344.0
-offset_bottom = 264.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 219.0
+offset_right = 430.0
+offset_bottom = 267.0
+theme_override_font_sizes/font_size = 32
 
 [node name="MoveLeftLabel" type="Label" parent="ControlsPage" unique_id=382700892]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 336.0
-offset_right = 233.0
-offset_bottom = 360.0
+offset_left = 180.0
+offset_top = 350.0
+offset_right = 211.0
+offset_bottom = 364.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Влево"
 
 [node name="MoveLeftButton" type="Button" parent="ControlsPage" unique_id=1597221555]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 280.0
-offset_top = 336.0
-offset_right = 352.0
-offset_bottom = 368.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 339.0
+offset_right = 430.0
+offset_bottom = 387.0
+theme_override_font_sizes/font_size = 32
 
 [node name="MoveRightLabel" type="Label" parent="ControlsPage" unique_id=524739626]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 280.0
-offset_right = 244.0
+offset_left = 180.0
+offset_top = 290.0
+offset_right = 216.0
 offset_bottom = 304.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Вправо"
 
 [node name="MoveRightButton" type="Button" parent="ControlsPage" unique_id=1453332579]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 280.0
-offset_top = 280.0
-offset_right = 352.0
-offset_bottom = 312.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 279.0
+offset_right = 430.0
+offset_bottom = 327.0
+theme_override_font_sizes/font_size = 32
 
 [node name="JumpLabel" type="Label" parent="ControlsPage" unique_id=1026622778]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 392.0
-offset_right = 253.33333
-offset_bottom = 416.0
+offset_left = 180.0
+offset_top = 410.0
+offset_right = 222.0
+offset_bottom = 424.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Прыжок"
 
 [node name="JumpButton" type="Button" parent="ControlsPage" unique_id=695658269]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 296.0
-offset_top = 392.0
-offset_right = 368.0
-offset_bottom = 424.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 399.0
+offset_right = 430.0
+offset_bottom = 447.0
+theme_override_font_sizes/font_size = 32
 
 [node name="InteractLabel" type="Label" parent="ControlsPage" unique_id=2068110502]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 496.00003
-offset_right = 339.0
-offset_bottom = 522.66675
+offset_left = 180.0
+offset_top = 470.0
+offset_right = 265.0
+offset_bottom = 484.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Взаимодействие"
 
 [node name="InteractButton" type="Button" parent="ControlsPage" unique_id=1220683337]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 408.0
-offset_top = 496.0
-offset_right = 480.0
-offset_bottom = 528.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 459.0
+offset_right = 430.0
+offset_bottom = 507.0
+theme_override_font_sizes/font_size = 32
 
 [node name="PauseLabel" type="Label" parent="ControlsPage" unique_id=1606541364]
 layout_mode = 0
-offset_left = 184.0
-offset_top = 440.0
-offset_right = 237.33333
-offset_bottom = 463.0
+offset_left = 180.0
+offset_top = 530.0
+offset_right = 210.0
+offset_bottom = 544.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Пауза"
 
 [node name="PauseButton" type="Button" parent="ControlsPage" unique_id=1251175926]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 280.0
-offset_top = 440.0
-offset_right = 352.0
-offset_bottom = 472.0
+layout_mode = 1
+offset_left = 350.0
+offset_top = 519.0
+offset_right = 430.0
+offset_bottom = 567.0
+theme_override_font_sizes/font_size = 32
 
 [node name="InventoryLabel" type="Label" parent="ControlsPage" unique_id=24195532]
 layout_mode = 0
-offset_left = 320.0
-offset_top = 184.00002
-offset_right = 480.0
-offset_bottom = 240.00002
+offset_left = 480.0
+offset_top = 170.0
+offset_right = 534.0
+offset_bottom = 184.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Инвентарь"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="InventoryButton" type="Button" parent="ControlsPage" unique_id=86391702]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 536.0
-offset_top = 208.0
-offset_right = 624.0
-offset_bottom = 248.0
+layout_mode = 1
+offset_left = 650.0
+offset_top = 159.0
+offset_right = 730.0
+offset_bottom = 207.0
+theme_override_font_sizes/font_size = 32
 
 [node name="CrouchLabel" type="Label" parent="ControlsPage" unique_id=1656085811]
 layout_mode = 0
-offset_left = 392.0
-offset_top = 272.0
-offset_right = 482.66666
-offset_bottom = 309.3333
+offset_left = 480.00003
+offset_top = 230.00005
+offset_right = 525.0
+offset_bottom = 244.00005
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 16
 text = "Присесть"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CrouchButton" type="Button" parent="ControlsPage" unique_id=1073419493]
 custom_minimum_size = Vector2(80, 0)
-layout_mode = 0
-offset_left = 536.0
-offset_top = 280.0
-offset_right = 624.0
-offset_bottom = 320.0
+layout_mode = 1
+offset_left = 650.0
+offset_top = 219.0
+offset_right = 730.0
+offset_bottom = 267.0
+theme_override_font_sizes/font_size = 32
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0
@@ -376,6 +398,7 @@ offset_left = 784.0
 offset_top = 416.0
 offset_right = 936.0
 offset_bottom = 463.0
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -387,6 +410,7 @@ offset_left = 784.0
 offset_top = 480.0
 offset_right = 936.0
 offset_bottom = 527.0
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -398,6 +422,7 @@ offset_left = 176.0
 offset_top = 64.0
 offset_right = 360.0
 offset_bottom = 120.0
+theme_override_font_sizes/font_size = 27
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -411,6 +436,7 @@ offset_left = 456.0
 offset_top = 64.0
 offset_right = 640.0
 offset_bottom = 118.0
+theme_override_font_sizes/font_size = 27
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -423,6 +449,7 @@ offset_left = 752.0
 offset_top = 64.0
 offset_right = 936.0
 offset_bottom = 120.0
+theme_override_font_sizes/font_size = 27
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -435,6 +462,7 @@ offset_left = 456.0
 offset_top = 584.0
 offset_right = 688.0
 offset_bottom = 632.0
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")

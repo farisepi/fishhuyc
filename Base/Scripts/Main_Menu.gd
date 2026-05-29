@@ -21,9 +21,10 @@ var can_click_logo: bool = true
 func _ready() -> void:
 	Fade.fade_in()
 
-	GlobalMusic.play_music(
-		preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3")
-	)
+	# МУЗЫКА ВРЕМЕННО ОТКЛЮЧЕНА
+	# GlobalMusic.play_music(
+	# 	preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3")
+	# )
 
 	var ui_sounds = get_node_or_null("/root/UISounds")
 
@@ -298,7 +299,7 @@ func _change_scene(path: String) -> void:
 
 func _on_play_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	Global.is_new_game = true      # Помечаем, что это НОВАЯ игра
+	Global.is_new_game = true
 	Global.intro_completed = false
 	Global.prologue1_completed = false
 	Global.prologue2_completed = false
@@ -307,7 +308,6 @@ func _on_play_button_pressed() -> void:
 
 	await get_tree().create_timer(0.3).timeout
 
-	# Идём в save_menu, как и было
 	get_tree().change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_settings_button_pressed() -> void:
@@ -362,11 +362,12 @@ func _make_menu_bubble() -> void:
 	if not bubble_scene:
 		return
 	
+	# Используем DisplayServer вместо get_viewport()
+	var viewport_size = DisplayServer.window_get_size()
+	
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
 	bubble.z_index = -10
-	
-	var viewport_size = get_viewport().get_visible_rect().size
 	
 	bubble.global_position = Vector2(
 		randf_range(0, viewport_size.x),

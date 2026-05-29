@@ -49,7 +49,8 @@ func _ready() -> void:
 	print("=== INTRO STARTED ===")
 	
 	_stop_main_menu_music()
-	_music_start()
+	# МУЗЫКА ВРЕМЕННО ОТКЛЮЧЕНА
+	# _music_start()
 	
 	# Чёрный фон
 	bg = ColorRect.new()
@@ -184,13 +185,13 @@ func _start_final_fade() -> void:
 	final_fade.parallel().tween_property(text_label, "modulate:a", 0.0, 0.75)
 	await final_fade.finished
 	
-	# Обрываем музыку на 35.75
-	if music_player and music_player.playing:
-		music_player.stop()
-		print("Music cut at ", Time.get_ticks_msec() / 1000.0 - intro_start_time)
+	# Обрываем музыку на 35.75 (ВРЕМЕННО ОТКЛЮЧЕНО)
+	# if music_player and music_player.playing:
+	# 	music_player.stop()
+	# 	print("Music cut at ", Time.get_ticks_msec() / 1000.0 - intro_start_time)
 	
 	print("=== INTRO FINISHED at ", Time.get_ticks_msec() / 1000.0 - intro_start_time, " ===")
-	get_tree().change_scene_to_file("res://Base/Scripts/Level_1.gd")
+	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 	queue_free()
 
 func _input(event: InputEvent) -> void:

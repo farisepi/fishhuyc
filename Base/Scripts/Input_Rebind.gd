@@ -85,7 +85,47 @@ func _keycode_to_string(keycode: Key) -> String:
 		KEY_SHIFT: return "shift"
 		KEY_CTRL: return "ctrl"
 		KEY_ALT: return "alt"
-		_: return OS.get_keycode_string(keycode).to_lower()
+		KEY_UP: return "стрелка вверх"
+		KEY_DOWN: return "стрелка вниз"
+		KEY_LEFT: return "стрелка влево"
+		KEY_RIGHT: return "стрелка вправо"
+		_:
+			var result = OS.get_keycode_string(keycode).to_lower()
+			# Для русской раскладки
+			match result:
+				"й": return "q"
+				"ц": return "w"
+				"у": return "e"
+				"к": return "r"
+				"е": return "t"
+				"н": return "y"
+				"г": return "u"
+				"ш": return "i"
+				"щ": return "o"
+				"з": return "p"
+				"х": return "["
+				"ъ": return "]"
+				"ф": return "a"
+				"ы": return "s"
+				"в": return "d"
+				"а": return "f"
+				"п": return "g"
+				"р": return "h"
+				"о": return "j"
+				"л": return "k"
+				"д": return "l"
+				"ж": return ";"
+				"э": return "'"
+				"я": return "z"
+				"ч": return "x"
+				"с": return "c"
+				"м": return "v"
+				"и": return "b"
+				"т": return "n"
+				"ь": return "m"
+				"б": return ","
+				"ю": return "."
+				_: return result
 
 func start_rebind(action: String) -> void:
 	print("start_rebind called with action: ", action)

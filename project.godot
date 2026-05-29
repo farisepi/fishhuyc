@@ -35,7 +35,6 @@ folder_colors={
 "res://Base/Scripts/": "red",
 "res://Sounds/": "purple",
 "res://Sounds/Music/": "purple",
-"res://Sounds/Music/Temporary/": "purple",
 "res://Sounds/SFX/": "purple",
 "res://Textures/": "teal"
 }
