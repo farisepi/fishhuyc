@@ -28,8 +28,8 @@ var unlocked_count: int = 0
 func _ready() -> void:
 	Fade.fade_in()
 
-	if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
-		GlobalMusic.play_music(preload("res://музыка/Fish Slaves - main menu.mp3"))
+	#if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
+		#GlobalMusic.play_music(preload("res://музыка/Fish Slaves - main menu.mp3"))
 
 	ButtonEffects.setup(back_btn)
 	ButtonEffects.setup(reset_btn)
