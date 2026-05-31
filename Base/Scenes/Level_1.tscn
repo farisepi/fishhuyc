@@ -191,7 +191,6 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
-visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
@@ -202,10 +201,11 @@ offset_bottom = 1648.0
 color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=1837279410]
-offset_left = 397.0
-offset_top = 120.0
-offset_right = 632.0
-offset_bottom = 191.0
+offset_left = 486.0
+offset_top = 176.0
+offset_right = 666.0
+offset_bottom = 231.0
+theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -213,20 +213,22 @@ text = "Продолжить
 "
 
 [node name="SaveButton" type="Button" parent="Pausemenu" unique_id=936196689]
-offset_left = 402.0
-offset_top = 200.0
-offset_right = 632.0
-offset_bottom = 272.0
+offset_left = 486.0
+offset_top = 236.0
+offset_right = 666.0
+offset_bottom = 291.0
+theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
 text = "Сохраниться"
 
 [node name="ExitButton" type="Button" parent="Pausemenu" unique_id=406837401]
-offset_left = 404.0
-offset_top = 440.0
-offset_right = 632.0
-offset_bottom = 512.0
+offset_left = 486.0
+offset_top = 419.0
+offset_right = 666.0
+offset_bottom = 474.0
+theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -234,20 +236,22 @@ text = "Выход
 "
 
 [node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=427798589]
-offset_left = 403.0
-offset_top = 360.0
-offset_right = 632.0
-offset_bottom = 432.0
+offset_left = 486.0
+offset_top = 358.0
+offset_right = 666.0
+offset_bottom = 413.0
+theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
 text = "Настройки"
 
 [node name="RestartButton" type="Button" parent="Pausemenu" unique_id=461368089]
-offset_left = 403.0
-offset_top = 280.0
-offset_right = 632.0
+offset_left = 486.0
+offset_top = 297.0
+offset_right = 666.0
 offset_bottom = 352.0
+theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")

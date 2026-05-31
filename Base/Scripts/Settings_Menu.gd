@@ -127,11 +127,16 @@ func setup_options() -> void:
 		resolution_option.add_item("1920x1080")
 		resolution_option.add_item("1280x720")
 		resolution_option.add_item("854x480")
+		
+		# Вместо 1 используй HORIZONTAL_ALIGNMENT_CENTER
+		resolution_option.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	if language_option:
 		language_option.clear()
 		language_option.add_item("Русский")
 		language_option.add_item("English")
+		
+		language_option.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
