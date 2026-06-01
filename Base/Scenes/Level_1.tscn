@@ -125,7 +125,7 @@ script = ExtResource("1_u46od")
 bubble_scene = ExtResource("2_x2xif")
 
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
-position = Vector2(769, 312)
+position = Vector2(605, 224)
 
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
 z_index = -100
@@ -342,6 +342,16 @@ offset_bottom = 511.0
 mouse_filter = 2
 texture = ExtResource("19_x2xif")
 stretch_mode = 5
+
+[node name="FadeRect" type="ColorRect" parent="." unique_id=411503246]
+z_index = 100
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]

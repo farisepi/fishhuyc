@@ -350,20 +350,33 @@ func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
 func _start_background_bubbles() -> void:
-	while true:
-		for i in range(randi_range(1, 2)):
-			_make_menu_bubble()
-		
-		await get_tree().create_timer(
-			randf_range(0.15, 0.35)
-		).timeout
+	for i in range(randi_range(3, 6)):
+		_make_menu_bubble()
+	
+	_spawn_next_bubble()
+
+func _spawn_next_bubble() -> void:
+	if not bubble_scene:
+		return
+	
+	var timer = get_tree().create_timer(randf_range(0.15, 0.35))
+	timer.timeout.connect(_on_bubble_spawn_timer)
+
+func _on_bubble_spawn_timer() -> void:
+	for i in range(randi_range(1, 2)):
+		_make_menu_bubble()
+	
+	_spawn_next_bubble()
 
 func _make_menu_bubble() -> void:
 	if not bubble_scene:
 		return
 	
-	# Используем DisplayServer вместо get_viewport()
-	var viewport_size = DisplayServer.window_get_size()
+	var viewport = get_viewport()
+	if not viewport:
+		return
+	
+	var viewport_size = viewport.get_visible_rect().size
 	
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)

@@ -169,30 +169,30 @@ func _start_final_fade() -> void:
 	final_fade_started = true
 	
 	var elapsed = Time.get_ticks_msec() / 1000.0 - intro_start_time
-	print("All slides shown at ", elapsed)
-	
-	# Ждём до 35 секунды
 	var wait_time = 35.0 - elapsed
 	if wait_time > 0:
-		print("Waiting ", wait_time, " seconds to reach 35.0")
 		await get_tree().create_timer(wait_time).timeout
 	
-	print("Starting final fade at ", Time.get_ticks_msec() / 1000.0 - intro_start_time)
-	
-	# Затемнение длится 0.75 секунды (с 35 до 35.75)
 	var final_fade = create_tween()
 	final_fade.tween_property(image_display, "modulate:a", 0.0, 0.75)
 	final_fade.parallel().tween_property(text_label, "modulate:a", 0.0, 0.75)
 	await final_fade.finished
 	
-	# Обрываем музыку на 35.75 (ВРЕМЕННО ОТКЛЮЧЕНО)
-	# if music_player and music_player.playing:
-	# 	music_player.stop()
-	# 	print("Music cut at ", Time.get_ticks_msec() / 1000.0 - intro_start_time)
+	Global.intro_completed = true
 	
-	print("=== INTRO FINISHED at ", Time.get_ticks_msec() / 1000.0 - intro_start_time, " ===")
+	var black_rect = ColorRect.new()
+	black_rect.color = Color.BLACK
+	black_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	black_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black_rect.z_index = 1000
+	black_rect.name = "IntroBlack"
+	get_tree().root.add_child(black_rect)
+	
+	UISounds.start_factory_ambience()
+	
+	await get_tree().create_timer(0.5).timeout
+	
 	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
-	queue_free()
 
 func _input(event: InputEvent) -> void:
 	if event.is_pressed() and not is_fading and not final_fade_started:

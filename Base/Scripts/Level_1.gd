@@ -32,6 +32,8 @@ extends Node2D
 @onready var speaker_icon_right: TextureRect = $ChatterCanvas/PhantomPanelRight/SpeakerIconRight
 @onready var interact_label: TextureRect = $InteractLabel
 
+@onready var fade_rect: ColorRect = $FadeRect
+
 var in_zone: bool = false
 var dialogue_done: bool = false
 var cutscene_active: bool = false
@@ -124,92 +126,182 @@ var chatter_phrases: Array[Dictionary] = [
 ]
 
 func _ready() -> void:
-	Fade.fade_in()
-	GlobalMusic.stop_music()
-	#GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - The prisoner.mp3"))#
-	UISounds.start_factory_ambience()
-	
-	if Global.player_position != Vector2.ZERO:
-		player.global_position = Global.player_position
-	
 	_setup_timer()
 	_setup_ui()
 	_setup_labels()
 	_setup_atmosphere()
-	
-	if Global.player_position == Vector2.ZERO:
-		Fade.fade_in()
-	
-	if Global.just_returned_from_settings:
-		_on_return_from_settings()
-		return
-	
 	_generate_chatter_queue()
-	chatter_active = false
-	
 	_update_interact_icon()
-	InputRebind.keybinds_updated.connect(_update_interact_icon)
-	if interact_icon:
-		interact_icon.visible = false
 	
+	# Скрываем всё, что должно быть скрыто до окончания интро
+	chatter_panel.visible = false
+	chatter_panel_far.visible = false
+	phantom_left.visible = false
+	phantom_right.visible = false
+	
+	# Настраиваем fade_rect для плавного перехода
+	if fade_rect:
+		fade_rect.color = Color.BLACK
+		fade_rect.modulate.a = 1.0
+		fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fade_rect.z_index = 100
+	else:
+		# Создаём fade_rect если его нет
+		fade_rect = ColorRect.new()
+		fade_rect.name = "FadeRect"
+		fade_rect.color = Color.BLACK
+		fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fade_rect.z_index = 100
+		add_child(fade_rect)
+	
+	# ВСЕГДА запускаем переход, игнорируем Global.intro_completed
+	# Небольшая задержка для стабильности
+	await get_tree().create_timer(0.1).timeout
+	_start_post_intro_with_fade()
+
+func _start_post_intro_with_fade() -> void:
+	player.can_move = false
+	
+	# Удаляем старые черные узлы
+	var root = get_tree().root
+	_remove_black_nodes(root)
+	
+	# Плавно убираем затемнение
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.set_trans(Tween.TRANS_CUBIC)
+	
+	if fade_rect:
+		tween.tween_property(fade_rect, "modulate:a", 0.0, 2.0)  # Увеличил время до 2 секунд
+	
+	await tween.finished
+	
+	# Если fade_rect все еще существует, удаляем его
+	if fade_rect:
+		fade_rect.queue_free()
+	
+	# Запускаем анимацию пробуждения рыбы
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
-		player.can_move = false
 		player_sprite.play("wake")
+		player_sprite.speed_scale = 0.5
 		await player_sprite.animation_finished
+		player_sprite.speed_scale = 1.0
 		player_sprite.play("idle")
-		player.can_move = true
 	
-	start_chatter()
-	_spawn_bubbles()
-
-
-# ============================================
-# БЛОК 1. _get_player_camera() — НОВАЯ функция
-# ============================================
-
-# Функция получения камеры игрока
-# Сначала ищет PlayerCamera у рыбки, затем через вьюпорт
-# Возвращает Camera2D или null
-func _get_player_camera() -> Camera2D:
-	if player and player.has_node("PlayerCamera"):
-		return player.get_node("PlayerCamera") as Camera2D
-	return get_viewport().get_camera_2d()
-
-
-# ============================================
-# БЛОК 2. _get_random_position_in_viewport() — НОВАЯ функция
-# ============================================
-
-# Функция получения случайной позиции в пределах видимой области камеры
-# Учитывает зум камеры
-# Параметр margin_bottom — отступ снизу (чтобы пузыри появлялись у нижнего края)
-# Возвращает Vector2 с координатами в глобальном пространстве
-func _get_random_position_in_viewport(margin_bottom: float = 100.0) -> Vector2:
-	var viewport = get_viewport()
-	var viewport_size = viewport.get_visible_rect().size
-	var camera = _get_player_camera()
+	# Запускаем болтовню с плавным появлением
+	start_chatter_with_fade()
 	
-	# Если камера не найдена — возвращаем случайную позицию в экранных координатах
-	if not camera:
-		return Vector2(randf_range(0, viewport_size.x), randf_range(viewport_size.y - margin_bottom, viewport_size.y))
+	# Запускаем пузырьки с плавным появлением
+	_spawn_bubbles_with_fade()
 	
-	var cam_pos = camera.global_position
-	var zoom = camera.zoom
-	
-	# Вычисляем реальные границы видимой области с учётом зума
-	var world_width = viewport_size.x / zoom.x
-	var world_height = viewport_size.y / zoom.y
-	
-	return Vector2(
-		cam_pos.x - world_width / 2 + randf_range(0, world_width),
-		cam_pos.y - world_height / 2 + randf_range(world_height - margin_bottom, world_height)
-	)
+	# Даём игроку управление
+	await get_tree().create_timer(0.5).timeout
+	player.can_move = true
+
+func _remove_black_nodes(node: Node) -> void:
+	for child in node.get_children():
+		if child is ColorRect and child.color == Color.BLACK and child != fade_rect:
+			child.queue_free()
+		_remove_black_nodes(child)
 
 
-# ============================================
-# БЛОК 3. _spawn_bubbles() — ИСПРАВЛЕНАЯ функция
-# ============================================
+func _spawn_bubbles_with_fade() -> void:
+	await get_tree().process_frame
+	for i in range(6):
+		_make_bubble_with_fade()
+		await get_tree().create_timer(0.5).timeout
+
+func _make_bubble_with_fade() -> void:
+	if not bubble_scene:
+		return
+	
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	
+	var spawn_y = randf_range(300, 514)
+	bubble.global_position = _get_random_position_with_y_limit(spawn_y)
+	
+	var bubble_scale = randf_range(0.35, 0.7)
+	bubble.scale = Vector2(bubble_scale, bubble_scale)
+	
+	# Начинаем с прозрачности 0
+	bubble.modulate.a = 0.0
+	
+	var direction_x = randf_range(-0.2, 0.2)
+	bubble.set_direction(Vector2(direction_x, -1.0))
+	
+	# Плавно появляем пузырёк
+	var appear_tween = create_tween()
+	appear_tween.tween_property(bubble, "modulate:a", randf_range(0.1, 0.5), 0.8)
+	
+	bubble.start_life(randf_range(5.0, 10.0))
+	bubble.clickable = false
+	
+	bubble.body_entered.connect(_on_bubble_body_entered.bind(bubble))
+	
+	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0))
+	spawn_timer.timeout.connect(_make_bubble)
+
+func start_chatter_with_fade() -> void:
+	if chatter_queue.is_empty():
+		_generate_chatter_queue()
+	
+	chatter_active = true
+	chatter_typing = true
+	
+	# Скрываем панели до окончания анимации
+	chatter_panel.visible = false
+	chatter_panel.modulate.a = 0.0
+	chatter_panel_far.visible = false
+	phantom_left.visible = false
+	phantom_left_label.visible = false
+	phantom_right.visible = false
+	phantom_right_label.visible = false
+	current_phantom_offset = 0.0
+	
+	if chatter_queue.is_empty():
+		chatter_queue = chatter_phrases.duplicate()
+	
+	var data: Dictionary = chatter_queue.pop_front()
+	chatter_speaker = data["speaker"]
+	_update_speaker_icons()
+	
+	if data.has("parts"):
+		chatter_segments.clear()
+		for part in data["parts"]:
+			var upper = part.to_upper()
+			var swear_list = ["БЛЯТЬ", "ЗАЕБАЛ", "НАХУЙ", "ЕБАННЫЙ", "ПИЗДЕТЬ"]
+			var is_swear = upper in swear_list
+			chatter_segments.append({"text": part, "swear": is_swear})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+	else:
+		chatter_segments.clear()
+		chatter_full_text = data.get("text", "")
+		chatter_segments.append({"text": chatter_full_text, "swear": false})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+	
+	chatter_panel_height = data.get("height", 28.0)
+	chatter_label.clear()
+	chatter_label_far.clear()
+	chatter_label.text = ""
+	chatter_label_far.text = ""
+	
+	# Небольшая задержка перед появлением болтовни
+	await get_tree().create_timer(0.3).timeout
+	
+	update_chatter_panel()
+	
+	# Плавно показываем панель
+	var fade_tween = create_tween()
+	fade_tween.tween_property(chatter_panel, "modulate:a", 1.0, 0.5)
+	
+	timer.stop()
+	timer.wait_time = typing_speed
+	timer.start()
 
 func _spawn_bubbles() -> void:
 	await get_tree().process_frame
@@ -1397,27 +1489,21 @@ func _change_to_prologue2():
 	get_tree().change_scene_to_file("res://Base/Scripts/Level_2.gd")
 
 func _save_progress():
-	# Проверяем, есть ли глобальная переменная save_slot
 	if not has_node("/root/Global"):
 		print("Global не найден, сохранение невозможно")
 		return
 	
-	# Формируем путь к файлу сохранения
 	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
 	
-	# Создаём конфиг файл
 	var config = ConfigFile.new()
 	
-	# Сохраняем информацию
 	config.set_value("save", "scene", "res://код/сцены/chase_level.tscn")
 	config.set_value("save", "time", Time.get_datetime_string_from_system())
 	
-	# Сохраняем позицию игрока (если нужно)
 	if player:
 		config.set_value("save", "player_x", player.global_position.x)
 		config.set_value("save", "player_y", player.global_position.y)
 	
-	# Сохраняем файл
 	var error = config.save(save_path)
 	
 	if error == OK:
@@ -1641,3 +1727,8 @@ func _spawn_prologue_bubble() -> void:
 	)
 	
 	bubble.start_life(randf_range(1.0, 20.0))
+
+func _get_player_camera() -> Camera2D:
+	if player and player.has_node("PlayerCamera"):
+		return player.get_node("PlayerCamera") as Camera2D
+	return get_viewport().get_camera_2d()
