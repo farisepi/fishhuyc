@@ -189,9 +189,9 @@ autoplay = "idle"
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=675897869]
 zoom = Vector2(2, 2)
-limit_left = 2
-limit_top = 9
-limit_right = 960
+limit_left = 341
+limit_top = 250
+limit_right = 836
 limit_bottom = 664
 position_smoothing_enabled = true
 script = ExtResource("24_cmea6")
