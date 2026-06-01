@@ -211,20 +211,12 @@ func _get_random_position_in_viewport(margin_bottom: float = 100.0) -> Vector2:
 # БЛОК 3. _spawn_bubbles() — ИСПРАВЛЕНАЯ функция
 # ============================================
 
-# Функция запуска фоновых пузырей в прологе
-# Ждёт один кадр (чтобы сцена полностью загрузилась), затем вызывает создание первого пузыря
 func _spawn_bubbles() -> void:
 	await get_tree().process_frame
-	_make_bubble()
+	for i in range(6):
+		_make_bubble()
+		await get_tree().create_timer(0.5).timeout
 
-
-# ============================================
-# БЛОК 4. _make_bubble() — ИСПРАВЛЕНАЯ функция
-# ============================================
-
-# Функция создания одного фонового пузыря в прологе
-# Позиция рассчитывается относительно камеры через _get_random_position_in_viewport()
-# После создания пузыря запускает таймер и вызывает себя снова для создания следующего
 func _make_bubble() -> void:
 	if not bubble_scene:
 		return
@@ -232,18 +224,52 @@ func _make_bubble() -> void:
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
 	
-	bubble.global_position = _get_random_position_in_viewport(100.0)
-	bubble.scale = Vector2(randf_range(0.2, 0.5), randf_range(0.2, 0.5))
-	bubble.modulate.a = 0.0
+	var spawn_y = randf_range(300, 514)
+	bubble.global_position = _get_random_position_with_y_limit(spawn_y)
 	
-	var tween = create_tween()
-	tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.5), 0.5)
-	bubble.set_direction(Vector2.UP)
-	bubble.start_life(randf_range(3.0, 8.0))
+	var bubble_scale = randf_range(0.35, 0.7)
+	bubble.scale = Vector2(bubble_scale, bubble_scale)
 	
-	await get_tree().create_timer(randf_range(0.5, 1.5)).timeout
-	_make_bubble()
+	bubble.modulate.a = randf_range(0.01, 0.5)
+	
+	var direction_x = randf_range(-0.2, 0.2)
+	bubble.set_direction(Vector2(direction_x, -1.0))
+	
+	bubble.start_life(randf_range(5.0, 10.0))
+	bubble.clickable = false
+	
+	bubble.body_entered.connect(_on_bubble_body_entered.bind(bubble))
+	
+	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0))
+	spawn_timer.timeout.connect(_make_bubble)
 
+func _on_bubble_body_entered(body: Node2D, bubble: Area2D) -> void:
+	if body.name == "рыбка" and not bubble.popped:
+		bubble._pop()
+
+func _get_random_position_with_y_limit(max_y: float) -> Vector2:
+	var viewport = get_viewport()
+	var viewport_size = viewport.get_visible_rect().size
+	var camera = _get_player_camera()
+	
+	if not camera:
+		return Vector2(randf_range(0, viewport_size.x), randf_range(viewport_size.y - 200, max_y))
+	
+	var cam_pos = camera.global_position
+	var zoom = camera.zoom
+	
+	var world_width = viewport_size.x / zoom.x
+	var world_height = viewport_size.y / zoom.y
+	
+	var cam_bottom = cam_pos.y + world_height / 2
+	
+	var spawn_y_min = cam_bottom - 300
+	var spawn_y_max = min(cam_bottom - 100, max_y)
+	
+	return Vector2(
+		cam_pos.x - world_width / 2 + randf_range(0, world_width),
+		randf_range(spawn_y_min, spawn_y_max)
+	)
 
 func _update_interact_icon() -> void:
 	if not interact_icon:
@@ -1332,37 +1358,30 @@ func _show_blackout_title():
 	
 	var fade_tween = create_tween()
 	fade_tween.tween_property(rect, "modulate:a", 1.0, 0.5)
-	await fade_tween.finished
+	fade_tween.finished.connect(_on_fade_finished.bind(label, blackout))
 	
+func _on_fade_finished(label: Label, blackout: CanvasLayer):
 	Achievements.unlock_flashback()
 	_show_achievement_flashback("Флешбек")
 	
 	var title_tween = create_tween()
 	title_tween.tween_property(label, "modulate:a", 1.0, 1.0)
-	await title_tween.finished
-	
-	await get_tree().create_timer(1.5).timeout
-	
+	title_tween.finished.connect(_on_title_finished.bind(label, blackout))
+
+func _on_title_finished(label: Label, blackout: CanvasLayer):
 	var hide_title = create_tween()
 	hide_title.tween_property(label, "modulate:a", 0.0, 0.5)
-	await hide_title.finished
-	
-	# ============================================
-	# СОХРАНЯЕМ ПРОГРЕСС
-	# ============================================
+	hide_title.finished.connect(_on_hide_finished.bind(blackout))
+
+func _on_hide_finished(_blackout: CanvasLayer):
 	_save_progress()
 	
-	# ============================================
-	# ПЕРЕХОД ВО ВТОРОЙ ПРОЛОГ
-	# ============================================
 	cutscene_active = false
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.prologue1_completed = true
 	
-	# Затемняем экран перед переходом
 	if has_node("/root/Fade"):
 		Fade.fade_out()
-		await Fade.fade_out
 	else:
 		var temp_fade = ColorRect.new()
 		temp_fade.color = Color.BLACK
@@ -1372,9 +1391,9 @@ func _show_blackout_title():
 		add_child(temp_fade)
 		var tween_fade = create_tween()
 		tween_fade.tween_property(temp_fade, "modulate:a", 1.0, 0.5)
-		await tween_fade.finished
-	
-	# Переход в пролог2
+		tween_fade.finished.connect(_change_to_prologue2)
+
+func _change_to_prologue2():
 	get_tree().change_scene_to_file("res://Base/Scripts/Level_2.gd")
 
 func _save_progress():

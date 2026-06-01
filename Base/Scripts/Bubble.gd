@@ -6,12 +6,18 @@ var direction: Vector2 = Vector2.UP
 var life_time: float = 4.0
 var clickable: bool = false
 var popped: bool = false
+var ignore_fish_collision: bool = false
+var ignore_timer: float = 0.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
 
 func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
+	body_entered.connect(_on_body_entered)
+	
+	ignore_fish_collision = true
+	ignore_timer = 0.3
 	
 	modulate.a = 0.0
 	
@@ -29,9 +35,24 @@ func _ready() -> void:
 	var timer = get_tree().create_timer(life_time)
 	timer.timeout.connect(_auto_pop)
 
-func _process(delta: float) -> void:
+func _on_body_entered(body: Node2D) -> void:
 	if popped:
 		return
+	
+	if ignore_fish_collision:
+		return
+	
+	if body.name == "рыбка":
+		_pop()
+
+func _physics_process(delta: float) -> void:
+	if popped:
+		return
+	
+	if ignore_fish_collision:
+		ignore_timer -= delta
+		if ignore_timer <= 0:
+			ignore_fish_collision = false
 	
 	global_position += direction * speed * delta
 
@@ -47,6 +68,17 @@ func _on_mouse_entered() -> void:
 	
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_pop()
+
+func _on_area_entered(area: Area2D) -> void:
+	if popped:
+		return
+	
+	var check_node = area
+	while check_node:
+		if check_node.name == "рыбка":
+			_pop()
+			return
+		check_node = check_node.get_parent()
 
 func _input_event(_viewport, event, _shape_idx) -> void:
 	if not clickable:
@@ -69,12 +101,12 @@ func _pop() -> void:
 		call_deferred("_notify_achievement")
 	
 	if collision:
-		collision.disabled = true
+		collision.call_deferred("set_disabled", true)
 	
 	var pop_sound = AudioStreamPlayer.new()
 	add_child(pop_sound)
 	pop_sound.stream = preload("res://Sounds/SFX/Pop.mp3")
-	pop_sound.volume_db = -18.0
+	pop_sound.volume_db = -24.0
 	pop_sound.pitch_scale = randf_range(0.95, 1.05)
 	pop_sound.play()
 	
@@ -92,7 +124,7 @@ func _auto_pop() -> void:
 	clickable = false
 	
 	if collision:
-		collision.disabled = true
+		collision.call_deferred("set_disabled", true)
 	
 	if sprite:
 		sprite.play("pop")
