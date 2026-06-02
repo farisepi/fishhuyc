@@ -38,7 +38,7 @@ var in_zone: bool = false
 var dialogue_done: bool = false
 var cutscene_active: bool = false
 var cutscene_step: int = 0
-
+var skip_chatter_update: bool = false
 var part1: String = ""
 var mate: String = ""
 var part2: String = ""
@@ -46,7 +46,7 @@ var typing_index: int = 0
 var typing_speed: float = 0.025
 var waiting_for_next: bool = false
 var mate_shown: bool = false
-
+var fading_chatter: bool = false
 var chatter_char_index: int = 0
 var chatter_active: bool = false
 var chatter_typing: bool = false
@@ -126,6 +126,8 @@ var chatter_phrases: Array[Dictionary] = [
 ]
 
 func _ready() -> void:
+	print("=== LEVEL_1 _ready START ===")
+	
 	_setup_timer()
 	_setup_ui()
 	_setup_labels()
@@ -133,20 +135,22 @@ func _ready() -> void:
 	_generate_chatter_queue()
 	_update_interact_icon()
 	
-	# Скрываем всё, что должно быть скрыто до окончания интро
 	chatter_panel.visible = false
 	chatter_panel_far.visible = false
 	phantom_left.visible = false
 	phantom_right.visible = false
 	
-	# Настраиваем fade_rect для плавного перехода
-	if fade_rect:
-		fade_rect.color = Color.BLACK
-		fade_rect.modulate.a = 1.0
-		fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		fade_rect.z_index = 100
-	else:
-		# Создаём fade_rect если его нет
+	print("Player exists: ", player != null)
+	if player and player.has_node("AnimatedSprite2D"):
+		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
+		player_sprite.stop()
+		player_sprite.frame = 0
+		player_sprite.animation = "wake"
+	
+	print("Setting player.can_move = false")
+	player.can_move = false
+	
+	if not fade_rect:
 		fade_rect = ColorRect.new()
 		fade_rect.name = "FadeRect"
 		fade_rect.color = Color.BLACK
@@ -155,57 +159,88 @@ func _ready() -> void:
 		fade_rect.z_index = 100
 		add_child(fade_rect)
 	
-	# ВСЕГДА запускаем переход, игнорируем Global.intro_completed
-	# Небольшая задержка для стабильности
-	await get_tree().create_timer(0.1).timeout
-	_start_post_intro_with_fade()
+	fade_rect.color = Color.BLACK
+	fade_rect.modulate.a = 1.0
+	
+	print("Calling _start_wake_sequence")
+	_start_wake_sequence()
+	print("=== LEVEL_1 _ready END ===")
 
-func _start_post_intro_with_fade() -> void:
-	player.can_move = false
+func _start_wake_sequence() -> void:
+	print("=== _start_wake_sequence START ===")
 	
-	# Удаляем старые черные узлы
-	var root = get_tree().root
-	_remove_black_nodes(root)
+	print("Waiting 0.2 seconds...")
+	await get_tree().create_timer(0.2).timeout
+	print("Wait finished")
 	
-	# Плавно убираем затемнение
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.set_trans(Tween.TRANS_CUBIC)
+	print("Starting chatter...")
+	start_chatter()
 	
-	if fade_rect:
-		tween.tween_property(fade_rect, "modulate:a", 0.0, 2.0)  # Увеличил время до 2 секунд
+	print("Spawning bubbles...")
+	_spawn_bubbles()
 	
-	await tween.finished
-	
-	# Если fade_rect все еще существует, удаляем его
-	if fade_rect:
-		fade_rect.queue_free()
-	
-	# Запускаем анимацию пробуждения рыбы
+	print("Starting wake animation...")
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
+		player_sprite.visible = true
 		player_sprite.play("wake")
-		player_sprite.speed_scale = 0.5
-		await player_sprite.animation_finished
+		player_sprite.speed_scale = 1.0
+		player_sprite.frame = 0
+		print("Wake animation started")
+	
+	print("Creating fade tween...")
+	var fade_tween = create_tween()
+	fade_tween.set_ease(Tween.EASE_IN_OUT)
+	fade_tween.set_trans(Tween.TRANS_CUBIC)
+	
+	print("Looking for all black rectangles...")
+	var root = get_tree().root
+	var all_black_rects = []
+	
+	if fade_rect:
+		print("Adding FadeRect to fade list")
+		all_black_rects.append(fade_rect)
+		fade_tween.tween_property(fade_rect, "modulate:a", 0.0, 1.0)
+	
+	for child in root.get_children():
+		if child is ColorRect and (child.color == Color.BLACK or child.color.r < 0.1):
+			if child != fade_rect:
+				print("Adding root black rect to fade list: ", child.name)
+				all_black_rects.append(child)
+				fade_tween.tween_property(child, "modulate:a", 0.0, 1.0)
+	
+	print("Waiting for fade to finish (1.0 seconds)...")
+	await fade_tween.finished
+	print("All fades FINISHED!")
+	
+	print("Cleaning up all black rects...")
+	for rect in all_black_rects:
+		if is_instance_valid(rect):
+			print("Queue free: ", rect.name)
+			rect.queue_free()
+	
+	if player and player.has_node("AnimatedSprite2D"):
+		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
+		if player_sprite.is_playing():
+			print("Waiting for wake animation to finish...")
+			await player_sprite.animation_finished
+			print("Wake animation finished!")
+		
 		player_sprite.speed_scale = 1.0
 		player_sprite.play("idle")
 	
-	# Запускаем болтовню с плавным появлением
-	start_chatter_with_fade()
-	
-	# Запускаем пузырьки с плавным появлением
-	_spawn_bubbles_with_fade()
-	
-	# Даём игроку управление
+	print("Waiting 0.5 seconds before giving control...")
 	await get_tree().create_timer(0.5).timeout
+	print("Setting player.can_move = true")
 	player.can_move = true
+	
+	print("=== _start_wake_sequence END ===")
 
 func _remove_black_nodes(node: Node) -> void:
 	for child in node.get_children():
 		if child is ColorRect and child.color == Color.BLACK and child != fade_rect:
 			child.queue_free()
 		_remove_black_nodes(child)
-
 
 func _spawn_bubbles_with_fade() -> void:
 	await get_tree().process_frame
@@ -637,6 +672,9 @@ func _input(event: InputEvent) -> void:
 		hit_sequence()
 
 func update_chatter_panel() -> void:
+	if fading_chatter:
+		return
+	
 	if not chatter_active:
 		chatter_panel.visible = false
 		chatter_panel_far.visible = false
@@ -699,7 +737,6 @@ func _show_chatter_near() -> void:
 	phantom_right.visible = false
 	phantom_right_label.visible = false
 	chatter_panel.visible = true
-	chatter_panel.modulate.a = 1.0
 	chatter_panel.z_index = 100
 	current_phantom_offset = 0.0
 	
@@ -855,13 +892,11 @@ func start_chatter() -> void:
 	
 	chatter_active = true
 	chatter_typing = true
-	chatter_panel.visible = false
-	chatter_panel.modulate.a = 0.0
+	chatter_panel.visible = true
+	chatter_panel.modulate.a = 1.0
 	chatter_panel_far.visible = false
 	phantom_left.visible = false
-	phantom_left_label.visible = false
 	phantom_right.visible = false
-	phantom_right_label.visible = false
 	current_phantom_offset = 0.0
 	
 	if chatter_queue.is_empty():
@@ -892,8 +927,6 @@ func start_chatter() -> void:
 	chatter_label_far.clear()
 	chatter_label.text = ""
 	chatter_label_far.text = ""
-	chatter_panel.visible = false
-	chatter_panel_far.visible = false
 	
 	update_chatter_panel()
 	

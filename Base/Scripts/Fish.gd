@@ -24,11 +24,25 @@ var shake_decay: float = 6.0
 var can_move: bool = true
 
 func _ready() -> void:
+	print("=== FISH _ready START ===")
 	if sprite:
+		var available_animations = sprite.sprite_frames.get_animation_names()
+		print("Available animations: ", available_animations)
+		if "wake" in available_animations:
+			print("SUCCESS: 'wake' animation exists!")
+			var frame_count = sprite.sprite_frames.get_frame_count("wake")
+			print("'wake' has ", frame_count, " frames")
+		else:
+			print("ERROR: 'wake' animation NOT FOUND!")
 		sprite.scale.x = 1.0 if facing_direction == -1 else -1.0
+	else:
+		print("ERROR: sprite is null!")
+	
 	if has_node("PlayerCamera"):
 		var cam = $PlayerCamera as Camera2D
 		cam.process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	print("=== FISH _ready END ===")
 
 func _physics_process(delta: float) -> void:
 	if not sprite:

@@ -84,7 +84,7 @@ func _ready() -> void:
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	text_label.offset_bottom = -200
-	text_label.add_theme_font_size_override("font_size", 44)  # <- БЫЛО 28, СТАЛО 56
+	text_label.add_theme_font_size_override("font_size", 40)  
 	text_label.add_theme_color_override("font_color", Color.WHITE)
 	text_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	text_label.add_theme_constant_override("shadow_offset_x", 2)
