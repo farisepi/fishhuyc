@@ -12,7 +12,7 @@ var slides = [
 	},
 	{
 		"image": preload("res://Textures/Intro/3.png"),
-		"text": "Чип сработал безупречно. Крыса забыла, кем была."
+		"text": "Чип сработал. Крыса забыла, кем была."
 	},
 	{
 		"image": preload("res://Textures/Intro/4.png"),
@@ -28,7 +28,7 @@ var slides = [
 	},
 	{
 		"image": preload("res://Textures/Intro/7.png"),
-		"text": "Казалось, всё под контролем. Но что может пойти не так?"
+		"text": "Система казалась безупречной."
 	}
 ]
 
@@ -37,6 +37,7 @@ var bg: ColorRect
 var image_display: TextureRect
 var text_label: Label
 var music_player: AudioStreamPlayer
+var scientist_voice: AudioStreamPlayer  # <- ГОЛОС УЧЁНОГО
 var intro_start_time: float = 0.0
 var slide_timer: Timer
 var is_fading: bool = false
@@ -48,9 +49,14 @@ func _ready() -> void:
 	intro_start_time = Time.get_ticks_msec() / 1000.0
 	print("=== INTRO STARTED ===")
 	
+	# СОЗДАЁМ ГОЛОС УЧЁНОГО С НИЗКИМ ПИТЧЕМ
+	scientist_voice = AudioStreamPlayer.new()
+	scientist_voice.stream = load("res://Sounds/SFX/Scienist_Voise.MP3")
+	scientist_voice.volume_db = -10.0
+	scientist_voice.pitch_scale = 0.9  # НИЖЕ ПИТЧ
+	add_child(scientist_voice)
+	
 	_stop_main_menu_music()
-	# МУЗЫКА ВРЕМЕННО ОТКЛЮЧЕНА
-	# _music_start()
 	
 	# Чёрный фон
 	bg = ColorRect.new()
@@ -72,13 +78,13 @@ func _ready() -> void:
 	image_display.modulate = Color.WHITE
 	add_child(image_display)
 	
-	# ТЕКСТ
+	# ТЕКСТ - ШРИФТ В 2 РАЗА БОЛЬШЕ (56 ВМЕСТО 28)
 	text_label = Label.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	text_label.offset_bottom = -200
-	text_label.add_theme_font_size_override("font_size", 28)
+	text_label.add_theme_font_size_override("font_size", 44)  # <- БЫЛО 28, СТАЛО 56
 	text_label.add_theme_color_override("font_color", Color.WHITE)
 	text_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	text_label.add_theme_constant_override("shadow_offset_x", 2)
@@ -103,21 +109,19 @@ func _stop_main_menu_music() -> void:
 		if child is AudioStreamPlayer and child.playing:
 			child.stop()
 
-func _music_start() -> void:
-	music_player = AudioStreamPlayer.new()
-	if ResourceLoader.exists("res://Sounds/Music/Temporary/Fish Slaves - Сonclusion.mp3"):
-		music_player.stream = load("res://Sounds/Music/Temporary/Fish Slaves - Сonclusion.mp3")
-		music_player.volume_db = linear_to_db(0.5)
-		add_child(music_player)
-		music_player.play()
-		print("Music started")
-	else:
-		print("Music not found")
-
 func _type_text(text: String, idx: int) -> void:
 	if idx >= text.length():
 		return
+	
+	# Добавляем букву
 	text_label.text += text[idx]
+	
+	# ВОСПРОИЗВОДИМ ГОЛОС УЧЁНОГО (только на первой букве каждого слова или на каждой - как хочешь)
+	# Вариант: на каждой букве
+	if scientist_voice and not scientist_voice.playing:
+		scientist_voice.pitch_scale = 0.7 + randf_range(-0.03, 0.03)  # небольшой рандом
+		scientist_voice.play()
+	
 	await get_tree().create_timer(0.04).timeout
 	_type_text(text, idx + 1)
 
@@ -140,6 +144,10 @@ func _show_slide(index: int) -> void:
 	# Меняем картинку
 	if slide["image"] != null:
 		image_display.texture = slide["image"]
+	
+	# Останавливаем предыдущий голос, если играл
+	if scientist_voice and scientist_voice.playing:
+		scientist_voice.stop()
 	
 	# Очищаем и начинаем печатать текст
 	text_label.text = ""
