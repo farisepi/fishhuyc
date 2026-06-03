@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://ixfow7tuskw8"]
 
+[ext_resource type="FontFile" uid="uid://dnfxswya51x6b" path="res://Textures/Font/Bitcell_Font.ttf" id="1_74uco"]
 [ext_resource type="Script" uid="uid://duglsjmo880sj" path="res://Base/Scripts/Settings_Menu.gd" id="1_cqlcn"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="2_cxufn"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Textures/Interface/Buttons/Small/Small_Normal.tres" id="3_cxufn"]
@@ -9,6 +10,9 @@
 [ext_resource type="Texture2D" uid="uid://bqkbfw61y1cbq" path="res://Textures/Interface/Buttons/Switch/Switch.png" id="7_ugdgc"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="10_l8d1f"]
+
+[sub_resource type="Theme" id="Theme_xpquy"]
+default_font = ExtResource("1_74uco")
 
 [sub_resource type="DPITexture" id="DPITexture_xchot"]
 
@@ -20,6 +24,7 @@ anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
 mouse_filter = 1
+theme = SubResource("Theme_xpquy")
 script = ExtResource("1_cqlcn")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1859616107]

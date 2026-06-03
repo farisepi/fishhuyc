@@ -25,8 +25,8 @@ extends Control
 @onready var move_right_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4/MoveRightButton
 @onready var jump_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5/JumpButton
 @onready var interact_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6/InteractButton
-@onready var inventory_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7/InventoryButton
-@onready var pause_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8/PauseButton
+@onready var inventory_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8/InventoryButton
+@onready var pause_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7/PauseButton
 
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)

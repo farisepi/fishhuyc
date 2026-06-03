@@ -1,6 +1,6 @@
 [gd_resource type="AtlasTexture" format=3 uid="uid://dagv538sqlyfc"]
 
-[ext_resource type="Texture2D" uid="uid://dsjmupmqroyog" path="res://Textures/Effects/Bubble/Bubble_Frames.png" id="1_4d337"]
+[ext_resource type="Texture2D" uid="uid://bx85tea08ja05" path="res://Textures/Effects/Bubble/Bubble_Frames.png" id="1_4d337"]
 
 [resource]
 atlas = ExtResource("1_4d337")

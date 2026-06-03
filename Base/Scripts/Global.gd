@@ -20,5 +20,14 @@ var prologue_completed: bool = false
 var bubbles_popped: int = 0
 
 func _ready() -> void:
-	var theme = load("res://Textures/Font/Font_Settings.tres")
-	get_tree().root.theme = theme
+	# Проверяем существует ли файл шрифта
+	if FileAccess.file_exists("res://Textures/Font/Bitcell_Font.ttf"):
+		var font_file = load("res://Textures/Font/Bitcell_Font.ttf")
+		if font_file:
+			var theme = Theme.new()
+			var font = FontFile.new()
+			# В Godot 4.6 FontFile напрямую использует данные шрифта
+			theme.set_default_font(font)
+			get_tree().root.theme = theme
+	else:
+		print("Шрифт не найден: res://Textures/Font/Bitcell_Font.ttf")

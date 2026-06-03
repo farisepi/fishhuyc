@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://c8v3c74ined2d"]
 
 [ext_resource type="Script" uid="uid://b1ty4286lclmd" path="res://Base/Scripts/Background.gd" id="1_7r8h1"]
-[ext_resource type="Texture2D" uid="uid://cp3ssvw24l1ph" path="res://Textures/Backgrounds/Main_Menu/Level_1/1.png" id="2_kfiv4"]
-[ext_resource type="Texture2D" uid="uid://ct6jm3s43wagm" path="res://Textures/Backgrounds/Main_Menu/Level_1/6.png" id="3_hcv45"]
-[ext_resource type="Texture2D" uid="uid://deb3jnync2eut" path="res://Textures/Backgrounds/Main_Menu/Level_1/5.png" id="4_ju8yk"]
-[ext_resource type="Texture2D" uid="uid://diohmqjhw1fau" path="res://Textures/Backgrounds/Main_Menu/Level_1/4.png" id="5_qgypw"]
-[ext_resource type="Texture2D" uid="uid://1rlxeub0cp3k" path="res://Textures/Backgrounds/Main_Menu/Level_1/3.png" id="6_urmoq"]
-[ext_resource type="Texture2D" uid="uid://bvk2ovnqcjwbh" path="res://Textures/Backgrounds/Main_Menu/Level_1/2.png" id="7_iapre"]
+[ext_resource type="Texture2D" uid="uid://cnbhsxr5baacq" path="res://Textures/Backgrounds/Main_Menu/Level_1/1.png" id="2_kfiv4"]
+[ext_resource type="Texture2D" uid="uid://bosxiqe6krxg2" path="res://Textures/Backgrounds/Main_Menu/Level_1/6.png" id="3_hcv45"]
+[ext_resource type="Texture2D" uid="uid://de5qmeaii0h3b" path="res://Textures/Backgrounds/Main_Menu/Level_1/5.png" id="4_ju8yk"]
+[ext_resource type="Texture2D" uid="uid://bdrgc1q2iad5x" path="res://Textures/Backgrounds/Main_Menu/Level_1/4.png" id="5_qgypw"]
+[ext_resource type="Texture2D" uid="uid://ba6f1rysq2aj6" path="res://Textures/Backgrounds/Main_Menu/Level_1/3.png" id="6_urmoq"]
+[ext_resource type="Texture2D" uid="uid://b8q6xdv3ekr7s" path="res://Textures/Backgrounds/Main_Menu/Level_1/2.png" id="7_iapre"]
 
 [node name="BG" type="ParallaxBackground" unique_id=1653505568]
 script = ExtResource("1_7r8h1")
