@@ -6,7 +6,7 @@ extends CharacterBody2D
 @export var slide_duration: float = 0.5
 @export var gravity: float = 980.0
 
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 var is_sliding: bool = false
 var slide_timer: float = 0.0
 var has_item: bool = false
