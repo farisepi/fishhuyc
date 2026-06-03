@@ -98,5 +98,6 @@ func _on_exit_pressed() -> void:
 	
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
+	
 	var tree = get_tree()
 	if tree: tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")

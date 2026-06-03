@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Textures/Interface/Buttons/Fall_Menu/Fall_Normal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://db1lshthoy2l1" path="res://Textures/Interface/Buttons/Switch/Switch.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://bqkbfw61y1cbq" path="res://Textures/Interface/Buttons/Switch/Switch.png" id="7_ugdgc"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="10_l8d1f"]
 
@@ -24,15 +24,16 @@ script = ExtResource("1_cqlcn")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1859616107]
 layout_mode = 0
-offset_left = -85.0
-offset_top = -64.0
-offset_right = 1292.0
-offset_bottom = 710.0
+offset_left = -89.0
+offset_top = -49.0
+offset_right = 1288.0
+offset_bottom = 725.0
 color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -221,183 +222,190 @@ text = "Звуковые эффекты"
 visible = false
 anchors_preset = 0
 offset_left = -3.0
-offset_top = 9.0
+offset_top = -1.0
 offset_right = 1149.0
-offset_bottom = 672.0
+offset_bottom = 662.0
 
-[node name="MoveUpButton" type="Button" parent="ControlsPage" unique_id=565267772]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 159.0
-offset_right = 500.0
-offset_bottom = 207.0
-theme_override_font_sizes/font_size = 32
-
-[node name="MoveUpLabel" type="Label" parent="ControlsPage" unique_id=2052933930]
+[node name="ScrollContainer" type="ScrollContainer" parent="ControlsPage" unique_id=2024790193]
 layout_mode = 0
-offset_left = 250.0
-offset_top = 170.0
-offset_right = 280.0
-offset_bottom = 201.0
-scale = Vector2(1.5, 1.5)
+offset_left = 83.0
+offset_top = 165.0
+offset_right = 1070.0
+offset_bottom = 523.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlsPage/ScrollContainer" unique_id=2077340390]
+custom_minimum_size = Vector2(23, 23)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+size_flags_stretch_ratio = 0.0
+theme_override_constants/separation = 35
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=709502145]
+layout_mode = 2
+alignment = 1
+
+[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=2052933930]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Вверх"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveDownLabel" type="Label" parent="ControlsPage" unique_id=1057749602]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 230.0
-offset_right = 274.0
-offset_bottom = 244.0
-scale = Vector2(1.5, 1.5)
+[node name="MoveUpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=565267772]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 32
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1167399212]
+layout_mode = 2
+
+[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2" unique_id=1057749602]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Вниз"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveDownButton" type="Button" parent="ControlsPage" unique_id=708118919]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 219.0
-offset_right = 500.0
-offset_bottom = 267.0
+[node name="MoveDownButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2" unique_id=708118919]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.0
 theme_override_font_sizes/font_size = 32
 
-[node name="MoveLeftLabel" type="Label" parent="ControlsPage" unique_id=382700892]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 350.0
-offset_right = 281.0
-offset_bottom = 364.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1335372062]
+layout_mode = 2
+
+[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3" unique_id=382700892]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Влево"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveLeftButton" type="Button" parent="ControlsPage" unique_id=1597221555]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 339.0
-offset_right = 500.0
-offset_bottom = 387.0
+[node name="MoveLeftButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3" unique_id=1597221555]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="MoveRightLabel" type="Label" parent="ControlsPage" unique_id=524739626]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 290.0
-offset_right = 286.0
-offset_bottom = 304.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1654604942]
+layout_mode = 2
+
+[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4" unique_id=524739626]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Вправо"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveRightButton" type="Button" parent="ControlsPage" unique_id=1453332579]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 279.0
-offset_right = 500.0
-offset_bottom = 327.0
+[node name="MoveRightButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4" unique_id=1453332579]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="JumpLabel" type="Label" parent="ControlsPage" unique_id=1026622778]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 410.0
-offset_right = 292.0
-offset_bottom = 424.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=273354029]
+layout_mode = 2
+
+[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5" unique_id=1026622778]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Прыжок"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="JumpButton" type="Button" parent="ControlsPage" unique_id=695658269]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 399.0
-offset_right = 500.0
-offset_bottom = 447.0
+[node name="JumpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5" unique_id=695658269]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="InteractLabel" type="Label" parent="ControlsPage" unique_id=2068110502]
-layout_mode = 0
-offset_left = 250.0
-offset_top = 470.0
-offset_right = 335.0
-offset_bottom = 484.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1066718228]
+layout_mode = 2
+
+[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6" unique_id=2068110502]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Взаимодействие"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="InteractButton" type="Button" parent="ControlsPage" unique_id=1220683337]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 420.0
-offset_top = 459.0
-offset_right = 500.0
-offset_bottom = 507.0
+[node name="InteractButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6" unique_id=1220683337]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="PauseLabel" type="Label" parent="ControlsPage" unique_id=1606541364]
-layout_mode = 0
-offset_left = 550.0
-offset_top = 290.0
-offset_right = 580.0
-offset_bottom = 304.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=2003708516]
+layout_mode = 2
+
+[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7" unique_id=1606541364]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Пауза"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="PauseButton" type="Button" parent="ControlsPage" unique_id=1251175926]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 720.0
-offset_top = 279.0
-offset_right = 800.0
-offset_bottom = 327.0
+[node name="PauseButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7" unique_id=1251175926]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="InventoryLabel" type="Label" parent="ControlsPage" unique_id=24195532]
-layout_mode = 0
-offset_left = 550.0
-offset_top = 170.0
-offset_right = 604.0
-offset_bottom = 184.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=580490677]
+layout_mode = 2
+
+[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8" unique_id=24195532]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Инвентарь"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InventoryButton" type="Button" parent="ControlsPage" unique_id=86391702]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 720.0
-offset_top = 159.0
-offset_right = 800.0
-offset_bottom = 207.0
+[node name="InventoryButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8" unique_id=86391702]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
-[node name="CrouchLabel" type="Label" parent="ControlsPage" unique_id=1656085811]
-layout_mode = 0
-offset_left = 550.0
-offset_top = 230.0
-offset_right = 595.0
-offset_bottom = 244.0
-scale = Vector2(1.5, 1.5)
+[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1598047638]
+layout_mode = 2
+
+[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer9" unique_id=1656085811]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 text = "Присесть"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CrouchButton" type="Button" parent="ControlsPage" unique_id=1073419493]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 1
-offset_left = 720.0
-offset_top = 219.0
-offset_right = 800.0
-offset_bottom = 267.0
+[node name="CrouchButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer9" unique_id=1073419493]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]

@@ -21,6 +21,13 @@ var can_click_logo: bool = true
 func _ready() -> void:
 	Fade.fade_in()
 
+	# Загружаем настройки звука
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		_apply_volume("Master", config.get_value("audio", "music_volume", 0.2))
+		_apply_volume("SFX", config.get_value("audio", "sfx_volume", 0.2))
+		_apply_volume("Ambience", config.get_value("audio", "ambience_volume", 0.2))
+
 	# МУЗЫКА ВРЕМЕННО ОТКЛЮЧЕНА
 	# GlobalMusic.play_music(
 	# 	preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3")
@@ -82,6 +89,12 @@ func _ready() -> void:
 
 	_reset_camera()
 	call_deferred("_start_background_bubbles")
+
+func _apply_volume(bus_name: String, value: float) -> void:
+	var bus_index = AudioServer.get_bus_index(bus_name)
+	if bus_index == -1:
+		return
+	AudioServer.set_bus_volume_db(bus_index, lerp(-30.0, 10.0, value))
 
 func _process(delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -358,11 +371,16 @@ func _start_background_bubbles() -> void:
 func _spawn_next_bubble() -> void:
 	if not bubble_scene:
 		return
+	if not is_inside_tree():
+		return
 	
 	var timer = get_tree().create_timer(randf_range(0.15, 0.35))
 	timer.timeout.connect(_on_bubble_spawn_timer)
 
 func _on_bubble_spawn_timer() -> void:
+	if not is_inside_tree():
+		return
+	
 	for i in range(randi_range(1, 2)):
 		_make_menu_bubble()
 	

@@ -6,6 +6,10 @@ extends Node2D
 const SAVE_DIR = "user://saves/"
 
 var current_popup: AcceptDialog = null
+var skip_fill: ColorRect = null
+var skip_timer: float = 0.0
+var skip_duration: float = 1.5
+var intro_active: bool = false
 
 func _ready() -> void:
 	Fade.fade_in()
@@ -65,9 +69,67 @@ func _on_slot_pressed(index: int):
 			await get_tree().create_timer(0.3).timeout
 			var intro = load("res://Base/Scripts/Intro.gd").new()
 			add_child(intro)
+			_add_skip_ui()
+			intro_active = true
 			Fade.fade_in()
 		elif Global.came_from == Global.MenuSource.GAME:
 			_save_game(index)
+
+func _add_skip_ui():
+	var canvas = CanvasLayer.new()
+	canvas.name = "SkipCanvas"
+	canvas.layer = 300
+	add_child(canvas)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	
+	var skip_bg = ColorRect.new()
+	skip_bg.color = Color(0, 0, 0, 0.5)
+	skip_bg.size = Vector2(140, 30)
+	skip_bg.position = Vector2(view_size.x - 150, 10)
+	canvas.add_child(skip_bg)
+	
+	skip_fill = ColorRect.new()
+	skip_fill.color = Color.WHITE
+	skip_fill.size = Vector2(0, 30)
+	skip_fill.position = Vector2(view_size.x - 150, 10)
+	canvas.add_child(skip_fill)
+	
+	var label = Label.new()
+	label.text = "ПРОПУСТИТЬ"
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_font_size_override("font_size", 14)
+	label.position = Vector2(view_size.x - 145, 15)
+	canvas.add_child(label)
+
+func _process(delta):
+	if not intro_active or not skip_fill:
+		return
+	
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		skip_timer += delta
+		var progress = skip_timer / skip_duration
+		skip_fill.size.x = 130 * progress
+		skip_fill.color = Color.GREEN if progress >= 1.0 else Color.WHITE
+		if skip_timer >= skip_duration:
+			_skip_intro()
+	else:
+		skip_timer = 0.0
+		skip_fill.size.x = 0
+		skip_fill.color = Color.WHITE
+
+func _skip_intro():
+	intro_active = false
+	skip_fill = null
+	
+	# Останавливаем всё в intro если есть
+	var intro = get_node_or_null("Intro")
+	if intro and intro.has_method("stop"):
+		intro.stop()
+	
+	Fade.fade_out()
+	await get_tree().create_timer(0.3).timeout
+	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 
 func _show_load_or_overwrite(index: int):
 	_close_current_popup()
@@ -200,6 +262,8 @@ func _show_overwrite_confirm(index: int):
 			await get_tree().create_timer(0.3).timeout
 			var intro = load("res://код/скрипты/intro_simple.gd").new()
 			add_child(intro)
+			_add_skip_ui()
+			intro_active = true
 			Fade.fade_in()
 	)
 	menu.close_requested.connect(_close_current_popup)

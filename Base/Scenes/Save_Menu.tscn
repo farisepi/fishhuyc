@@ -125,4 +125,27 @@ text = "Закрыть
 position = Vector2(576, 328)
 script = ExtResource("2_gjd28")
 
+[node name="SkipUI" type="CanvasLayer" parent="." unique_id=62705663]
+visible = false
+
+[node name="SkipBG" type="ColorRect" parent="SkipUI" unique_id=1943018579]
+offset_left = 908.0
+offset_top = 54.0
+offset_right = 1048.0
+offset_bottom = 84.0
+color = Color(0, 0, 0, 1)
+
+[node name="SkipFill" type="ColorRect" parent="SkipUI" unique_id=888038963]
+offset_left = 908.0
+offset_top = 55.0
+offset_right = 908.0
+offset_bottom = 85.0
+
+[node name="SkipLabel" type="Label" parent="SkipUI" unique_id=898263318]
+offset_left = 927.0
+offset_top = 78.0
+offset_right = 1023.0
+offset_bottom = 101.0
+text = "Пропустить"
+
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

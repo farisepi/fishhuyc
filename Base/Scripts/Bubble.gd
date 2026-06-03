@@ -4,6 +4,7 @@ extends Area2D
 
 var direction: Vector2 = Vector2.UP
 var life_time: float = 4.0
+var life_timer: float = 0.0
 var clickable: bool = false
 var popped: bool = false
 var ignore_fish_collision: bool = false
@@ -13,11 +14,15 @@ var ignore_timer: float = 0.0
 @onready var collision: CollisionShape2D = $CollisionShape2D
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	
 	mouse_entered.connect(_on_mouse_entered)
 	body_entered.connect(_on_body_entered)
 	
 	ignore_fish_collision = true
 	ignore_timer = 0.3
+	
+	life_timer = life_time
 	
 	modulate.a = 0.0
 	
@@ -31,9 +36,6 @@ func _ready() -> void:
 	
 	if sprite:
 		sprite.play("idle")
-	
-	var timer = get_tree().create_timer(life_time)
-	timer.timeout.connect(_auto_pop)
 
 func _on_body_entered(body: Node2D) -> void:
 	if popped:
@@ -45,7 +47,10 @@ func _on_body_entered(body: Node2D) -> void:
 	if body.name == "рыбка":
 		_pop()
 
-func _physics_process(delta: float) -> void:
+func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+	
 	if popped:
 		return
 	
@@ -55,6 +60,10 @@ func _physics_process(delta: float) -> void:
 			ignore_fish_collision = false
 	
 	global_position += direction * speed * delta
+	
+	life_timer -= delta
+	if life_timer <= 0:
+		_auto_pop()
 
 func set_direction(dir: Vector2) -> void:
 	direction = dir.normalized()

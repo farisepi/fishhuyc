@@ -19,14 +19,14 @@ extends Control
 @onready var ambience_slider: HSlider = $AudioPage/AmbienceSlider
 @onready var ui_sound_check = $AudioPage/UISoundCheck
 
-@onready var move_up_btn = $ControlsPage/MoveUpButton
-@onready var move_down_btn = $ControlsPage/MoveDownButton
-@onready var move_left_btn = $ControlsPage/MoveLeftButton
-@onready var move_right_btn = $ControlsPage/MoveRightButton
-@onready var jump_btn = $ControlsPage/JumpButton
-@onready var interact_btn = $ControlsPage/InteractButton
-@onready var inventory_btn = $ControlsPage/InventoryButton
-@onready var pause_btn = $ControlsPage/PauseButton
+@onready var move_up_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer/MoveUpButton
+@onready var move_down_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2/MoveDownButton
+@onready var move_left_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3/MoveLeftButton
+@onready var move_right_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4/MoveRightButton
+@onready var jump_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5/JumpButton
+@onready var interact_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6/InteractButton
+@onready var inventory_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7/InventoryButton
+@onready var pause_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8/PauseButton
 
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)
@@ -42,9 +42,6 @@ func _ready() -> void:
 		Fade.fade_in()
 	else:
 		Fade.modulate.a = 0.0
-	
-	#if not GlobalMusic.music_player or not GlobalMusic.music_player.playing:
-		#GlobalMusic.play_music(preload("res://Sounds/Music/Temporary/Fish Slaves - Main menu.mp3"))
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -85,22 +82,6 @@ func _setup_ui() -> void:
 	for btn in buttons:
 		if btn:
 			ButtonEffects.setup(btn)
-	
-	if graphics_tab:
-		graphics_tab.mouse_entered.disconnect(ButtonEffects._on_button_hover)
-		graphics_tab.mouse_exited.disconnect(ButtonEffects._on_button_unhover)
-		graphics_tab.mouse_entered.connect(_on_tab_hover.bind(graphics_tab))
-		graphics_tab.mouse_exited.connect(_on_tab_unhover.bind(graphics_tab))
-	if audio_tab:
-		audio_tab.mouse_entered.disconnect(ButtonEffects._on_button_hover)
-		audio_tab.mouse_exited.disconnect(ButtonEffects._on_button_unhover)
-		audio_tab.mouse_entered.connect(_on_tab_hover.bind(audio_tab))
-		audio_tab.mouse_exited.connect(_on_tab_unhover.bind(audio_tab))
-	if controls_tab:
-		controls_tab.mouse_entered.disconnect(ButtonEffects._on_button_hover)
-		controls_tab.mouse_exited.disconnect(ButtonEffects._on_button_unhover)
-		controls_tab.mouse_entered.connect(_on_tab_hover.bind(controls_tab))
-		controls_tab.mouse_exited.connect(_on_tab_unhover.bind(controls_tab))
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))
@@ -127,16 +108,11 @@ func setup_options() -> void:
 		resolution_option.add_item("1920x1080")
 		resolution_option.add_item("1280x720")
 		resolution_option.add_item("854x480")
-		
-		# Вместо 1 используй HORIZONTAL_ALIGNMENT_CENTER
-		resolution_option.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	if language_option:
 		language_option.clear()
 		language_option.add_item("Русский")
 		language_option.add_item("English")
-		
-		language_option.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
@@ -322,43 +298,30 @@ func _on_language_selected(index: int) -> void:
 	TranslationServer.set_locale("ru" if index == 0 else "en")
 
 func update_key_labels() -> void:
-	_update_button_with_icon(move_up_btn, "ui_up")
-	_update_button_with_icon(move_down_btn, "ui_down")
-	_update_button_with_icon(move_left_btn, "ui_left")
-	_update_button_with_icon(move_right_btn, "ui_right")
-	_update_button_with_icon(interact_btn, "interact")
-	_update_button_with_icon(jump_btn, "jump")
-	_update_button_with_icon(inventory_btn, "inventory")
-	_update_button_with_icon(pause_btn, "ui_cancel")
+	_update_button_label(move_up_btn, "ui_up")
+	_update_button_label(move_down_btn, "ui_down")
+	_update_button_label(move_left_btn, "ui_left")
+	_update_button_label(move_right_btn, "ui_right")
+	_update_button_label(interact_btn, "interact")
+	_update_button_label(jump_btn, "jump")
+	_update_button_label(inventory_btn, "inventory")
+	_update_button_label(pause_btn, "ui_cancel")
 
-func _update_button_with_icon(btn: Button, action: String) -> void:
+func _update_button_label(btn: Button, action: String) -> void:
 	if not btn:
 		return
-	
-	# Удаляем старые иконки если есть
-	for child in btn.get_children():
-		if child is TextureRect:
-			child.queue_free()
-	
-	# Просто показываем текст клавиши
-	btn.icon = null
 	btn.text = InputRebind.get_key_text(action)
-	
-	# Фиксируем размер кнопки
-	btn.custom_minimum_size = Vector2(80, 48)
-	btn.size = Vector2(80, 48)
-	
-	# Центрируем текст (только горизонтально, вертикально центрируется автоматически)
-	btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func _start_rebind(action: String) -> void:
 	InputRebind.start_rebind(action)
 
 func _on_back_pressed() -> void:
+	save_settings()
+	
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		var tree = get_tree()
-		if tree: tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
+		if tree: tree.change_scene_to_file("res://код/сцены/пролог.tscn")
 		return
 	
 	Fade.fade_out()
@@ -370,14 +333,6 @@ func _on_back_pressed() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and InputRebind.rebinding_action.is_empty():
 		_on_back_pressed()
-
-func _on_tab_hover(btn: Button) -> void:
-	btn.modulate = Color(0.75, 0.88, 1.0, 1.0)
-
-func _on_tab_unhover(btn: Button) -> void:
-	var is_active = false
-	if btn == graphics_tab and graphics_page.visible: is_active = true
-	if btn == audio_tab and audio_page.visible: is_active = true
-	if btn == controls_tab and controls_page.visible: is_active = true
-	
-	btn.modulate = Color.WHITE if is_active else Color.GRAY
+		
+		
+		
