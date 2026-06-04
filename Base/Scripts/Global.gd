@@ -18,6 +18,7 @@ var chatter_char_index: int = 0
 var camera_sensitivity: float = 0.0
 var prologue_completed: bool = false
 var bubbles_popped: int = 0
+var show_fps: bool = false
 
 func _ready() -> void:
 	# Проверяем существует ли файл шрифта

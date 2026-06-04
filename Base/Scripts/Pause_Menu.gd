@@ -46,6 +46,10 @@ func _on_continue_pressed() -> void:
 	hide()
 	get_tree().paused = false
 	_resume_all_actors()
+	
+	var player = get_tree().current_scene.get_node_or_null("рыбка") as CharacterBody2D
+	if player:
+		player.can_move = true
 
 func _on_save_pressed() -> void:
 	UISounds.play_click()

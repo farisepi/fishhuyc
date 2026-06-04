@@ -38,10 +38,11 @@ var config: ConfigFile = ConfigFile.new()
 const CONFIG_PATH: String = "user://settings.cfg"
 
 func _ready() -> void:
-	if Global.came_from == Global.MenuSource.MAIN_MENU:
-		Fade.fade_in()
+	if Global.came_from == Global.MenuSource.GAME:
+		if is_instance_valid(Fade):
+			Fade.modulate.a = 0.0
 	else:
-		Fade.modulate.a = 0.0
+		Fade.fade_in()
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -321,7 +322,7 @@ func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		var tree = get_tree()
-		if tree: tree.change_scene_to_file("res://код/сцены/пролог.tscn")
+		if tree: tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return
 	
 	Fade.fade_out()
@@ -333,6 +334,3 @@ func _on_back_pressed() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and InputRebind.rebinding_action.is_empty():
 		_on_back_pressed()
-		
-		
-		

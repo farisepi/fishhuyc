@@ -149,6 +149,9 @@ func _ready() -> void:
 	
 	print("Setting player.can_move = false")
 	player.can_move = false
+	if Global.just_returned_from_settings:
+		_on_return_from_settings()
+		return
 	
 	if not fade_rect:
 		fade_rect = ColorRect.new()
@@ -546,18 +549,17 @@ func _setup_labels() -> void:
 
 func _on_return_from_settings() -> void:
 	Global.just_returned_from_settings = false
+	
+	# Восстанавливаем позицию
+	if Global.player_position != Vector2.ZERO:
+		player.global_position = Global.player_position
+	
+	# Показываем паузу
 	if pause_menu:
 		pause_menu.show()
-		var cr = pause_menu.get_node_or_null("ColorRect")
-		if cr:
-			cr.modulate.a = 0.5
-		Fade.modulate.a = 0.0
-	get_tree().paused = true
-	if player:
-		player.set_physics_process(false)
-		player.set_process(false)
-		var anim = player.get_node_or_null("AnimatedSprite2D")
-		if anim: anim.pause()
+		get_tree().paused = true
+	
+	# Восстанавливаем чаттер
 	if not Global.chatter_queue_state.is_empty():
 		set_chatter_state({
 			"queue": Global.chatter_queue_state,
@@ -568,6 +570,9 @@ func _on_return_from_settings() -> void:
 		chatter_active = true
 		chatter_panel.visible = true
 		timer.start(2.5)
+	
+	# Разрешаем движение (пауза заморозит, а при continue — разморозится)
+	player.can_move = true
 
 func get_chatter_state():
 	return {
