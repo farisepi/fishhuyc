@@ -140,7 +140,7 @@ scale = Vector2(3.13158, 3.232599)
 texture = ExtResource("5_k3j2e")
 
 [node name="CutsceneCamera" type="Camera2D" parent="." unique_id=1959334841]
-position = Vector2(737, 552)
+position = Vector2(671, 553)
 enabled = false
 zoom = Vector2(3, 3)
 script = ExtResource("4_4y1cg")
@@ -334,14 +334,9 @@ offset_right = 424.0
 offset_bottom = 175.0
 script = ExtResource("13_yp00i")
 
-[node name="InteractLabel" type="TextureRect" parent="." unique_id=17703589]
-offset_left = 720.0
-offset_top = 488.0
-offset_right = 745.0
-offset_bottom = 511.0
-mouse_filter = 2
+[node name="InteractLabel" type="Sprite2D" parent="." unique_id=530248187]
 texture = ExtResource("19_x2xif")
-stretch_mode = 5
+region_enabled = true
 
 [node name="FadeRect" type="ColorRect" parent="." unique_id=411503246]
 z_index = 100

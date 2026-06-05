@@ -6,7 +6,7 @@ extends Node2D
 @onready var player: CharacterBody2D = $рыбка
 @onready var player_camera: Camera2D = $"рыбка/PlayerCamera"
 
-@onready var interact_icon: TextureRect = $InteractLabel
+@onready var interact_icon: Sprite2D = $InteractLabel
 @onready var dialogue_panel: Panel = $DialoguePanel2
 @onready var text_label: RichTextLabel = $DialoguePanel2/TextLabel
 @onready var timer: Timer = $DialogueTimer
@@ -30,7 +30,7 @@ extends Node2D
 @onready var speaker_icon_far: TextureRect = $ChatterCanvas/DialoguePanelFar/SpeakerIconFar
 @onready var speaker_icon_left: TextureRect = $ChatterCanvas/PhantomPanelLeft/SpeakerIconLeft
 @onready var speaker_icon_right: TextureRect = $ChatterCanvas/PhantomPanelRight/SpeakerIconRight
-@onready var interact_label: TextureRect = $InteractLabel
+@onready var interact_label: Sprite2D = $InteractLabel
 
 @onready var fade_rect: ColorRect = $FadeRect
 
@@ -409,7 +409,7 @@ func _update_interact_icon() -> void:
 	if texture:
 		interact_normal_texture = texture
 		interact_icon.texture = texture
-		interact_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		# У Sprite2D нет свойства stretch_mode, просто удаляем эту строку
 		interact_icon.modulate = Color(1, 1, 1, 0.8)
 		interact_icon.scale = Vector2(0.8, 0.8)
 
