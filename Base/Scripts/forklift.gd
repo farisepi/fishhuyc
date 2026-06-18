@@ -1,7 +1,6 @@
-# forklift.gd
 extends CharacterBody2D
 
-@export var speed: float = 100.0
+@export var speed: float = 80.0
 @export var gravity: float = 980.0
 
 func _physics_process(delta):

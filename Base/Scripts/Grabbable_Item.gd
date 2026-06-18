@@ -1,4 +1,4 @@
 extends Area2D
 
-func _ready() -> void:
+func _ready():
 	add_to_group("grabbable")
