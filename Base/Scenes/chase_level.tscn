@@ -1,15 +1,1255 @@
-[gd_scene format=3 uid="uid://cn08qcmaqaf1c"]
+[gd_scene format=4 uid="uid://cn08qcmaqaf1c"]
 
-[ext_resource type="Script" uid="uid://bu8fbcl608b7v" path="res://Base/Scripts/Level_3.gd" id="1_frsfm"]
-[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="2_43qq6"]
 [ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://Base/Scripts/Mecha_Fish.gd" id="2_dw7qd"]
-[ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Base/Scripts/Grabbable_Item.gd" id="3_fuhfa"]
+[ext_resource type="Texture2D" uid="uid://bfqo17kln3n3f" path="res://Textures/Tiles/level_3/Box.png" id="2_mti0u"]
 [ext_resource type="Texture2D" uid="uid://wnabl54bs81i" path="res://Textures/Characters/Main_Character/Mecha_Fish/Idle/меха робот IDLE.png" id="3_pqd4u"]
-[ext_resource type="Script" uid="uid://cfbb07dhtywsu" path="res://Base/Scripts/forklift.gd" id="4_8k4df"]
-[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Base/Scripts/Enemy.gd" id="4_ii734"]
+[ext_resource type="Texture2D" uid="uid://de3iw7e7wy04b" path="res://Textures/Tiles/level_3/WarehouseV2.png" id="5_ii734"]
+[ext_resource type="Texture2D" uid="uid://ceoyyhuv2x422" path="res://Textures/Tiles/level_3/Obstacle.png" id="5_mti0u"]
+[ext_resource type="Texture2D" uid="uid://q3ql43kgvsa7" path="res://Textures/Tiles/level_3/Barrel.png" id="6_8eynh"]
+[ext_resource type="Texture2D" uid="uid://n6jejp30fd76" path="res://Textures/Tiles/level_3/Pallets.png" id="7_8eynh"]
+[ext_resource type="Texture2D" uid="uid://dd2gqd64xnamw" path="res://Textures/Tiles/level_3/Chest.png" id="8_vcpp2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
-size = Vector2(2000, 20)
+size = Vector2(2872, 82)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_17o3h"]
+texture = ExtResource("5_ii734")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+9:0/0 = 0
+10:0/0 = 0
+11:0/0 = 0
+12:0/0 = 0
+13:0/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+17:0/0 = 0
+18:0/0 = 0
+19:0/0 = 0
+20:0/0 = 0
+21:0/0 = 0
+22:0/0 = 0
+23:0/0 = 0
+24:0/0 = 0
+25:0/0 = 0
+26:0/0 = 0
+27:0/0 = 0
+28:0/0 = 0
+32:0/0 = 0
+33:0/0 = 0
+34:0/0 = 0
+39:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+10:1/0 = 0
+11:1/0 = 0
+12:1/0 = 0
+13:1/0 = 0
+14:1/0 = 0
+15:1/0 = 0
+16:1/0 = 0
+17:1/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+20:1/0 = 0
+21:1/0 = 0
+22:1/0 = 0
+23:1/0 = 0
+24:1/0 = 0
+25:1/0 = 0
+26:1/0 = 0
+27:1/0 = 0
+28:1/0 = 0
+32:1/0 = 0
+33:1/0 = 0
+34:1/0 = 0
+38:1/0 = 0
+39:1/0 = 0
+41:1/0 = 0
+42:1/0 = 0
+43:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+11:2/0 = 0
+12:2/0 = 0
+13:2/0 = 0
+14:2/0 = 0
+15:2/0 = 0
+16:2/0 = 0
+17:2/0 = 0
+18:2/0 = 0
+19:2/0 = 0
+20:2/0 = 0
+21:2/0 = 0
+22:2/0 = 0
+23:2/0 = 0
+24:2/0 = 0
+25:2/0 = 0
+26:2/0 = 0
+27:2/0 = 0
+28:2/0 = 0
+29:2/0 = 0
+32:2/0 = 0
+33:2/0 = 0
+34:2/0 = 0
+36:2/0 = 0
+37:2/0 = 0
+38:2/0 = 0
+41:2/0 = 0
+42:2/0 = 0
+43:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+14:3/0 = 0
+15:3/0 = 0
+16:3/0 = 0
+17:3/0 = 0
+18:3/0 = 0
+19:3/0 = 0
+20:3/0 = 0
+21:3/0 = 0
+22:3/0 = 0
+23:3/0 = 0
+24:3/0 = 0
+25:3/0 = 0
+26:3/0 = 0
+27:3/0 = 0
+28:3/0 = 0
+29:3/0 = 0
+30:3/0 = 0
+31:3/0 = 0
+32:3/0 = 0
+33:3/0 = 0
+34:3/0 = 0
+35:3/0 = 0
+36:3/0 = 0
+37:3/0 = 0
+38:3/0 = 0
+40:3/0 = 0
+41:3/0 = 0
+42:3/0 = 0
+43:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+13:4/0 = 0
+14:4/0 = 0
+15:4/0 = 0
+16:4/0 = 0
+17:4/0 = 0
+18:4/0 = 0
+19:4/0 = 0
+20:4/0 = 0
+21:4/0 = 0
+22:4/0 = 0
+23:4/0 = 0
+24:4/0 = 0
+27:4/0 = 0
+28:4/0 = 0
+29:4/0 = 0
+30:4/0 = 0
+32:4/0 = 0
+33:4/0 = 0
+34:4/0 = 0
+35:4/0 = 0
+36:4/0 = 0
+37:4/0 = 0
+38:4/0 = 0
+39:4/0 = 0
+40:4/0 = 0
+41:4/0 = 0
+42:4/0 = 0
+43:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+9:5/0 = 0
+10:5/0 = 0
+11:5/0 = 0
+12:5/0 = 0
+13:5/0 = 0
+14:5/0 = 0
+15:5/0 = 0
+16:5/0 = 0
+17:5/0 = 0
+18:5/0 = 0
+19:5/0 = 0
+20:5/0 = 0
+21:5/0 = 0
+22:5/0 = 0
+23:5/0 = 0
+24:5/0 = 0
+25:5/0 = 0
+26:5/0 = 0
+27:5/0 = 0
+28:5/0 = 0
+29:5/0 = 0
+33:5/0 = 0
+34:5/0 = 0
+39:5/0 = 0
+40:5/0 = 0
+41:5/0 = 0
+42:5/0 = 0
+43:5/0 = 0
+0:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+7:6/0 = 0
+8:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+11:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+15:6/0 = 0
+16:6/0 = 0
+17:6/0 = 0
+18:6/0 = 0
+19:6/0 = 0
+20:6/0 = 0
+21:6/0 = 0
+22:6/0 = 0
+23:6/0 = 0
+24:6/0 = 0
+25:6/0 = 0
+26:6/0 = 0
+27:6/0 = 0
+28:6/0 = 0
+29:6/0 = 0
+33:6/0 = 0
+34:6/0 = 0
+39:6/0 = 0
+40:6/0 = 0
+41:6/0 = 0
+42:6/0 = 0
+43:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+9:7/0 = 0
+10:7/0 = 0
+11:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+16:7/0 = 0
+17:7/0 = 0
+18:7/0 = 0
+19:7/0 = 0
+20:7/0 = 0
+21:7/0 = 0
+22:7/0 = 0
+23:7/0 = 0
+24:7/0 = 0
+25:7/0 = 0
+26:7/0 = 0
+27:7/0 = 0
+28:7/0 = 0
+29:7/0 = 0
+30:7/0 = 0
+31:7/0 = 0
+32:7/0 = 0
+33:7/0 = 0
+34:7/0 = 0
+35:7/0 = 0
+36:7/0 = 0
+37:7/0 = 0
+38:7/0 = 0
+39:7/0 = 0
+40:7/0 = 0
+41:7/0 = 0
+42:7/0 = 0
+43:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_mti0u"]
+sources/0 = SubResource("TileSetAtlasSource_17o3h")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_43qq6"]
+texture = ExtResource("5_ii734")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+9:0/0 = 0
+10:0/0 = 0
+11:0/0 = 0
+12:0/0 = 0
+13:0/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+17:0/0 = 0
+18:0/0 = 0
+19:0/0 = 0
+20:0/0 = 0
+21:0/0 = 0
+22:0/0 = 0
+23:0/0 = 0
+24:0/0 = 0
+25:0/0 = 0
+26:0/0 = 0
+27:0/0 = 0
+28:0/0 = 0
+32:0/0 = 0
+33:0/0 = 0
+34:0/0 = 0
+39:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+10:1/0 = 0
+11:1/0 = 0
+12:1/0 = 0
+13:1/0 = 0
+14:1/0 = 0
+15:1/0 = 0
+16:1/0 = 0
+17:1/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+20:1/0 = 0
+21:1/0 = 0
+22:1/0 = 0
+23:1/0 = 0
+24:1/0 = 0
+25:1/0 = 0
+26:1/0 = 0
+27:1/0 = 0
+28:1/0 = 0
+32:1/0 = 0
+33:1/0 = 0
+34:1/0 = 0
+38:1/0 = 0
+39:1/0 = 0
+41:1/0 = 0
+42:1/0 = 0
+43:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+11:2/0 = 0
+12:2/0 = 0
+13:2/0 = 0
+14:2/0 = 0
+15:2/0 = 0
+16:2/0 = 0
+17:2/0 = 0
+18:2/0 = 0
+19:2/0 = 0
+20:2/0 = 0
+21:2/0 = 0
+22:2/0 = 0
+23:2/0 = 0
+24:2/0 = 0
+25:2/0 = 0
+26:2/0 = 0
+27:2/0 = 0
+28:2/0 = 0
+29:2/0 = 0
+32:2/0 = 0
+33:2/0 = 0
+34:2/0 = 0
+36:2/0 = 0
+37:2/0 = 0
+38:2/0 = 0
+41:2/0 = 0
+42:2/0 = 0
+43:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+14:3/0 = 0
+15:3/0 = 0
+16:3/0 = 0
+17:3/0 = 0
+18:3/0 = 0
+19:3/0 = 0
+20:3/0 = 0
+21:3/0 = 0
+22:3/0 = 0
+23:3/0 = 0
+24:3/0 = 0
+25:3/0 = 0
+26:3/0 = 0
+27:3/0 = 0
+28:3/0 = 0
+29:3/0 = 0
+30:3/0 = 0
+31:3/0 = 0
+32:3/0 = 0
+33:3/0 = 0
+34:3/0 = 0
+35:3/0 = 0
+36:3/0 = 0
+37:3/0 = 0
+38:3/0 = 0
+40:3/0 = 0
+41:3/0 = 0
+42:3/0 = 0
+43:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+13:4/0 = 0
+14:4/0 = 0
+15:4/0 = 0
+16:4/0 = 0
+17:4/0 = 0
+18:4/0 = 0
+19:4/0 = 0
+20:4/0 = 0
+21:4/0 = 0
+22:4/0 = 0
+23:4/0 = 0
+24:4/0 = 0
+27:4/0 = 0
+28:4/0 = 0
+29:4/0 = 0
+30:4/0 = 0
+32:4/0 = 0
+33:4/0 = 0
+34:4/0 = 0
+35:4/0 = 0
+36:4/0 = 0
+37:4/0 = 0
+38:4/0 = 0
+39:4/0 = 0
+40:4/0 = 0
+41:4/0 = 0
+42:4/0 = 0
+43:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+9:5/0 = 0
+10:5/0 = 0
+11:5/0 = 0
+12:5/0 = 0
+13:5/0 = 0
+14:5/0 = 0
+15:5/0 = 0
+16:5/0 = 0
+17:5/0 = 0
+18:5/0 = 0
+19:5/0 = 0
+20:5/0 = 0
+21:5/0 = 0
+22:5/0 = 0
+23:5/0 = 0
+24:5/0 = 0
+25:5/0 = 0
+26:5/0 = 0
+27:5/0 = 0
+28:5/0 = 0
+29:5/0 = 0
+33:5/0 = 0
+34:5/0 = 0
+39:5/0 = 0
+40:5/0 = 0
+41:5/0 = 0
+42:5/0 = 0
+43:5/0 = 0
+0:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+7:6/0 = 0
+8:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+11:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+15:6/0 = 0
+16:6/0 = 0
+17:6/0 = 0
+18:6/0 = 0
+19:6/0 = 0
+20:6/0 = 0
+21:6/0 = 0
+22:6/0 = 0
+23:6/0 = 0
+24:6/0 = 0
+25:6/0 = 0
+26:6/0 = 0
+27:6/0 = 0
+28:6/0 = 0
+29:6/0 = 0
+33:6/0 = 0
+34:6/0 = 0
+39:6/0 = 0
+40:6/0 = 0
+41:6/0 = 0
+42:6/0 = 0
+43:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+9:7/0 = 0
+10:7/0 = 0
+11:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+16:7/0 = 0
+17:7/0 = 0
+18:7/0 = 0
+19:7/0 = 0
+20:7/0 = 0
+21:7/0 = 0
+22:7/0 = 0
+23:7/0 = 0
+24:7/0 = 0
+25:7/0 = 0
+26:7/0 = 0
+27:7/0 = 0
+28:7/0 = 0
+29:7/0 = 0
+30:7/0 = 0
+31:7/0 = 0
+32:7/0 = 0
+33:7/0 = 0
+34:7/0 = 0
+35:7/0 = 0
+36:7/0 = 0
+37:7/0 = 0
+38:7/0 = 0
+39:7/0 = 0
+40:7/0 = 0
+41:7/0 = 0
+42:7/0 = 0
+43:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_17o3h"]
+sources/0 = SubResource("TileSetAtlasSource_43qq6")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pqd4u"]
+texture = ExtResource("5_ii734")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+9:0/0 = 0
+10:0/0 = 0
+11:0/0 = 0
+12:0/0 = 0
+13:0/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+17:0/0 = 0
+18:0/0 = 0
+19:0/0 = 0
+20:0/0 = 0
+21:0/0 = 0
+22:0/0 = 0
+23:0/0 = 0
+24:0/0 = 0
+25:0/0 = 0
+26:0/0 = 0
+27:0/0 = 0
+28:0/0 = 0
+32:0/0 = 0
+33:0/0 = 0
+34:0/0 = 0
+39:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+10:1/0 = 0
+11:1/0 = 0
+12:1/0 = 0
+13:1/0 = 0
+14:1/0 = 0
+15:1/0 = 0
+16:1/0 = 0
+17:1/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+20:1/0 = 0
+21:1/0 = 0
+22:1/0 = 0
+23:1/0 = 0
+24:1/0 = 0
+25:1/0 = 0
+26:1/0 = 0
+27:1/0 = 0
+28:1/0 = 0
+32:1/0 = 0
+33:1/0 = 0
+34:1/0 = 0
+38:1/0 = 0
+39:1/0 = 0
+41:1/0 = 0
+42:1/0 = 0
+43:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+11:2/0 = 0
+12:2/0 = 0
+13:2/0 = 0
+14:2/0 = 0
+15:2/0 = 0
+16:2/0 = 0
+17:2/0 = 0
+18:2/0 = 0
+19:2/0 = 0
+20:2/0 = 0
+21:2/0 = 0
+22:2/0 = 0
+23:2/0 = 0
+24:2/0 = 0
+25:2/0 = 0
+26:2/0 = 0
+27:2/0 = 0
+28:2/0 = 0
+29:2/0 = 0
+32:2/0 = 0
+33:2/0 = 0
+34:2/0 = 0
+36:2/0 = 0
+37:2/0 = 0
+38:2/0 = 0
+41:2/0 = 0
+42:2/0 = 0
+43:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+14:3/0 = 0
+15:3/0 = 0
+16:3/0 = 0
+17:3/0 = 0
+18:3/0 = 0
+19:3/0 = 0
+20:3/0 = 0
+21:3/0 = 0
+22:3/0 = 0
+23:3/0 = 0
+24:3/0 = 0
+25:3/0 = 0
+26:3/0 = 0
+27:3/0 = 0
+28:3/0 = 0
+29:3/0 = 0
+30:3/0 = 0
+31:3/0 = 0
+32:3/0 = 0
+33:3/0 = 0
+34:3/0 = 0
+35:3/0 = 0
+36:3/0 = 0
+37:3/0 = 0
+38:3/0 = 0
+40:3/0 = 0
+41:3/0 = 0
+42:3/0 = 0
+43:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+13:4/0 = 0
+14:4/0 = 0
+15:4/0 = 0
+16:4/0 = 0
+17:4/0 = 0
+18:4/0 = 0
+19:4/0 = 0
+20:4/0 = 0
+21:4/0 = 0
+22:4/0 = 0
+23:4/0 = 0
+24:4/0 = 0
+27:4/0 = 0
+28:4/0 = 0
+29:4/0 = 0
+30:4/0 = 0
+32:4/0 = 0
+33:4/0 = 0
+34:4/0 = 0
+35:4/0 = 0
+36:4/0 = 0
+37:4/0 = 0
+38:4/0 = 0
+39:4/0 = 0
+40:4/0 = 0
+41:4/0 = 0
+42:4/0 = 0
+43:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+9:5/0 = 0
+10:5/0 = 0
+11:5/0 = 0
+12:5/0 = 0
+13:5/0 = 0
+14:5/0 = 0
+15:5/0 = 0
+16:5/0 = 0
+17:5/0 = 0
+18:5/0 = 0
+19:5/0 = 0
+20:5/0 = 0
+21:5/0 = 0
+22:5/0 = 0
+23:5/0 = 0
+24:5/0 = 0
+25:5/0 = 0
+26:5/0 = 0
+27:5/0 = 0
+28:5/0 = 0
+29:5/0 = 0
+33:5/0 = 0
+34:5/0 = 0
+39:5/0 = 0
+40:5/0 = 0
+41:5/0 = 0
+42:5/0 = 0
+43:5/0 = 0
+0:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+7:6/0 = 0
+8:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+11:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+15:6/0 = 0
+16:6/0 = 0
+17:6/0 = 0
+18:6/0 = 0
+19:6/0 = 0
+20:6/0 = 0
+21:6/0 = 0
+22:6/0 = 0
+23:6/0 = 0
+24:6/0 = 0
+25:6/0 = 0
+26:6/0 = 0
+27:6/0 = 0
+28:6/0 = 0
+29:6/0 = 0
+33:6/0 = 0
+34:6/0 = 0
+39:6/0 = 0
+40:6/0 = 0
+41:6/0 = 0
+42:6/0 = 0
+43:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+9:7/0 = 0
+10:7/0 = 0
+11:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+16:7/0 = 0
+17:7/0 = 0
+18:7/0 = 0
+19:7/0 = 0
+20:7/0 = 0
+21:7/0 = 0
+22:7/0 = 0
+23:7/0 = 0
+24:7/0 = 0
+25:7/0 = 0
+26:7/0 = 0
+27:7/0 = 0
+28:7/0 = 0
+29:7/0 = 0
+30:7/0 = 0
+31:7/0 = 0
+32:7/0 = 0
+33:7/0 = 0
+34:7/0 = 0
+35:7/0 = 0
+36:7/0 = 0
+37:7/0 = 0
+38:7/0 = 0
+39:7/0 = 0
+40:7/0 = 0
+41:7/0 = 0
+42:7/0 = 0
+43:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_42m7p"]
+sources/0 = SubResource("TileSetAtlasSource_pqd4u")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_jfe0f"]
+texture = ExtResource("5_ii734")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+9:0/0 = 0
+10:0/0 = 0
+11:0/0 = 0
+12:0/0 = 0
+13:0/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+17:0/0 = 0
+18:0/0 = 0
+19:0/0 = 0
+20:0/0 = 0
+21:0/0 = 0
+22:0/0 = 0
+23:0/0 = 0
+24:0/0 = 0
+25:0/0 = 0
+26:0/0 = 0
+27:0/0 = 0
+28:0/0 = 0
+32:0/0 = 0
+33:0/0 = 0
+34:0/0 = 0
+39:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+10:1/0 = 0
+11:1/0 = 0
+12:1/0 = 0
+13:1/0 = 0
+14:1/0 = 0
+15:1/0 = 0
+16:1/0 = 0
+17:1/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+20:1/0 = 0
+21:1/0 = 0
+22:1/0 = 0
+23:1/0 = 0
+24:1/0 = 0
+25:1/0 = 0
+26:1/0 = 0
+27:1/0 = 0
+28:1/0 = 0
+32:1/0 = 0
+33:1/0 = 0
+34:1/0 = 0
+38:1/0 = 0
+39:1/0 = 0
+41:1/0 = 0
+42:1/0 = 0
+43:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+11:2/0 = 0
+12:2/0 = 0
+13:2/0 = 0
+14:2/0 = 0
+15:2/0 = 0
+16:2/0 = 0
+17:2/0 = 0
+18:2/0 = 0
+19:2/0 = 0
+20:2/0 = 0
+21:2/0 = 0
+22:2/0 = 0
+23:2/0 = 0
+24:2/0 = 0
+25:2/0 = 0
+26:2/0 = 0
+27:2/0 = 0
+28:2/0 = 0
+29:2/0 = 0
+32:2/0 = 0
+33:2/0 = 0
+34:2/0 = 0
+36:2/0 = 0
+37:2/0 = 0
+38:2/0 = 0
+41:2/0 = 0
+42:2/0 = 0
+43:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+14:3/0 = 0
+15:3/0 = 0
+16:3/0 = 0
+17:3/0 = 0
+18:3/0 = 0
+19:3/0 = 0
+20:3/0 = 0
+21:3/0 = 0
+22:3/0 = 0
+23:3/0 = 0
+24:3/0 = 0
+25:3/0 = 0
+26:3/0 = 0
+27:3/0 = 0
+28:3/0 = 0
+29:3/0 = 0
+30:3/0 = 0
+31:3/0 = 0
+32:3/0 = 0
+33:3/0 = 0
+34:3/0 = 0
+35:3/0 = 0
+36:3/0 = 0
+37:3/0 = 0
+38:3/0 = 0
+40:3/0 = 0
+41:3/0 = 0
+42:3/0 = 0
+43:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+13:4/0 = 0
+14:4/0 = 0
+15:4/0 = 0
+16:4/0 = 0
+17:4/0 = 0
+18:4/0 = 0
+19:4/0 = 0
+20:4/0 = 0
+21:4/0 = 0
+22:4/0 = 0
+23:4/0 = 0
+24:4/0 = 0
+27:4/0 = 0
+28:4/0 = 0
+29:4/0 = 0
+30:4/0 = 0
+32:4/0 = 0
+33:4/0 = 0
+34:4/0 = 0
+35:4/0 = 0
+36:4/0 = 0
+37:4/0 = 0
+38:4/0 = 0
+39:4/0 = 0
+40:4/0 = 0
+41:4/0 = 0
+42:4/0 = 0
+43:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+9:5/0 = 0
+10:5/0 = 0
+11:5/0 = 0
+12:5/0 = 0
+13:5/0 = 0
+14:5/0 = 0
+15:5/0 = 0
+16:5/0 = 0
+17:5/0 = 0
+18:5/0 = 0
+19:5/0 = 0
+20:5/0 = 0
+21:5/0 = 0
+22:5/0 = 0
+23:5/0 = 0
+24:5/0 = 0
+25:5/0 = 0
+26:5/0 = 0
+27:5/0 = 0
+28:5/0 = 0
+29:5/0 = 0
+33:5/0 = 0
+34:5/0 = 0
+39:5/0 = 0
+40:5/0 = 0
+41:5/0 = 0
+42:5/0 = 0
+43:5/0 = 0
+0:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+7:6/0 = 0
+8:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+11:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+15:6/0 = 0
+16:6/0 = 0
+17:6/0 = 0
+18:6/0 = 0
+19:6/0 = 0
+20:6/0 = 0
+21:6/0 = 0
+22:6/0 = 0
+23:6/0 = 0
+24:6/0 = 0
+25:6/0 = 0
+26:6/0 = 0
+27:6/0 = 0
+28:6/0 = 0
+29:6/0 = 0
+33:6/0 = 0
+34:6/0 = 0
+39:6/0 = 0
+40:6/0 = 0
+41:6/0 = 0
+42:6/0 = 0
+43:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+9:7/0 = 0
+10:7/0 = 0
+11:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+16:7/0 = 0
+17:7/0 = 0
+18:7/0 = 0
+19:7/0 = 0
+20:7/0 = 0
+21:7/0 = 0
+22:7/0 = 0
+23:7/0 = 0
+24:7/0 = 0
+25:7/0 = 0
+26:7/0 = 0
+27:7/0 = 0
+28:7/0 = 0
+29:7/0 = 0
+30:7/0 = 0
+31:7/0 = 0
+32:7/0 = 0
+33:7/0 = 0
+34:7/0 = 0
+35:7/0 = 0
+36:7/0 = 0
+37:7/0 = 0
+38:7/0 = 0
+39:7/0 = 0
+40:7/0 = 0
+41:7/0 = 0
+42:7/0 = 0
+43:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_gb2nh"]
+sources/0 = SubResource("TileSetAtlasSource_jfe0f")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wsnn3"]
+size = Vector2(35, 17)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_87f3b"]
+height = 36.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vcpp2"]
+size = Vector2(64, 36)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pqd4u"]
+size = Vector2(25, 39)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_42m7p"]
+size = Vector2(48.5, 22)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_17o3h"]
 radius = 30.0
@@ -135,243 +1375,401 @@ animations = [{
 "loop": true,
 "name": &"Idle",
 "speed": 10.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"Run",
+"speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_5bbqq"]
-size = Vector2(30, 30)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_srbgl"]
-size = Vector2(30, 50)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_7sski"]
-size = Vector2(60, 40)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_4inja"]
-radius = 15.0
-
 [node name="Level_3" type="Node2D" unique_id=928929783]
-script = ExtResource("1_frsfm")
 
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
-offset_right = 1920.0
+offset_left = -717.0
+offset_right = 2140.0
 offset_bottom = 360.0
-color = Color(0.101960786, 0.101960786, 0.18039216, 1)
+color = Color(0.7330637, 0.8145573, 0.9849141, 1)
 
 [node name="Floor" type="StaticBody2D" parent="." unique_id=459485228]
 position = Vector2(960, 340)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1278729066]
-position = Vector2(2, 0)
+position = Vector2(-242, 37)
 shape = SubResource("RectangleShape2D_43qq6")
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=1788455124]
-position = Vector2(1700, 290)
+[node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1661476068]
+offset_left = -1688.0
+offset_top = -5.0
+offset_right = 1192.0
+offset_bottom = 77.0
+color = Color(0, 0, 0, 1)
+
+[node name="Decoration" type="Node2D" parent="." unique_id=1387694023]
+
+[node name="TileMapLayer5" type="TileMapLayer" parent="Decoration" unique_id=1498038929]
+position = Vector2(5, 0)
+tile_map_data = PackedByteArray("AAAJAA0AAAAEAAAAAAAJAA4AAAAEAAEAAAAJAA8AAAAEAAIAAAAKAA0AAAAEAAAAAAAKAA4AAAAEAAEAAAAKAA8AAAAEAAIAAAARAA0AAAAEAAAAAAARAA4AAAAEAAEAAAARAA8AAAAEAAIAAAATAA0AAAAGAAAAAAATAA8AAAAGAAIAAAAUAA8AAAAHAAIAAAAWAA0AAAAEAAAAAAAWAA4AAAAEAAEAAAAWAA8AAAAEAAIAAAAwAA0AAAAEAAAAAAAwAA4AAAAEAAEAAAAwAA8AAAAEAAIAAAAxAA0AAAAFAAAAAAAxAA4AAAAEAAEAAAAxAA8AAAAFAAIAAAA4AA0AAAAEAAAAAAA4AA4AAAAEAAEAAAA4AA8AAAAEAAIAAAA5AA0AAAAFAAAAAAA5AA4AAAAEAAEAAAA5AA8AAAAFAAIAAABAAA0AAAAEAAAAAABAAA4AAAAEAAEAAABAAA8AAAAEAAIAAABBAA0AAAAEAAAAAABBAA4AAAAEAAEAAABBAA8AAAAEAAIAAABCAA0AAAAFAAAAAABCAA8AAAAFAAIAAABDAA8AAAAGAAIAAABEAA0AAAAHAAAAAABEAA4AAAAHAAEAAABEAA8AAAAHAAIAAABIAA0AAAAEAAAAAABIAA4AAAAEAAEAAABIAA8AAAAEAAIAAABJAA0AAAAEAAAAAABJAA4AAAAEAAEAAABJAA8AAAAEAAIAAABQAA0AAAAEAAAAAABQAA4AAAAEAAEAAABQAA8AAAAEAAIAAABRAA0AAAAEAAAAAABRAA4AAAAEAAEAAABRAA8AAAAEAAIAAABSAA8AAAAFAAIAAABTAA0AAAAGAAAAAABTAA8AAAAGAAIAAABYAA0AAAAEAAAAAABYAA4AAAAEAAEAAABYAA8AAAAEAAIAAABZAA0AAAAEAAAAAABZAA4AAAAEAAEAAABZAA8AAAAEAAIAAAAJABAAAAAEAAMAAAAJABEAAAAEAAQAAAAJABIAAAAEAAUAAAAJABMAAAAEAAYAAAAJABQAAAAEAAcAAAAKABAAAAAEAAMAAAAKABEAAAAEAAQAAAAKABIAAAAEAAUAAAAKABMAAAAEAAYAAAAKABQAAAAEAAcAAAALAA0AAAAFAAAAAAALAA8AAAAFAAIAAAALABEAAAAFAAQAAAALABQAAAAFAAcAAAAMAA0AAAAGAAAAAAAMAA4AAAAHAAEAAAAMAA8AAAAGAAIAAAAMABAAAAAHAAMAAAAMABEAAAAGAAQAAAAMABIAAAAHAAUAAAAMABMAAAAHAAYAAAAMABQAAAAGAAcAAAANAA0AAAAHAAAAAAANAA4AAAAHAAEAAAANAA8AAAAHAAIAAAANABAAAAAHAAMAAAANABEAAAAHAAQAAAANABIAAAAHAAUAAAANABMAAAAHAAYAAAANABQAAAAHAAcAAAARABAAAAAEAAMAAAARABEAAAAEAAQAAAARABIAAAAEAAUAAAARABMAAAAEAAYAAAARABQAAAAEAAcAAAASAA0AAAAFAAAAAAASAA8AAAAFAAIAAAASABEAAAAFAAQAAAASABQAAAAFAAcAAAATABEAAAAGAAQAAAATABQAAAAGAAcAAAAUAA0AAAAHAAAAAAAUAA4AAAAHAAEAAAAUABAAAAAHAAMAAAAUABEAAAAHAAQAAAAUABIAAAAHAAUAAAAUABMAAAAHAAYAAAAUABQAAAAHAAcAAAAWABAAAAAEAAMAAAAWABEAAAAEAAQAAAAWABIAAAAEAAUAAAAWABMAAAAEAAYAAAAWABQAAAAEAAcAAAAXAA0AAAAFAAAAAAAXAA8AAAAFAAIAAAAXABEAAAAFAAQAAAAXABQAAAAFAAcAAAAYAA0AAAAGAAAAAAAYAA8AAAAGAAIAAAAYABEAAAAGAAQAAAAYABQAAAAGAAcAAAAZAA0AAAAHAAAAAAAZAA4AAAAHAAEAAAAZAA8AAAAHAAIAAAAZABAAAAAHAAMAAAAZABEAAAAHAAQAAAAZABIAAAAHAAUAAAAZABMAAAAHAAYAAAAZABQAAAAHAAcAAAAwABAAAAAEAAMAAAAwABEAAAAEAAQAAAAwABIAAAAEAAUAAAAwABMAAAAEAAYAAAAwABQAAAAEAAcAAAAxABAAAAAEAAMAAAAxABEAAAAFAAQAAAAxABQAAAAFAAcAAAAyAA0AAAAGAAAAAAAyAA8AAAAGAAIAAAAyABEAAAAGAAQAAAAyABQAAAAGAAcAAAAzAA0AAAAHAAAAAAAzAA4AAAAHAAEAAAAzAA8AAAAHAAIAAAAzABAAAAAHAAMAAAAzABEAAAAHAAQAAAAzABIAAAAHAAUAAAAzABMAAAAHAAYAAAAzABQAAAAHAAcAAAA0AA0AAAAHAAAAAAA0AA4AAAAHAAEAAAA0AA8AAAAHAAIAAAA0ABAAAAAHAAMAAAA0ABEAAAAHAAQAAAA0ABIAAAAHAAUAAAA0ABMAAAAHAAYAAAA0ABQAAAAHAAcAAAA4ABAAAAAEAAMAAAA4ABEAAAAEAAQAAAA4ABIAAAAEAAUAAAA4ABMAAAAEAAYAAAA4ABQAAAAEAAcAAAA5ABQAAAAFAAcAAAA6AA0AAAAGAAAAAAA6AA8AAAAGAAIAAAA6ABEAAAAGAAQAAAA6ABQAAAAGAAcAAAA7AA0AAAAHAAAAAAA7AA4AAAAHAAEAAAA7AA8AAAAHAAIAAAA7ABAAAAAHAAMAAAA7ABEAAAAHAAQAAAA7ABIAAAAHAAUAAAA7ABMAAAAHAAYAAAA7ABQAAAAHAAcAAAA8AA0AAAAHAAAAAAA8AA4AAAAHAAEAAAA8AA8AAAAHAAIAAAA8ABAAAAAHAAMAAAA8ABEAAAAHAAQAAAA8ABIAAAAHAAUAAAA8ABMAAAAHAAYAAAA8ABQAAAAHAAcAAABAABAAAAAEAAMAAABAABEAAAAEAAQAAABAABIAAAAEAAUAAABAABMAAAAEAAYAAABAABQAAAAEAAcAAABBABAAAAAEAAMAAABBABEAAAAEAAQAAABBABIAAAAEAAUAAABBABMAAAAEAAYAAABBABQAAAAEAAcAAABCABEAAAAFAAQAAABCABQAAAAFAAcAAABDAA0AAAAGAAAAAABDAA4AAAAHAAEAAABDABAAAAAHAAMAAABDABEAAAAGAAQAAABDABQAAAAGAAcAAABEABAAAAAHAAMAAABEABEAAAAHAAQAAABEABIAAAAHAAUAAABEABMAAAAHAAYAAABEABQAAAAHAAcAAABFABEAAAABAAQAAABFABIAAAABAAUAAABFABQAAAABAAcAAABGABEAAAACAAQAAABGABQAAAACAAcAAABHABEAAAADAAQAAABHABIAAAADAAUAAABHABMAAAADAAYAAABHABQAAAADAAcAAABIABAAAAAEAAMAAABIABEAAAAEAAQAAABIABIAAAAEAAUAAABIABMAAAAEAAYAAABIABQAAAAEAAcAAABJABAAAAAEAAMAAABJABEAAAAEAAQAAABJABIAAAAEAAUAAABJABMAAAAEAAYAAABJABQAAAAEAAcAAABKAA0AAAAFAAAAAABKAA8AAAAFAAIAAABKABEAAAAFAAQAAABKABQAAAAFAAcAAABLAA0AAAAGAAAAAABLAA4AAAAHAAEAAABLAA8AAAAGAAIAAABLABAAAAAHAAMAAABLABEAAAAGAAQAAABLABQAAAAGAAcAAABMAA0AAAAHAAAAAABMAA4AAAAHAAEAAABMAA8AAAAHAAIAAABMABAAAAAHAAMAAABMABEAAAAHAAQAAABMABIAAAAHAAUAAABMABMAAAAHAAYAAABMABQAAAAHAAcAAABQABAAAAAEAAMAAABQABEAAAAEAAQAAABQABIAAAAEAAUAAABQABMAAAAEAAYAAABQABQAAAAEAAcAAABRABAAAAAEAAMAAABRABEAAAAEAAQAAABRABIAAAAEAAUAAABRABMAAAAEAAYAAABRABQAAAAEAAcAAABSAA0AAAAFAAAAAABSABEAAAAFAAQAAABSABQAAAAFAAcAAABTABAAAAAHAAMAAABTABEAAAAGAAQAAABTABQAAAAGAAcAAABUAA0AAAAHAAAAAABUAA4AAAAHAAEAAABUAA8AAAAHAAIAAABUABAAAAAHAAMAAABUABEAAAAHAAQAAABUABIAAAAHAAUAAABUABMAAAAHAAYAAABUABQAAAAHAAcAAABVABEAAAACAAQAAABVABQAAAACAAcAAABWABEAAAADAAQAAABWABIAAAADAAUAAABWABMAAAADAAYAAABWABQAAAADAAcAAABYABAAAAAEAAMAAABYABEAAAAEAAQAAABYABIAAAAEAAUAAABYABMAAAAEAAYAAABYABQAAAAEAAcAAABZABAAAAAEAAMAAABZABEAAAAEAAQAAABZABIAAAAEAAUAAABZABMAAAAEAAYAAABZABQAAAAEAAcAAABaAA0AAAAFAAAAAABaAA8AAAAFAAIAAABaABEAAAAFAAQAAABaABQAAAAFAAcAAABbAA0AAAAGAAAAAABbAA8AAAAGAAIAAABbABAAAAAHAAMAAABbABEAAAAGAAQAAABbABQAAAAGAAcAAABcAA0AAAAHAAAAAABcAA4AAAAHAAEAAABcAA8AAAAHAAIAAABcABAAAAAHAAMAAABcABEAAAAHAAQAAABcABIAAAAHAAUAAABcABMAAAAHAAYAAABcABQAAAAHAAcAAAA5ABEAAAAFAAQAAAA=")
+tile_set = SubResource("TileSet_mti0u")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="Decoration" unique_id=2128528055]
+position = Vector2(-3, 0)
+tile_map_data = PackedByteArray("AAAdAA0AAAAAAAAAAAAdAA8AAAAAAAIAAAAdABEAAAAQAAAAAAAdABQAAAAQAAMAAAAeAA0AAAABAAAAAAAeAA4AAAABAAEAAAAeAA8AAAABAAIAAAAeABAAAAABAAMAAAAeABEAAAARAAAAAAAeABIAAAARAAEAAAAeABMAAAARAAIAAAAeABQAAAARAAMAAAAfAA0AAAACAAAAAAAfAA4AAAACAAEAAAAfAA8AAAACAAIAAAAfABAAAAACAAMAAAAfABEAAAASAAAAAAAfABIAAAASAAEAAAAfABMAAAASAAIAAAAfABQAAAASAAMAAAAgAA0AAAADAAAAAAAgAA8AAAADAAIAAAAgABEAAAATAAAAAAAgABQAAAATAAMAAAAhAA0AAAAAAAAAAAAhAA8AAAAAAAIAAAAhABEAAAAUAAAAAAAhABQAAAAUAAMAAAAiAA0AAAABAAAAAAAiAA4AAAABAAEAAAAiAA8AAAABAAIAAAAiABAAAAABAAMAAAAiABEAAAAVAAAAAAAiABIAAAAVAAEAAAAiABMAAAAVAAIAAAAiABQAAAAVAAMAAAAjAA0AAAACAAAAAAAjAA4AAAACAAEAAAAjAA8AAAACAAIAAAAjABAAAAACAAMAAAAjABEAAAAWAAAAAAAjABIAAAAWAAEAAAAjABMAAAAWAAIAAAAjABQAAAAWAAMAAAAkAA0AAAADAAAAAAAkAA8AAAADAAIAAAAkABEAAAAXAAAAAAAkABQAAAAXAAMAAAAxAA4AAAAEAAEAAAAxAA8AAAAEAAIAAAAxABAAAAAEAAMAAAAxABEAAAAEAAQAAAAxABIAAAAEAAUAAAAxABMAAAAEAAYAAAAxABQAAAAEAAcAAAAyAA0AAAAFAAAAAAAyAA8AAAAFAAIAAAAyABEAAAAFAAQAAAAyABQAAAAFAAcAAAAzAA0AAAAGAAAAAAAzAA8AAAAGAAIAAAAzABEAAAAGAAQAAAAzABQAAAAGAAcAAAA0AA0AAAAHAAAAAAA0AA4AAAAHAAEAAAA0AA8AAAAHAAIAAAA0ABAAAAAHAAMAAAA0ABEAAAAHAAQAAAA0ABIAAAAHAAUAAAA0ABMAAAAHAAYAAAA0ABQAAAAHAAcAAAA5AA0AAAAEAAAAAAA5AA4AAAAEAAEAAAA5AA8AAAAEAAIAAAA5ABAAAAAEAAMAAAA5ABEAAAAEAAQAAAA5ABIAAAAEAAUAAAA5ABMAAAAEAAYAAAA5ABQAAAAEAAcAAAA6AA0AAAAFAAAAAAA6AA8AAAAFAAIAAAA6ABEAAAAFAAQAAAA6ABQAAAAFAAcAAABBAA0AAAAEAAAAAABBAA8AAAAEAAIAAABBABEAAAAEAAQAAABBABQAAAAEAAcAAABCAA0AAAAFAAAAAABCAA8AAAAFAAIAAABCABEAAAAFAAQAAABCABQAAAAFAAcAAABJAA0AAAAEAAAAAABJAA8AAAAEAAIAAABJABEAAAAEAAQAAABJABQAAAAEAAcAAABKAA0AAAAFAAAAAABKAA8AAAAFAAIAAABKABEAAAAFAAQAAABKABQAAAAFAAcAAABRAA0AAAAEAAAAAABRAA8AAAAEAAIAAABRABEAAAAEAAQAAABRABQAAAAEAAcAAABSAA0AAAAFAAAAAABSAA8AAAAFAAIAAABSABEAAAAFAAQAAABSABQAAAAFAAcAAABZAA0AAAAEAAAAAABZAA8AAAAEAAIAAABZABEAAAAEAAQAAABZABQAAAAEAAcAAABaAA0AAAAFAAAAAABaAA8AAAAFAAIAAABaABEAAAAFAAQAAABaABQAAAAFAAcAAAAdAA4AAAAAAAEAAAAdABAAAAAAAAMAAAAdABIAAAAQAAEAAAAdABMAAAAQAAIAAAAgAA4AAAADAAEAAAAgABAAAAADAAMAAAAgABIAAAATAAEAAAAgABMAAAATAAIAAAAhAA4AAAAAAAEAAAAhABAAAAAAAAMAAAAhABIAAAAUAAEAAAAhABMAAAAUAAIAAAAkAA4AAAADAAEAAAAkABAAAAADAAMAAAAkABIAAAAXAAEAAAAkABMAAAAXAAIAAAA7AA0AAAAGAAAAAAA7AA8AAAAGAAIAAAA7ABEAAAAGAAQAAAA7ABQAAAAGAAcAAAA8AA0AAAAHAAAAAAA8AA4AAAAHAAEAAAA8AA8AAAAHAAIAAAA8ABAAAAAHAAMAAAA8ABEAAAAHAAQAAAA8ABIAAAAHAAUAAAA8ABMAAAAHAAYAAAA8ABQAAAAHAAcAAABBAA4AAAAEAAEAAABBABAAAAAEAAMAAABBABIAAAAEAAUAAABBABMAAAAEAAYAAABDAA0AAAAGAAAAAABDAA8AAAAGAAIAAABDABEAAAAGAAQAAABDABQAAAAGAAcAAABEAA0AAAAHAAAAAABEAA4AAAAHAAEAAABEAA8AAAAHAAIAAABEABAAAAAHAAMAAABEABEAAAAHAAQAAABEABIAAAAHAAUAAABEABMAAAAHAAYAAABEABQAAAAHAAcAAABJAA4AAAAEAAEAAABJABAAAAAEAAMAAABJABIAAAAEAAUAAABJABMAAAAEAAYAAABLAA0AAAAGAAAAAABLAA8AAAAGAAIAAABLABEAAAAGAAQAAABLABQAAAAGAAcAAABMAA0AAAAHAAAAAABMAA4AAAAHAAEAAABMAA8AAAAHAAIAAABMABAAAAAHAAMAAABMABEAAAAHAAQAAABMABIAAAAHAAUAAABMABMAAAAHAAYAAABMABQAAAAHAAcAAABRAA4AAAAEAAEAAABRABAAAAAEAAMAAABRABIAAAAEAAUAAABRABMAAAAEAAYAAABTAA0AAAAGAAAAAABTAA8AAAAGAAIAAABTABEAAAAGAAQAAABTABQAAAAGAAcAAABUAA0AAAAHAAAAAABUAA4AAAAHAAEAAABUAA8AAAAHAAIAAABUABAAAAAHAAMAAABUABEAAAAHAAQAAABUABIAAAAHAAUAAABUABMAAAAHAAYAAABUABQAAAAHAAcAAABZAA4AAAAEAAEAAABZABAAAAAEAAMAAABZABIAAAAEAAUAAABZABMAAAAEAAYAAABbAA0AAAAGAAAAAABbAA8AAAAGAAIAAABbABEAAAAGAAQAAABbABQAAAAGAAcAAABcAA0AAAAHAAAAAABcAA4AAAAHAAEAAABcAA8AAAAHAAIAAABcABAAAAAHAAMAAABcABEAAAAHAAQAAABcABIAAAAHAAUAAABcABMAAAAHAAYAAABcABQAAAAHAAcAAAAKAA0AAAAEAAAAAAAKAA8AAAAEAAIAAAAKABEAAAAEAAQAAAAKABQAAAAEAAcAAAALAA0AAAAFAAAAAAALAA8AAAAFAAIAAAALABEAAAAFAAQAAAALABQAAAAFAAcAAAAMAA0AAAAGAAAAAAAMAA8AAAAGAAIAAAAMABEAAAAGAAQAAAAMABQAAAAGAAcAAAANAA0AAAAHAAAAAAANAA4AAAAHAAEAAAANAA8AAAAHAAIAAAANABAAAAAHAAMAAAANABEAAAAHAAQAAAANABIAAAAHAAUAAAANABMAAAAHAAYAAAANABQAAAAHAAcAAAASAA0AAAAEAAAAAAASAA8AAAAEAAIAAAASABEAAAAEAAQAAAASABQAAAAEAAcAAAATAA0AAAAFAAAAAAATAA8AAAAFAAIAAAATABEAAAAFAAQAAAATABQAAAAFAAcAAAAUAA0AAAAGAAAAAAAUAA8AAAAGAAIAAAAUABEAAAAGAAQAAAAUABQAAAAGAAcAAAAVAA0AAAAHAAAAAAAVAA4AAAAHAAEAAAAVAA8AAAAHAAIAAAAVABAAAAAHAAMAAAAVABEAAAAHAAQAAAAVABIAAAAHAAUAAAAVABMAAAAHAAYAAAAVABQAAAAHAAcAAAAWAA0AAAAEAAAAAAAWAA8AAAAEAAIAAAAWABEAAAAEAAQAAAAWABQAAAAEAAcAAAAXAA0AAAAFAAAAAAAXAA8AAAAFAAIAAAAXABEAAAAFAAQAAAAXABQAAAAFAAcAAAAYAA0AAAAGAAAAAAAYAA8AAAAGAAIAAAAYABEAAAAGAAQAAAAYABQAAAAGAAcAAAAZAA0AAAAHAAAAAAAZAA4AAAAHAAEAAAAZAA8AAAAHAAIAAAAZABAAAAAHAAMAAAAZABEAAAAHAAQAAAAZABIAAAAHAAUAAAAZABMAAAAHAAYAAAAZABQAAAAHAAcAAAAKAA4AAAAEAAEAAAAKABAAAAAEAAMAAAAKABIAAAAEAAUAAAAKABMAAAAEAAYAAAASAA4AAAAEAAEAAAASABAAAAAEAAMAAAASABIAAAAEAAUAAAASABMAAAAEAAYAAAAWAA4AAAAEAAEAAAAWABAAAAAEAAMAAAAWABIAAAAEAAUAAAAWABMAAAAEAAYAAAAxAA0AAAAEAAAAAACBABAAAAAKAAQAAACBABEAAAAKAAUAAACBABIAAAAKAAYAAACBABMAAAAKAAYAAACBABQAAAAKAAcAAACCABAAAAALAAQAAACCABEAAAALAAUAAACCABIAAAALAAYAAACCABMAAAALAAYAAACCABQAAAALAAcAAACDABAAAAAMAAQAAACDABEAAAAMAAUAAACDABIAAAAMAAYAAACDABMAAAAMAAYAAACDABQAAAAMAAcAAAA=")
+tile_set = SubResource("TileSet_17o3h")
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="Decoration" unique_id=1223534538]
+position = Vector2(25.999998, -39)
+scale = Vector2(0.9, 0.9)
+tile_map_data = PackedByteArray("AABTABgAAAAkAAIAAABTABkAAAAkAAMAAABUABgAAAAlAAIAAABUABkAAAAlAAMAAABVABcAAAAmAAEAAABVABgAAAAmAAIAAABVABkAAAAmAAMAAABWABYAAAAnAAAAAABWABcAAAAnAAEAAABQABgAAAAUAAcAAABRABgAAAAVAAcAAAAlABYAAAAIAAAAAAAlABcAAAAIAAEAAAAlABgAAAAIAAIAAAAlABkAAAAIAAMAAAAmABYAAAAJAAAAAAAmABcAAAAJAAEAAAAmABgAAAAJAAIAAAAmABkAAAAJAAMAAAAnABYAAAAKAAAAAAAnABcAAAAKAAEAAAAnABgAAAAKAAIAAAAnABkAAAAKAAMAAAAoABYAAAALAAAAAAAoABcAAAALAAEAAAAoABgAAAALAAIAAAAoABkAAAALAAMAAAApABYAAAAMAAAAAAApABcAAAAMAAEAAAApABgAAAAMAAIAAAApABkAAAAMAAMAAAAqABYAAAANAAAAAAAqABcAAAANAAEAAAAqABgAAAANAAIAAAAqABkAAAANAAMAAAArABYAAAAOAAAAAAArABcAAAAOAAEAAAArABgAAAAOAAIAAAArABkAAAAOAAMAAAAsABYAAAAPAAAAAAAsABcAAAAPAAEAAAAsABgAAAAPAAIAAAAsABkAAAAPAAMAAAAlABIAAAAIAAAAAAAlABMAAAAIAAEAAAAlABQAAAAIAAIAAAAlABUAAAAIAAMAAAAmABIAAAAJAAAAAAAmABMAAAAJAAEAAAAmABQAAAAJAAIAAAAmABUAAAAJAAMAAAAnABIAAAAKAAAAAAAnABMAAAAKAAEAAAAnABQAAAAKAAIAAAAnABUAAAAKAAMAAAAoABIAAAALAAAAAAAoABMAAAALAAEAAAAoABQAAAALAAIAAAAoABUAAAALAAMAAAApABIAAAAMAAAAAAApABMAAAAMAAEAAAApABQAAAAMAAIAAAApABUAAAAMAAMAAAAqABIAAAANAAAAAAAqABMAAAANAAEAAAAqABQAAAANAAIAAAAqABUAAAANAAMAAAArABIAAAAOAAAAAAArABMAAAAOAAEAAAArABQAAAAOAAIAAAArABUAAAAOAAMAAAAsABIAAAAPAAAAAAAsABMAAAAPAAEAAAAsABQAAAAPAAIAAAAsABUAAAAPAAMAAAA=")
+tile_set = SubResource("TileSet_17o3h")
+
+[node name="TileMapLayer3" type="TileMapLayer" parent="Decoration" unique_id=2134417645]
+position = Vector2(27.999998, 17.000002)
+tile_map_data = PackedByteArray("AAARAAsAAAAkAAQAAAARAA4AAAAkAAcAAAAoABAAAAAiAAAAAAAoABEAAAAiAAEAAAAoABIAAAAiAAIAAAAoABMAAAAiAAMAAAApABMAAAAjAAMAAAAcABEAAAAnAAUAAAAcABIAAAAnAAYAAAAcABMAAAAnAAcAAAAdABEAAAAoAAUAAAAdABIAAAAoAAYAAAAdABMAAAAoAAcAAAAaABAAAAAlAAQAAAAaABMAAAAlAAcAAAAbABAAAAAmAAQAAAAbABMAAAAmAAcAAAAcABAAAAAnAAQAAAAdABAAAAAoAAQAAAA=")
+tile_set = SubResource("TileSet_42m7p")
+
+[node name="TileMapLayer4" type="TileMapLayer" parent="Decoration" unique_id=1614215676]
+tile_map_data = PackedByteArray("AAArABEAAAAiAAAAAAArABIAAAAiAAEAAAArABMAAAAiAAIAAAArABQAAAAiAAMAAAAsABQAAAAjAAMAAAA=")
+tile_set = SubResource("TileSet_gb2nh")
+
+[node name="TileMapLayer6" type="TileMapLayer" parent="Decoration" unique_id=989401329]
+
+[node name="BackgroundsBox" type="Node2D" parent="." unique_id=1792853637]
+
+[node name="Box" type="Sprite2D" parent="BackgroundsBox" unique_id=2064181316]
+position = Vector2(395.25, 231.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box29" type="Sprite2D" parent="BackgroundsBox" unique_id=1219485802]
+position = Vector2(203, 199.00002)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box3" type="Sprite2D" parent="BackgroundsBox" unique_id=758497041]
+position = Vector2(366, 230.99998)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box4" type="Sprite2D" parent="BackgroundsBox" unique_id=1495526217]
+position = Vector2(328, 230.99998)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box30" type="Sprite2D" parent="BackgroundsBox" unique_id=2146545746]
+position = Vector2(394.25003, 199.25002)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box6" type="Sprite2D" parent="BackgroundsBox" unique_id=1822383658]
+position = Vector2(203.24998, 231.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box7" type="Sprite2D" parent="BackgroundsBox" unique_id=1718870470]
+position = Vector2(175, 231)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box9" type="Sprite2D" parent="BackgroundsBox" unique_id=779045576]
+position = Vector2(202.00002, 263)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box10" type="Sprite2D" parent="BackgroundsBox" unique_id=1444954492]
+position = Vector2(369.00003, 263)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box11" type="Sprite2D" parent="BackgroundsBox" unique_id=2032991681]
+position = Vector2(322, 263)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box21" type="Sprite2D" parent="BackgroundsBox" unique_id=1172637813]
+position = Vector2(798.25, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box22" type="Sprite2D" parent="BackgroundsBox" unique_id=443348814]
+position = Vector2(827.25, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box26" type="Sprite2D" parent="BackgroundsBox" unique_id=1953531683]
+position = Vector2(929.00006, 230.99998)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box27" type="Sprite2D" parent="BackgroundsBox" unique_id=2083905162]
+position = Vector2(926.25, 199.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box28" type="Sprite2D" parent="BackgroundsBox" unique_id=1453839589]
+position = Vector2(955.2501, 199.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box33" type="Sprite2D" parent="BackgroundsBox" unique_id=1662002721]
+position = Vector2(1082.25, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box34" type="Sprite2D" parent="BackgroundsBox" unique_id=1453389095]
+position = Vector2(1054.0001, 231)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box37" type="Sprite2D" parent="BackgroundsBox" unique_id=1442302577]
+position = Vector2(1211.25, 231.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box38" type="Sprite2D" parent="BackgroundsBox" unique_id=1795464190]
+position = Vector2(1211.2501, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box40" type="Sprite2D" parent="BackgroundsBox" unique_id=1788974129]
+position = Vector2(1339.25, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box41" type="Sprite2D" parent="BackgroundsBox" unique_id=886599861]
+position = Vector2(1310.2501, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box42" type="Sprite2D" parent="BackgroundsBox" unique_id=110486480]
+position = Vector2(1467.2501, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box39" type="Sprite2D" parent="BackgroundsBox" unique_id=1068581402]
+position = Vector2(1182.25, 263.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box36" type="Sprite2D" parent="BackgroundsBox" unique_id=1150939018]
+position = Vector2(1211.25, 199.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box35" type="Sprite2D" parent="BackgroundsBox" unique_id=282998219]
+position = Vector2(1083.0001, 231)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box23" type="Sprite2D" parent="BackgroundsBox" unique_id=1932238955]
+position = Vector2(827.25, 231.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Box24" type="Sprite2D" parent="BackgroundsBox" unique_id=1518643996]
+position = Vector2(798.25, 231.25)
+scale = Vector2(0.8142857, 0.75714284)
+texture = ExtResource("2_mti0u")
+
+[node name="Items" type="Node2D" parent="." unique_id=824029113]
+
+[node name="Pallets" type="Area2D" parent="Items" unique_id=1281163463]
+position = Vector2(1045, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Pallets" unique_id=279141916]
+position = Vector2(24, 6)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Pallets" unique_id=1927842222]
+position = Vector2(24, 3)
+texture = ExtResource("7_8eynh")
+
+[node name="Pallets2" type="Area2D" parent="Items" unique_id=1507556586]
+position = Vector2(918, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Pallets2" unique_id=1129798847]
+position = Vector2(24, 6)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Pallets2" unique_id=1612203806]
+position = Vector2(24, 3)
+texture = ExtResource("7_8eynh")
+
+[node name="Pallets3" type="Area2D" parent="Items" unique_id=1149540786]
+position = Vector2(789, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Pallets3" unique_id=1096475329]
+position = Vector2(24, 6)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Pallets3" unique_id=854798331]
+position = Vector2(24, 3)
+texture = ExtResource("7_8eynh")
+
+[node name="Chest" type="Area2D" parent="Items" unique_id=301344918]
+position = Vector2(357, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Chest" unique_id=36891082]
+position = Vector2(24, 6.5)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Chest" unique_id=164903402]
+position = Vector2(24, 5)
+texture = ExtResource("8_vcpp2")
+
+[node name="Pallets4" type="Area2D" parent="Items" unique_id=864102081]
+position = Vector2(294, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Pallets4" unique_id=1623323525]
+position = Vector2(24, 6)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Pallets4" unique_id=1802452575]
+position = Vector2(24, 3)
+texture = ExtResource("7_8eynh")
+
+[node name="Chest2" type="Area2D" parent="Items" unique_id=845197156]
+position = Vector2(165, 305)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Chest2" unique_id=1797213149]
+position = Vector2(23.5, 6)
+shape = SubResource("RectangleShape2D_wsnn3")
+
+[node name="Sprite2D" type="Sprite2D" parent="Items/Chest2" unique_id=2048224154]
+position = Vector2(24, 5)
+texture = ExtResource("8_vcpp2")
+
+[node name="Enemies" type="Node2D" parent="." unique_id=1465954750]
+
+[node name="Enemy" type="CharacterBody2D" parent="Enemies" unique_id=850832281]
+position = Vector2(759, 318)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy" unique_id=1133278978]
+position = Vector2(11, 0)
+shape = SubResource("CapsuleShape2D_87f3b")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemy" unique_id=401978785]
+offset_left = 1.0
+offset_top = -18.0
+offset_right = 21.0
+offset_bottom = 17.0
+color = Color(0.8862745, 0.003921569, 0.14901961, 1)
+
+[node name="Enemy2" type="CharacterBody2D" parent="Enemies" unique_id=1127834958]
+position = Vector2(1949, 317)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy2" unique_id=1115941963]
+position = Vector2(11, 0)
+shape = SubResource("CapsuleShape2D_87f3b")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemy2" unique_id=1978950092]
+offset_left = 1.0
+offset_top = -18.0
+offset_right = 21.0
+offset_bottom = 17.0
+color = Color(0.8862745, 0.003921569, 0.14901961, 1)
+
+[node name="Enemy4" type="CharacterBody2D" parent="Enemies" unique_id=824730775]
+position = Vector2(2019, 317)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy4" unique_id=1495791037]
+position = Vector2(11, 0)
+shape = SubResource("CapsuleShape2D_87f3b")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemy4" unique_id=1333336797]
+offset_left = 1.0
+offset_top = -18.0
+offset_right = 21.0
+offset_bottom = 17.0
+color = Color(0.8862745, 0.003921569, 0.14901961, 1)
+
+[node name="Enemy5" type="CharacterBody2D" parent="Enemies" unique_id=604144020]
+position = Vector2(2050, 318)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy5" unique_id=176340934]
+position = Vector2(11, 0)
+shape = SubResource("CapsuleShape2D_87f3b")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemy5" unique_id=2049166250]
+offset_left = 1.0
+offset_top = -18.0
+offset_right = 21.0
+offset_bottom = 17.0
+color = Color(0.8862745, 0.003921569, 0.14901961, 1)
+
+[node name="Enemy3" type="CharacterBody2D" parent="Enemies" unique_id=1228029990]
+position = Vector2(1988, 317)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemy3" unique_id=685425797]
+position = Vector2(11, 0)
+shape = SubResource("CapsuleShape2D_87f3b")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemy3" unique_id=1193782150]
+offset_left = 1.0
+offset_top = -18.0
+offset_right = 21.0
+offset_bottom = 17.0
+color = Color(0.8862745, 0.003921569, 0.14901961, 1)
+
+[node name="Barrier" type="Node2D" parent="." unique_id=1721280332]
+
+[node name="Obstacle" type="StaticBody2D" parent="Barrier" unique_id=528974921]
+position = Vector2(1513, 307)
+
+[node name="Sprite2D" type="Sprite2D" parent="Barrier/Obstacle" unique_id=1177082255]
+position = Vector2(38, 6)
+scale = Vector2(1, 0.93333334)
+texture = ExtResource("5_mti0u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barrier/Obstacle" unique_id=467410988]
+position = Vector2(39, 9)
+shape = SubResource("RectangleShape2D_vcpp2")
+
+[node name="Obstacle2" type="StaticBody2D" parent="Barrier" unique_id=702061462]
+position = Vector2(1115, 308)
+
+[node name="Sprite2D" type="Sprite2D" parent="Barrier/Obstacle2" unique_id=1140114361]
+position = Vector2(38, 4)
+texture = ExtResource("6_8eynh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barrier/Obstacle2" unique_id=1452206698]
+position = Vector2(36.5, 7.5)
+shape = SubResource("RectangleShape2D_pqd4u")
+
+[node name="Obstacle3" type="StaticBody2D" parent="Barrier" unique_id=59350639]
+position = Vector2(1159, 308)
+
+[node name="Sprite2D" type="Sprite2D" parent="Barrier/Obstacle3" unique_id=1840090464]
+position = Vector2(28, 14.749993)
+scale = Vector2(0.74285716, 0.5583335)
+texture = ExtResource("5_mti0u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barrier/Obstacle3" unique_id=1512124260]
+position = Vector2(28.75, 16)
+shape = SubResource("RectangleShape2D_42m7p")
+
+[node name="Mecha_Fish" type="CharacterBody2D" parent="." unique_id=1788455124]
+position = Vector2(1869, 300)
 script = ExtResource("2_dw7qd")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1698804642]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Mecha_Fish" unique_id=1698804642]
+position = Vector2(-43, -6)
 shape = SubResource("CircleShape2D_17o3h")
 
-[node name="Camera2D" type="Camera2D" parent="CharacterBody2D" unique_id=317300508]
-script = ExtResource("2_43qq6")
+[node name="Camera2D" type="Camera2D" parent="Mecha_Fish" unique_id=317300508]
 
-[node name="Area2D" type="Area2D" parent="CharacterBody2D" unique_id=1520729499]
+[node name="Area2D" type="Area2D" parent="Mecha_Fish" unique_id=1520729499]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/Area2D" unique_id=311078596]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Mecha_Fish/Area2D" unique_id=311078596]
+position = Vector2(-44, -15)
 shape = SubResource("CircleShape2D_mti0u")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=489905705]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Mecha_Fish" unique_id=489905705]
+position = Vector2(-43, -10)
 sprite_frames = SubResource("SpriteFrames_c6ktk")
 animation = &"Idle"
-frame_progress = 0.72962564
-
-[node name="Items" type="Node2D" parent="." unique_id=1645452045]
-
-[node name="Box1" type="Area2D" parent="Items" unique_id=2034046776]
-position = Vector2(1400, 280)
-script = ExtResource("3_fuhfa")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box1" unique_id=738149102]
-shape = SubResource("RectangleShape2D_5bbqq")
-
-[node name="ColorRect" type="ColorRect" parent="Items/Box1" unique_id=1643699811]
-offset_right = 40.0
-offset_bottom = 40.0
-color = Color(0.54509807, 0.27058825, 0.07450981, 1)
-
-[node name="Box2" type="Area2D" parent="Items" unique_id=441410524]
-position = Vector2(1100, 280)
-script = ExtResource("3_fuhfa")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box2" unique_id=2142296324]
-shape = SubResource("RectangleShape2D_5bbqq")
-
-[node name="ColorRect" type="ColorRect" parent="Items/Box2" unique_id=1613602281]
-offset_right = 40.0
-offset_bottom = 40.0
-color = Color(0.54509807, 0.27058825, 0.07450981, 1)
-
-[node name="Box3" type="Area2D" parent="Items" unique_id=830904639]
-position = Vector2(800, 280)
-script = ExtResource("3_fuhfa")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box3" unique_id=330755551]
-shape = SubResource("RectangleShape2D_5bbqq")
-
-[node name="ColorRect" type="ColorRect" parent="Items/Box3" unique_id=442496149]
-offset_right = 40.0
-offset_bottom = 40.0
-color = Color(0.54509807, 0.27058825, 0.07450981, 1)
-
-[node name="Box4" type="Area2D" parent="Items" unique_id=637185322]
-position = Vector2(500, 280)
-script = ExtResource("3_fuhfa")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box4" unique_id=79835957]
-shape = SubResource("RectangleShape2D_5bbqq")
-
-[node name="ColorRect" type="ColorRect" parent="Items/Box4" unique_id=997222934]
-offset_right = 40.0
-offset_bottom = 40.0
-color = Color(0.54509807, 0.27058825, 0.07450981, 1)
-
-[node name="Box5" type="Area2D" parent="Items" unique_id=437545895]
-position = Vector2(200, 280)
-script = ExtResource("3_fuhfa")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Items/Box5" unique_id=1813363268]
-shape = SubResource("RectangleShape2D_5bbqq")
-
-[node name="ColorRect" type="ColorRect" parent="Items/Box5" unique_id=1417696461]
-offset_right = 40.0
-offset_bottom = 40.0
-color = Color(0.54509807, 0.27058825, 0.07450981, 1)
-
-[node name="Enemies" type="Node2D" parent="." unique_id=2119915996]
-
-[node name="E1" type="CharacterBody2D" parent="Enemies" unique_id=398017402]
-position = Vector2(1900, 290)
-script = ExtResource("4_ii734")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/E1" unique_id=1762293271]
-shape = SubResource("RectangleShape2D_srbgl")
-
-[node name="ColorRect" type="ColorRect" parent="Enemies/E1" unique_id=702411571]
-offset_right = 30.0
-offset_bottom = 50.0
-color = Color(0.8, 0.2, 0.2, 1)
-
-[node name="E2" type="CharacterBody2D" parent="Enemies" unique_id=606948343]
-position = Vector2(1950, 290)
-script = ExtResource("4_ii734")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/E2" unique_id=1167048347]
-shape = SubResource("RectangleShape2D_srbgl")
-
-[node name="ColorRect" type="ColorRect" parent="Enemies/E2" unique_id=1087023815]
-offset_right = 30.0
-offset_bottom = 50.0
-color = Color(0.8, 0.2, 0.2, 1)
-
-[node name="E3" type="CharacterBody2D" parent="Enemies" unique_id=331168045]
-position = Vector2(2000, 290)
-script = ExtResource("4_ii734")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/E3" unique_id=148721611]
-shape = SubResource("RectangleShape2D_srbgl")
-
-[node name="ColorRect" type="ColorRect" parent="Enemies/E3" unique_id=165750991]
-offset_right = 30.0
-offset_bottom = 50.0
-color = Color(0.8, 0.2, 0.2, 1)
-
-[node name="E4" type="CharacterBody2D" parent="Enemies" unique_id=1295504282]
-position = Vector2(2050, 290)
-script = ExtResource("4_ii734")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/E4" unique_id=1517078731]
-shape = SubResource("RectangleShape2D_srbgl")
-
-[node name="ColorRect" type="ColorRect" parent="Enemies/E4" unique_id=1957976930]
-offset_right = 30.0
-offset_bottom = 50.0
-color = Color(0.8, 0.2, 0.2, 1)
-
-[node name="E5" type="CharacterBody2D" parent="Enemies" unique_id=1336375477]
-position = Vector2(2100, 290)
-script = ExtResource("4_ii734")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/E5" unique_id=1322899472]
-shape = SubResource("RectangleShape2D_srbgl")
-
-[node name="ColorRect" type="ColorRect" parent="Enemies/E5" unique_id=359263439]
-offset_right = 30.0
-offset_bottom = 50.0
-color = Color(0.8, 0.2, 0.2, 1)
-
-[node name="Shelf1" type="StaticBody2D" parent="." unique_id=2088285310]
-position = Vector2(1300, 260)
-
-[node name="ColorRect" type="ColorRect" parent="Shelf1" unique_id=6625957]
-offset_right = 40.0
-offset_bottom = 80.0
-color = Color(0.33333334, 0.33333334, 0.33333334, 1)
-
-[node name="Shelf2" type="StaticBody2D" parent="." unique_id=1512763270]
-position = Vector2(90, 260)
-
-[node name="ColorRect" type="ColorRect" parent="Shelf2" unique_id=808530155]
-offset_right = 40.0
-offset_bottom = 80.0
-color = Color(0.33333334, 0.33333334, 0.33333334, 1)
-
-[node name="ForkliftScene" type="Node2D" parent="." unique_id=1651132341]
-
-[node name="Forklift" type="CharacterBody2D" parent="ForkliftScene" unique_id=1263424296]
-position = Vector2(700, 270)
-script = ExtResource("4_8k4df")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftScene/Forklift" unique_id=1277754589]
-shape = SubResource("RectangleShape2D_7sski")
-
-[node name="ColorRect" type="ColorRect" parent="ForkliftScene/Forklift" unique_id=1777476734]
-offset_left = 2.0
-offset_top = 4.0
-offset_right = 42.0
-offset_bottom = 44.0
-color = Color(1, 0.6666667, 0, 1)
-
-[node name="MovingShelf" type="StaticBody2D" parent="ForkliftScene" unique_id=1374666261]
-position = Vector2(720, 200)
-
-[node name="ColorRect" type="ColorRect" parent="ForkliftScene/MovingShelf" unique_id=1570482006]
-offset_right = 40.0
-offset_bottom = 120.0
-color = Color(0.46666667, 0.46666667, 0.46666667, 1)
-
-[node name="Elevator" type="ColorRect" parent="." unique_id=303305489]
-offset_left = 50.0
-offset_top = 240.0
-offset_right = 110.0
-offset_bottom = 340.0
-color = Color(0.26666668, 0.26666668, 0.26666668, 1)
-
-[node name="ElevatorButton" type="Area2D" parent="." unique_id=454590001]
-position = Vector2(100, 280)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ElevatorButton" unique_id=2025103369]
-shape = SubResource("CircleShape2D_4inja")
-
-[node name="ColorRect" type="ColorRect" parent="ElevatorButton" unique_id=733809286]
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="ExclamationLabel" type="Label" parent="." unique_id=1850551815]
-visible = false
-offset_right = 40.0
-offset_bottom = 14.0
-text = "!"
 
 [node name="UI" type="Control" parent="." unique_id=1820595850]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_left = 52.0
@@ -384,3 +1782,9 @@ layout_mode = 0
 offset_right = 40.0
 offset_bottom = 14.0
 text = "E"
+
+[node name="ExclamationLabel" type="Label" parent="." unique_id=107281968]
+visible = false
+offset_right = 40.0
+offset_bottom = 14.0
+text = "!"
