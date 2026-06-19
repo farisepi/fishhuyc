@@ -2,7 +2,6 @@ extends CharacterBody2D
 
 @export var speed: float = 200.0
 @export var jump_velocity: float = -400.0
-@export var slide_speed: float = 350.0
 @export var gravity: float = 980.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -10,16 +9,16 @@ extends CharacterBody2D
 
 var is_crouching: bool = false
 var is_vaulting: bool = false
-var is_sliding: bool = false
 
 func _ready():
 	sprite.play("idle")
 	if camera:
 		camera.zoom = Vector2(1.5, 1.5)
 		camera.limit_left = 0
-		camera.limit_right = 1920
+		camera.limit_right = 2857
 		camera.limit_top = 0
 		camera.limit_bottom = 360
+		camera.global_position = global_position
 
 func _physics_process(delta):
 	if is_vaulting:
@@ -57,6 +56,9 @@ func _physics_process(delta):
 		$CollisionShape2D.scale.y = 1.0
 	
 	move_and_slide()
+	
+	if camera:
+		camera.global_position = global_position
 
 func _try_vault() -> bool:
 	var container = get_parent().get_node_or_null("Barriers")
@@ -66,7 +68,7 @@ func _try_vault() -> bool:
 	for obs in container.get_children():
 		if obs is StaticBody2D:
 			var dist = global_position.distance_to(obs.global_position)
-			if dist < 150:
+			if dist < 80:
 				_vault(obs)
 				return true
 	
@@ -76,8 +78,16 @@ func _vault(obs: StaticBody2D):
 	is_vaulting = true
 	velocity = Vector2.ZERO
 	
-	var dir = 1 if sprite.scale.x > 0 else -1
-	var target = Vector2(obs.global_position.x + dir * 60, obs.global_position.y - 60)
+	# Куда идёт рыба (по velocity, а не по спрайту)
+	var moving_right = velocity.x > 0 || (velocity.x == 0 && sprite.scale.x > 0)
+	var target = global_position
+	
+	if moving_right:
+		target.x = obs.global_position.x + 80
+	else:
+		target.x = obs.global_position.x - 80
+	
+	target.y = obs.global_position.y - 60
 	
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
@@ -86,31 +96,4 @@ func _vault(obs: StaticBody2D):
 	await tween.finished
 	
 	is_vaulting = false
-	velocity.x = dir * speed
-
-func _start_slide(direction: float):
-	is_sliding = true
-	sprite.scale.y = 0.3
-	$CollisionShape2D.scale.y = 0.3
-	
-	var dir = 1 if direction >= 0 else -1
-	velocity.x = dir * slide_speed
-	
-	await get_tree().create_timer(0.4).timeout
-	
-	sprite.scale.y = 1.0
-	$CollisionShape2D.scale.y = 1.0
-	is_sliding = false
-
-func _try_vault_or_jump():
-	var container = get_parent().get_node_or_null("Barriers")
-	
-	if container:
-		for obs in container.get_children():
-			if obs is StaticBody2D:
-				var dist = global_position.distance_to(obs.global_position)
-				if dist < 150:
-					_vault(obs)
-					return
-	
-	velocity.y = jump_velocity
+	velocity.x = speed if moving_right else -speed
