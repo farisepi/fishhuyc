@@ -5,7 +5,7 @@ var slides = [
 	{"image": preload("res://Textures/Intro/2.png"), "text": "Первый подопытный — крыса."},
 	{"image": preload("res://Textures/Intro/3.png"), "text": "Чип сработал. Крыса забыла, кем была."},
 	{"image": preload("res://Textures/Intro/4.png"), "text": "Вскоре подчинение охватило и другие виды."},
-	{"image": preload("res://Textures/Intro/5.jpg"), "text": "Человечество наконец решило проблему нехватки энергии."},
+	{"image": preload("res://Textures/Intro/5.png"), "text": "Человечество наконец решило проблему нехватки энергии."},
 	{"image": preload("res://Textures/Intro/6.png"), "text": "Животные перестали быть существами. Они стали инструментами."},
 	{"image": preload("res://Textures/Intro/7.png"), "text": "Система казалась безупречной."}
 ]
