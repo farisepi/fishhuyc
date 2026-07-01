@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Base/Scenes/Fish.tscn" id="2_schuh"]
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_x2xif"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Base/Scripts/Cutscene_Camera.gd" id="4_4y1cg"]
+[ext_resource type="Shader" uid="uid://bwg4ffj2rbtdk" path="res://Base/Scenes/Level_1.gdshader" id="4_k3j2e"]
 [ext_resource type="Texture2D" uid="uid://feneaejev1f0" path="res://Textures/Backgrounds/Level_1/Aqua.png" id="4_whdfm"]
 [ext_resource type="Texture2D" uid="uid://b10hgvg24jwt" path="res://Textures/Characters/Scienist/Idle/1.png" id="5_avqyc"]
 [ext_resource type="Texture2D" uid="uid://ctlygo4c8byyq" path="res://Textures/Backgrounds/Level_1/Labalatory.png" id="5_k3j2e"]
@@ -101,6 +102,9 @@ _data = {
 &"швду": SubResource("Animation_o5hs1")
 }
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bhunq"]
+shader = ExtResource("4_k3j2e")
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_vhqdt"]
 radius = 16.0
 height = 100.0
@@ -163,6 +167,15 @@ texture = ExtResource("7_3t3m1")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Mechanic" unique_id=1742594015]
 libraries/ = SubResource("AnimationLibrary_43f8l")
 autoplay = &"idle"
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=718639401]
+material = SubResource("ShaderMaterial_bhunq")
+offset_left = 244.0
+offset_top = 174.0
+offset_right = 959.0
+offset_bottom = 519.0
+mouse_filter = 2
+color = Color(0.039215688, 0.101960786, 0.18039216, 1)
 
 [node name="DialogueZone" type="Area2D" parent="." unique_id=969221308]
 position = Vector2(1, 0)
