@@ -35,6 +35,7 @@ func _ready():
 		camera.limit_bottom = 360
 
 func _physics_process(delta):
+	
 	if is_vaulting or is_climbing:
 		return
 	
@@ -177,20 +178,34 @@ func _jump_over(o: StaticBody2D, high: bool):
 	velocity.x = speed * d
 
 func _try_climb():
+	# Только в воздухе и после прыжка
+	if is_on_floor():
+		return
+	if has_item:
+		return
+	
 	var c = get_parent().get_node_or_null("Barriers")
-	if not c: return
+	if not c:
+		return
+	
 	for o in c.get_children():
-		if o is StaticBody2D and global_position.distance_to(o.global_position) < 80:
-			var s = o.get_node("CollisionShape2D").shape
-			if s is RectangleShape2D and s.size.y > 60:
-				is_climbing = true
-				velocity = Vector2.ZERO
-				var d = 1 if sprite.scale.x > 0 else -1
-				var land = Vector2(o.global_position.x + d * 80, o.global_position.y - s.size.y - 20)
-				var t = create_tween()
-				t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-				t.tween_property(self, "global_position", land, 0.5)
-				await t.finished
-				is_climbing = false
-				velocity.x = speed * d
-				return
+		if o is StaticBody2D:
+			var dist = global_position.distance_to(o.global_position)
+			if dist < 100:
+				var s = o.get_node("CollisionShape2D").shape
+				if s is RectangleShape2D and s.size.y > 60:
+					is_climbing = true
+					velocity = Vector2.ZERO
+					
+					var d = 1 if sprite.scale.x > 0 else -1
+					var land = Vector2(o.global_position.x + d * 80, o.global_position.y - s.size.y - 20)
+					
+					var t = create_tween()
+					t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+					t.tween_property(self, "global_position", land, 0.5)
+					await t.finished
+					
+					is_climbing = false
+					velocity.x = speed * d
+					return
+	

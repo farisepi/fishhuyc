@@ -20,7 +20,7 @@
 shader = ExtResource("2_gb2nh")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
-size = Vector2(6328.6, 75.885)
+size = Vector2(6328.6, 81.965)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_43qq6"]
 texture = ExtResource("5_ii734")
@@ -1415,7 +1415,7 @@ size = Vector2(60, 125.75)
 radius = 12.649111
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qr0ht"]
-size = Vector2(180, 153.5)
+size = Vector2(257, 185.75)
 
 [node name="Level_3" type="Node2D" unique_id=928929783]
 script = ExtResource("1_jfe0f")
@@ -1439,10 +1439,10 @@ position = Vector2(354, 33)
 shape = SubResource("RectangleShape2D_43qq6")
 
 [node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1661476068]
-offset_left = -1214.0
-offset_top = -5.0
-offset_right = 3516.42
-offset_bottom = 77.0
+offset_left = -1212.355
+offset_top = -8.03
+offset_right = 3518.065
+offset_bottom = 73.97
 color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
@@ -2013,5 +2013,17 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(3087, 258)
+position = Vector2(2914, 241)
 shape = SubResource("RectangleShape2D_qr0ht")
+
+[node name="Parrying Scene" type="Node" parent="." unique_id=789644413]
+
+[node name="Sprite2D" type="Sprite2D" parent="Parrying Scene" unique_id=1734229037]
+position = Vector2(3794, 267)
+texture = ExtResource("10_vcpp2")
+
+[node name="ColorRect" type="ColorRect" parent="Parrying Scene" unique_id=2002429216]
+offset_left = 3829.0
+offset_top = 275.0
+offset_right = 3859.0
+offset_bottom = 331.0
