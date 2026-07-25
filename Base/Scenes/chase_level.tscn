@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://bin0vdbn64q86" path="res://Textures/Tiles/level_3/Sprite-0002.png" id="7_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://dd2gqd64xnamw" path="res://Textures/Tiles/level_3/Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://c7flfahlbyak8" path="res://Textures/Tiles/level_3/Shelf.png" id="10_vcpp2"]
-[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="15_wsnn3"]
+[ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://MechaFishCamera.gd" id="15_wsnn3"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
 shader = ExtResource("2_gb2nh")
