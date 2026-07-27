@@ -9,6 +9,7 @@ extends Node
 @onready var hit_player: AudioStreamPlayer = $HitPlayer
 @onready var aquarium_player: AudioStreamPlayer = $AquariumPlayer
 @onready var swim_player: AudioStreamPlayer = $SwimPlayer
+@onready var achievement_player: AudioStreamPlayer = $AchievementPlayer
 
 var pitch_variation: float = 0.1
 var scientist_queue: float = 0.0
@@ -134,3 +135,7 @@ func set_swim_volume(volume: float) -> void:
 func stop_earthquake():
 	if earthquake_player and earthquake_player.playing:
 		earthquake_player.stop()
+
+func play_achievement() -> void:
+	if achievement_player:
+		achievement_player.play()

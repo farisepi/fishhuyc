@@ -2,19 +2,19 @@
 
 [ext_resource type="Script" uid="uid://bu8fbcl608b7v" path="res://Base/Scripts/Level_3.gd" id="1_jfe0f"]
 [ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://Base/Scripts/Mecha_Fish.gd" id="2_dw7qd"]
-[ext_resource type="Shader" uid="uid://cfsy48uvstp6g" path="res://Base/Scenes/chase_level.gdshader" id="2_gb2nh"]
+[ext_resource type="Shader" uid="uid://cfsy48uvstp6g" path="res://Base/Shaders/chase_level.gdshader" id="2_gb2nh"]
 [ext_resource type="Texture2D" uid="uid://bfqo17kln3n3f" path="res://Textures/Tiles/level_3/Box.png" id="2_mti0u"]
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Base/Scripts/Grabbable_Item.gd" id="3_42m7p"]
 [ext_resource type="Texture2D" uid="uid://wnabl54bs81i" path="res://Textures/Characters/Main_Character/Mecha_Fish/Idle/меха робот IDLE.png" id="3_pqd4u"]
 [ext_resource type="Texture2D" uid="uid://de3iw7e7wy04b" path="res://Textures/Tiles/level_3/WarehouseV2.png" id="5_ii734"]
-[ext_resource type="Texture2D" uid="uid://ceoyyhuv2x422" path="res://Textures/Tiles/level_3/Obstacle.png" id="5_mti0u"]
+[ext_resource type="Texture2D" uid="uid://b7pjqdwfgpkyl" path="res://Textures/Tiles/level_3/Obstacle.png" id="5_mti0u"]
 [ext_resource type="Texture2D" uid="uid://q3ql43kgvsa7" path="res://Textures/Tiles/level_3/Barrel.png" id="6_8eynh"]
 [ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Base/Scripts/Enemy.gd" id="6_42m7p"]
 [ext_resource type="Texture2D" uid="uid://n6jejp30fd76" path="res://Textures/Tiles/level_3/Pallets.png" id="7_8eynh"]
 [ext_resource type="Texture2D" uid="uid://bin0vdbn64q86" path="res://Textures/Tiles/level_3/Sprite-0002.png" id="7_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://dd2gqd64xnamw" path="res://Textures/Tiles/level_3/Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://c7flfahlbyak8" path="res://Textures/Tiles/level_3/Shelf.png" id="10_vcpp2"]
-[ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://MechaFishCamera.gd" id="15_wsnn3"]
+[ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Base/Scripts/MechaFishCamera.gd" id="15_wsnn3"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
 shader = ExtResource("2_gb2nh")

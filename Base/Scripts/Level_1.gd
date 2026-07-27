@@ -33,6 +33,7 @@ extends Node2D
 @onready var interact_label: Sprite2D = $InteractLabel
 
 @onready var fade_rect: ColorRect = $FadeRect
+@onready var level_music: AudioStreamPlayer = $Level1Music
 
 var in_zone: bool = false
 var dialogue_done: bool = false
@@ -64,7 +65,7 @@ var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
 var scientist_icon = preload("res://Textures/Characters/Scienist/Scientist_Portrait.png")
-var mechanic_icon = preload("res://Textures/Characters/Mechanic/Mechanic_Portrait.png")
+var mechanic_icon = preload("res://Textures/Characters/Mechanic/mechanic_portrait.png")
 
 var interact_normal_texture: Texture2D = null
 
@@ -153,6 +154,41 @@ func _ready() -> void:
 		_on_return_from_settings()
 		return
 	
+	if Global.player_position != Vector2.ZERO:
+		player.global_position = Global.player_position
+		Global.player_position = Vector2.ZERO
+		
+		if not Global.chatter_queue_state.is_empty():
+			chatter_queue = Global.chatter_queue_state.duplicate()
+			chatter_full_text = Global.chatter_current_text
+			chatter_char_index = Global.chatter_char_index
+			chatter_active = true
+			chatter_typing = false
+			
+			for phrase in chatter_phrases:
+				var text = ""
+				if phrase.has("text"):
+					text = phrase["text"]
+				elif phrase.has("parts"):
+					for p in phrase["parts"]:
+						text += p
+				if text == chatter_full_text:
+					chatter_speaker = phrase["speaker"]
+					chatter_panel_height = phrase.get("height", 28.0)
+					_update_speaker_icons()
+					break
+			
+			chatter_label.text = chatter_full_text
+			chatter_label_far.text = chatter_full_text
+			chatter_panel.visible = true
+			chatter_panel.modulate.a = 1.0
+			update_chatter_panel()
+			timer.start(2.5)
+			
+			Global.chatter_queue_state = []
+			Global.chatter_current_text = ""
+			Global.chatter_char_index = 0
+	
 	if not fade_rect:
 		fade_rect = ColorRect.new()
 		fade_rect.name = "FadeRect"
@@ -164,6 +200,12 @@ func _ready() -> void:
 	
 	fade_rect.color = Color.BLACK
 	fade_rect.modulate.a = 1.0
+	
+	if level_music:
+		level_music.volume_db = -80.0
+		level_music.play()
+		var music_tween = create_tween()
+		music_tween.tween_property(level_music, "volume_db", -15.0, 1.5)
 	
 	print("Calling _start_wake_sequence")
 	_start_wake_sequence()
@@ -876,6 +918,7 @@ func _show_next_chatter_line() -> void:
 		phantom_right.visible = false
 		stop_chatter()
 		Achievements.unlock_coffee()
+		UISounds.play_achievement()
 		_show_achievement("Кофе бы...")
 		return
 	
@@ -1493,6 +1536,7 @@ func _show_blackout_title():
 func _on_fade_finished(label: Label, blackout: CanvasLayer):
 	Achievements.unlock_flashback()
 	_show_achievement_flashback("Флешбек")
+	UISounds.play_achievement()
 	
 	var title_tween = create_tween()
 	title_tween.tween_property(label, "modulate:a", 1.0, 1.0)
@@ -1524,6 +1568,11 @@ func _on_hide_finished(_blackout: CanvasLayer):
 		tween_fade.finished.connect(_change_to_prologue2)
 
 func _change_to_prologue2():
+	if level_music:
+		var music_fade = create_tween()
+		music_fade.tween_property(level_music, "volume_db", -80.0, 0.5)
+		await music_fade.finished
+	
 	get_tree().change_scene_to_file("res://Base/Scripts/Level_2.gd")
 
 func _save_progress():
@@ -1560,21 +1609,17 @@ func _show_achievement_flashback(title: String):
 	canvas.add_child(ctrl)
 	
 	var view_size = get_viewport().get_visible_rect().size
-	var cx = view_size.x / 2
-	var start_y = -180
-	var end_y = view_size.y / 2 - 100
-	
 	var bg = ColorRect.new()
 	bg.color = Color(0.1, 0.2, 0.35, 0.85)
 	bg.size = Vector2(320, 60)
-	bg.position = Vector2(cx - 160, start_y)
+	bg.position = Vector2(view_size.x, 10)
 	ctrl.add_child(bg)
 	
 	var icon = Label.new()
 	icon.text = "★"
 	icon.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 	icon.add_theme_font_size_override("font_size", 28)
-	icon.position = Vector2(cx - 145, start_y + 10)
+	icon.position = Vector2(view_size.x + 15, 20)
 	icon.size = Vector2(40, 40)
 	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -1583,48 +1628,33 @@ func _show_achievement_flashback(title: String):
 	var header = Label.new()
 	header.text = "ДОСТИЖЕНИЕ"
 	header.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.9))
-	header.add_theme_font_size_override("font_size", 12)
-	header.position = Vector2(cx - 95, start_y + 8)
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
 	ctrl.add_child(header)
 	
 	var l = Label.new()
 	l.text = title
 	l.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
-	l.add_theme_font_size_override("font_size", 18)
-	l.position = Vector2(cx - 95, start_y + 25)
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
 	ctrl.add_child(l)
 	
-	var shine = ColorRect.new()
-	shine.color = Color(1, 1, 1, 0.15)
-	shine.size = Vector2(320, 30)
-	shine.position = Vector2(cx - 160, start_y)
-	ctrl.add_child(shine)
-	
-	ctrl.modulate.a = 0.0
-	ctrl.scale = Vector2(0.8, 0.8)
-	
-	var tw = create_tween()
-	tw.set_parallel(true)
-	tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(ctrl, "modulate:a", 1.0, 0.3)
-	tw.tween_property(ctrl, "scale", Vector2(1.0, 1.0), 0.4)
-	tw.tween_property(bg, "position:y", end_y, 0.3)
-	tw.tween_property(icon, "position:y", end_y + 10, 0.3)
-	tw.tween_property(header, "position:y", end_y + 8, 0.3)
-	tw.tween_property(l, "position:y", end_y + 25, 0.3)
-	tw.tween_property(shine, "position:y", end_y, 0.3)
-	
-	var shine_tween = create_tween()
-	shine_tween.tween_property(shine, "position:y", end_y + 30, 0.6).set_delay(0.2)
-	shine_tween.parallel().tween_property(shine, "modulate:a", 0.0, 0.4)
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
 	
 	await get_tree().create_timer(3.5).timeout
 	
-	var tw2 = create_tween()
-	tw2.set_parallel(true)
-	tw2.tween_property(ctrl, "modulate:a", 0.0, 0.3)
-	tw2.tween_property(ctrl, "scale", Vector2(0.9, 0.9), 0.3)
-	await tw2.finished
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
 	
 	canvas.queue_free()
 
@@ -1692,43 +1722,64 @@ func _on_dialogue_zone_body_exited(body: Node2D) -> void:
 			interact_label.visible = false
 
 func _show_achievement(title: String):
-	var a = Control.new()
-	a.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	a.z_index = 500
-	add_child(a)
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
 	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
 	var bg = ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.8)
-	bg.size = Vector2(300, 50)
-	bg.position = Vector2(-150, -150)
-	a.add_child(bg)
+	bg.color = Color(0.1, 0.2, 0.35, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
 	
 	var l = Label.new()
-	l.text = "Достижение: " + title
-	l.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
-	l.add_theme_font_size_override("font_size", 16)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.size = Vector2(300, 50)
-	l.position = Vector2(-150, -135)
-	a.add_child(l)
+	l.text = title
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
 	
-	var tw = create_tween()
-	tw.tween_property(bg, "position:y", -130, 0.3).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "position:y", -115, 0.3).set_ease(Tween.EASE_OUT)
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
 	
-	var elapsed = 0.0
-	while elapsed < 2.0 and is_instance_valid(a):
-		if player_camera:
-			a.position = player_camera.global_position
-		elapsed += 0.01
-		await get_tree().create_timer(0.01).timeout
+	await get_tree().create_timer(3.5).timeout
 	
-	var tw2 = create_tween()
-	tw2.tween_property(bg, "modulate:a", 0.0, 0.3)
-	tw2.tween_property(l, "modulate:a", 0.0, 0.3)
-	await tw2.finished
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
 	
-	a.queue_free()
+	canvas.queue_free()
 	
 func _spawn_prologue_bubble() -> void:
 	if not bubble_scene:

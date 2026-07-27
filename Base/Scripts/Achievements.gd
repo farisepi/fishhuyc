@@ -31,6 +31,7 @@ func unlock_coffee() -> void:
 		return
 	coffee_unlocked = true
 	achievement_unlocked.emit("coffee")
+	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_flashback() -> void:
@@ -38,6 +39,7 @@ func unlock_flashback() -> void:
 		return
 	flashback_unlocked = true
 	achievement_unlocked.emit("flashback")
+	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_pop_star() -> void:
@@ -45,6 +47,7 @@ func unlock_pop_star() -> void:
 		return
 	pop_star_unlocked = true
 	achievement_unlocked.emit("pop_star")
+	UISounds.play_achievement()
 	save_achievements()
 
 func reset_all() -> void:

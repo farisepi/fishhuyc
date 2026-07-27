@@ -19,6 +19,8 @@ var camera_sensitivity: float = 0.0
 var prologue_completed: bool = false
 var bubbles_popped: int = 0
 var show_fps: bool = false
+var pending_save: bool = false
+var scene_to_save: String = ""
 
 func _ready() -> void:
 	# Проверяем существует ли файл шрифта

@@ -21,6 +21,7 @@ extends Control
 @onready var pop_star_check: TextureRect = $PopStarAchievement/Check
 @onready var pop_star_name: Label = $PopStarAchievement/NameLabel
 @onready var pop_star_desc: Label = $PopStarAchievement/DescLabel
+@onready var pop_star_progress: Label = $PopStarAchievement/ProgressLabel
 
 var total_achievements: int = 3
 var unlocked_count: int = 0
@@ -70,9 +71,16 @@ func update_achievements() -> void:
 		unlocked_count += 1
 		_set_achievement_bright(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
 		pop_star_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		if pop_star_progress:
+			pop_star_progress.text = "100/100"
+			pop_star_progress.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
 		_set_achievement_gray(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
 		pop_star_desc.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+		if pop_star_progress:
+			var popped = min(Global.bubbles_popped, 100)
+			pop_star_progress.text = str(popped) + "/100"
+			pop_star_progress.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
 
 	if progress_bar:
 		progress_bar.value = unlocked_count

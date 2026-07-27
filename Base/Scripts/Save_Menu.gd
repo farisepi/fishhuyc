@@ -12,7 +12,8 @@ var skip_duration: float = 1.5
 var intro_active: bool = false
 
 func _ready() -> void:
-	Fade.fade_in()
+	if is_instance_valid(Fade):
+		Fade.fade_in()
 	
 	ButtonEffects.setup(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
@@ -41,8 +42,17 @@ func _update_slot_text(slot: Button, index: int):
 	if config.load(save_path) == OK:
 		var scene = config.get_value("save", "scene", "???")
 		var time = config.get_value("save", "time", "???")
-		slot.text = "■ " + scene + "\n" + time
-		slot.add_theme_color_override("font_color", Color(0.8, 0.5, 0.2))
+		var location = ""
+		if "Level_1" in scene:
+			location = "Аквариум"
+		elif "Level_2" in scene:
+			location = "Завод"
+		elif "chase_level" in scene or "Level_3" in scene:
+			location = "Коридор к складовым помещениям"
+		else:
+			location = scene
+		slot.text = location + "\n" + time
+		slot.add_theme_color_override("font_color", Color(0.831, 0.643, 0.09))
 	else:
 		slot.text = "— Пусто —"
 		slot.add_theme_color_override("font_color", Color(0.5, 0.7, 0.6))
@@ -54,26 +64,29 @@ func _close_current_popup() -> void:
 		current_popup = null
 
 func _on_slot_pressed(index: int):
-	if Global.came_from != Global.MenuSource.GAME and not Global.is_new_game:
-		return
-	
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
 	var config = ConfigFile.new()
+	var save_exists = config.load(save_path) == OK
 	
-	if config.load(save_path) == OK:
-		_show_load_or_delete(index)
+	if Global.came_from == Global.MenuSource.GAME:
+		if save_exists:
+			_show_load_or_overwrite(index)
+		else:
+			_save_game(index, Global.scene_to_save)
 	else:
-		if Global.is_new_game:
+		if save_exists:
+			_show_load_or_delete(index)
+		else:
 			Global.is_new_game = false
-			Fade.fade_out()
-			await get_tree().create_timer(0.3).timeout
+			if is_instance_valid(Fade):
+				Fade.fade_out()
+				await get_tree().create_timer(0.3).timeout
 			var intro = load("res://Base/Scripts/Intro.gd").new()
 			add_child(intro)
 			_add_skip_ui()
 			intro_active = true
-			Fade.fade_in()
-		elif Global.came_from == Global.MenuSource.GAME:
-			_save_game(index)
+			if is_instance_valid(Fade):
+				Fade.fade_in()
 
 func _add_skip_ui():
 	var canvas = CanvasLayer.new()
@@ -151,7 +164,7 @@ func _show_load_or_overwrite(index: int):
 		if action == "load":
 			_load_game(index)
 		elif action == "overwrite":
-			_save_game(index)
+			_save_game(index, Global.scene_to_save)
 	)
 	menu.close_requested.connect(_close_current_popup)
 	
@@ -193,7 +206,7 @@ func _show_delete_confirm(index: int):
 	var menu = AcceptDialog.new()
 	menu.title = "Удаление"
 	menu.dialog_text = "Удалить сохранение " + str(index + 1) + "?"
-	menu.add_button("Удалить", true, "yes")
+	menu.add_button("Да", true, "yes")
 	menu.add_button("Нет", true, "no")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
@@ -213,11 +226,33 @@ func _show_delete_confirm(index: int):
 	add_child(menu)
 	menu.popup_centered()
 
-func _save_game(index: int):
+func _save_game(index: int, scene_path: String = ""):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
 	var config = ConfigFile.new()
-	config.set_value("save", "scene", get_tree().current_scene.scene_file_path)
-	config.set_value("save", "time", Time.get_datetime_string_from_system())
+	
+	var current_scene = scene_path
+	if current_scene == "":
+		current_scene = get_tree().current_scene.scene_file_path
+	
+	var datetime = Time.get_datetime_dict_from_system()
+	var month = "%02d" % datetime.month
+	var day = "%02d" % datetime.day
+	var hour = "%02d" % datetime.hour
+	var minute = "%02d" % datetime.minute
+	var year = str(datetime.year).substr(2, 2)
+	var time = day + "." + month + "." + year + " " + hour + ":" + minute
+	
+	config.set_value("save", "scene", current_scene)
+	config.set_value("save", "time", time)
+	
+	if Global.player_position != Vector2.ZERO:
+		config.set_value("save", "player_x", Global.player_position.x)
+		config.set_value("save", "player_y", Global.player_position.y)
+	
+	config.set_value("save", "chatter_queue", Global.chatter_queue_state)
+	config.set_value("save", "chatter_text", Global.chatter_current_text)
+	config.set_value("save", "chatter_index", Global.chatter_char_index)
+	
 	config.save(save_path)
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
@@ -228,8 +263,18 @@ func _load_game(index: int):
 	if config.load(save_path) == OK:
 		var scene = config.get_value("save", "scene", "")
 		if scene != "":
-			Fade.fade_out()
-			await get_tree().create_timer(0.3).timeout
+			var player_x = config.get_value("save", "player_x", 0.0)
+			var player_y = config.get_value("save", "player_y", 0.0)
+			if player_x != 0.0 or player_y != 0.0:
+				Global.player_position = Vector2(player_x, player_y)
+			
+			Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
+			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
+			Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
+			
+			if is_instance_valid(Fade):
+				Fade.fade_out()
+				await get_tree().create_timer(0.3).timeout
 			get_tree().change_scene_to_file(scene)
 
 func _delete_save(index: int):
@@ -278,8 +323,9 @@ func _on_back_pressed() -> void:
 		get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return
 	
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.3).timeout
 	get_tree().change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
 
 func _input(event: InputEvent) -> void:

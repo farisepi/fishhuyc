@@ -54,9 +54,28 @@ func _on_continue_pressed() -> void:
 func _on_save_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
+	
+	var player = get_tree().current_scene.get_node_or_null("рыбка") as CharacterBody2D
+	if player:
+		Global.player_position = player.global_position
+		var camera: Camera2D = player.get_node_or_null("PlayerCamera")
+		if camera: Global.camera_position = camera.global_position
+	
+	var prolog = get_tree().current_scene
+	if prolog and prolog.has_method("get_chatter_state"):
+		var state = prolog.get_chatter_state()
+		Global.chatter_queue_state = state["queue"]
+		Global.chatter_current_text = state["current_text"]
+		Global.chatter_char_index = state["char_index"]
+	
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
+	
 	get_tree().paused = false
 	hide()
-	get_tree().change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
+	
+	var tree = get_tree()
+	if tree:
+		tree.change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
@@ -100,8 +119,8 @@ func _on_exit_pressed() -> void:
 	get_tree().paused = false
 	hide()
 	
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.3).timeout
 	
-	var tree = get_tree()
-	if tree: tree.change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
+	get_tree().change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")

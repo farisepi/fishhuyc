@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Base/Scenes/Fish.tscn" id="2_schuh"]
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_x2xif"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Base/Scripts/Cutscene_Camera.gd" id="4_4y1cg"]
-[ext_resource type="Shader" uid="uid://bwg4ffj2rbtdk" path="res://Base/Scenes/Level_1.gdshader" id="4_k3j2e"]
+[ext_resource type="Shader" uid="uid://bwg4ffj2rbtdk" path="res://Base/Shaders/Level_1.gdshader" id="4_k3j2e"]
 [ext_resource type="Texture2D" uid="uid://feneaejev1f0" path="res://Textures/Backgrounds/Level_1/Aqua.png" id="4_whdfm"]
 [ext_resource type="Texture2D" uid="uid://b10hgvg24jwt" path="res://Textures/Characters/Scienist/Idle/1.png" id="5_avqyc"]
 [ext_resource type="Texture2D" uid="uid://ctlygo4c8byyq" path="res://Textures/Backgrounds/Level_1/Labalatory.png" id="5_k3j2e"]
@@ -17,6 +17,7 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="13_yp00i"]
+[ext_resource type="AudioStream" uid="uid://cow6508r1dogb" path="res://Sounds/Level_1_Music.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Textures/Interface/Keyboard/Pressed/e_p.tres" id="19_x2xif"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]
@@ -346,6 +347,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="Level1Music" type="AudioStreamPlayer" parent="." unique_id=1825001319]
+stream = ExtResource("19_whdfm")
+volume_db = -15.0
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]

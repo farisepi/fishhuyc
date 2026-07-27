@@ -19,7 +19,8 @@ var logo_original_scale: Vector2 = Vector2.ONE
 var can_click_logo: bool = true
 
 func _ready() -> void:
-	Fade.fade_in()
+	if is_instance_valid(Fade):
+		Fade.fade_in()
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
@@ -279,13 +280,13 @@ func _show_pop_star_achievement():
 	var header = Label.new()
 	header.text = "ДОСТИЖЕНИЕ"
 	header.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.9))
-	header.add_theme_font_size_override("font_size", 12)
+	header.add_theme_font_size_override("font_size", 18)
 	header.position = Vector2(view_size.x + 65, 18)
 	ctrl.add_child(header)
 	var l = Label.new()
 	l.text = "Поп-стар"
 	l.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
-	l.add_theme_font_size_override("font_size", 18)
+	l.add_theme_font_size_override("font_size", 36)
 	l.position = Vector2(view_size.x + 65, 35)
 	ctrl.add_child(l)
 	var tween = create_tween()
