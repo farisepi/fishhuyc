@@ -15,6 +15,8 @@ func _ready() -> void:
 	if is_instance_valid(Fade):
 		Fade.fade_in()
 	
+	GlobalMusic.play_menu_music()
+	
 	ButtonEffects.setup(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
 	
@@ -320,6 +322,7 @@ func _show_overwrite_confirm(index: int):
 func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
+		GlobalMusic.resume_level_music()
 		get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return
 	

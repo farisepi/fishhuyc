@@ -21,6 +21,8 @@ var can_click_logo: bool = true
 func _ready() -> void:
 	if is_instance_valid(Fade):
 		Fade.fade_in()
+	
+	GlobalMusic.play_menu_music()
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:

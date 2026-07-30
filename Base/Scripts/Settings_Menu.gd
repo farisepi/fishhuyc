@@ -44,6 +44,8 @@ func _ready() -> void:
 	else:
 		Fade.fade_in()
 	
+	GlobalMusic.play_menu_music()
+	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 	InputRebind.keybinds_updated.connect(update_key_labels)
@@ -321,6 +323,7 @@ func _on_back_pressed() -> void:
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
+		GlobalMusic.resume_level_music()
 		var tree = get_tree()
 		if tree: tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 		return

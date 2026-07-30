@@ -340,6 +340,8 @@ autoplay = "default"
 frame = 1
 frame_progress = 0.57846695
 
+[node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
+
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_pressed"]

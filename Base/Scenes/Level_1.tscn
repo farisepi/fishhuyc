@@ -17,7 +17,7 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="13_yp00i"]
-[ext_resource type="AudioStream" uid="uid://cow6508r1dogb" path="res://Sounds/Level_1_Music.mp3" id="19_whdfm"]
+[ext_resource type="AudioStream" uid="uid://c1doc1jtknppj" path="res://Sounds/Music/LVL_1_Music.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Textures/Interface/Keyboard/Pressed/e_p.tres" id="19_x2xif"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]

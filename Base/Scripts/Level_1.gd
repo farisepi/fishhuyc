@@ -129,6 +129,8 @@ var chatter_phrases: Array[Dictionary] = [
 func _ready() -> void:
 	print("=== LEVEL_1 _ready START ===")
 	
+	GlobalMusic.play_level_music()
+	
 	_setup_timer()
 	_setup_ui()
 	_setup_labels()
@@ -200,12 +202,6 @@ func _ready() -> void:
 	
 	fade_rect.color = Color.BLACK
 	fade_rect.modulate.a = 1.0
-	
-	if level_music:
-		level_music.volume_db = -80.0
-		level_music.play()
-		var music_tween = create_tween()
-		music_tween.tween_property(level_music, "volume_db", -15.0, 1.5)
 	
 	print("Calling _start_wake_sequence")
 	_start_wake_sequence()
@@ -1568,14 +1564,13 @@ func _on_hide_finished(_blackout: CanvasLayer):
 		tween_fade.finished.connect(_change_to_prologue2)
 
 func _change_to_prologue2():
-	if level_music:
-		var music_fade = create_tween()
-		music_fade.tween_property(level_music, "volume_db", -80.0, 0.5)
-		await music_fade.finished
+	GlobalMusic.pause_level_music()
 	
 	get_tree().change_scene_to_file("res://Base/Scripts/Level_2.gd")
 
 func _save_progress():
+	GlobalMusic.pause_level_music()
+	
 	if not has_node("/root/Global"):
 		print("Global не найден, сохранение невозможно")
 		return

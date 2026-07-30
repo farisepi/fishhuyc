@@ -73,6 +73,8 @@ func _on_save_pressed() -> void:
 	get_tree().paused = false
 	hide()
 	
+	GlobalMusic.crossfade_to_menu()
+	
 	var tree = get_tree()
 	if tree:
 		tree.change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
@@ -97,6 +99,8 @@ func _on_settings_pressed() -> void:
 	get_tree().paused = false
 	hide()
 	
+	GlobalMusic.crossfade_to_menu()
+	
 	var tree = get_tree()
 	if tree:
 		tree.change_scene_to_file("res://Base/Scenes/Settings_Menu.tscn")
@@ -110,6 +114,8 @@ func _on_restart_pressed() -> void:
 	Global.chatter_current_text = ""
 	Global.chatter_char_index = 0
 	
+	GlobalMusic.play_level_music()
+	
 	var tree = get_tree()
 	if tree:
 		tree.change_scene_to_file("res://Base/Scenes/Level_1.tscn")
@@ -118,6 +124,8 @@ func _on_exit_pressed() -> void:
 	UISounds.play_click()
 	get_tree().paused = false
 	hide()
+	
+	GlobalMusic.crossfade_to_menu()
 	
 	if is_instance_valid(Fade):
 		Fade.fade_out()
