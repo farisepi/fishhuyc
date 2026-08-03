@@ -64,10 +64,6 @@ var text_glitch_timer: float = 0.0
 var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
-# Для отслеживания движения камеры
-var last_cam_pos: Vector2 = Vector2.ZERO
-var last_zoom: Vector2 = Vector2.ONE
-
 var scientist_icon = preload("res://Textures/Characters/Scienist/Scientist_Portrait.png")
 var mechanic_icon = preload("res://Textures/Characters/Mechanic/mechanic_portrait.png")
 
@@ -208,10 +204,22 @@ func _ready() -> void:
 	fade_rect.modulate.a = 1.0
 	
 	# ==========================================
-	# ОБНОВЛЯЕМ КООРДИНАТЫ ШЕЙДЕРОВ
+	# ⚡ ШЕЙДЕР ВОДЫ ТЕПЕРЬ НАСТРАИВАЕТСЯ В РЕДАКТОРЕ!
 	# ==========================================
+	# Никакого кода для установки координат!
+	# Просто убеждаемся, что материал существует
+	
 	await get_tree().process_frame
-	_update_shader_coords()
+	
+	var water_mat = $WaterShader.material
+	if not water_mat:
+		print("❌ Нет материала! Создаю новый...")
+		var new_mat = ShaderMaterial.new()
+		new_mat.shader = preload("res://Base/Shaders/Level1/Water.gdshader")
+		$WaterShader.material = new_mat
+		print("✅ Новый материал создан!")
+	else:
+		print("✅ Материал уже существует!")
 	
 	print("Calling _start_wake_sequence")
 	_start_wake_sequence()
@@ -221,9 +229,6 @@ func _process(delta: float) -> void:
 	if get_tree().paused:
 		return
 	
-	# ==========================================
-	# FPS СЧЁТЧИК
-	# ==========================================
 	if fps_label and fps_label.visible:
 		fps_label.text = "FPS: " + str(Engine.get_frames_per_second())
 		if player_camera:
@@ -231,100 +236,11 @@ func _process(delta: float) -> void:
 			fps_label.position = player_camera.global_position + Vector2(-viewport.x / 2 + 10, -viewport.y / 2 + 10)
 		fps_label.z_index = 999
 	
-	# ==========================================
-	# ЧАТТЕР И ГЛИТЧИ
-	# ==========================================
 	if chatter_active and not cutscene_active:
 		update_chatter_panel()
 		_update_glitch(delta)
 	else:
 		UISounds.set_glitch(0.0)
-	
-	# ==========================================
-	# ОБНОВЛЯЕМ ШЕЙДЕРЫ ПРИ ДВИЖЕНИИ КАМЕРЫ
-	# ==========================================
-	if player_camera:
-		var cam_pos = player_camera.global_position
-		var zoom = player_camera.zoom
-		
-		if cam_pos != last_cam_pos or zoom != last_zoom:
-			_update_shader_coords()
-			last_cam_pos = cam_pos
-			last_zoom = zoom
-
-func _update_shader_coords() -> void:
-	var cam = player_camera
-	if not cam:
-		return
-	
-	var viewport_size = get_viewport().get_visible_rect().size
-	var zoom = cam.zoom.x
-	var cam_pos = cam.global_position
-	
-	var view_width = viewport_size.x / zoom
-	var view_height = viewport_size.y / zoom
-	var view_left = cam_pos.x - view_width / 2.0
-	var view_top = cam_pos.y - view_height / 2.0
-	
-	# ==========================================
-	# ВОДА: x1=300.3, y1=514.8, x2=909.95, y2=191.5
-	# ==========================================
-	var w_left = 300.3
-	var w_right = 909.95
-	var w_top = 191.5
-	var w_bottom = 514.8
-	
-	var uv_w_left = clamp((w_left - view_left) / view_width, 0.0, 1.0)
-	var uv_w_right = clamp((w_right - view_left) / view_width, 0.0, 1.0)
-	var uv_w_top = clamp(1.0 - (w_top - view_top) / view_height, 0.0, 1.0)
-	var uv_w_bottom = clamp(1.0 - (w_bottom - view_top) / view_height, 0.0, 1.0)
-	
-	var water_mat = $WaterShader.material
-	if water_mat:
-		water_mat.set_shader_parameter("water_left", uv_w_left)
-		water_mat.set_shader_parameter("water_right", uv_w_right)
-		water_mat.set_shader_parameter("water_top", uv_w_top)
-		water_mat.set_shader_parameter("water_bottom", uv_w_bottom)
-	
-	# ==========================================
-	# СТЕКЛО: x1=1011.65, y1=514.8, x2=9.55, y2=530.65
-	# ==========================================
-	var g_left = 9.55
-	var g_right = 1011.65
-	var g_top = 514.8
-	var g_bottom = 530.65
-	
-	var uv_g_left = clamp((g_left - view_left) / view_width, 0.0, 1.0)
-	var uv_g_right = clamp((g_right - view_left) / view_width, 0.0, 1.0)
-	var uv_g_top = clamp(1.0 - (g_top - view_top) / view_height, 0.0, 1.0)
-	var uv_g_bottom = clamp(1.0 - (g_bottom - view_top) / view_height, 0.0, 1.0)
-	
-	var glass_mat = $GlassShader.material
-	if glass_mat:
-		glass_mat.set_shader_parameter("glass_left", uv_g_left)
-		glass_mat.set_shader_parameter("glass_right", uv_g_right)
-		glass_mat.set_shader_parameter("glass_top", uv_g_top)
-		glass_mat.set_shader_parameter("glass_bottom", uv_g_bottom)
-	
-	# ==========================================
-	# ЛАБА: x1=1011.65, y1=530.65, x2=9.55, y2=692
-	# ==========================================
-	var l_left = 9.55
-	var l_right = 1011.65
-	var l_top = 530.65
-	var l_bottom = 692.0
-	
-	var uv_l_left = clamp((l_left - view_left) / view_width, 0.0, 1.0)
-	var uv_l_right = clamp((l_right - view_left) / view_width, 0.0, 1.0)
-	var uv_l_top = clamp(1.0 - (l_top - view_top) / view_height, 0.0, 1.0)
-	var uv_l_bottom = clamp(1.0 - (l_bottom - view_top) / view_height, 0.0, 1.0)
-	
-	var lab_mat = $LabShader.material
-	if lab_mat:
-		lab_mat.set_shader_parameter("lab_left", uv_l_left)
-		lab_mat.set_shader_parameter("lab_right", uv_l_right)
-		lab_mat.set_shader_parameter("lab_top", uv_l_top)
-		lab_mat.set_shader_parameter("lab_bottom", uv_l_bottom)
 
 func _start_wake_sequence() -> void:
 	print("=== _start_wake_sequence START ===")
