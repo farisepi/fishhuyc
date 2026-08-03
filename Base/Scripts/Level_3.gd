@@ -9,6 +9,7 @@ extends Node2D
 @onready var forklift: CharacterBody2D = $ForkliftScene/Forklift
 @onready var falling_shelf: StaticBody2D = $ForkliftScene/FallingShelf
 @onready var forklift_trigger: Area2D = $ForkliftTrigger
+@onready var death_zone: Area2D = $DeathZone
 
 enum State { INTRO, RUNNING, ELEVATOR_WAIT, ELEVATOR_GO, WIN }
 var state: State = State.INTRO
@@ -37,6 +38,11 @@ func _ready():
 	)
 	
 	_start_intro()
+	
+	death_zone.body_entered.connect(func(body):
+		if body == player:
+			_game_over()
+	)
 
 func _start_intro():
 	player.modulate = Color.RED

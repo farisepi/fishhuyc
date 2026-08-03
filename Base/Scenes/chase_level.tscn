@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Base/Scripts/Grabbable_Item.gd" id="3_42m7p"]
 [ext_resource type="Texture2D" uid="uid://wnabl54bs81i" path="res://Textures/Characters/Main_Character/Mecha_Fish/Idle/меха робот IDLE.png" id="3_pqd4u"]
 [ext_resource type="Texture2D" uid="uid://de3iw7e7wy04b" path="res://Textures/Tiles/level_3/WarehouseV2.png" id="5_ii734"]
-[ext_resource type="Texture2D" uid="uid://b7pjqdwfgpkyl" path="res://Textures/Tiles/level_3/Obstacle.png" id="5_mti0u"]
+[ext_resource type="Texture2D" uid="uid://ceoyyhuv2x422" path="res://Textures/Tiles/level_3/Obstacle.png" id="5_mti0u"]
 [ext_resource type="Texture2D" uid="uid://q3ql43kgvsa7" path="res://Textures/Tiles/level_3/Barrel.png" id="6_8eynh"]
 [ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Base/Scripts/Enemy.gd" id="6_42m7p"]
 [ext_resource type="Texture2D" uid="uid://n6jejp30fd76" path="res://Textures/Tiles/level_3/Pallets.png" id="7_8eynh"]
@@ -20,7 +20,7 @@
 shader = ExtResource("2_gb2nh")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
-size = Vector2(6328.6, 81.965)
+size = Vector2(4739.3, 81.965)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_43qq6"]
 texture = ExtResource("5_ii734")
@@ -1338,6 +1338,11 @@ region = Rect2(1125, 0, 75, 75)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_c6ktk"]
 animations = [{
+"frames": [],
+"loop": 1,
+"name": &"Death",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8eynh")
@@ -1395,6 +1400,11 @@ animations = [{
 "loop": 1,
 "name": &"Run",
 "speed": 5.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"Slide",
+"speed": 5.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8eynh"]
@@ -1417,6 +1427,9 @@ radius = 12.649111
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qr0ht"]
 size = Vector2(257, 185.75)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1esiv"]
+size = Vector2(140, 50)
+
 [node name="Level_3" type="Node2D" unique_id=928929783]
 script = ExtResource("1_jfe0f")
 metadata/_edit_vertical_guides_ = [93.0, 98.0]
@@ -1424,10 +1437,10 @@ metadata/_edit_horizontal_guides_ = [334.0, 332.0]
 
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
 material = SubResource("ShaderMaterial_jfe0f")
-offset_left = 17.0
-offset_top = 2.0
-offset_right = 4479.255
-offset_bottom = 362.0
+offset_left = -15.045
+offset_top = -150.18
+offset_right = 4682.0
+offset_bottom = 345.44
 color = Color(0.7330637, 0.8145573, 0.9849141, 1)
 metadata/_edit_use_anchors_ = true
 
@@ -1435,14 +1448,14 @@ metadata/_edit_use_anchors_ = true
 position = Vector2(960, 340)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1278729066]
-position = Vector2(354, 33)
+position = Vector2(1156.6499, 37)
 shape = SubResource("RectangleShape2D_43qq6")
 
 [node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1661476068]
-offset_left = -1212.355
-offset_top = -8.03
-offset_right = 3518.065
-offset_bottom = 73.97
+offset_left = -1203.0
+offset_top = -6.000001
+offset_right = 3527.42
+offset_bottom = 76.0
 color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
@@ -1915,8 +1928,7 @@ script = ExtResource("2_dw7qd")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Mecha_Fish" unique_id=489905705]
 position = Vector2(-78, -28)
 sprite_frames = SubResource("SpriteFrames_c6ktk")
-animation = &"Idle"
-frame_progress = 0.6388551
+animation = &"Death"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Mecha_Fish" unique_id=1698804642]
 position = Vector2(-78, -27)
@@ -2013,17 +2025,12 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(2914, 241)
+position = Vector2(2990, 238)
 shape = SubResource("RectangleShape2D_qr0ht")
 
-[node name="Parrying Scene" type="Node" parent="." unique_id=789644413]
+[node name="DeathZone" type="Area2D" parent="." unique_id=855912430]
+position = Vector2(2064, 219)
 
-[node name="Sprite2D" type="Sprite2D" parent="Parrying Scene" unique_id=1734229037]
-position = Vector2(3794, 267)
-texture = ExtResource("10_vcpp2")
-
-[node name="ColorRect" type="ColorRect" parent="Parrying Scene" unique_id=2002429216]
-offset_left = 3829.0
-offset_top = 275.0
-offset_right = 3859.0
-offset_bottom = 331.0
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=1971889121]
+position = Vector2(62, 90)
+shape = SubResource("RectangleShape2D_1esiv")
