@@ -47,12 +47,19 @@ func _physics_process(delta):
 	sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 	var spd = run_speed if running else speed
 	
+	if not is_sliding:
+		if direction != 0:
+			sprite.play("Run")
+		else:
+			sprite.play("Idle")
+	
 	if is_crouching and running and (abs(velocity.x) > 10 or is_sliding):
 		if not is_sliding:
 			is_sliding = true
 			slide_timer = 0.0
-			sprite.scale.y = 0.3
-			sprite.position.y = 15
+			sprite.play("Fall")
+			await get_tree().create_timer(0.3).timeout
+			sprite.play("Slide")
 			$CollisionShape2D.scale.y = 0.3
 			$CollisionShape2D.position.y = 10
 		
@@ -67,6 +74,8 @@ func _physics_process(delta):
 		sprite.position.y = 5
 	else:
 		if is_sliding:
+			sprite.play("GetUp")
+			await get_tree().create_timer(0.3).timeout
 			_end_slide()
 			velocity.x = direction * spd
 		else:
@@ -86,7 +95,6 @@ func _physics_process(delta):
 	is_crouching = Input.is_action_pressed("crouch")
 	move_and_slide()
 	
-	# Если скользит и упёрся в стену — падает вниз
 	if is_sliding and is_on_wall():
 		global_position.y += 3
 	
@@ -99,8 +107,6 @@ func _physics_process(delta):
 func _end_slide():
 	is_sliding = false
 	slide_timer = 0.0
-	sprite.scale.y = 1.0
-	sprite.position.y = 0
 	$CollisionShape2D.scale.y = 1.0
 	$CollisionShape2D.position.y = 0
 

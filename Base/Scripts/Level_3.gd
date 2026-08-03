@@ -18,6 +18,7 @@ var can_press_button: bool = false
 var forklift_activated: bool = false
 var shelf_climbed: bool = false
 var _shelf_climbing: bool = false
+var is_paused: bool = false
 
 func _ready():
 	player.set_physics_process(false)
@@ -37,12 +38,12 @@ func _ready():
 			_activate_forklift()
 	)
 	
-	_start_intro()
-	
 	death_zone.body_entered.connect(func(body):
 		if body == player:
 			_game_over()
 	)
+	
+	_start_intro()
 
 func _start_intro():
 	player.modulate = Color.RED
@@ -91,6 +92,9 @@ func _activate_forklift():
 	forklift.set("active", false)
 
 func _process(delta):
+	if is_paused:
+		return
+	
 	if state == State.RUNNING:
 		for enemy in $Enemies.get_children():
 			if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
@@ -161,6 +165,24 @@ func _climb_shelf():
 	_shelf_climbing = true
 	prompt.text = "ЖМИ W чтобы лезть!"
 	prompt.visible = true
+
+func _toggle_pause():
+	if not has_node("PauseMenu"):
+		return
+	
+	var pause_menu = $PauseMenu
+	if is_paused:
+		pause_menu.visible = false
+		get_tree().paused = false
+		is_paused = false
+	else:
+		pause_menu.visible = true
+		get_tree().paused = true
+		is_paused = true
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_toggle_pause()
 
 func _win():
 	await get_tree().create_timer(2.0).timeout
