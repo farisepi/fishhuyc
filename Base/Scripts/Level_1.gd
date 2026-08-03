@@ -64,6 +64,10 @@ var text_glitch_timer: float = 0.0
 var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
+# Для отслеживания движения камеры
+var last_cam_pos: Vector2 = Vector2.ZERO
+var last_zoom: Vector2 = Vector2.ONE
+
 var scientist_icon = preload("res://Textures/Characters/Scienist/Scientist_Portrait.png")
 var mechanic_icon = preload("res://Textures/Characters/Mechanic/mechanic_portrait.png")
 
@@ -203,9 +207,124 @@ func _ready() -> void:
 	fade_rect.color = Color.BLACK
 	fade_rect.modulate.a = 1.0
 	
+	# ==========================================
+	# ОБНОВЛЯЕМ КООРДИНАТЫ ШЕЙДЕРОВ
+	# ==========================================
+	await get_tree().process_frame
+	_update_shader_coords()
+	
 	print("Calling _start_wake_sequence")
 	_start_wake_sequence()
 	print("=== LEVEL_1 _ready END ===")
+
+func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+	
+	# ==========================================
+	# FPS СЧЁТЧИК
+	# ==========================================
+	if fps_label and fps_label.visible:
+		fps_label.text = "FPS: " + str(Engine.get_frames_per_second())
+		if player_camera:
+			var viewport = get_viewport().get_visible_rect().size
+			fps_label.position = player_camera.global_position + Vector2(-viewport.x / 2 + 10, -viewport.y / 2 + 10)
+		fps_label.z_index = 999
+	
+	# ==========================================
+	# ЧАТТЕР И ГЛИТЧИ
+	# ==========================================
+	if chatter_active and not cutscene_active:
+		update_chatter_panel()
+		_update_glitch(delta)
+	else:
+		UISounds.set_glitch(0.0)
+	
+	# ==========================================
+	# ОБНОВЛЯЕМ ШЕЙДЕРЫ ПРИ ДВИЖЕНИИ КАМЕРЫ
+	# ==========================================
+	if player_camera:
+		var cam_pos = player_camera.global_position
+		var zoom = player_camera.zoom
+		
+		if cam_pos != last_cam_pos or zoom != last_zoom:
+			_update_shader_coords()
+			last_cam_pos = cam_pos
+			last_zoom = zoom
+
+func _update_shader_coords() -> void:
+	var cam = player_camera
+	if not cam:
+		return
+	
+	var viewport_size = get_viewport().get_visible_rect().size
+	var zoom = cam.zoom.x
+	var cam_pos = cam.global_position
+	
+	var view_width = viewport_size.x / zoom
+	var view_height = viewport_size.y / zoom
+	var view_left = cam_pos.x - view_width / 2.0
+	var view_top = cam_pos.y - view_height / 2.0
+	
+	# ==========================================
+	# ВОДА: x1=300.3, y1=514.8, x2=909.95, y2=191.5
+	# ==========================================
+	var w_left = 300.3
+	var w_right = 909.95
+	var w_top = 191.5
+	var w_bottom = 514.8
+	
+	var uv_w_left = clamp((w_left - view_left) / view_width, 0.0, 1.0)
+	var uv_w_right = clamp((w_right - view_left) / view_width, 0.0, 1.0)
+	var uv_w_top = clamp(1.0 - (w_top - view_top) / view_height, 0.0, 1.0)
+	var uv_w_bottom = clamp(1.0 - (w_bottom - view_top) / view_height, 0.0, 1.0)
+	
+	var water_mat = $WaterShader.material
+	if water_mat:
+		water_mat.set_shader_parameter("water_left", uv_w_left)
+		water_mat.set_shader_parameter("water_right", uv_w_right)
+		water_mat.set_shader_parameter("water_top", uv_w_top)
+		water_mat.set_shader_parameter("water_bottom", uv_w_bottom)
+	
+	# ==========================================
+	# СТЕКЛО: x1=1011.65, y1=514.8, x2=9.55, y2=530.65
+	# ==========================================
+	var g_left = 9.55
+	var g_right = 1011.65
+	var g_top = 514.8
+	var g_bottom = 530.65
+	
+	var uv_g_left = clamp((g_left - view_left) / view_width, 0.0, 1.0)
+	var uv_g_right = clamp((g_right - view_left) / view_width, 0.0, 1.0)
+	var uv_g_top = clamp(1.0 - (g_top - view_top) / view_height, 0.0, 1.0)
+	var uv_g_bottom = clamp(1.0 - (g_bottom - view_top) / view_height, 0.0, 1.0)
+	
+	var glass_mat = $GlassShader.material
+	if glass_mat:
+		glass_mat.set_shader_parameter("glass_left", uv_g_left)
+		glass_mat.set_shader_parameter("glass_right", uv_g_right)
+		glass_mat.set_shader_parameter("glass_top", uv_g_top)
+		glass_mat.set_shader_parameter("glass_bottom", uv_g_bottom)
+	
+	# ==========================================
+	# ЛАБА: x1=1011.65, y1=530.65, x2=9.55, y2=692
+	# ==========================================
+	var l_left = 9.55
+	var l_right = 1011.65
+	var l_top = 530.65
+	var l_bottom = 692.0
+	
+	var uv_l_left = clamp((l_left - view_left) / view_width, 0.0, 1.0)
+	var uv_l_right = clamp((l_right - view_left) / view_width, 0.0, 1.0)
+	var uv_l_top = clamp(1.0 - (l_top - view_top) / view_height, 0.0, 1.0)
+	var uv_l_bottom = clamp(1.0 - (l_bottom - view_top) / view_height, 0.0, 1.0)
+	
+	var lab_mat = $LabShader.material
+	if lab_mat:
+		lab_mat.set_shader_parameter("lab_left", uv_l_left)
+		lab_mat.set_shader_parameter("lab_right", uv_l_right)
+		lab_mat.set_shader_parameter("lab_top", uv_l_top)
+		lab_mat.set_shader_parameter("lab_bottom", uv_l_bottom)
 
 func _start_wake_sequence() -> void:
 	print("=== _start_wake_sequence START ===")
@@ -302,13 +421,11 @@ func _make_bubble_with_fade() -> void:
 	var bubble_scale = randf_range(0.35, 0.7)
 	bubble.scale = Vector2(bubble_scale, bubble_scale)
 	
-	# Начинаем с прозрачности 0
 	bubble.modulate.a = 0.0
 	
 	var direction_x = randf_range(-0.2, 0.2)
 	bubble.set_direction(Vector2(direction_x, -1.0))
 	
-	# Плавно появляем пузырёк
 	var appear_tween = create_tween()
 	appear_tween.tween_property(bubble, "modulate:a", randf_range(0.1, 0.5), 0.8)
 	
@@ -327,7 +444,6 @@ func start_chatter_with_fade() -> void:
 	chatter_active = true
 	chatter_typing = true
 	
-	# Скрываем панели до окончания анимации
 	chatter_panel.visible = false
 	chatter_panel.modulate.a = 0.0
 	chatter_panel_far.visible = false
@@ -366,12 +482,10 @@ func start_chatter_with_fade() -> void:
 	chatter_label.text = ""
 	chatter_label_far.text = ""
 	
-	# Небольшая задержка перед появлением болтовни
 	await get_tree().create_timer(0.3).timeout
 	
 	update_chatter_panel()
 	
-	# Плавно показываем панель
 	var fade_tween = create_tween()
 	fade_tween.tween_property(chatter_panel, "modulate:a", 1.0, 0.5)
 	
@@ -447,7 +561,6 @@ func _update_interact_icon() -> void:
 	if texture:
 		interact_normal_texture = texture
 		interact_icon.texture = texture
-		# У Sprite2D нет свойства stretch_mode, просто удаляем эту строку
 		interact_icon.modulate = Color(1, 1, 1, 0.8)
 		interact_icon.scale = Vector2(0.8, 0.8)
 
@@ -588,16 +701,13 @@ func _setup_labels() -> void:
 func _on_return_from_settings() -> void:
 	Global.just_returned_from_settings = false
 	
-	# Восстанавливаем позицию
 	if Global.player_position != Vector2.ZERO:
 		player.global_position = Global.player_position
 	
-	# Показываем паузу
 	if pause_menu:
 		pause_menu.show()
 		get_tree().paused = true
 	
-	# Восстанавливаем чаттер
 	if not Global.chatter_queue_state.is_empty():
 		set_chatter_state({
 			"queue": Global.chatter_queue_state,
@@ -609,7 +719,6 @@ func _on_return_from_settings() -> void:
 		chatter_panel.visible = true
 		timer.start(2.5)
 	
-	# Разрешаем движение (пауза заморозит, а при continue — разморозится)
 	player.can_move = true
 
 func get_chatter_state():
@@ -649,23 +758,6 @@ func set_chatter_state(state: Dictionary):
 	
 	update_chatter_panel()
 	timer.start(2.5)
-
-func _process(delta: float) -> void:
-	if get_tree().paused:
-		return
-	
-	if fps_label and fps_label.visible:
-		fps_label.text = "FPS: " + str(Engine.get_frames_per_second())
-		if player_camera:
-			var viewport = get_viewport().get_visible_rect().size
-			fps_label.position = player_camera.global_position + Vector2(-viewport.x / 2 + 10, -viewport.y / 2 + 10)
-		fps_label.z_index = 999
-	
-	if chatter_active and not cutscene_active:
-		update_chatter_panel()
-		_update_glitch(delta)
-	else:
-		UISounds.set_glitch(0.0)
 
 func _update_glitch(delta: float) -> void:
 	var player_pos = player.global_position

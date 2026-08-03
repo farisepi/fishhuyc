@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Base/Scenes/Fish.tscn" id="2_schuh"]
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_x2xif"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Base/Scripts/Cutscene_Camera.gd" id="4_4y1cg"]
-[ext_resource type="Shader" uid="uid://bwg4ffj2rbtdk" path="res://Base/Shaders/Level_1.gdshader" id="4_k3j2e"]
 [ext_resource type="Texture2D" uid="uid://feneaejev1f0" path="res://Textures/Backgrounds/Level_1/Aqua.png" id="4_whdfm"]
 [ext_resource type="Texture2D" uid="uid://b10hgvg24jwt" path="res://Textures/Characters/Scienist/Idle/1.png" id="5_avqyc"]
 [ext_resource type="Texture2D" uid="uid://ctlygo4c8byyq" path="res://Textures/Backgrounds/Level_1/Labalatory.png" id="5_k3j2e"]
@@ -17,8 +16,11 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="13_yp00i"]
-[ext_resource type="AudioStream" uid="uid://c1doc1jtknppj" path="res://Sounds/Music/LVL_1_Music.mp3" id="19_whdfm"]
+[ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Base/Shaders/Lab.gdshader" id="19_0a6ic"]
+[ext_resource type="AudioStream" uid="uid://c6mvqoyw78yt4" path="res://Sounds/Music/LVL_1_Music.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Textures/Interface/Keyboard/Pressed/e_p.tres" id="19_x2xif"]
+[ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Base/Shaders/Glass.gdshader" id="20_b02qe"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Base/Shaders/Water.gdshader" id="21_5vwn5"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]
 length = 0.8
@@ -101,9 +103,6 @@ _data = {
 &"швду": SubResource("Animation_o5hs1")
 }
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_bhunq"]
-shader = ExtResource("4_k3j2e")
-
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_vhqdt"]
 radius = 16.0
 height = 100.0
@@ -111,9 +110,39 @@ height = 100.0
 [sub_resource type="TileSet" id="TileSet_10vj2"]
 occlusion_layer_0/light_mask = 1
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x7y4a"]
+shader = ExtResource("19_0a6ic")
+shader_parameter/lab_top = 0.491
+shader_parameter/lab_bottom = 0.641
+shader_parameter/lab_left = 0.005
+shader_parameter/lab_right = 0.527
+shader_parameter/lab_brightness = 1.1
+shader_parameter/lab_warmth = 1.15
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8e1bn"]
+shader = ExtResource("20_b02qe")
+shader_parameter/glass_top = 0.477
+shader_parameter/glass_bottom = 0.491
+shader_parameter/glass_left = 0.005
+shader_parameter/glass_right = 0.527
+shader_parameter/glass_glow = 0.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ey7it"]
+shader = ExtResource("21_5vwn5")
+shader_parameter/water_top = 0.0
+shader_parameter/water_bottom = 0.5510000261725
+shader_parameter/water_left = 0.150000007125
+shader_parameter/water_right = 0.550000026125
+shader_parameter/water_darkness = 0.2770000131575
+shader_parameter/blue_intensity = 0.6000000285
+shader_parameter/ripple_speed = 0.8
+shader_parameter/ripple_amount = 0.025
+
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
 bubble_scene = ExtResource("2_x2xif")
+metadata/_edit_vertical_guides_ = [296.0, 300.0]
+metadata/_edit_horizontal_guides_ = [192.0, 1159.0]
 
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
 position = Vector2(605, 224)
@@ -154,15 +183,6 @@ texture = ExtResource("7_3t3m1")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Mechanic" unique_id=1742594015]
 libraries/ = SubResource("AnimationLibrary_43f8l")
 autoplay = &"idle"
-
-[node name="ColorRect" type="ColorRect" parent="." unique_id=718639401]
-material = SubResource("ShaderMaterial_bhunq")
-offset_left = 244.0
-offset_top = 174.0
-offset_right = 959.0
-offset_bottom = 519.0
-mouse_filter = 2
-color = Color(0.039215688, 0.101960786, 0.18039216, 1)
 
 [node name="DialogueZone" type="Area2D" parent="." unique_id=969221308]
 position = Vector2(1, 0)
@@ -351,6 +371,45 @@ color = Color(0, 0, 0, 1)
 [node name="Level1Music" type="AudioStreamPlayer" parent="." unique_id=1825001319]
 stream = ExtResource("19_whdfm")
 volume_db = -15.0
+
+[node name="LabShader" type="ColorRect" parent="." unique_id=1876484068]
+z_index = 50
+material = SubResource("ShaderMaterial_x7y4a")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="GlassShader" type="ColorRect" parent="." unique_id=1031302461]
+z_index = 60
+material = SubResource("ShaderMaterial_8e1bn")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=913644353]
+z_index = 70
+material = SubResource("ShaderMaterial_ey7it")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
