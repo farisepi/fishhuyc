@@ -131,9 +131,10 @@ shader_parameter/glass_glow = 0.35
 shader = ExtResource("21_5vwn5")
 shader_parameter/depth = 1.8
 shader_parameter/water_alpha = 0.35
-shader_parameter/mirror_strength = 0.5
 shader_parameter/wave_speed = 1.2
-shader_parameter/reflection_intensity = 0.7
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
 
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
