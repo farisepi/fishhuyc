@@ -38,7 +38,6 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -224,6 +223,7 @@ theme_override_font_sizes/font_size = 23
 text = "Звуковые эффекты"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
+visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0

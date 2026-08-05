@@ -172,6 +172,7 @@ animations = [{
 }]
 
 [node name="рыбка" type="CharacterBody2D" unique_id=294675082]
+z_index = 5
 script = ExtResource("1_f8hhw")
 bubble_scene = ExtResource("2_vguw7")
 

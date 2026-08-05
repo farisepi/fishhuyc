@@ -110,23 +110,6 @@ height = 100.0
 [sub_resource type="TileSet" id="TileSet_10vj2"]
 occlusion_layer_0/light_mask = 1
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_x7y4a"]
-shader = ExtResource("19_0a6ic")
-shader_parameter/lab_top = 0.491
-shader_parameter/lab_bottom = 0.641
-shader_parameter/lab_left = 0.005
-shader_parameter/lab_right = 0.527
-shader_parameter/lab_brightness = 1.1
-shader_parameter/lab_warmth = 1.15
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_8e1bn"]
-shader = ExtResource("20_b02qe")
-shader_parameter/glass_top = 0.477
-shader_parameter/glass_bottom = 0.491
-shader_parameter/glass_left = 0.005
-shader_parameter/glass_right = 0.527
-shader_parameter/glass_glow = 0.35
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ey7it"]
 shader = ExtResource("21_5vwn5")
 shader_parameter/depth = 1.8
@@ -137,6 +120,25 @@ shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b02qe"]
+shader = ExtResource("20_b02qe")
+shader_parameter/glass_top = 0.0
+shader_parameter/glass_bottom = 0.0
+shader_parameter/glass_left = 0.0
+shader_parameter/glass_right = 0.0
+shader_parameter/glass_glow = 0.35
+shader_parameter/glass_distortion = 0.005
+shader_parameter/crack_intensity = 0.3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5vwn5"]
+shader = ExtResource("19_0a6ic")
+shader_parameter/lab_top = 0.0
+shader_parameter/lab_bottom = 0.0
+shader_parameter/lab_left = 0.0
+shader_parameter/lab_right = 0.0
+shader_parameter/lab_brightness = 1.1
+shader_parameter/lab_warmth = 1.15
+
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
 bubble_scene = ExtResource("2_x2xif")
@@ -144,6 +146,7 @@ metadata/_edit_vertical_guides_ = [296.0, 300.0]
 metadata/_edit_horizontal_guides_ = [192.0, 1159.0]
 
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
+z_index = 5
 position = Vector2(605, 224)
 
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
@@ -370,37 +373,10 @@ color = Color(0, 0, 0, 1)
 [node name="Level1Music" type="AudioStreamPlayer" parent="." unique_id=1825001319]
 stream = ExtResource("19_whdfm")
 volume_db = -15.0
-
-[node name="LabShader" type="ColorRect" parent="." unique_id=1876484068]
-visible = false
-z_index = 50
-material = SubResource("ShaderMaterial_x7y4a")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 1920.0
-offset_bottom = 1080.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
-
-[node name="GlassShader" type="ColorRect" parent="." unique_id=1031302461]
-visible = false
-z_index = 60
-material = SubResource("ShaderMaterial_8e1bn")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 1920.0
-offset_bottom = 1080.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
+parameters/looping = true
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=913644353]
-z_index = 70
+z_index = 10
 material = SubResource("ShaderMaterial_ey7it")
 anchors_preset = 15
 anchor_right = 1.0
@@ -409,6 +385,36 @@ offset_left = 300.0
 offset_top = 191.0
 offset_right = 910.0
 offset_bottom = 514.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="GlassShader" type="ColorRect" parent="." unique_id=1293031362]
+z_index = 10
+material = SubResource("ShaderMaterial_b02qe")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 515.0
+offset_right = 1011.0
+offset_bottom = 532.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="LabShader" type="ColorRect" parent="." unique_id=840803707]
+z_index = 10
+material = SubResource("ShaderMaterial_5vwn5")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 530.0
+offset_right = 1012.0
+offset_bottom = 694.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
