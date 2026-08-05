@@ -5,7 +5,11 @@ extends Camera2D
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	zoom = Vector2(2.0, 2.0)
+	zoom = Vector2(2.3, 2.3)
+	limit_left = -100000
+	limit_right = 100000
+	limit_top = -6000
+	limit_bottom = 2000
 
 func _process(_delta):
 	var target = get_parent()

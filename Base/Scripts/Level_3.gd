@@ -10,6 +10,7 @@ extends Node2D
 @onready var falling_shelf: StaticBody2D = $ForkliftScene/FallingShelf
 @onready var forklift_trigger: Area2D = $ForkliftTrigger
 @onready var death_zone: Area2D = $DeathZone
+@onready var death_zone2: Area2D = $DeathZone2
 
 enum State { INTRO, RUNNING, ELEVATOR_WAIT, ELEVATOR_GO, WIN }
 var state: State = State.INTRO
@@ -18,7 +19,6 @@ var can_press_button: bool = false
 var forklift_activated: bool = false
 var shelf_climbed: bool = false
 var _shelf_climbing: bool = false
-var is_paused: bool = false
 
 func _ready():
 	player.set_physics_process(false)
@@ -39,6 +39,10 @@ func _ready():
 	)
 	
 	death_zone.body_entered.connect(func(body):
+		if body == player:
+			_game_over()
+	)
+	death_zone2.body_entered.connect(func(body):
 		if body == player:
 			_game_over()
 	)
@@ -92,7 +96,7 @@ func _activate_forklift():
 	forklift.set("active", false)
 
 func _process(delta):
-	if is_paused:
+	if get_tree().paused:
 		return
 	
 	if state == State.RUNNING:
@@ -166,23 +170,11 @@ func _climb_shelf():
 	prompt.text = "ЖМИ W чтобы лезть!"
 	prompt.visible = true
 
-func _toggle_pause():
-	if not has_node("PauseMenu"):
-		return
-	
-	var pause_menu = $PauseMenu
-	if is_paused:
-		pause_menu.visible = false
-		get_tree().paused = false
-		is_paused = false
-	else:
-		pause_menu.visible = true
-		get_tree().paused = true
-		is_paused = true
-
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		_toggle_pause()
+		if has_node("PauseMenu"):
+			$PauseMenu.visible = true
+			get_tree().paused = true
 
 func _win():
 	await get_tree().create_timer(2.0).timeout

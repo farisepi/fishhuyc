@@ -3,7 +3,7 @@ extends CharacterBody2D
 @export var speed: float = 200.0
 @export var run_speed: float = 350.0
 @export var jump_velocity: float = -300.0
-@export var slide_speed: float = 500.0
+@export var slide_speed: float = 650.0
 @export var gravity: float = 980.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -23,18 +23,17 @@ func _ready():
 	
 	held_icon = Sprite2D.new()
 	held_icon.visible = false
-	held_icon.scale = Vector2(0.3, 0.3)
-	held_icon.z_index = 10
+	held_icon.scale = Vector2(0.5, 0.5)
+	held_icon.z_index = 100
 	add_child(held_icon)
 	
 	if camera:
-		camera.zoom = Vector2(1.5, 1.5)
-		camera.limit_left = 0
-		camera.limit_right = 3335
-		camera.limit_top = 0
-		camera.limit_bottom = 360
+		camera.zoom = Vector2(2.5, 2.5)
 
 func _physics_process(delta):
+	if get_tree().paused:
+		return
+	
 	if is_vaulting or is_climbing:
 		return
 	
@@ -47,8 +46,8 @@ func _physics_process(delta):
 	sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 	var spd = run_speed if running else speed
 	
-	if not is_sliding:
-		if direction != 0:
+	if not is_sliding and not is_vaulting and not is_climbing:
+		if direction != 0 and running:
 			sprite.play("Run")
 		else:
 			sprite.play("Idle")
@@ -60,18 +59,16 @@ func _physics_process(delta):
 			sprite.play("Fall")
 			await get_tree().create_timer(0.3).timeout
 			sprite.play("Slide")
-			$CollisionShape2D.scale.y = 0.3
-			$CollisionShape2D.position.y = 10
+			$CollisionShape2D.scale.y = 0.6  # Было 0.3, стало 0.5 — меньше проваливается
 		
 		slide_timer += delta
-		var sp = min(slide_timer / 0.7, 1.0)
+		var sp = min(slide_timer / 1, 2)
 		velocity.x = lerp(slide_speed, 0.0, sp) * direction
 	elif is_crouching and running:
 		velocity.x = 0
 	elif is_crouching and not running:
 		velocity.x = direction * speed * 0.3
 		sprite.scale.y = 0.6
-		sprite.position.y = 5
 	else:
 		if is_sliding:
 			sprite.play("GetUp")
@@ -81,9 +78,7 @@ func _physics_process(delta):
 		else:
 			velocity.x = direction * spd
 			sprite.scale.y = 1.0
-			sprite.position.y = 0
 			$CollisionShape2D.scale.y = 1.0
-			$CollisionShape2D.position.y = 0
 	
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		if not _try_vault():
@@ -102,13 +97,12 @@ func _physics_process(delta):
 		camera.global_position = global_position
 	
 	if held_icon.visible:
-		held_icon.global_position = global_position + Vector2(0, -50)
+		held_icon.global_position = global_position + Vector2(0, -60)
 
 func _end_slide():
 	is_sliding = false
 	slide_timer = 0.0
 	$CollisionShape2D.scale.y = 1.0
-	$CollisionShape2D.position.y = 0
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
