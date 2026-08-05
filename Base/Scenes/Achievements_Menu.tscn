@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dmou8vm5a0awv" path="res://Base/Scripts/Achievements_Menu.gd" id="1_shfx7"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="2_g0eki"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="2_t7cf8"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="4_3l7vi"]
 
 [node name="AchievementsMenu" type="Control" unique_id=1868437353]
 layout_mode = 3
@@ -187,5 +188,8 @@ offset_bottom = 120.0
 text = "0/3"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=726317826]
+script = ExtResource("4_3l7vi")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

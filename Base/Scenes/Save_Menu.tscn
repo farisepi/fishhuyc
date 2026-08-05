@@ -9,6 +9,8 @@
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Textures/Interface/Buttons/Small/Small_Normal.tres" id="6_xsmip"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="7_gj8n2"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="8_rdut3"]
+[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="9_mhwe5"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="11_m6vio"]
 
 [node name="SaveMenu" type="Node2D" unique_id=2084349734]
 script = ExtResource("1_6mnqf")
@@ -32,8 +34,8 @@ horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
 [node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=1034263232]
-clip_contents = true
 custom_minimum_size = Vector2(1000, 500)
+clip_contents = true
 layout_mode = 2
 theme_override_constants/h_separation = 15
 theme_override_constants/v_separation = 15
@@ -121,6 +123,12 @@ theme_override_styles/hover = ExtResource("8_rdut3")
 text = "Закрыть
 "
 
+[node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=1807977731]
+visible = false
+position = Vector2(115.49998, 23.500004)
+scale = Vector2(1.8780494, 1.6785719)
+texture = ExtResource("9_mhwe5")
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1257404213]
 position = Vector2(576, 328)
 script = ExtResource("2_gjd28")
@@ -147,5 +155,8 @@ offset_top = 78.0
 offset_right = 1023.0
 offset_bottom = 101.0
 text = "Пропустить"
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=581270038]
+script = ExtResource("11_m6vio")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

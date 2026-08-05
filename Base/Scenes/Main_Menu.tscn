@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_il11y"]
 [ext_resource type="StyleBox" uid="uid://cdp5404itmfof" path="res://Textures/Interface/Buttons/Big/Big_Normal.tres" id="2_ycqps"]
 [ext_resource type="StyleBox" uid="uid://ekl2i1p6fa0s" path="res://Textures/Interface/Buttons/Big/Big_Pressed.tres" id="3_1ltd6"]
+[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="3_10vj2"]
 [ext_resource type="StyleBox" uid="uid://c1rngqmtqoo1v" path="res://Textures/Interface/Buttons/Share/Share_Pressed.tres" id="3_ne66m"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="3_t3la5"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Textures/Interface/Buttons/Huge/Huge_Pressed.tres" id="3_xbr4h"]
@@ -17,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://demttav0h5uba" path="res://Textures/Interface/Logo/Logo.png" id="6_ff0eq"]
 [ext_resource type="Texture2D" uid="uid://dxkytmc46dbt2" path="res://Textures/Interface/Buttons/Share/Telegram.png" id="10_1ltd6"]
 [ext_resource type="Texture2D" uid="uid://4oacvlud2hgi" path="res://Textures/Interface/Buttons/Share/Discord.png" id="10_il11y"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="19_upaag"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
 particle_flag_disable_z = true
@@ -205,10 +207,10 @@ script = ExtResource("1_e548n")
 bubble_scene = ExtResource("2_il11y")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1235397578]
-offset_left = -105.0
-offset_top = -19.0
-offset_right = 1272.0
-offset_bottom = 707.0
+offset_left = -43.0
+offset_top = -1.0
+offset_right = 1334.0
+offset_bottom = 725.0
 mouse_filter = 2
 color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 metadata/_edit_use_anchors_ = true
@@ -232,6 +234,12 @@ theme_override_styles/hover = ExtResource("5_il11y")
 text = "Начать игру
 "
 script = ExtResource("2_68j6e")
+
+[node name="Seaweed" type="Sprite2D" parent="PlayButton" unique_id=227390764]
+visible = false
+position = Vector2(129.99995, 21.99999)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("3_10vj2")
 
 [node name="SaveButton" type="Button" parent="." unique_id=112604908]
 visible = false
@@ -259,6 +267,12 @@ theme_override_styles/hover = ExtResource("5_il11y")
 text = "Настройки
 "
 
+[node name="Seaweed" type="Sprite2D" parent="SettingsButton" unique_id=89901388]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("3_10vj2")
+
 [node name="AchivmentsButton" type="Button" parent="." unique_id=2008761553]
 offset_left = 445.0
 offset_top = 365.0
@@ -272,6 +286,12 @@ theme_override_styles/hover = ExtResource("5_il11y")
 text = "Достижения
 
 "
+
+[node name="Seaweed" type="Sprite2D" parent="AchivmentsButton" unique_id=1652517943]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("3_10vj2")
 
 [node name="QuitButton" type="Button" parent="." unique_id=1075697719]
 offset_left = 445.0
@@ -287,6 +307,12 @@ text = "Выход
 
 
 "
+
+[node name="Seaweed" type="Sprite2D" parent="QuitButton" unique_id=497475525]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("3_10vj2")
 
 [node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
 offset_left = 519.0
@@ -341,6 +367,9 @@ frame = 1
 frame_progress = 0.57846695
 
 [node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=1738621417]
+script = ExtResource("19_upaag")
 
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]

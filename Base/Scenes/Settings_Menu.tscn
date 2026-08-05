@@ -8,8 +8,10 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="5_bb24s"]
 [ext_resource type="Texture2D" uid="uid://bqkbfw61y1cbq" path="res://Textures/Interface/Buttons/Switch/Switch.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="7_xpquy"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="10_l8d1f"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="12_kd3mb"]
 
 [sub_resource type="Theme" id="Theme_xpquy"]
 default_font = ExtResource("1_74uco")
@@ -38,6 +40,7 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -65,6 +68,12 @@ theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Полный экран"
 
+[node name="Seaweed" type="Sprite2D" parent="GraphicsPage/FullscreenButton" unique_id=702049749]
+visible = false
+position = Vector2(99.49996, 20.00001)
+scale = Vector2(1.6178864, 1.4285724)
+texture = ExtResource("7_xpquy")
+
 [node name="ResolutionLabel" type="Label" parent="GraphicsPage" unique_id=61398240]
 layout_mode = 0
 offset_left = 239.0
@@ -84,6 +93,12 @@ theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("3_xchot")
 theme_override_icons/arrow = SubResource("DPITexture_xchot")
 icon_alignment = 1
+
+[node name="Seaweed" type="Sprite2D" parent="GraphicsPage/ResolutionButton" unique_id=2098690276]
+visible = false
+position = Vector2(99.49996, 20.00001)
+scale = Vector2(1.6178864, 1.4285724)
+texture = ExtResource("7_xpquy")
 
 [node name="LanguageLabel" type="Label" parent="GraphicsPage" unique_id=2025691448]
 layout_mode = 0
@@ -105,6 +120,12 @@ offset_bottom = 321.0
 theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = ExtResource("3_xchot")
 theme_override_icons/arrow = SubResource("DPITexture_ugdgc")
+
+[node name="Seaweed" type="Sprite2D" parent="GraphicsPage/LanguageOption" unique_id=2066254607]
+visible = false
+position = Vector2(99.49996, 20.00001)
+scale = Vector2(1.6178864, 1.4285724)
+texture = ExtResource("7_xpquy")
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
 layout_mode = 0
@@ -442,6 +463,12 @@ theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Применить"
 
+[node name="Seaweed" type="Sprite2D" parent="ApplyButton" unique_id=1973268641]
+visible = false
+position = Vector2(75.99997, 23.500004)
+scale = Vector2(1.2357728, 1.678572)
+texture = ExtResource("7_xpquy")
+
 [node name="DefaultButton" type="Button" parent="." unique_id=2024975690]
 layout_mode = 0
 offset_left = 784.0
@@ -453,6 +480,12 @@ theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 text = "По умолчанию "
+
+[node name="Seaweed" type="Sprite2D" parent="DefaultButton" unique_id=1673907654]
+visible = false
+position = Vector2(75.99997, 23.500004)
+scale = Vector2(1.2357728, 1.678572)
+texture = ExtResource("7_xpquy")
 
 [node name="GeneralTab" type="Button" parent="." unique_id=785485694]
 layout_mode = 0
@@ -468,6 +501,12 @@ text = "Основные
 "
 icon_alignment = 1
 
+[node name="Seaweed" type="Sprite2D" parent="GeneralTab" unique_id=1174535296]
+visible = false
+position = Vector2(91.99997, 28)
+scale = Vector2(1.4959354, 2)
+texture = ExtResource("7_xpquy")
+
 [node name="AudioTab" type="Button" parent="." unique_id=931140739]
 layout_mode = 0
 offset_left = 456.0
@@ -480,6 +519,12 @@ theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Аудио"
 icon_alignment = 1
+
+[node name="Seaweed" type="Sprite2D" parent="AudioTab" unique_id=392488541]
+visible = false
+position = Vector2(91.99997, 28)
+scale = Vector2(1.4959354, 2)
+texture = ExtResource("7_xpquy")
 
 [node name="ControlsTab" type="Button" parent="." unique_id=968413340]
 layout_mode = 0
@@ -494,6 +539,12 @@ theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Управление"
 icon_alignment = 1
 
+[node name="Seaweed" type="Sprite2D" parent="ControlsTab" unique_id=70332014]
+visible = false
+position = Vector2(91.99997, 28)
+scale = Vector2(1.4959354, 2)
+texture = ExtResource("7_xpquy")
+
 [node name="BackButton" type="Button" parent="." unique_id=1884264781]
 layout_mode = 0
 offset_left = 456.0
@@ -507,6 +558,12 @@ theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Закрыть
 "
 
+[node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=1306186201]
+visible = false
+position = Vector2(115.99996, 24.000015)
+scale = Vector2(1.8861793, 1.7142868)
+texture = ExtResource("7_xpquy")
+
 [node name="FPSCounter" type="Label" parent="." unique_id=645757073]
 layout_mode = 0
 offset_left = 1016.0
@@ -518,5 +575,8 @@ script = ExtResource("9_ugdgc")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
 position = Vector2(576, 320)
 script = ExtResource("10_l8d1f")
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=1411421395]
+script = ExtResource("12_kd3mb")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]
