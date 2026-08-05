@@ -4,7 +4,7 @@ uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
 
 uniform float lamp_strength : hint_range(0.0, 2.0) = 0.8;
 uniform float lamp_width : hint_range(0.0, 0.5) = 0.04;
-uniform float flicker_amount : hint_range(0.0, 0.1) = 0.02;
+uniform float flicker_amount : hint_range(0.0, 0.1) = 0.04;
 
 float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -28,7 +28,7 @@ void fragment() {
     vec4 bg = texture(screen_texture, SCREEN_UV);
     vec3 lab = bg.rgb;
     
-    lab *= 0.5;
+    lab *= 0.65;
     
     float lamp_x[8];
     lamp_x[0] = 64.0 / 1002.0;
@@ -54,7 +54,16 @@ void fragment() {
             float falloff = exp(-dist_down * 3.0);
             float hotspot = exp(-dist_down * 15.0) * exp(-dist_x * 60.0) * 0.6;
             
-            total_light += (in_cone * 0.6 + hotspot) * falloff;
+            // Каждая лампа мерцает независимо
+            float fi = float(i);
+            float lamp_flicker = 1.0;
+            lamp_flicker += sin(time * (2.0 + fi * 0.7) + fi * 1.5) * 0.03;
+            lamp_flicker += sin(time * (5.0 + fi * 1.1) + fi * 2.3) * 0.02;
+            lamp_flicker += noise(vec2(time * (3.0 + fi * 0.5), fi * 10.0)) * flicker_amount;
+            lamp_flicker += step(0.97, noise(vec2(time * (6.0 + fi), fi * 20.0 + 1.0))) * 0.15;
+            
+            float lamp_light = (in_cone * 0.6 + hotspot) * falloff * lamp_flicker;
+            total_light += lamp_light;
         }
     }
     
@@ -65,35 +74,26 @@ void fragment() {
     
     lab = mix(lab, lit_area, total_light * lamp_strength);
     
-    float flicker = 1.0;
-    flicker += sin(time * 3.0 + 1.0) * 0.02;
-    flicker += sin(time * 5.0 + 2.0) * 0.015;
-    flicker += noise(vec2(time * 4.0, 0.0)) * flicker_amount;
-    
-    lab = mix(lab, lab * flicker, total_light * 0.4);
-    
     float crack_line = abs((uv.x - 0.5) - uv.y * 0.3);
     crack_line = exp(-crack_line * 35.0);
     crack_line *= noise(vec2(uv.y * 15.0, 0.0)) * 0.5 + 0.5;
     crack_line *= smoothstep(1.0, 0.0, uv.y);
     
-    float crack = crack_line * 0.35;
-    lab = mix(lab, vec3(0.0, 0.0, 0.0), crack);
-    lab += vec3(0.05, 0.1, 0.2) * crack;
+    float crack2 = abs((uv.x - 0.35) - uv.y * 0.5);
+    crack2 = exp(-crack2 * 30.0);
+    crack2 *= noise(vec2(uv.y * 12.0, 2.0)) * 0.5 + 0.5;
+    crack2 *= smoothstep(0.6, 0.0, uv.y) * 0.5;
     
-    float particles = 0.0;
-    for(int j = 0; j < 8; j++) {
-        float fj = float(j);
-        vec2 particle_uv = uv * 5.0;
-        particle_uv.x += sin(fj * 1.7 + time * 0.15) * 0.4;
-        particle_uv.y += cos(fj * 1.3 + time * 0.2) * 0.4;
-        particle_uv = fract(particle_uv);
-        
-        float particle = exp(-length(particle_uv - 0.5) * 12.0);
-        particle *= 0.5 + sin(fj * 3.0 + time * 2.0) * 0.3;
-        particles += particle * 0.5;
-    }
-    lab += vec3(0.7, 0.8, 0.9) * particles * 0.5 * total_light;
+    float crack = (crack_line * 0.6 + crack2 * 0.4) * 0.4;
+    lab = mix(lab, vec3(0.0, 0.0, 0.0), crack);
+    lab += vec3(0.08, 0.15, 0.3) * crack;
+    
+    float smoke = 0.0;
+    smoke += noise(uv * 3.0 + time * 0.08) * 0.4;
+    smoke += noise(uv * 6.0 - time * 0.05) * 0.3;
+    smoke += noise(uv * 12.0 + time * 0.03) * 0.2;
+    smoke = smoke * 0.05;
+    lab += vec3(0.5, 0.45, 0.4) * smoke;
     
     float vignette = 1.0 - pow(length(uv - 0.5) * 1.0, 2.5);
     vignette = mix(vignette, 1.0, 0.3);
