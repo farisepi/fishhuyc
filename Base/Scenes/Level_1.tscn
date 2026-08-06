@@ -16,7 +16,7 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Base/Scripts/Fps_Counter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Textures/Interface/Buttons/seaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://bsrb2bg7c0klv" path="res://Textures/Tiles/Level_1/Lights.png" id="15_b02qe"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Base/Shaders/Level1/Lab.gdshader" id="19_0a6ic"]
 [ext_resource type="AudioStream" uid="uid://c6mvqoyw78yt4" path="res://Sounds/Music/LVL_1_Music.mp3" id="19_whdfm"]
@@ -2566,7 +2566,6 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
-visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
@@ -2581,7 +2580,7 @@ offset_left = 486.0
 offset_top = 176.0
 offset_right = 666.0
 offset_bottom = 231.0
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -2599,7 +2598,7 @@ offset_left = 486.0
 offset_top = 236.0
 offset_right = 666.0
 offset_bottom = 291.0
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -2616,7 +2615,7 @@ offset_left = 486.0
 offset_top = 419.0
 offset_right = 666.0
 offset_bottom = 474.0
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -2634,7 +2633,7 @@ offset_left = 486.0
 offset_top = 358.0
 offset_right = 666.0
 offset_bottom = 413.0
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")
@@ -2651,7 +2650,7 @@ offset_left = 486.0
 offset_top = 297.0
 offset_right = 666.0
 offset_bottom = 352.0
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
 theme_override_styles/hover = ExtResource("13_fljlw")

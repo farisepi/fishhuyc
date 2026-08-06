@@ -3,8 +3,11 @@
 [ext_resource type="Script" uid="uid://dmou8vm5a0awv" path="res://Base/Scripts/Achievements_Menu.gd" id="1_shfx7"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="2_g0eki"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="2_t7cf8"]
+[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Textures/Interface/Buttons/Small/Small_Normal.tres" id="3_31va1"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="4_3l7vi"]
+[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="4_thjyk"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Base/Shaders/Level1/Water.gdshader" id="5_qsh2n"]
+[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="6_ncy0w"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2eib0"]
 shader = ExtResource("5_qsh2n")
@@ -37,10 +40,10 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 
 [node name="Title" type="Label" parent="." unique_id=1731595099]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 56.000004
+offset_left = 400.00003
+offset_top = 9.0
 offset_right = 592.0
-offset_bottom = 104.0
+offset_bottom = 57.0
 scale = Vector2(1.5, 1.5)
 text = "ДОСТИЖЕНИЯ"
 horizontal_alignment = 1
@@ -69,19 +72,21 @@ offset_bottom = 56.0
 
 [node name="NameLabel" type="Label" parent="CoffeeAchievement" unique_id=1744544555]
 layout_mode = 0
-offset_left = 48.0
+offset_left = 40.0
 offset_top = 16.0
-offset_right = 130.0
+offset_right = 160.0
 offset_bottom = 39.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 12
 text = "Кофе бы..."
 
 [node name="DescLabel" type="Label" parent="CoffeeAchievement" unique_id=1530461574]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 16.0
-offset_right = 464.0
-offset_bottom = 65.0
+offset_left = 269.0
+offset_top = -5.0
+offset_right = 569.0
+offset_bottom = 49.0
+theme_override_font_sizes/font_size = 12
 text = "Послушать разговор между механиком и ученым"
 horizontal_alignment = 1
 vertical_alignment = 2
@@ -112,10 +117,24 @@ offset_bottom = 56.0
 layout_mode = 0
 offset_left = 40.0
 offset_top = 8.0
-offset_right = 116.0
+offset_right = 124.0
 offset_bottom = 31.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 12
 text = "Флешбек"
+
+[node name="DescLabel" type="Label" parent="FlashbackAchievement" unique_id=74494426]
+layout_mode = 0
+offset_left = 154.0
+offset_top = -15.0
+offset_right = 556.0
+offset_bottom = 39.0
+theme_override_font_sizes/font_size = 12
+text = "Вспомнить все
+"
+horizontal_alignment = 1
+vertical_alignment = 2
+autowrap_mode = 1
 
 [node name="PopStarAchievement" type="Control" parent="." unique_id=1264892551]
 anchors_preset = 0
@@ -140,19 +159,21 @@ offset_bottom = 56.0
 
 [node name="NameLabel" type="Label" parent="PopStarAchievement" unique_id=1008983447]
 layout_mode = 0
-offset_left = 40.0
+offset_left = 44.999992
 offset_top = 8.0
-offset_right = 116.0
+offset_right = 165.0
 offset_bottom = 31.0
 scale = Vector2(1.5, 1.5)
+theme_override_font_sizes/font_size = 12
 text = "Поп-звезда"
 
 [node name="DescLabel" type="Label" parent="PopStarAchievement" unique_id=667265630]
 layout_mode = 0
-offset_left = 224.0
-offset_top = -1.0
-offset_right = 464.0
-offset_bottom = 48.0
+offset_left = 223.0
+offset_top = -5.0
+offset_right = 649.0
+offset_bottom = 44.0
+theme_override_font_sizes/font_size = 12
 text = "Лопнуть 100 пузырей в меню"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -165,10 +186,14 @@ offset_bottom = 14.0
 
 [node name="ResetButton" type="Button" parent="." unique_id=606168002]
 layout_mode = 0
-offset_left = 824.0
+offset_left = 783.0
 offset_top = 424.0
-offset_right = 1032.0
+offset_right = 1036.0
 offset_bottom = 488.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_31va1")
+theme_override_styles/pressed = ExtResource("4_thjyk")
+theme_override_styles/hover = ExtResource("4_thjyk")
 text = "Сбросить прогресс"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1201786992]
@@ -181,21 +206,25 @@ offset_left = 456.0
 offset_top = 528.0
 offset_right = 656.0
 offset_bottom = 584.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_31va1")
+theme_override_styles/pressed = ExtResource("4_thjyk")
+theme_override_styles/hover = ExtResource("6_ncy0w")
 text = "Назад"
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=982023106]
 layout_mode = 0
 offset_left = 216.0
-offset_top = 120.0
+offset_top = 110.0
 offset_right = 872.0
-offset_bottom = 152.0
+offset_bottom = 142.0
 
 [node name="ProgressLabel" type="Label" parent="." unique_id=1178280064]
 layout_mode = 0
 offset_left = 776.0
-offset_top = 88.0
-offset_right = 816.0
-offset_bottom = 120.0
+offset_top = 82.0
+offset_right = 824.0
+offset_bottom = 114.0
 text = "0/3"
 horizontal_alignment = 1
 vertical_alignment = 1
