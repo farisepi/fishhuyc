@@ -2474,12 +2474,11 @@ shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.3
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_b02qe"]
 shader = ExtResource("20_b02qe")
-shader_parameter/glass_alpha = 0.2
-shader_parameter/glare_brightness = 0.5
-shader_parameter/glass_tint = 0.3
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5vwn5"]
 shader = ExtResource("19_0a6ic")
@@ -2773,7 +2772,7 @@ anchor_bottom = 1.0
 offset_left = 10.0
 offset_top = 515.0
 offset_right = 1011.0
-offset_bottom = 532.0
+offset_bottom = 530.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

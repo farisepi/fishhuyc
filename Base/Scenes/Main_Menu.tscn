@@ -212,6 +212,8 @@ shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
 
 [node name="MainMenu" type="Node2D" unique_id=387678729]
 script = ExtResource("1_e548n")
@@ -391,7 +393,7 @@ anchor_bottom = 1.0
 offset_left = -87.0
 offset_top = -79.0
 offset_right = 1329.0
-offset_bottom = 789.0
+offset_bottom = 916.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
