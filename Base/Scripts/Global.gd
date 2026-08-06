@@ -23,14 +23,42 @@ var pending_save: bool = false
 var scene_to_save: String = ""
 
 func _ready() -> void:
-	# Проверяем существует ли файл шрифта
-	if FileAccess.file_exists("res://Textures/Font/Bitcell_Font.ttf"):
-		var font_file = load("res://Textures/Font/Bitcell_Font.ttf")
-		if font_file:
-			var theme = Theme.new()
-			var font = FontFile.new()
-			# В Godot 4.6 FontFile напрямую использует данные шрифта
-			theme.set_default_font(font)
-			get_tree().root.theme = theme
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func apply_font(scene: Node) -> void:
+	var font_path = "res://Textures/Font/Bitcell_Font.ttf"
+	
+	if not FileAccess.file_exists(font_path):
+		return
+	
+	var font: FontFile = load(font_path)
+	if not font:
+		return
+	
+	font.fixed_size = 10
+	
+	if scene is Control:
+		var theme = Theme.new()
+		theme.set_default_font(font)
+		theme.set_font("font", "Label", font)
+		theme.set_font_size("font_size", "Label", 10)
+		theme.set_font("font", "Button", font)
+		theme.set_font_size("font_size", "Button", 10)
+		theme.set_font("normal_font", "RichTextLabel", font)
+		theme.set_font_size("normal_font_size", "RichTextLabel", 10)
+		scene.theme = theme
 	else:
-		print("Шрифт не найден: res://Textures/Font/Bitcell_Font.ttf")
+		_apply_font_to_children(scene, font)
+
+func _apply_font_to_children(node: Node, font: FontFile) -> void:
+	for child in node.get_children():
+		if child is Label:
+			child.add_theme_font_override("font", font)
+			child.add_theme_font_size_override("font_size", 10)
+		elif child is Button:
+			child.add_theme_font_override("font", font)
+			child.add_theme_font_size_override("font_size", 10)
+		elif child is RichTextLabel:
+			child.add_theme_font_override("normal_font", font)
+			child.add_theme_font_size_override("normal_font_size", 10)
+		_apply_font_to_children(child, font)
