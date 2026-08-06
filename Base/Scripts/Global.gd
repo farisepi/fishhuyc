@@ -22,43 +22,76 @@ var show_fps: bool = false
 var pending_save: bool = false
 var scene_to_save: String = ""
 
+var _font: FontFile
+var intro_active: bool = false
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-
-func apply_font(scene: Node) -> void:
+	
 	var font_path = "res://Textures/Font/Bitcell_Font.ttf"
 	
-	if not FileAccess.file_exists(font_path):
-		return
+	if FileAccess.file_exists(font_path):
+		_font = load(font_path)
+		if _font:
+			_font.fixed_size = 10
 	
-	var font: FontFile = load(font_path)
-	if not font:
-		return
-	
-	font.fixed_size = 10
-	
-	if scene is Control:
-		var theme = Theme.new()
-		theme.set_default_font(font)
-		theme.set_font("font", "Label", font)
-		theme.set_font_size("font_size", "Label", 10)
-		theme.set_font("font", "Button", font)
-		theme.set_font_size("font_size", "Button", 10)
-		theme.set_font("normal_font", "RichTextLabel", font)
-		theme.set_font_size("normal_font_size", "RichTextLabel", 10)
-		scene.theme = theme
-	else:
-		_apply_font_to_children(scene, font)
+	reapply_theme()
+	get_tree().tree_changed.connect(_on_scene_changed)
 
-func _apply_font_to_children(node: Node, font: FontFile) -> void:
+func reapply_theme() -> void:
+	if not _font or intro_active:
+		return
+	
+	var theme = Theme.new()
+	theme.set_default_font(_font)
+	get_tree().root.theme = theme
+
+func _on_scene_changed() -> void:
+	if intro_active:
+		return
+	
+	if not _font:
+		return
+	if not is_inside_tree():
+		return
+	
+	var tree = get_tree()
+	if not tree:
+		return
+	
+	await tree.process_frame
+	
+	reapply_theme()
+	
+	var scene = tree.current_scene
+	if scene:
+		_apply_font_to_scene(scene)
+
+func _apply_font_to_scene(node: Node) -> void:
+	if not _font:
+		return
+	
 	for child in node.get_children():
 		if child is Label:
-			child.add_theme_font_override("font", font)
+			child.add_theme_font_override("font", _font)
 			child.add_theme_font_size_override("font_size", 10)
 		elif child is Button:
-			child.add_theme_font_override("font", font)
+			child.add_theme_font_override("font", _font)
 			child.add_theme_font_size_override("font_size", 10)
 		elif child is RichTextLabel:
-			child.add_theme_font_override("normal_font", font)
+			child.add_theme_font_override("normal_font", _font)
 			child.add_theme_font_size_override("normal_font_size", 10)
-		_apply_font_to_children(child, font)
+		elif child is LineEdit:
+			child.add_theme_font_override("font", _font)
+			child.add_theme_font_size_override("font_size", 10)
+		elif child is TextEdit:
+			child.add_theme_font_override("font", _font)
+			child.add_theme_font_size_override("font_size", 10)
+		elif child is CheckBox:
+			child.add_theme_font_override("font", _font)
+			child.add_theme_font_size_override("font_size", 10)
+		elif child is OptionButton:
+			child.add_theme_font_override("font", _font)
+			child.add_theme_font_size_override("font_size", 10)
+		
+		_apply_font_to_scene(child)

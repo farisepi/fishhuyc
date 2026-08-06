@@ -1,4 +1,4 @@
-extends Node2D
+extends CanvasLayer
 
 @onready var back_btn: Button = $BackButton
 @onready var grid: GridContainer = $ScrollContainer/SaveGrid
@@ -6,12 +6,17 @@ extends Node2D
 const SAVE_DIR = "user://saves/"
 
 var current_popup: AcceptDialog = null
-var skip_fill: ColorRect = null
-var skip_timer: float = 0.0
-var skip_duration: float = 1.5
 var intro_active: bool = false
+var intro_instance: CanvasLayer = null
+
+var custom_font: FontFile
 
 func _ready() -> void:
+	# Загружаем шрифт
+	custom_font = load("res://Textures/Font/Bitcell_Font.ttf")
+	if custom_font:
+		custom_font.fixed_size = 10
+	
 	if is_instance_valid(Fade):
 		Fade.fade_in()
 	
@@ -19,6 +24,11 @@ func _ready() -> void:
 	
 	ButtonEffects.setup(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
+	
+	# Применяем шрифт к кнопке "Закрыть"
+	if custom_font and back_btn:
+		back_btn.add_theme_font_override("font", custom_font)
+		back_btn.add_theme_font_size_override("font_size", 16)
 	
 	var scroll = $ScrollContainer
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -36,7 +46,19 @@ func _ready() -> void:
 			slot.set_meta("no_scale_animation", true)
 			ButtonEffects.setup(slot)
 			slot.pressed.connect(_on_slot_pressed.bind(i))
+			
+			# Применяем шрифт к каждой кнопке слота
+			if custom_font:
+				slot.add_theme_font_override("font", custom_font)
+				slot.add_theme_font_size_override("font_size", 18)
+			
 			_update_slot_text(slot, i)
+	
+	# Заголовок
+	var title = $TitleLabel
+	if custom_font and title:
+		title.add_theme_font_override("font", custom_font)
+		title.add_theme_font_size_override("font_size", 18)
 
 func _update_slot_text(slot: Button, index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
@@ -83,64 +105,20 @@ func _on_slot_pressed(index: int):
 			if is_instance_valid(Fade):
 				Fade.fade_out()
 				await get_tree().create_timer(0.3).timeout
-			var intro = load("res://Base/Scripts/Intro.gd").new()
-			add_child(intro)
-			_add_skip_ui()
+			
+			intro_instance = load("res://Base/Scripts/Intro.gd").new()
+			add_child(intro_instance)
 			intro_active = true
+			
 			if is_instance_valid(Fade):
 				Fade.fade_in()
 
-func _add_skip_ui():
-	var canvas = CanvasLayer.new()
-	canvas.name = "SkipCanvas"
-	canvas.layer = 300
-	add_child(canvas)
-	
-	var view_size = get_viewport().get_visible_rect().size
-	
-	var skip_bg = ColorRect.new()
-	skip_bg.color = Color(0, 0, 0, 0.5)
-	skip_bg.size = Vector2(140, 30)
-	skip_bg.position = Vector2(view_size.x - 150, 10)
-	canvas.add_child(skip_bg)
-	
-	skip_fill = ColorRect.new()
-	skip_fill.color = Color.WHITE
-	skip_fill.size = Vector2(0, 30)
-	skip_fill.position = Vector2(view_size.x - 150, 10)
-	canvas.add_child(skip_fill)
-	
-	var label = Label.new()
-	label.text = "ПРОПУСТИТЬ"
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_font_size_override("font_size", 14)
-	label.position = Vector2(view_size.x - 145, 15)
-	canvas.add_child(label)
-
-func _process(delta):
-	if not intro_active or not skip_fill:
-		return
-	
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		skip_timer += delta
-		var progress = skip_timer / skip_duration
-		skip_fill.size.x = 130 * progress
-		skip_fill.color = Color.GREEN if progress >= 1.0 else Color.WHITE
-		if skip_timer >= skip_duration:
-			_skip_intro()
-	else:
-		skip_timer = 0.0
-		skip_fill.size.x = 0
-		skip_fill.color = Color.WHITE
-
 func _skip_intro():
 	intro_active = false
-	skip_fill = null
 	
-	# Останавливаем всё в intro если есть
-	var intro = get_node_or_null("Intro")
-	if intro and intro.has_method("stop"):
-		intro.stop()
+	if intro_instance and is_instance_valid(intro_instance):
+		intro_instance._skip_intro()
+		intro_instance = null
 	
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
@@ -157,9 +135,16 @@ func _show_load_or_overwrite(index: int):
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
+	if custom_font:
+		menu.add_theme_font_override("font", custom_font)
+		menu.add_theme_font_size_override("font_size", 14)
+	
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(120, 40)
+			if custom_font:
+				child.add_theme_font_override("font", custom_font)
+				child.add_theme_font_size_override("font_size", 14)
 	
 	menu.custom_action.connect(func(action):
 		_close_current_popup()
@@ -185,9 +170,16 @@ func _show_load_or_delete(index: int):
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
+	if custom_font:
+		menu.add_theme_font_override("font", custom_font)
+		menu.add_theme_font_size_override("font_size", 14)
+	
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(100, 40)
+			if custom_font:
+				child.add_theme_font_override("font", custom_font)
+				child.add_theme_font_size_override("font_size", 14)
 	
 	menu.custom_action.connect(func(action):
 		_close_current_popup()
@@ -213,9 +205,16 @@ func _show_delete_confirm(index: int):
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
+	if custom_font:
+		menu.add_theme_font_override("font", custom_font)
+		menu.add_theme_font_size_override("font_size", 14)
+	
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(100, 40)
+			if custom_font:
+				child.add_theme_font_override("font", custom_font)
+				child.add_theme_font_size_override("font_size", 14)
 	
 	menu.custom_action.connect(func(action):
 		if action == "yes":
@@ -284,40 +283,6 @@ func _delete_save(index: int):
 	DirAccess.remove_absolute(save_path)
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
-
-func _show_overwrite_confirm(index: int):
-	_close_current_popup()
-	
-	var menu = AcceptDialog.new()
-	menu.title = "Сохранение существует"
-	menu.dialog_text = "Слот " + str(index + 1) + " уже занят.\nПерезаписать?"
-	menu.add_button("Перезаписать", true, "overwrite")
-	menu.add_button("Отмена", true, "cancel")
-	var ok = menu.get_ok_button()
-	if ok: ok.visible = false
-	
-	for child in menu.get_children():
-		if child is Button:
-			child.custom_minimum_size = Vector2(150, 40)
-	
-	menu.custom_action.connect(func(action):
-		_close_current_popup()
-		if action == "overwrite":
-			Global.is_new_game = false
-			Global.save_slot = index
-			Fade.fade_out()
-			await get_tree().create_timer(0.3).timeout
-			var intro = load("res://код/скрипты/intro_simple.gd").new()
-			add_child(intro)
-			_add_skip_ui()
-			intro_active = true
-			Fade.fade_in()
-	)
-	menu.close_requested.connect(_close_current_popup)
-	
-	current_popup = menu
-	add_child(menu)
-	menu.popup_centered()
 
 func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:

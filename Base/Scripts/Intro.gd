@@ -15,14 +15,28 @@ var bg: ColorRect
 var image_display: TextureRect
 var text_label: Label
 var scientist_voice: AudioStreamPlayer
-var intro_start_time: float = 0.0
 var slide_timer: Timer
 var is_fading: bool = false
 var final_fade_started: bool = false
 var typing: bool = false
 
+var skip_bg: ColorRect
+var skip_fill: ColorRect
+var skip_label: Label
+var skip_holding: bool = false
+var skip_progress: float = 0.0
+var skip_duration: float = 1.5
+
+var custom_font: FontFile
+
 func _ready() -> void:
-	intro_start_time = Time.get_ticks_msec() / 1000.0
+	# Говорим Global, что мы активны
+	Global.intro_active = true
+	
+	# Загружаем шрифт
+	custom_font = load("res://Textures/Font/Bitcell_Font.ttf")
+	if custom_font:
+		custom_font.fixed_size = 10
 	
 	scientist_voice = AudioStreamPlayer.new()
 	scientist_voice.stream = load("res://Sounds/SFX/Scienist_Voise.MP3")
@@ -50,16 +64,21 @@ func _ready() -> void:
 	image_display.modulate = Color.WHITE
 	add_child(image_display)
 	
+	# === СОЗДАЁМ LABEL С АДЕКВАТНЫМ РАЗМЕРОМ ===
 	text_label = Label.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	text_label.offset_bottom = -200
-	text_label.add_theme_font_size_override("font_size", 40)
+	
+	if custom_font:
+		# Создаём копию шрифта с нужным размером
+		var big_font = custom_font.duplicate()
+		big_font.fixed_size = 18  # ← АДЕКВАТНЫЙ РАЗМЕР
+		text_label.add_theme_font_override("font", big_font)
+		text_label.add_theme_font_size_override("font_size", 18)  # ← И здесь
+	
 	text_label.add_theme_color_override("font_color", Color.WHITE)
-	text_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	text_label.add_theme_constant_override("shadow_offset_x", 2)
-	text_label.add_theme_constant_override("shadow_offset_y", 2)
 	add_child(text_label)
 	
 	slide_timer = Timer.new()
@@ -68,8 +87,98 @@ func _ready() -> void:
 	slide_timer.timeout.connect(_on_slide_timer_timeout)
 	add_child(slide_timer)
 	
+	_setup_skip_ui(screen_size)
+	
 	_show_slide(0)
 	slide_timer.start()
+
+func _setup_skip_ui(screen_size: Vector2) -> void:
+	var skip_width = 140
+	var skip_height = 20
+	
+	skip_bg = ColorRect.new()
+	skip_bg.color = Color(0, 0, 0, 0.5)
+	skip_bg.size = Vector2(skip_width, skip_height)
+	skip_bg.position = Vector2(screen_size.x - skip_width - 5, 5)
+	skip_bg.z_index = 500
+	skip_bg.visible = false
+	add_child(skip_bg)
+	
+	skip_fill = ColorRect.new()
+	skip_fill.color = Color.GREEN
+	skip_fill.size = Vector2(0, skip_height)
+	skip_fill.position = Vector2(screen_size.x - skip_width - 5, 5)
+	skip_fill.z_index = 501
+	skip_fill.visible = false
+	add_child(skip_fill)
+	
+	skip_label = Label.new()
+	skip_label.text = "ПРОПУСТИТЬ"
+	
+	if custom_font:
+		skip_label.add_theme_font_override("font", custom_font)
+		skip_label.add_theme_font_size_override("font_size", 10)
+	skip_label.add_theme_color_override("font_color", Color.WHITE)
+	skip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	skip_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	skip_label.size = Vector2(skip_width, skip_height)
+	skip_label.position = Vector2(screen_size.x - skip_width - 5, 5)
+	skip_label.z_index = 502
+	skip_label.visible = false
+	add_child(skip_label)
+
+func _process(delta: float) -> void:
+	if final_fade_started:
+		return
+	
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		if not skip_holding:
+			skip_holding = true
+			skip_progress = 0.0
+			skip_bg.visible = true
+			skip_fill.visible = true
+			skip_label.visible = true
+		
+		skip_progress += delta
+		var progress = skip_progress / skip_duration
+		skip_fill.size.x = 130 * progress
+		
+		if skip_progress >= skip_duration:
+			_skip_intro()
+	else:
+		if skip_holding:
+			skip_holding = false
+			skip_progress = 0.0
+			skip_fill.size.x = 0
+			skip_bg.visible = false
+			skip_fill.visible = false
+			skip_label.visible = false
+
+func _skip_intro() -> void:
+	final_fade_started = true
+	typing = false
+	Global.intro_active = false
+	
+	if scientist_voice and scientist_voice.playing:
+		scientist_voice.stop()
+	
+	slide_timer.stop()
+	
+	Global.intro_completed = true
+	
+	var black_rect = ColorRect.new()
+	black_rect.color = Color.BLACK
+	black_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	black_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black_rect.z_index = 1000
+	black_rect.name = "IntroBlack"
+	get_tree().root.add_child(black_rect)
+	
+	UISounds.start_factory_ambience()
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 
 func _stop_main_menu_music() -> void:
 	if has_node("/root/GlobalMusic"):
@@ -79,7 +188,7 @@ func _stop_main_menu_music() -> void:
 			child.stop()
 
 func _type_text(text: String, idx: int) -> void:
-	if not is_inside_tree():
+	if not is_inside_tree() or final_fade_started:
 		return
 	
 	if idx >= text.length():
@@ -93,19 +202,19 @@ func _type_text(text: String, idx: int) -> void:
 		scientist_voice.pitch_scale = 0.7 + randf_range(-0.03, 0.03)
 		scientist_voice.play()
 	
-	if not is_inside_tree():
+	if not is_inside_tree() or final_fade_started:
 		typing = false
 		return
 	
 	await get_tree().create_timer(0.04).timeout
 	
-	if not is_inside_tree() or not typing:
+	if not is_inside_tree() or not typing or final_fade_started:
 		return
 	
 	_type_text(text, idx + 1)
 
 func _show_slide(index: int) -> void:
-	if index >= slides.size():
+	if index >= slides.size() or final_fade_started:
 		return
 	
 	typing = false
@@ -117,6 +226,9 @@ func _show_slide(index: int) -> void:
 	fade_out.tween_property(image_display, "modulate:a", 0.0, 0.3)
 	fade_out.parallel().tween_property(text_label, "modulate:a", 0.0, 0.3)
 	await fade_out.finished
+	
+	if final_fade_started:
+		return
 	
 	if slide["image"] != null:
 		image_display.texture = slide["image"]
@@ -146,13 +258,17 @@ func _on_slide_timer_timeout() -> void:
 		_start_final_fade()
 
 func _start_final_fade() -> void:
+	if final_fade_started:
+		return
+	
 	final_fade_started = true
 	typing = false
+	Global.intro_active = false
 	
-	var elapsed = Time.get_ticks_msec() / 1000.0 - intro_start_time
-	var wait_time = 35.0 - elapsed
-	if wait_time > 0:
-		await get_tree().create_timer(wait_time).timeout
+	if scientist_voice and scientist_voice.playing:
+		scientist_voice.stop()
+	
+	slide_timer.stop()
 	
 	if not is_inside_tree():
 		return
@@ -178,10 +294,5 @@ func _start_final_fade() -> void:
 	
 	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 
-func _input(event: InputEvent) -> void:
-	if event.is_pressed() and not is_fading and not final_fade_started:
-		if slide_timer.is_stopped():
-			_start_final_fade()
-		else:
-			slide_timer.stop()
-			_on_slide_timer_timeout()
+func _exit_tree() -> void:
+	Global.intro_active = false

@@ -38,7 +38,6 @@ var config: ConfigFile = ConfigFile.new()
 const CONFIG_PATH: String = "user://settings.cfg"
 
 func _ready() -> void:
-	Global.apply_font(self)
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		if is_instance_valid(Fade):

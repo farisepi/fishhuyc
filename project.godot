@@ -40,10 +40,6 @@ folder_colors={
 "res://Textures/": "teal"
 }
 
-[gui]
-
-theme/custom_font="uid://bi3e0a2rkkybx"
-
 [input]
 
 ui_accept={

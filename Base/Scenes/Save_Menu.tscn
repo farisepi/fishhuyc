@@ -22,8 +22,10 @@ shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
 
-[node name="SaveMenu" type="Node2D" unique_id=2084349734]
+[node name="SaveMenu" type="CanvasLayer" unique_id=2084349734]
 script = ExtResource("1_6mnqf")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=67412466]
@@ -54,7 +56,7 @@ theme_override_constants/v_separation = 15
 [node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1657378626]
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = ExtResource("3_yojsw")
 theme_override_styles/pressed = ExtResource("4_er5dx")
 theme_override_styles/hover = ExtResource("5_0gev2")
