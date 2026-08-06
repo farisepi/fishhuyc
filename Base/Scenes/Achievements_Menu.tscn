@@ -4,6 +4,17 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Base/Scripts/Camera.gd" id="2_g0eki"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="2_t7cf8"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="4_3l7vi"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Base/Shaders/Level1/Water.gdshader" id="5_qsh2n"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2eib0"]
+shader = ExtResource("5_qsh2n")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
 
 [node name="AchievementsMenu" type="Control" unique_id=1868437353]
 layout_mode = 3
@@ -191,5 +202,21 @@ vertical_alignment = 1
 
 [node name="SeaweedApplier" type="Node" parent="." unique_id=726317826]
 script = ExtResource("4_3l7vi")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=37122452]
+z_index = -1
+material = SubResource("ShaderMaterial_2eib0")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -79.0
+offset_right = 1329.0
+offset_bottom = 789.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

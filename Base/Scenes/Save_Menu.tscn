@@ -9,8 +9,19 @@
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Textures/Interface/Buttons/Small/Small_Normal.tres" id="6_xsmip"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Textures/Interface/Buttons/Small/Small_Pressed.tres" id="7_gj8n2"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Textures/Interface/Buttons/Small/Small_Hover.tres" id="8_rdut3"]
-[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="9_mhwe5"]
+[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Textures/Interface/Buttons/seaweed.png" id="9_mhwe5"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="11_m6vio"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Base/Shaders/Level1/Water.gdshader" id="12_u0fkc"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_oya6r"]
+shader = ExtResource("12_u0fkc")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
 
 [node name="SaveMenu" type="Node2D" unique_id=2084349734]
 script = ExtResource("1_6mnqf")
@@ -158,5 +169,20 @@ text = "Пропустить"
 
 [node name="SeaweedApplier" type="Node" parent="." unique_id=581270038]
 script = ExtResource("11_m6vio")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=2101383234]
+z_index = -1
+material = SubResource("ShaderMaterial_oya6r")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -79.0
+offset_right = 1329.0
+offset_bottom = 789.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
