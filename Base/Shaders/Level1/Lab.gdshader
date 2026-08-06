@@ -2,10 +2,6 @@ shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
 
-uniform float lamp_strength : hint_range(0.0, 2.0) = 0.8;
-uniform float lamp_width : hint_range(0.0, 0.5) = 0.04;
-uniform float flicker_amount : hint_range(0.0, 0.1) = 0.04;
-
 float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
 }
@@ -25,10 +21,8 @@ void fragment() {
     vec2 uv = UV;
     float time = TIME;
     
-    vec4 bg = texture(screen_texture, SCREEN_UV);
-    vec3 lab = bg.rgb;
-    
-    lab *= 0.65;
+    vec4 col = texture(screen_texture, SCREEN_UV);
+    vec3 lab = col.rgb;
     
     float lamp_x[8];
     lamp_x[0] = 64.0 / 1002.0;
@@ -41,62 +35,118 @@ void fragment() {
     lamp_x[7] = 937.0 / 1002.0;
     
     float lamp_y = 0.20;
-    
-    float total_light = 0.0;
+    float lamps_light = 0.0;
     
     for(int i = 0; i < 8; i++) {
-        float dist_down = uv.y - lamp_y;
+        float dist_to_lamp = length(uv - vec2(lamp_x[i], lamp_y));
+        float glow = exp(-dist_to_lamp * 4.0) * 0.25;
         
+        float dist_down = uv.y - lamp_y;
         if (dist_down > 0.0) {
-            float cone_width = lamp_width * (1.0 + dist_down * 1.5);
+            float cone_width = 0.06 * (1.0 + dist_down * 1.2);
             float dist_x = abs(uv.x - lamp_x[i]);
             float in_cone = 1.0 - smoothstep(0.0, cone_width, dist_x);
-            float falloff = exp(-dist_down * 3.0);
-            float hotspot = exp(-dist_down * 15.0) * exp(-dist_x * 60.0) * 0.6;
-            
-            // Каждая лампа мерцает независимо
-            float fi = float(i);
-            float lamp_flicker = 1.0;
-            lamp_flicker += sin(time * (2.0 + fi * 0.7) + fi * 1.5) * 0.03;
-            lamp_flicker += sin(time * (5.0 + fi * 1.1) + fi * 2.3) * 0.02;
-            lamp_flicker += noise(vec2(time * (3.0 + fi * 0.5), fi * 10.0)) * flicker_amount;
-            lamp_flicker += step(0.97, noise(vec2(time * (6.0 + fi), fi * 20.0 + 1.0))) * 0.15;
-            
-            float lamp_light = (in_cone * 0.6 + hotspot) * falloff * lamp_flicker;
-            total_light += lamp_light;
+            float falloff = exp(-dist_down * 1.8);
+            glow += in_cone * falloff * 0.4;
         }
+        
+        float dist_up = lamp_y - uv.y;
+        if (dist_up > 0.0) {
+            glow += exp(-dist_up * 5.0) * 0.1;
+        }
+        
+        float fi = float(i);
+        float flicker = 1.0;
+        flicker += sin(time * (2.0 + fi * 0.7) + fi * 1.5) * 0.02;
+        flicker += sin(time * (5.0 + fi * 1.1) + fi * 2.3) * 0.015;
+        
+        lamps_light += glow * flicker;
     }
     
-    total_light = clamp(total_light, 0.0, 1.0);
+    lamps_light = clamp(lamps_light, 0.0, 1.0);
     
-    vec3 light_color = vec3(1.0, 0.93, 0.82);
-    vec3 lit_area = bg.rgb * 1.3 + light_color * lamp_strength * 0.5;
+    float char1_dist = length(uv - vec2(0.726, 0.63));
+    float char1_light = exp(-char1_dist * 3.0) * 0.5;
     
-    lab = mix(lab, lit_area, total_light * lamp_strength);
+    float char2_dist = length(uv - vec2(0.616, 0.63));
+    float char2_light = exp(-char2_dist * 3.0) * 0.5;
     
-    float crack_line = abs((uv.x - 0.5) - uv.y * 0.3);
-    crack_line = exp(-crack_line * 35.0);
-    crack_line *= noise(vec2(uv.y * 15.0, 0.0)) * 0.5 + 0.5;
-    crack_line *= smoothstep(1.0, 0.0, uv.y);
+    float char_light = max(char1_light, char2_light);
     
-    float crack2 = abs((uv.x - 0.35) - uv.y * 0.5);
-    crack2 = exp(-crack2 * 30.0);
-    crack2 *= noise(vec2(uv.y * 12.0, 2.0)) * 0.5 + 0.5;
-    crack2 *= smoothstep(0.6, 0.0, uv.y) * 0.5;
+    // ==========================================
+    // ТЕНИ — все одинаковые, просто отзеркалены
+    // ==========================================
     
-    float crack = (crack_line * 0.6 + crack2 * 0.4) * 0.4;
-    lab = mix(lab, vec3(0.0, 0.0, 0.0), crack);
-    lab += vec3(0.08, 0.15, 0.3) * crack;
+    float dy = uv.y - 0.63;
+    float edge_coef = 0.3;
+    float falloff_coef = 2.1;
+    float alpha = 0.7;
+    float edge_blur = 0.04;
+    float center_blur = 0.02;
     
-    float smoke = 0.0;
-    smoke += noise(uv * 3.0 + time * 0.08) * 0.4;
-    smoke += noise(uv * 6.0 - time * 0.05) * 0.3;
-    smoke += noise(uv * 12.0 + time * 0.03) * 0.2;
-    smoke = smoke * 0.05;
-    lab += vec3(0.5, 0.45, 0.4) * smoke;
+    // Учёный — влево
+    float d1 = uv.x - 0.616;
+    float s1 = 0.0;
+    if (dy > 0.0 && d1 < 0.0) {
+        float edge = -dy * edge_coef;
+        float in_tri = smoothstep(edge, edge + edge_blur, d1) * (1.0 - smoothstep(-center_blur, center_blur, d1));
+        s1 = in_tri * exp(-dy * falloff_coef) * alpha;
+    }
     
-    float vignette = 1.0 - pow(length(uv - 0.5) * 1.0, 2.5);
-    vignette = mix(vignette, 1.0, 0.3);
+    // Учёный — вправо (отзеркалено)
+    float d1r = -(uv.x - 0.616);
+    float s1r = 0.0;
+    if (dy > 0.0 && d1r < 0.0) {
+        float edge = -dy * edge_coef;
+        float in_tri = smoothstep(edge, edge + edge_blur, d1r) * (1.0 - smoothstep(-center_blur, center_blur, d1r));
+        s1r = in_tri * exp(-dy * falloff_coef) * alpha;
+    }
+    
+    // Механик — влево (отзеркалено)
+    float d2 = uv.x - 0.726;
+    float s2 = 0.0;
+    if (dy > 0.0 && d2 < 0.0) {
+        float edge = -dy * edge_coef;
+        float in_tri = smoothstep(edge, edge + edge_blur, d2) * (1.0 - smoothstep(-center_blur, center_blur, d2));
+        s2 = in_tri * exp(-dy * falloff_coef) * alpha;
+    }
+    
+    // Механик — вправо (отзеркалено)
+    float d2r = -(uv.x - 0.726);
+    float s2r = 0.0;
+    if (dy > 0.0 && d2r < 0.0) {
+        float edge = -dy * edge_coef;
+        float in_tri = smoothstep(edge, edge + edge_blur, d2r) * (1.0 - smoothstep(-center_blur, center_blur, d2r));
+        s2r = in_tri * exp(-dy * falloff_coef) * alpha;
+    }
+    
+    float total_shadow = max(max(s1, s1r), max(s2, s2r));
+    
+    float dust = 0.0;
+    for(int j = 0; j < 12; j++) {
+        float fj = float(j);
+        vec2 dust_uv = uv * 5.0;
+        dust_uv.x += sin(fj * 1.7 + time * 0.15) * 0.5;
+        dust_uv.y += cos(fj * 1.3 + time * 0.2) * 0.5;
+        dust_uv = fract(dust_uv);
+        
+        float d = exp(-length(dust_uv - 0.5) * 10.0);
+        d *= 0.4 + sin(fj * 3.0 + time * 2.0) * 0.2;
+        dust += d * 0.4;
+    }
+    
+    float dark = 0.35;
+    float light = dark + lamps_light * 0.5 + char_light * 0.4;
+    light = light - total_shadow * 0.55;
+    light = clamp(light, 0.15, 1.0);
+    
+    lab *= light;
+    lab += vec3(1.0, 0.93, 0.8) * lamps_light * 0.12;
+    lab += vec3(1.0, 0.95, 0.8) * char_light * 0.3;
+    lab += vec3(0.5, 0.5, 0.5) * dust * 0.15;
+    
+    float vignette = 1.0 - pow(length(uv - 0.5) * 1.2, 3.0);
+    vignette = mix(vignette, 1.0, 0.2);
     lab *= vignette;
     
     COLOR = vec4(lab, 1.0);

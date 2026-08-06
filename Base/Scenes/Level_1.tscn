@@ -2483,9 +2483,6 @@ shader_parameter/glass_tint = 0.3
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5vwn5"]
 shader = ExtResource("19_0a6ic")
-shader_parameter/lamp_strength = 0.15
-shader_parameter/lamp_width = 0.12
-shader_parameter/flicker_amount = 0.03
 
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
@@ -2566,6 +2563,7 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
+visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
