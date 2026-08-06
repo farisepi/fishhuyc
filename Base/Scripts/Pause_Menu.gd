@@ -24,6 +24,7 @@ func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	hide()
 	get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 func _on_save_pressed() -> void:
 	UISounds.play_click()

@@ -1,3 +1,4 @@
+# button_effects.gd
 class_name ButtonEffects
 extends Node
 
@@ -36,17 +37,16 @@ static func _on_button_hover(btn: Button, original_alpha: float) -> void:
 	if btn.has_meta("no_scale_animation") and btn.get_meta("no_scale_animation"):
 		return
 	
-	var expand = btn.create_tween()
-	expand.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	expand.tween_property(btn, "scale", Vector2(1.08, 1.04), 0.5)
-	
+	# Jelly симметричный — не сдвигается
+	var pos = btn.position
 	var jelly = btn.create_tween()
 	jelly.set_loops()
-	jelly.tween_property(btn, "scale", Vector2(1.09, 1.03), 0.6).set_ease(Tween.EASE_IN_OUT)
-	jelly.tween_property(btn, "scale", Vector2(1.07, 1.05), 0.6).set_ease(Tween.EASE_IN_OUT)
-	jelly.tween_property(btn, "scale", Vector2(1.10, 1.02), 0.5).set_ease(Tween.EASE_IN_OUT)
-	jelly.tween_property(btn, "scale", Vector2(1.06, 1.06), 0.5).set_ease(Tween.EASE_IN_OUT)
+	jelly.tween_property(btn, "scale", Vector2(1.04, 0.96), 0.4).set_ease(Tween.EASE_IN_OUT)
+	jelly.tween_property(btn, "scale", Vector2(0.96, 1.04), 0.4).set_ease(Tween.EASE_IN_OUT)
 	btn.set_meta("jelly_tween", jelly)
+	
+	# Фиксируем позицию
+	btn.position = pos
 	
 	_spawn_bubbles(btn)
 
@@ -54,10 +54,11 @@ static func _on_button_unhover(btn: Button, original_alpha: float) -> void:
 	_kill_meta(btn, "color_tween")
 	_kill_meta(btn, "jelly_tween")
 	
+	btn.scale = Vector2.ONE
+	
 	var settle = btn.create_tween()
 	settle.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
-	settle.tween_property(btn, "scale", Vector2.ONE, 0.6)
-	settle.parallel().tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
+	settle.tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
 	
 	settle.finished.connect(_idle_animation.bind(btn), ConnectFlags.CONNECT_ONE_SHOT)
 

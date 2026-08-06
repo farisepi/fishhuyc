@@ -85,6 +85,11 @@ func _setup_ui() -> void:
 	for btn in buttons:
 		if btn:
 			ButtonEffects.setup(btn)
+	
+	for btn in [move_up_btn, move_down_btn, move_left_btn, move_right_btn,
+				jump_btn, interact_btn, inventory_btn, pause_btn]:
+		if btn:
+			btn.set_meta("no_scale_animation", true)
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))
@@ -111,11 +116,13 @@ func setup_options() -> void:
 		resolution_option.add_item("1920x1080")
 		resolution_option.add_item("1280x720")
 		resolution_option.add_item("854x480")
+		resolution_option.get_popup().transient = true
 	
 	if language_option:
 		language_option.clear()
 		language_option.add_item("Русский")
 		language_option.add_item("English")
+		language_option.get_popup().transient = true
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)

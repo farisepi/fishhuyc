@@ -16,7 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://k0ephffng6w8" path="res://Textures/Characters/Main_Character/slide/встаёт.png" id="16_hl4fp"]
 [ext_resource type="Texture2D" uid="uid://jlu7rxxu02w2" path="res://Textures/Characters/Main_Character/Mecha_Fish/Run/меха робот бег.png" id="16_rmgbf"]
 [ext_resource type="Texture2D" uid="uid://be13lj7tf0djk" path="res://Textures/Characters/Main_Character/slide/подкат.png" id="19_6ntdl"]
-[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="21_hl4fp"]
+[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Textures/Interface/Buttons/seaweed.png" id="21_hl4fp"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Base/Scripts/Pause_Menu.gd" id="21_ktap7"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Base/Scripts/SeaweedApplier.gd" id="22_6ntdl"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Textures/Interface/Buttons/Small/Small_Normal.tres" id="22_c6ktk"]
@@ -1531,7 +1531,7 @@ animations = [{
 }],
 "loop": 1,
 "name": &"Fall",
-"speed": 8.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1679,7 +1679,7 @@ radius = 26.0
 height = 52.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6f8o3"]
-size = Vector2(60, 125.75)
+size = Vector2(75, 125.75)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
 radius = 12.649111
@@ -1694,6 +1694,11 @@ size = Vector2(163.5, 68)
 script = ExtResource("1_jfe0f")
 metadata/_edit_vertical_guides_ = [93.0, 98.0]
 metadata/_edit_horizontal_guides_ = [334.0, 332.0]
+
+[node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
+position = Vector2(49, 289)
+zoom = Vector2(-0.025, -0.025)
+script = ExtResource("15_wsnn3")
 
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
 material = SubResource("ShaderMaterial_jfe0f")
@@ -1994,15 +1999,11 @@ script = ExtResource("2_dw7qd")
 position = Vector2(-77, -29)
 sprite_frames = SubResource("SpriteFrames_c6ktk")
 animation = &"Slide"
+frame_progress = 0.49981326
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Mecha_Fish" unique_id=1698804642]
 position = Vector2(-78, -27)
 shape = SubResource("CapsuleShape2D_8eynh")
-
-[node name="Camera2D" type="Camera2D" parent="Mecha_Fish" unique_id=317300508]
-position = Vector2(-123, -38)
-zoom = Vector2(-0.025, -0.025)
-script = ExtResource("15_wsnn3")
 
 [node name="GrabArea" type="Area2D" parent="Mecha_Fish" unique_id=1520729499]
 position = Vector2(-70, -68)
@@ -2059,7 +2060,7 @@ color = Color(0.84402776, 0.6058836, 0.086505435, 1)
 [node name="FallingShelf" type="StaticBody2D" parent="ForkliftScene" unique_id=1327964272]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftScene/FallingShelf" unique_id=872260048]
-position = Vector2(89, 13.875)
+position = Vector2(89.5, 13.875)
 shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="Sprite2D" type="Sprite2D" parent="ForkliftScene/FallingShelf" unique_id=556734115]
@@ -2072,17 +2073,18 @@ position = Vector2(3704.73, 257)
 [node name="AtackParry" type="CharacterBody2D" parent="ParryingScene" unique_id=82372217]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ParryingScene/AtackParry" unique_id=749966825]
-position = Vector2(87, 56)
+position = Vector2(187.27002, 54)
 shape = SubResource("CapsuleShape2D_bhunq")
 
 [node name="ColorRect" type="ColorRect" parent="ParryingScene/AtackParry" unique_id=937659277]
-offset_left = 68.0
-offset_top = 37.0
-offset_right = 108.0
-offset_bottom = 77.0
+offset_left = 168.27002
+offset_top = 34.0
+offset_right = 208.27002
+offset_bottom = 74.0
 color = Color(0.84402776, 0.6058836, 0.086505435, 1)
 
 [node name="FallingShelf" type="StaticBody2D" parent="ParryingScene" unique_id=1707654459]
+position = Vector2(103.27002, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ParryingScene/FallingShelf" unique_id=1329128762]
 position = Vector2(89, 13.875)
@@ -2116,7 +2118,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(2990, 238)
+position = Vector2(2829, 240)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=855912430]

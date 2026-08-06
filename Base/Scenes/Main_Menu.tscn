@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Base/Scenes/Bubble.tscn" id="2_il11y"]
 [ext_resource type="StyleBox" uid="uid://cdp5404itmfof" path="res://Textures/Interface/Buttons/Big/Big_Normal.tres" id="2_ycqps"]
 [ext_resource type="StyleBox" uid="uid://ekl2i1p6fa0s" path="res://Textures/Interface/Buttons/Big/Big_Pressed.tres" id="3_1ltd6"]
-[ext_resource type="Texture2D" uid="uid://8lju54rn3o7g" path="res://Textures/Interface/Buttons/seaweed.png" id="3_10vj2"]
+[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Textures/Interface/Buttons/seaweed.png" id="3_10vj2"]
 [ext_resource type="StyleBox" uid="uid://c1rngqmtqoo1v" path="res://Textures/Interface/Buttons/Share/Share_Pressed.tres" id="3_ne66m"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Base/Scenes/Background.tscn" id="3_t3la5"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Textures/Interface/Buttons/Huge/Huge_Pressed.tres" id="3_xbr4h"]
@@ -207,10 +207,10 @@ script = ExtResource("1_e548n")
 bubble_scene = ExtResource("2_il11y")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1235397578]
-offset_left = -43.0
-offset_top = -1.0
-offset_right = 1334.0
-offset_bottom = 725.0
+offset_left = -45.46
+offset_top = -120.95
+offset_right = 1479.7001
+offset_bottom = 840.01996
 mouse_filter = 2
 color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 metadata/_edit_use_anchors_ = true

@@ -21,6 +21,10 @@ var can_click_logo: bool = true
 func _ready() -> void:
 	if is_instance_valid(Fade):
 		Fade.fade_in()
+	var cam = get_viewport().get_camera_2d()
+	if cam:
+		cam.position = get_viewport().get_visible_rect().size / 2
+	
 	
 	GlobalMusic.play_menu_music()
 
