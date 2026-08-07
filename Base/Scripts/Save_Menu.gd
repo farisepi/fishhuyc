@@ -1,4 +1,4 @@
-extends CanvasLayer
+extends Node2D
 
 @onready var back_btn: Button = $BackButton
 @onready var grid: GridContainer = $ScrollContainer/SaveGrid
@@ -12,7 +12,6 @@ var intro_instance: CanvasLayer = null
 var custom_font: FontFile
 
 func _ready() -> void:
-	# Загружаем шрифт
 	custom_font = load("res://Textures/Font/Bitcell_Font.ttf")
 	if custom_font:
 		custom_font.fixed_size = 10
@@ -25,7 +24,6 @@ func _ready() -> void:
 	ButtonEffects.setup(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
 	
-	# Применяем шрифт к кнопке "Закрыть"
 	if custom_font and back_btn:
 		back_btn.add_theme_font_override("font", custom_font)
 		back_btn.add_theme_font_size_override("font_size", 16)
@@ -47,14 +45,12 @@ func _ready() -> void:
 			ButtonEffects.setup(slot)
 			slot.pressed.connect(_on_slot_pressed.bind(i))
 			
-			# Применяем шрифт к каждой кнопке слота
 			if custom_font:
 				slot.add_theme_font_override("font", custom_font)
 				slot.add_theme_font_size_override("font_size", 18)
 			
 			_update_slot_text(slot, i)
 	
-	# Заголовок
 	var title = $TitleLabel
 	if custom_font and title:
 		title.add_theme_font_override("font", custom_font)
@@ -106,6 +102,7 @@ func _on_slot_pressed(index: int):
 				Fade.fade_out()
 				await get_tree().create_timer(0.3).timeout
 			
+			# Запускаем интро
 			intro_instance = load("res://Base/Scripts/Intro.gd").new()
 			add_child(intro_instance)
 			intro_active = true
@@ -120,8 +117,10 @@ func _skip_intro():
 		intro_instance._skip_intro()
 		intro_instance = null
 	
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
+	# === ПРЯМОЙ ПЕРЕХОД БЕЗ ЗАГРУЗОЧНОГО ЭКРАНА ===
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.3).timeout
 	get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
 
 func _show_load_or_overwrite(index: int):
@@ -273,10 +272,7 @@ func _load_game(index: int):
 			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 			Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
 			
-			if is_instance_valid(Fade):
-				Fade.fade_out()
-				await get_tree().create_timer(0.3).timeout
-			get_tree().change_scene_to_file(scene)
+			Global.goto_scene(scene)
 
 func _delete_save(index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
@@ -288,13 +284,13 @@ func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		GlobalMusic.resume_level_music()
-		get_tree().change_scene_to_file("res://Base/Scenes/Level_1.tscn")
+		Global.goto_scene("res://Base/Scenes/Level_1.tscn")
 		return
 	
 	if is_instance_valid(Fade):
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://Base/Scenes/Main_Menu.tscn")
+	Global.goto_scene("res://Base/Scenes/Main_Menu.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

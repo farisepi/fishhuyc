@@ -181,10 +181,12 @@ func _apply_fps_visibility() -> void:
 		fps_label.position = Vector2(10, 10)
 		fps_label.z_index = 999
 
-func _change_scene(path: String) -> void:
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file(path)
+# === УНИВЕРСАЛЬНЫЙ МЕТОД ПЕРЕХОДА ===
+func _goto_scene(path: String) -> void:
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.3).timeout
+	Global.goto_scene(path)
 
 func _on_play_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
@@ -192,22 +194,20 @@ func _on_play_button_pressed() -> void:
 	Global.intro_completed = false
 	Global.prologue1_completed = false
 	Global.prologue2_completed = false
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://Base/Scenes/Save_Menu.tscn")
+	_goto_scene("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_settings_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_change_scene("res://Base/Scenes/Settings_Menu.tscn")
+	_goto_scene("res://Base/Scenes/Settings_Menu.tscn")
 
 func _on_achivments_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_change_scene("res://Base/Scenes/Achievements_Menu.tscn")
+	_goto_scene("res://Base/Scenes/Achievements_Menu.tscn")
 
 func _on_save_button_pressed() -> void:
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = false
-	_change_scene("res://Base/Scenes/Save_Menu.tscn")
+	_goto_scene("res://Base/Scenes/Save_Menu.tscn")
 
 func _on_discord_button_pressed() -> void:
 	OS.shell_open("https://discord.gg/64CKW4kXrq")
@@ -216,8 +216,9 @@ func _on_telegram_button_pressed() -> void:
 	OS.shell_open("https://t.me/fishslaves")
 
 func _on_quit_button_pressed() -> void:
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
 
 func _start_background_bubbles() -> void:

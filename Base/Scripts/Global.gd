@@ -24,6 +24,7 @@ var scene_to_save: String = ""
 
 var _font: FontFile
 var intro_active: bool = false
+var loading_instance: CanvasLayer = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -39,7 +40,9 @@ func _ready() -> void:
 	get_tree().tree_changed.connect(_on_scene_changed)
 
 func reapply_theme() -> void:
-	if not _font or intro_active:
+	if not _font:
+		return
+	if intro_active:
 		return
 	
 	var theme = Theme.new()
@@ -47,7 +50,6 @@ func reapply_theme() -> void:
 	get_tree().root.theme = theme
 
 func _on_scene_changed() -> void:
-	# Если интро активно — ничего не делаем
 	if intro_active:
 		return
 	
@@ -62,7 +64,6 @@ func _on_scene_changed() -> void:
 	
 	await tree.process_frame
 	
-	# Ещё раз проверяем, не стало ли интро активным
 	if intro_active:
 		return
 	
@@ -70,9 +71,9 @@ func _on_scene_changed() -> void:
 	
 	var scene = tree.current_scene
 	if scene:
-		_apply_font_to_scene(scene)
+		_apply_font(scene)
 
-func _apply_font_to_scene(node: Node) -> void:
+func _apply_font(node: Node) -> void:
 	if not _font:
 		return
 	
@@ -83,7 +84,6 @@ func _apply_font_to_scene(node: Node) -> void:
 		if not is_instance_valid(child):
 			continue
 		
-		# Применяем шрифт только к Control-нодам
 		if child is Label:
 			child.add_theme_font_override("font", _font)
 			child.add_theme_font_size_override("font_size", 10)
@@ -93,17 +93,23 @@ func _apply_font_to_scene(node: Node) -> void:
 		elif child is RichTextLabel:
 			child.add_theme_font_override("normal_font", _font)
 			child.add_theme_font_size_override("normal_font_size", 10)
-		elif child is LineEdit:
-			child.add_theme_font_override("font", _font)
-			child.add_theme_font_size_override("font_size", 10)
-		elif child is TextEdit:
-			child.add_theme_font_override("font", _font)
-			child.add_theme_font_size_override("font_size", 10)
-		elif child is CheckBox:
-			child.add_theme_font_override("font", _font)
-			child.add_theme_font_size_override("font_size", 10)
-		elif child is OptionButton:
-			child.add_theme_font_override("font", _font)
-			child.add_theme_font_size_override("font_size", 10)
 		
-		_apply_font_to_scene(child)
+		_apply_font(child)
+
+func goto_scene(scene_path: String) -> void:
+	# Удаляем старый Loading, если есть
+	_cleanup_loading()
+	
+	# Создаём Loading и сразу переключаем сцену
+	var loading_scene = load("res://Base/Scenes/Loading.tscn")
+	if loading_scene:
+		loading_instance = loading_scene.instantiate()
+		get_tree().root.add_child(loading_instance)
+		
+		if loading_instance and loading_instance.has_method("start_loading"):
+			loading_instance.start_loading(scene_path)
+
+func _cleanup_loading() -> void:
+	if loading_instance and is_instance_valid(loading_instance):
+		loading_instance.queue_free()
+		loading_instance = null

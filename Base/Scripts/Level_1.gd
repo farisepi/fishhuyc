@@ -129,6 +129,21 @@ var chatter_phrases: Array[Dictionary] = [
 func _ready() -> void:
 	print("=== LEVEL_1 _ready START ===")
 	
+	# Находим чёрный экран из интро
+	var root_black: ColorRect = null
+	for child in get_tree().root.get_children():
+		if child is ColorRect and child.z_index == 4095:
+			root_black = child
+			break
+	
+	# Если чёрный экран есть — делаем плавное исчезновение
+	if root_black:
+		var tween = create_tween()
+		tween.tween_property(root_black, "modulate:a", 0.0, 0.5)
+		await tween.finished
+		root_black.queue_free()
+		print("Чёрный экран плавно исчез")
+	
 	GlobalMusic.play_level_music()
 	
 	_setup_timer()
@@ -201,18 +216,12 @@ func _ready() -> void:
 		add_child(fade_rect)
 	
 	fade_rect.color = Color.BLACK
-	fade_rect.modulate.a = 1.0
-	
-	# ==========================================
-	# ⚡ ШЕЙДЕР ВОДЫ ТЕПЕРЬ НАСТРАИВАЕТСЯ В РЕДАКТОРЕ!
-	# ==========================================
-	# Никакого кода для установки координат!
-	# Просто убеждаемся, что материал существует
+	fade_rect.modulate.a = 0.0  # Уже не нужен
 	
 	await get_tree().process_frame
 	
-	var water_mat = $WaterShader.material
-	if not water_mat:
+	var water_shader_mat = $WaterShader.material
+	if not water_shader_mat:
 		print("❌ Нет материала! Создаю новый...")
 		var new_mat = ShaderMaterial.new()
 		new_mat.shader = preload("res://Base/Shaders/Level1/Water.gdshader")

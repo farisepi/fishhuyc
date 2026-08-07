@@ -73,10 +73,6 @@ void fragment() {
     
     float char_light = max(char1_light, char2_light);
     
-    // ==========================================
-    // ТЕНИ — все одинаковые, просто отзеркалены
-    // ==========================================
-    
     float dy = uv.y - 0.63;
     float edge_coef = 0.3;
     float falloff_coef = 2.1;
@@ -84,7 +80,6 @@ void fragment() {
     float edge_blur = 0.04;
     float center_blur = 0.02;
     
-    // Учёный — влево
     float d1 = uv.x - 0.616;
     float s1 = 0.0;
     if (dy > 0.0 && d1 < 0.0) {
@@ -93,7 +88,6 @@ void fragment() {
         s1 = in_tri * exp(-dy * falloff_coef) * alpha;
     }
     
-    // Учёный — вправо (отзеркалено)
     float d1r = -(uv.x - 0.616);
     float s1r = 0.0;
     if (dy > 0.0 && d1r < 0.0) {
@@ -102,7 +96,6 @@ void fragment() {
         s1r = in_tri * exp(-dy * falloff_coef) * alpha;
     }
     
-    // Механик — влево (отзеркалено)
     float d2 = uv.x - 0.726;
     float s2 = 0.0;
     if (dy > 0.0 && d2 < 0.0) {
@@ -111,7 +104,6 @@ void fragment() {
         s2 = in_tri * exp(-dy * falloff_coef) * alpha;
     }
     
-    // Механик — вправо (отзеркалено)
     float d2r = -(uv.x - 0.726);
     float s2r = 0.0;
     if (dy > 0.0 && d2r < 0.0) {
