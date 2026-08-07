@@ -15,6 +15,7 @@ var bg: ColorRect
 var image_display: TextureRect
 var text_label: Label
 var scientist_voice: AudioStreamPlayer
+var intro_music: AudioStreamPlayer
 var slide_timer: Timer
 var is_fading: bool = false
 var final_fade_started: bool = false
@@ -29,8 +30,22 @@ var skip_duration: float = 1.5
 
 var custom_font: FontFile
 
+# Таймер для строгого контроля длительности
+var total_timer: Timer
+var intro_duration: float = 31.0  # Строго 31 секунда
+
 func _ready() -> void:
-	# Говорим Global, что мы активны
+	# === МУЗЫКА — САМАЯ ПЕРВАЯ СТРОКА ===
+	intro_music = AudioStreamPlayer.new()
+	intro_music.stream = load("res://Sounds/Music/Intro_Music.mp3")
+	intro_music.volume_db = 0.0
+	intro_music.bus = "Music"
+	add_child(intro_music)
+	
+	# Обрезаем начало на 0.5 секунды
+	intro_music.play(0.5)  # Начинаем с 0.5 секунды
+	
+	# === ГОВОРИМ GLOBAL, ЧТО МЫ АКТИВНЫ ===
 	Global.intro_active = true
 	
 	# Загружаем шрифт
@@ -38,10 +53,12 @@ func _ready() -> void:
 	if custom_font:
 		custom_font.fixed_size = 10
 	
+	# Голос учёного
 	scientist_voice = AudioStreamPlayer.new()
 	scientist_voice.stream = load("res://Sounds/SFX/Scienist_Voise.MP3")
 	scientist_voice.volume_db = -10.0
 	scientist_voice.pitch_scale = 0.9
+	scientist_voice.bus = "SFX"
 	add_child(scientist_voice)
 	
 	_stop_main_menu_music()
@@ -64,7 +81,7 @@ func _ready() -> void:
 	image_display.modulate = Color.WHITE
 	add_child(image_display)
 	
-	# === СОЗДАЁМ LABEL С АДЕКВАТНЫМ РАЗМЕРОМ ===
+	# === СОЗДАЁМ LABEL С РАЗМЕРОМ 16 ===
 	text_label = Label.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -72,20 +89,28 @@ func _ready() -> void:
 	text_label.offset_bottom = -200
 	
 	if custom_font:
-		# Создаём копию шрифта с нужным размером
 		var big_font = custom_font.duplicate()
-		big_font.fixed_size = 18  # ← АДЕКВАТНЫЙ РАЗМЕР
+		big_font.fixed_size = 16
 		text_label.add_theme_font_override("font", big_font)
-		text_label.add_theme_font_size_override("font_size", 18)  # ← И здесь
+		text_label.add_theme_font_size_override("font_size", 16)
 	
 	text_label.add_theme_color_override("font_color", Color.WHITE)
 	add_child(text_label)
 	
+	# === ТАЙМЕР ДЛЯ СМЕНЫ СЛАЙДОВ (РОВНОЕ ВРЕМЯ) ===
 	slide_timer = Timer.new()
-	slide_timer.wait_time = 5.0
+	slide_timer.wait_time = 4.0  # КАЖДЫЙ СЛАЙД ПО 4 СЕКУНДЫ
 	slide_timer.one_shot = false
 	slide_timer.timeout.connect(_on_slide_timer_timeout)
 	add_child(slide_timer)
+	
+	# === ГЛАВНЫЙ ТАЙМЕР — СТРОГО 31 СЕКУНДА ===
+	total_timer = Timer.new()
+	total_timer.wait_time = intro_duration
+	total_timer.one_shot = true
+	total_timer.timeout.connect(_on_total_timer_timeout)
+	add_child(total_timer)
+	total_timer.start()
 	
 	_setup_skip_ui(screen_size)
 	
@@ -155,14 +180,22 @@ func _process(delta: float) -> void:
 			skip_label.visible = false
 
 func _skip_intro() -> void:
+	if final_fade_started:
+		return
+	
 	final_fade_started = true
 	typing = false
 	Global.intro_active = false
 	
+	# Останавливаем всё
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
 	
+	if intro_music and intro_music.playing:
+		intro_music.stop()
+	
 	slide_timer.stop()
+	total_timer.stop()
 	
 	Global.intro_completed = true
 	
@@ -206,7 +239,20 @@ func _type_text(text: String, idx: int) -> void:
 		typing = false
 		return
 	
-	await get_tree().create_timer(0.04).timeout
+	# === НАСТРОЙКА СКОРОСТИ ПЕЧАТАНИЯ ===
+	var char_delay = 0.04  # Обычные слайды — чуть быстрее (было 0.05)
+	
+	# Если это последний слайд (индекс 6) — оставляем медленным
+	if current_index == 6:
+		var current_char = text[idx]
+		
+		# Если это точка — печатаем МЕДЛЕННЕЕ
+		if current_char == ".":
+			char_delay = 0.35  # Пауза на точке
+		else:
+			char_delay = 0.10  # В 2.5 раза медленнее обычного
+	
+	await get_tree().create_timer(char_delay).timeout
 	
 	if not is_inside_tree() or not typing or final_fade_started:
 		return
@@ -255,6 +301,10 @@ func _on_slide_timer_timeout() -> void:
 		_show_slide(current_index)
 	else:
 		slide_timer.stop()
+
+func _on_total_timer_timeout() -> void:
+	# Строго 31 секунда прошла — завершаем интро
+	if not final_fade_started:
 		_start_final_fade()
 
 func _start_final_fade() -> void:
@@ -268,7 +318,11 @@ func _start_final_fade() -> void:
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
 	
+	if intro_music and intro_music.playing:
+		intro_music.stop()
+	
 	slide_timer.stop()
+	total_timer.stop()
 	
 	if not is_inside_tree():
 		return
@@ -296,3 +350,5 @@ func _start_final_fade() -> void:
 
 func _exit_tree() -> void:
 	Global.intro_active = false
+	if intro_music and intro_music.playing:
+		intro_music.stop()

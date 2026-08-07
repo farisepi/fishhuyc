@@ -47,6 +47,7 @@ func reapply_theme() -> void:
 	get_tree().root.theme = theme
 
 func _on_scene_changed() -> void:
+	# Если интро активно — ничего не делаем
 	if intro_active:
 		return
 	
@@ -61,6 +62,10 @@ func _on_scene_changed() -> void:
 	
 	await tree.process_frame
 	
+	# Ещё раз проверяем, не стало ли интро активным
+	if intro_active:
+		return
+	
 	reapply_theme()
 	
 	var scene = tree.current_scene
@@ -71,7 +76,14 @@ func _apply_font_to_scene(node: Node) -> void:
 	if not _font:
 		return
 	
+	if not is_instance_valid(node):
+		return
+	
 	for child in node.get_children():
+		if not is_instance_valid(child):
+			continue
+		
+		# Применяем шрифт только к Control-нодам
 		if child is Label:
 			child.add_theme_font_override("font", _font)
 			child.add_theme_font_size_override("font_size", 10)
