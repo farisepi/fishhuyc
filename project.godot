@@ -31,14 +31,14 @@ SeaweedState="*uid://bdx133or6hcja"
 [file_customization]
 
 folder_colors={
-"res://FishSlaves/": "blue",
-"res://FishSlaves/Base/": "red",
-"res://FishSlaves/Base/Scenes/": "red",
-"res://FishSlaves/Base/Scripts/": "red",
-"res://FishSlaves/Sounds/": "purple",
-"res://FishSlaves/Sounds/Music/": "purple",
-"res://FishSlaves/Sounds/SFX/": "purple",
-"res://FishSlaves/Textures/": "teal"
+"res://Fish Slaves/": "blue",
+"res://Fish Slaves/Base/": "red",
+"res://Fish Slaves/Base/Scenes/": "red",
+"res://Fish Slaves/Base/Scripts/": "red",
+"res://Fish Slaves/Sounds/": "purple",
+"res://Fish Slaves/Sounds/Music/": "purple",
+"res://Fish Slaves/Sounds/SFX/": "purple",
+"res://Fish Slaves/Textures/": "teal"
 }
 
 [input]
