@@ -4,25 +4,25 @@
 [ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="2_schuh"]
 [ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn" id="2_x2xif"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Act1CutsceneCamera.gd" id="4_4y1cg"]
-[ext_resource type="Texture2D" uid="uid://feneaejev1f0" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
-[ext_resource type="Texture2D" uid="uid://b10hgvg24jwt" path="res://Fish Slaves/Textures/Characters/Scienist/ScienistIdle/ScientistIdle1.png" id="5_avqyc"]
-[ext_resource type="Texture2D" uid="uid://ctlygo4c8byyq" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Laboratory.png" id="5_k3j2e"]
-[ext_resource type="Texture2D" uid="uid://84bolexmt6ge" path="res://Fish Slaves/Textures/Characters/Scienist/ScienistIdle/ScientistIdle2.png" id="6_ovisf"]
-[ext_resource type="Texture2D" uid="uid://bq8gee2wwa162" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle1.png" id="7_3t3m1"]
-[ext_resource type="Texture2D" uid="uid://chatjeweajsnq" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle2.png" id="8_lwacy"]
+[ext_resource type="Texture2D" uid="uid://dbxpnqh0oyd62" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
+[ext_resource type="Texture2D" uid="uid://yra4diqy7fgs" path="res://Fish Slaves/Textures/Characters/Scienist/ScienistIdle/ScientistIdle1.png" id="5_avqyc"]
+[ext_resource type="Texture2D" uid="uid://tuu3en4qyi37" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Laboratory.png" id="5_k3j2e"]
+[ext_resource type="Texture2D" uid="uid://dos1xigir3w7g" path="res://Fish Slaves/Textures/Characters/Scienist/ScienistIdle/ScientistIdle2.png" id="6_ovisf"]
+[ext_resource type="Texture2D" uid="uid://nxmxdfpj1xo7" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle1.png" id="7_3t3m1"]
+[ext_resource type="Texture2D" uid="uid://cmi1bwvg8bclg" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle2.png" id="8_lwacy"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenu.gd" id="9_s01hn"]
-[ext_resource type="Texture2D" uid="uid://b7p81xqc0qhx1" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png" id="10_udgr8"]
+[ext_resource type="Texture2D" uid="uid://c08hy00vgxm0n" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png" id="10_udgr8"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="11_2vfrf"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
-[ext_resource type="AudioStream" uid="uid://c6mvqoyw78yt4" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
+[ext_resource type="AudioStream" uid="uid://b08yppwyfe6qi" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
 [ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="21_5vwn5"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtionsSeaweedApplier.gd" id="24_fbjru"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="24_fbjru"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]
 length = 0.8
@@ -110,7 +110,6 @@ radius = 16.0
 height = 100.0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5vwn5"]
-texture = null
 
 [sub_resource type="TileSet" id="TileSet_10vj2"]
 occlusion_layer_0/light_mask = 1

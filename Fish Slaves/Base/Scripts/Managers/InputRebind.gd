@@ -10,7 +10,8 @@ var action_names = {
 	"interact": "Взаимодействие",
 	"jump": "Прыжок",
 	"inventory": "Инвентарь",
-	"ui_cancel": "Пауза"
+	"ui_cancel": "Пауза",
+	"parry": "Парирование",
 }
 
 var rebinding_action: String = ""

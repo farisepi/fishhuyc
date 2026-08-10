@@ -17,6 +17,19 @@ var slide_timer: float = 0.0
 var has_item: bool = false
 var held_texture: Texture2D
 var held_icon: Sprite2D
+var can_throw: bool = false
+
+# ==========================================
+# ПАРИРОВАНИЕ
+# ==========================================
+var parry_active: bool = false
+var parry_done: bool = false
+var parry_timer: float = 0.0
+var parry_max_time: float = 1.5
+var parry_fade: ColorRect = null
+var parry_label: Label = null
+var parry_enemy: CharacterBody2D = null
+var parry_callback: Callable = Callable()
 
 func _ready():
 	sprite.play("Idle")
@@ -26,9 +39,6 @@ func _ready():
 	held_icon.scale = Vector2(0.5, 0.5)
 	held_icon.z_index = 100
 	add_child(held_icon)
-	
-	if camera:
-		camera.zoom = Vector2(2.5, 2.5)
 
 func _physics_process(delta):
 	if get_tree().paused:
@@ -98,6 +108,20 @@ func _physics_process(delta):
 	
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
+		held_icon.modulate = Color.RED if can_throw else Color.WHITE
+	
+	# ==========================================
+	# ПАРИРОВАНИЕ - ПРОВЕРКА КНОПКИ PARRY
+	# ==========================================
+	if parry_active and not parry_done:
+		if Input.is_action_just_pressed("parry"):
+			_parry_success()
+			return
+		
+		parry_timer += delta * 0.01
+		if parry_timer > parry_max_time:
+			_parry_success()
+			return
 
 func _end_slide():
 	is_sliding = false
@@ -110,14 +134,23 @@ func _input(event: InputEvent) -> void:
 			_throw_item()
 		else:
 			_grab_item()
+	
+	# Парирование по кнопке parry
+	if event.is_action_pressed("Parry"):
+		if parry_active and not parry_done:
+			_parry_success()
 
 func _grab_item():
+	if has_item:
+		return
+	
 	for body in $GrabArea.get_overlapping_areas():
 		if body.is_in_group("grabbable"):
 			has_item = true
 			held_texture = body.item_texture
 			held_icon.texture = held_texture
 			held_icon.visible = true
+			held_icon.modulate = Color.WHITE
 			body.queue_free()
 			break
 
@@ -133,6 +166,7 @@ func _throw_item():
 	thrown.scale = Vector2(0.4, 0.4)
 	thrown.global_position = global_position + Vector2(0, -20)
 	thrown.z_index = 5
+	thrown.modulate = Color.RED
 	get_parent().add_child(thrown)
 	
 	var dir = 1 if sprite.scale.x > 0 else -1
@@ -157,6 +191,98 @@ func _throw_item():
 	
 	await get_tree().create_timer(0.1).timeout
 	thrown.queue_free()
+
+func set_can_throw(value: bool):
+	can_throw = value
+
+# ==========================================
+# ПАРИРОВАНИЕ - ОСНОВНЫЕ ФУНКЦИИ
+# ==========================================
+
+func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
+	if parry_active or parry_done:
+		return
+	
+	print("🔥 ПАРИРОВАНИЕ ЗАПУЩЕНО!")
+	parry_active = true
+	parry_done = false
+	parry_timer = 0.0
+	parry_enemy = enemy
+	parry_callback = callback
+	
+	# ПОКАЗЫВАЕМ ВРАГА
+	if parry_enemy:
+		parry_enemy.visible = true
+		parry_enemy.modulate = Color(1, 1, 1, 1)
+		
+		# ВЫХОД ИЗ ШКАФА (СЛЕВА НАПРАВО)
+		var start_x = parry_enemy.global_position.x - 100
+		parry_enemy.global_position.x = start_x
+		
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(parry_enemy, "global_position:x", start_x + 100, 0.3)
+		await tween.finished
+	
+	# ОСТАНАВЛИВАЕМ ВРЕМЯ
+	Engine.time_scale = 0.0
+	
+	# ЗАТЕМНЕНИЕ
+	parry_fade = ColorRect.new()
+	parry_fade.color = Color(0, 0, 0, 0)
+	parry_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	parry_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parry_fade.z_index = 100
+	get_parent().add_child(parry_fade)
+	
+	var fade_tween = create_tween()
+	fade_tween.tween_property(parry_fade, "color:a", 0.6, 0.3)
+	await fade_tween.finished
+	
+	# НАДПИСЬ
+	parry_label = Label.new()
+	parry_label.text = "ПКМ - ПАРИРУЙ"
+	parry_label.add_theme_font_size_override("font_size", 48)
+	parry_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	parry_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	parry_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	parry_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	parry_label.z_index = 101
+	parry_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_parent().add_child(parry_label)
+
+func _parry_success():
+	if parry_done:
+		return
+	
+	print("🔥 ПАРИРОВАНИЕ УСПЕШНО!")
+	parry_done = true
+	parry_active = false
+	
+	# ОГЛУШАЕМ ВРАГА
+	if parry_enemy:
+		parry_enemy.modulate = Color(0.5, 0.5, 0.5, 1)
+		parry_enemy.set_physics_process(false)
+	
+	# УБИРАЕМ НАДПИСЬ
+	if parry_label:
+		parry_label.queue_free()
+		parry_label = null
+	
+	# УБИРАЕМ ЗАТЕМНЕНИЕ
+	if parry_fade:
+		var fade_tween = create_tween()
+		fade_tween.tween_property(parry_fade, "color:a", 0.0, 0.3)
+		await fade_tween.finished
+		parry_fade.queue_free()
+		parry_fade = null
+	
+	# ВОЗВРАЩАЕМ ВРЕМЯ
+	Engine.time_scale = 1.0
+	
+	# ВЫЗЫВАЕМ КОЛБЭК
+	if parry_callback != null:
+		parry_callback.call()
 
 func _try_vault() -> bool:
 	var c = get_parent().get_node_or_null("Barriers")

@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenuAssistant/MainMenuCamera.gd" id="2_g0eki"]
 [ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/Background.tscn" id="2_t7cf8"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="3_31va1"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtionsSeaweedApplier.gd" id="4_3l7vi"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="4_3l7vi"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_thjyk"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="5_qsh2n"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="6_ncy0w"]
@@ -18,6 +18,8 @@ shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
 
 [node name="AchievementsMenu" type="Control" unique_id=1868437353]
 layout_mode = 3

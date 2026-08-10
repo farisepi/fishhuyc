@@ -6,11 +6,11 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://bqkbfw61y1cbq" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/Switch.png" id="7_ugdgc"]
-[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
+[ext_resource type="Texture2D" uid="uid://u65js4g5tg2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/Switch.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtionsSeaweedApplier.gd" id="12_kd3mb"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="12_kd3mb"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 
 [sub_resource type="DPITexture" id="DPITexture_xchot"]
@@ -26,6 +26,8 @@ shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
 shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
 
 [node name="SettingsMenu" type="Control" unique_id=146561357]
 layout_mode = 3

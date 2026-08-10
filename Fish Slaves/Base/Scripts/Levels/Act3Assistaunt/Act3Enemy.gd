@@ -1,4 +1,3 @@
-# enemy.gd
 extends CharacterBody2D
 
 @export var speed: float = 150.0
@@ -8,20 +7,16 @@ var player: CharacterBody2D = null
 var stunned: bool = false
 
 func _ready():
-	# Убираем коллизию с препятствиями — слой 1 только для пола
-	collision_mask = 1  # Только пол (Layer 1)
+	add_to_group("enemies")
 
 func _physics_process(delta):
-	if not player:
-		return
-	
-	if stunned:
+	if not player or stunned:
 		return
 	
 	if not is_on_floor():
 		velocity.y += gravity * delta
 	
-	var dir = 1 if player.global_position.x > global_position.x else -1
+	var dir = sign(player.global_position.x - global_position.x)
 	velocity.x = dir * speed
 	
 	move_and_slide()
