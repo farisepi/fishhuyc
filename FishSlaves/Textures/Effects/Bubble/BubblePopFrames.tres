@@ -1,0 +1,51 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://dmhqjuv7q3v1y"]
+
+[ext_resource type="Texture2D" uid="uid://dagv538sqlyfc" path="res://FishSlaves/Textures/Effects/Bubble/Bubble.tres" id="1_ebwsc"]
+[ext_resource type="Texture2D" uid="uid://bx85tea08ja05" path="res://FishSlaves/Textures/Effects/Bubble/BubblePop.png" id="1_q6cj6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ebwsc"]
+atlas = ExtResource("1_q6cj6")
+region = Rect2(11, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pqs1v"]
+atlas = ExtResource("1_q6cj6")
+region = Rect2(22, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fv1vr"]
+atlas = ExtResource("1_q6cj6")
+region = Rect2(33, 0, 11, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_15rb6"]
+atlas = ExtResource("1_q6cj6")
+region = Rect2(44, 0, 11, 11)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ebwsc")
+}],
+"loop": false,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ebwsc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ebwsc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pqs1v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fv1vr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_15rb6")
+}],
+"loop": true,
+"name": &"pop",
+"speed": 8.0
+}]
