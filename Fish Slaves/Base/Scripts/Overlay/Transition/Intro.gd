@@ -1,13 +1,13 @@
 extends CanvasLayer
 
 var slides = [
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide1.png"), "text": "У нас получилось. Эксперимент можно начинать."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide2.png"), "text": "Первый подопытный — крыса."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide3.png"), "text": "Чип сработал. Крыса забыла, кем была."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide4.png"), "text": "Вскоре подчинение охватило и другие виды."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide5.png"), "text": "Человечество наконец решило проблему нехватки энергии."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide6.png"), "text": "Животные перестали быть существами. Они стали инструментами."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide7.png"), "text": "Система казалась безупречной..."}
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide1.png"), "text": "У нас получилось. Эксперимент можно начинать.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide2.png"), "text": "Первый подопытный — крыса.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide3.png"), "text": "Чип сработал. Крыса забыла, кем была.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide4.png"), "text": "Вскоре подчинение охватило и другие виды.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide5.png"), "text": "Человечество наконец решило проблему нехватки энергии.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide6.png"), "text": "Животные перестали быть существами. Они стали инструментами.", "duration": 4.0},
+	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide7.png"), "text": "Система казалась безупречной...", "duration": 6.0}
 ]
 
 var current_index: int = 0
@@ -41,17 +41,30 @@ func _ready() -> void:
 	intro_music.play(0.5)
 	
 	custom_font = load("res://Fish Slaves/Textures/Font/Font.ttf")
-	if custom_font:
-		custom_font.fixed_size = 10
 	
 	scientist_voice = AudioStreamPlayer.new()
-	scientist_voice.stream = load("res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3")
+	var voice_path = "res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3"
+	if ResourceLoader.exists(voice_path):
+		scientist_voice.stream = load(voice_path)
+	else:
+		var fallback_path = "res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoise.MP3"
+		if ResourceLoader.exists(fallback_path):
+			scientist_voice.stream = load(fallback_path)
 	scientist_voice.volume_db = -10.0
 	scientist_voice.pitch_scale = 0.9
 	add_child(scientist_voice)
 	
 	_stop_main_menu_music()
 	
+	_create_ui()
+	
+	var screen_size = get_viewport().get_visible_rect().size
+	_setup_skip_ui(screen_size)
+	
+	_show_slide(0)
+	slide_timer.start()
+
+func _create_ui() -> void:
 	bg = ColorRect.new()
 	bg.color = Color.BLACK
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -86,15 +99,9 @@ func _ready() -> void:
 	add_child(text_label)
 	
 	slide_timer = Timer.new()
-	slide_timer.wait_time = 5.0
 	slide_timer.one_shot = false
 	slide_timer.timeout.connect(_on_slide_timer_timeout)
 	add_child(slide_timer)
-	
-	_setup_skip_ui(screen_size)
-	
-	_show_slide(0)
-	slide_timer.start()
 
 func _setup_skip_ui(screen_size: Vector2) -> void:
 	var skip_width = 140
@@ -210,7 +217,7 @@ func _type_text(text: String, idx: int) -> void:
 	typing = true
 	text_label.text += text[idx]
 	
-	if scientist_voice and not scientist_voice.playing:
+	if scientist_voice and not scientist_voice.playing and scientist_voice.stream:
 		scientist_voice.pitch_scale = 0.7 + randf_range(-0.03, 0.03)
 		scientist_voice.play()
 	
@@ -265,6 +272,9 @@ func _show_slide(index: int) -> void:
 	fade_in.parallel().tween_property(text_label, "modulate:a", 1.0, 0.3)
 	await fade_in.finished
 	is_fading = false
+	
+	slide_timer.wait_time = slide["duration"]
+	slide_timer.start()
 
 func _on_slide_timer_timeout() -> void:
 	if is_fading or final_fade_started:

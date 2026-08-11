@@ -3,6 +3,7 @@ extends Node
 var states: Dictionary = {}
 
 func scan_and_apply(scene: Node) -> void:
+	states.clear()
 	_scan(scene)
 	_apply(scene)
 

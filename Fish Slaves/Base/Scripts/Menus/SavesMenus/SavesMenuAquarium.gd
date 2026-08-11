@@ -105,9 +105,18 @@ func _on_slot_pressed(index: int):
 				Fade.fade_out()
 				await get_tree().create_timer(0.3).timeout
 			
-			intro_instance = load("res://Fish Slaves/Base/Scripts/Levels/Intro.gd").new()
-			add_child(intro_instance)
-			intro_active = true
+			var intro_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/Intro.tscn")
+			if intro_scene:
+				intro_instance = intro_scene.instantiate()
+				add_child(intro_instance)
+				intro_active = true
+			else:
+				intro_instance = CanvasLayer.new()
+				var script = load("res://Fish Slaves/Base/Scripts/Overlay/Transition/Intro.gd")
+				if script:
+					intro_instance.set_script(script)
+					add_child(intro_instance)
+					intro_active = true
 			
 			if is_instance_valid(Fade):
 				Fade.fade_in()
@@ -116,7 +125,9 @@ func _skip_intro():
 	intro_active = false
 	
 	if intro_instance and is_instance_valid(intro_instance):
-		intro_instance._skip_intro()
+		if intro_instance.has_method("_skip_intro"):
+			intro_instance._skip_intro()
+		intro_instance.queue_free()
 		intro_instance = null
 	
 	if is_instance_valid(Fade):
@@ -258,7 +269,21 @@ func _save_game(index: int, scene_path: String = ""):
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
 	
-	Global.last_save_level = 1
+	if current_scene.contains("Act2") or current_scene.contains("Level_2"):
+		Global.last_save_level = 2
+	elif current_scene.contains("Act3") or current_scene.contains("Level_3"):
+		Global.last_save_level = 3
+	else:
+		Global.last_save_level = 1
+	
+	if Global.came_from == Global.MenuSource.GAME:
+		Global.just_returned_from_settings = true
+		GlobalMusic.resume_level_music()
+		if is_instance_valid(Fade):
+			Fade.fade_out()
+			await get_tree().create_timer(0.3).timeout
+		Global.goto_scene(Global.scene_to_save)
+		return
 
 func _load_game(index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
@@ -294,13 +319,16 @@ func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		GlobalMusic.resume_level_music()
-		Global.goto_scene("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+		if is_instance_valid(Fade):
+			Fade.fade_out()
+			await get_tree().create_timer(0.3).timeout
+		Global.goto_scene("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
 		return
 	
 	if is_instance_valid(Fade):
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
-	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

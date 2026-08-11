@@ -81,41 +81,10 @@ func _keycode_to_string(keycode: Key) -> String:
 		KEY_LEFT: return "ArrowLeft"
 		KEY_RIGHT: return "ArrowRight"
 		_:
-			var result = OS.get_keycode_string(keycode).to_lower()
-			match result:
-				"й": return "Q"
-				"ц": return "W"
-				"у": return "E"
-				"к": return "R"
-				"е": return "T"
-				"н": return "Y"
-				"г": return "U"
-				"ш": return "I"
-				"щ": return "O"
-				"з": return "P"
-				"х": return "["
-				"ъ": return "]"
-				"ф": return "A"
-				"ы": return "S"
-				"в": return "D"
-				"а": return "F"
-				"п": return "G"
-				"р": return "H"
-				"о": return "J"
-				"л": return "K"
-				"д": return "L"
-				"ж": return ";"
-				"э": return "'"
-				"я": return "Z"
-				"ч": return "X"
-				"с": return "C"
-				"м": return "V"
-				"и": return "B"
-				"т": return "N"
-				"ь": return "M"
-				"б": return ","
-				"ю": return "."
-				_: return result
+			var result = OS.get_keycode_string(keycode)
+			if result.length() == 1:
+				return result.to_upper()
+			return result
 
 func start_rebind(action: String) -> void:
 	rebinding_action = action
@@ -192,16 +161,4 @@ func _string_to_keycode(text: String) -> Key:
 			var result = OS.find_keycode_from_string(text)
 			if result != KEY_NONE:
 				return result
-			var ru_map = {
-				"Q": "й", "W": "ц", "E": "у", "R": "к", "T": "е",
-				"Y": "н", "U": "г", "I": "ш", "O": "щ", "P": "з",
-				"A": "ф", "S": "ы", "D": "в", "F": "а", "G": "п",
-				"H": "р", "J": "о", "K": "л", "L": "д",
-				"Z": "я", "X": "ч", "C": "с", "V": "м", "B": "и",
-				"N": "т", "M": "ь"
-			}
-			var lower_text = text.to_lower()
-			for en in ru_map:
-				if ru_map[en] == lower_text:
-					return OS.find_keycode_from_string(en)
 			return KEY_NONE

@@ -908,7 +908,8 @@ func _show_next_chatter_line() -> void:
 	chatter_label_far.text = ""
 	chatter_panel.visible = false
 	chatter_panel_far.visible = false
-	chatter_typing = true	update_chatter_panel()
+	chatter_typing = true
+	update_chatter_panel()
 	timer.start(typing_speed)
 
 func start_chatter() -> void:
@@ -1526,6 +1527,7 @@ func _on_title_finished(label: Label, blackout: CanvasLayer):
 
 func _on_hide_finished(_blackout: CanvasLayer):
 	_save_progress()
+	_auto_save_to_current_slot()
 	
 	cutscene_active = false
 	Global.came_from = Global.MenuSource.MAIN_MENU
@@ -1576,6 +1578,29 @@ func _save_progress():
 		print("Игра успешно сохранена в слот ", Global.save_slot)
 	else:
 		print("Ошибка сохранения в слот ", Global.save_slot, ". Ошибка: ", error)
+
+func _auto_save_to_current_slot():
+	Global.player_position = player.global_position
+	Global.chatter_queue_state = get_chatter_state()["queue"]
+	Global.chatter_current_text = get_chatter_state()["current_text"]
+	Global.chatter_char_index = get_chatter_state()["char_index"]
+	
+	var config = ConfigFile.new()
+	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
+	
+	if config.load(save_path) != OK:
+		return
+	
+	config.set_value("save", "scene", "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
+	config.set_value("save", "time", Time.get_datetime_string_from_system())
+	config.set_value("save", "player_x", player.global_position.x)
+	config.set_value("save", "player_y", player.global_position.y)
+	config.set_value("save", "chatter_queue", Global.chatter_queue_state)
+	config.set_value("save", "chatter_text", Global.chatter_current_text)
+	config.set_value("save", "chatter_index", Global.chatter_char_index)
+	
+	config.save(save_path)
+	Global.last_save_level = 2
 
 func _show_achievement_flashback(title: String):
 	var canvas = CanvasLayer.new()

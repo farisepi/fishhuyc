@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cuvfqj3opnpt2"]
+
+[ext_resource type="Script" uid="uid://05pwfvewpj8b" path="res://Fish Slaves/Base/Scripts/Overlay/Transition/Intro.gd" id="1_p8nud"]
+
+[node name="Intro" type="CanvasLayer" unique_id=1940353699]
+script = ExtResource("1_p8nud")

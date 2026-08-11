@@ -27,6 +27,7 @@ var intro_active: bool = false
 var loading_instance: CanvasLayer = null
 
 var last_save_level: int = 1
+var enemy_positions: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -54,7 +55,6 @@ func _detect_last_save_level() -> void:
 		return
 	
 	var latest_time = 0
-	var latest_file = ""
 	
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
@@ -64,7 +64,6 @@ func _detect_last_save_level() -> void:
 			var config = ConfigFile.new()
 			if config.load(path) == OK:
 				var scene = config.get_value("save", "scene", "")
-				var time_str = config.get_value("save", "time", "")
 				
 				if scene != "":
 					var level = 1
@@ -76,7 +75,6 @@ func _detect_last_save_level() -> void:
 					var file_time = FileAccess.get_modified_time(path)
 					if file_time > latest_time:
 						latest_time = file_time
-						latest_file = file_name
 						last_save_level = level
 		file_name = dir.get_next()
 	dir.list_dir_end()
