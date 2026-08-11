@@ -26,6 +26,8 @@ var _font: FontFile
 var intro_active: bool = false
 var loading_instance: CanvasLayer = null
 
+var last_save_level: int = 1
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -38,6 +40,46 @@ func _ready() -> void:
 	
 	reapply_theme()
 	get_tree().tree_changed.connect(_on_scene_changed)
+	
+	_detect_last_save_level()
+
+func _detect_last_save_level() -> void:
+	last_save_level = 1
+	var save_dir = "user://saves/"
+	if not DirAccess.dir_exists_absolute(save_dir):
+		return
+	
+	var dir = DirAccess.open(save_dir)
+	if not dir:
+		return
+	
+	var latest_time = 0
+	var latest_file = ""
+	
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.begins_with("save_") and file_name.ends_with(".cfg"):
+			var path = save_dir + file_name
+			var config = ConfigFile.new()
+			if config.load(path) == OK:
+				var scene = config.get_value("save", "scene", "")
+				var time_str = config.get_value("save", "time", "")
+				
+				if scene != "":
+					var level = 1
+					if "Act2" in scene or "Level_2" in scene:
+						level = 2
+					elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
+						level = 3
+					
+					var file_time = FileAccess.get_modified_time(path)
+					if file_time > latest_time:
+						latest_time = file_time
+						latest_file = file_name
+						last_save_level = level
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 func reapply_theme() -> void:
 	if not _font:

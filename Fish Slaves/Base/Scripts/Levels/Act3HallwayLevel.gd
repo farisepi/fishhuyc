@@ -30,6 +30,8 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
+var enemy_positions: Dictionary = {}
+
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
@@ -42,8 +44,7 @@ func _ready():
 	
 	camera.zoom = Vector2(1.8, 1.8)
 	camera.limit_left = -5000
-	camera.limit_right = 5000
-	camera.limit_top = -5000
+	camera.limit_right = 5000	camera.limit_top = -5000
 	camera.limit_bottom = 5000
 	
 	for enemy in $Enemies.get_children():
@@ -97,7 +98,35 @@ func _ready():
 		if continue_btn:
 			continue_btn.pressed.connect(_on_continue_pressed)
 	
+	_restore_state()
 	_start_intro()
+
+func _restore_state():
+	if Global.player_position != Vector2.ZERO:
+		player.global_position = Global.player_position
+		Global.player_position = Vector2.ZERO
+	
+	if Global.has("enemy_positions") and not Global.enemy_positions.is_empty():
+		enemy_positions = Global.enemy_positions
+		for enemy in $Enemies.get_children():
+			if enemy is CharacterBody2D:
+				var path = str(enemy.get_path())
+				if enemy_positions.has(path):
+					enemy.global_position = enemy_positions[path]
+		Global.enemy_positions = {}
+
+func _save_state():
+	Global.player_position = player.global_position
+	
+	enemy_positions = {}
+	for enemy in $Enemies.get_children():
+		if enemy is CharacterBody2D:
+			var path = str(enemy.get_path())
+			enemy_positions[path] = enemy.global_position
+	Global.enemy_positions = enemy_positions
+	
+	Global.pending_save = true
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
 
 func _on_parry_complete():
 	parry_done = true
@@ -111,6 +140,8 @@ func _on_parry_complete():
 	prompt.visible = true
 	await get_tree().create_timer(2.0).timeout
 	prompt.visible = false
+	
+	_save_state()
 
 func _start_intro():
 	player.modulate = Color.RED
@@ -308,6 +339,8 @@ func _throw_item_at_forklift():
 	prompt.visible = true
 	await get_tree().create_timer(2.0).timeout
 	prompt.visible = false
+	
+	_save_state()
 
 func _game_over():
 	if is_game_over or state == State.GAMEOVER:
@@ -365,6 +398,8 @@ func _win():
 	state = State.WIN
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	
+	Global.last_save_level = 3
+	
 	var black = ColorRect.new()
 	black.color = Color.BLACK
 	black.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -376,7 +411,7 @@ func _win():
 	tween.tween_property(black, "modulate:a", 1.0, 0.5)
 	await tween.finished
 	
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenu.tscn")
+	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

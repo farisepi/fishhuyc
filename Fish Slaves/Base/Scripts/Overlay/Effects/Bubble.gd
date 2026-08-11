@@ -14,6 +14,7 @@ var ignore_timer: float = 0.0
 @onready var collision: CollisionShape2D = $CollisionShape2D
 
 const POP_SOUND_PATH = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/MainMenuAquariumPop/MainMenuAquariumPop"
+const ACT1_POP_SOUND = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/Act1Pop/Act1Pop.mp3"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -107,7 +108,12 @@ func _pop() -> void:
 	if collision:
 		collision.call_deferred("set_disabled", true)
 	
-	_play_random_pop_sound()
+	var is_act1 = get_tree().current_scene and get_tree().current_scene.scene_file_path.contains("Act1")
+	
+	if is_act1:
+		_play_act1_pop_sound()
+	else:
+		_play_random_pop_sound()
 	
 	if sprite:
 		sprite.play("pop")
@@ -147,6 +153,18 @@ func _play_random_pop_sound() -> void:
 	var pop_sound = AudioStreamPlayer.new()
 	add_child(pop_sound)
 	pop_sound.stream = sound_stream
-	pop_sound.volume_db = -12.0
+	pop_sound.volume_db = -8.0
+	pop_sound.pitch_scale = randf_range(0.95, 1.05)
+	pop_sound.play()
+
+func _play_act1_pop_sound() -> void:
+	var sound_stream = load(ACT1_POP_SOUND)
+	if sound_stream == null:
+		return
+	
+	var pop_sound = AudioStreamPlayer.new()
+	add_child(pop_sound)
+	pop_sound.stream = sound_stream
+	pop_sound.volume_db = -8.0
 	pop_sound.pitch_scale = randf_range(0.95, 1.05)
 	pop_sound.play()

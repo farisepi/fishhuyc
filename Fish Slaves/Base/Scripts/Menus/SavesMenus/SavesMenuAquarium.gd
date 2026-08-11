@@ -19,7 +19,10 @@ func _ready() -> void:
 	if is_instance_valid(Fade):
 		Fade.fade_in()
 	
-	GlobalMusic.play_menu_music()
+	if Global.came_from == Global.MenuSource.GAME:
+		GlobalMusic.pause_level_music()
+	else:
+		GlobalMusic.play_menu_music()
 	
 	ButtonEffects.setup(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
@@ -254,6 +257,8 @@ func _save_game(index: int, scene_path: String = ""):
 	config.save(save_path)
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
+	
+	Global.last_save_level = 1
 
 func _load_game(index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
@@ -269,6 +274,13 @@ func _load_game(index: int):
 			Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
 			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 			Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
+			
+			var level = 1
+			if "Act2" in scene or "Level_2" in scene:
+				level = 2
+			elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
+				level = 3
+			Global.last_save_level = level
 			
 			Global.goto_scene(scene)
 

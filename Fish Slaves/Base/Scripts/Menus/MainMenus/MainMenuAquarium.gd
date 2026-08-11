@@ -12,6 +12,7 @@ var bubble_scene: PackedScene
 @onready var fps_label: Label = $FPSCounter
 @onready var logo_area: TextureRect = $LogoArea
 @onready var logo: AnimatedSprite2D = $LogoArea/LogoAnimation
+@onready var menu_music: AudioStreamPlayer = $MenuMusic
 
 var logo_float_time: float = 0.0
 var logo_original_y: float = 0.0
@@ -25,7 +26,10 @@ func _ready() -> void:
 	if cam:
 		cam.position = get_viewport().get_visible_rect().size / 2
 	
-	GlobalMusic.play_menu_music()
+	if Global.last_save_level == 1:
+		GlobalMusic.play_menu_music()
+	else:
+		GlobalMusic.play_menu_music()
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:

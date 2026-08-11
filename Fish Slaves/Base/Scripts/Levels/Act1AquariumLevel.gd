@@ -908,8 +908,7 @@ func _show_next_chatter_line() -> void:
 	chatter_label_far.text = ""
 	chatter_panel.visible = false
 	chatter_panel_far.visible = false
-	chatter_typing = true
-	update_chatter_panel()
+	chatter_typing = true	update_chatter_panel()
 	timer.start(typing_speed)
 
 func start_chatter() -> void:
@@ -1543,12 +1542,12 @@ func _on_hide_finished(_blackout: CanvasLayer):
 		add_child(temp_fade)
 		var tween_fade = create_tween()
 		tween_fade.tween_property(temp_fade, "modulate:a", 1.0, 0.5)
-		tween_fade.finished.connect(_change_to_prologue2)
+		tween_fade.finished.connect(_change_to_act2)
 
-func _change_to_prologue2():
+func _change_to_act2():
 	GlobalMusic.pause_level_music()
 	
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act2Level.tscn")
+	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
 
 func _save_progress():
 	GlobalMusic.pause_level_music()
@@ -1560,12 +1559,16 @@ func _save_progress():
 	
 	var config = ConfigFile.new()
 	
-	config.set_value("save", "scene", "res://Fish Slaves/Base/Scenes/Levels/Act2Level.tscn")
+	config.set_value("save", "scene", "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
 	config.set_value("save", "time", Time.get_datetime_string_from_system())
 	
 	if player:
 		config.set_value("save", "player_x", player.global_position.x)
 		config.set_value("save", "player_y", player.global_position.y)
+	
+	config.set_value("save", "chatter_queue", get_chatter_state()["queue"])
+	config.set_value("save", "chatter_text", get_chatter_state()["current_text"])
+	config.set_value("save", "chatter_index", get_chatter_state()["char_index"])
 	
 	var error = config.save(save_path)
 	
@@ -1659,6 +1662,9 @@ func _toggle_pause() -> void:
 			if mechanic: mechanic.set_process(true)
 			var ma = mechanic.get_node_or_null("AnimationPlayer")
 			if ma: ma.play()
+		
+		if level_music:
+			level_music.volume_db = -15.0
 	else:
 		pause_menu.show()
 		get_tree().paused = true
@@ -1671,6 +1677,9 @@ func _toggle_pause() -> void:
 		if mechanic: mechanic.set_process(false)
 		var ma2 = mechanic.get_node_or_null("AnimationPlayer")
 		if ma2: ma2.pause()
+		
+		if level_music:
+			level_music.volume_db = -30.0
 
 func _on_dialogue_zone_body_entered(body: Node2D) -> void:
 	if body == player and not dialogue_done:
