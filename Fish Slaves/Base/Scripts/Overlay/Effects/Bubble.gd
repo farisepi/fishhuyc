@@ -1,6 +1,6 @@
 extends Area2D
 
-@export var speed: float = 40.0
+var speed: float = 40.0
 
 var direction: Vector2 = Vector2.UP
 var life_time: float = 4.0
@@ -12,6 +12,8 @@ var ignore_timer: float = 0.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
+
+const POP_SOUND_PATH = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/MainMenuAquariumPop/MainMenuAquariumPop"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -105,12 +107,7 @@ func _pop() -> void:
 	if collision:
 		collision.call_deferred("set_disabled", true)
 	
-	var pop_sound = AudioStreamPlayer.new()
-	add_child(pop_sound)
-	pop_sound.stream = preload("res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop.mp3")
-	pop_sound.volume_db = -24.0
-	pop_sound.pitch_scale = randf_range(0.95, 1.05)
-	pop_sound.play()
+	_play_random_pop_sound()
 	
 	if sprite:
 		sprite.play("pop")
@@ -138,3 +135,18 @@ func _notify_achievement():
 	var main_menu = get_tree().current_scene
 	if main_menu and main_menu.has_method("_show_pop_star_achievement"):
 		main_menu._show_pop_star_achievement()
+
+func _play_random_pop_sound() -> void:
+	var random_index = randi() % 12 + 1
+	var sound_path = POP_SOUND_PATH + str(random_index) + ".mp3"
+	
+	var sound_stream = load(sound_path)
+	if sound_stream == null:
+		return
+	
+	var pop_sound = AudioStreamPlayer.new()
+	add_child(pop_sound)
+	pop_sound.stream = sound_stream
+	pop_sound.volume_db = -12.0
+	pop_sound.pitch_scale = randf_range(0.95, 1.05)
+	pop_sound.play()

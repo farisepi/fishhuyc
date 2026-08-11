@@ -1,0 +1,188 @@
+[gd_scene format=3 uid="uid://cmxwqxy5hgq7k"]
+
+[ext_resource type="Script" uid="uid://cw6u8h4506y3j" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuFactory.gd" id="1_8pq2d"]
+[ext_resource type="StyleBox" uid="uid://cdp5404itmfof" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonNormal.tres" id="3_ysg7y"]
+[ext_resource type="StyleBox" uid="uid://ekl2i1p6fa0s" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonPressed.tres" id="4_g82wj"]
+[ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonHover.tres" id="5_qps51"]
+[ext_resource type="Script" uid="uid://mkq572lg6l57" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/PlayButton.gd" id="6_2in4n"]
+[ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="8_er5pt"]
+[ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="9_gw61p"]
+[ext_resource type="StyleBox" uid="uid://bxxvat40rdr8n" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonNormal.tres" id="10_vbgi1"]
+[ext_resource type="StyleBox" uid="uid://c1rngqmtqoo1v" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonPressed.tres" id="11_i5l3u"]
+[ext_resource type="StyleBox" uid="uid://ccehocxigbms8" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonHover.tres" id="12_cpf58"]
+[ext_resource type="Texture2D" uid="uid://4oacvlud2hgi" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtonIcons/DiscordMenuButtonIcon.png" id="13_0e0et"]
+[ext_resource type="Texture2D" uid="uid://dxkytmc46dbt2" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtonIcons/TelegramMenuButtonIcon.png" id="14_rtvx6"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="14_sxqd3"]
+[ext_resource type="Texture2D" uid="uid://kag2vr3rl2mc" path="res://Fish Slaves/Textures/Interface/MainMenuLogo/FactoryMainMenuLogo.png" id="16_8pq2d"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_wo3ea"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_1q4bd"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="19_v64fb"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
+particle_flag_disable_z = true
+gravity = Vector3(0, 98, 0)
+
+[sub_resource type="SystemFont" id="SystemFont_il11y"]
+subpixel_positioning = 0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2x044"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_8pq2d")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="MainMenu" type="Node2D" unique_id=387678729]
+script = ExtResource("1_8pq2d")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1795470732]
+offset_left = -45.46
+offset_top = -120.95
+offset_right = 1479.7001
+offset_bottom = 840.01996
+mouse_filter = 2
+color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
+metadata/_edit_use_anchors_ = true
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=577935788]
+position = Vector2(-746, -566)
+amount = 30
+process_material = SubResource("ParticleProcessMaterial_xt27g")
+
+[node name="PlayButton" type="Button" parent="." unique_id=1747499209]
+offset_left = 445.0
+offset_top = 267.0
+offset_right = 705.0
+offset_bottom = 311.0
+mouse_filter = 1
+theme_override_fonts/font = SubResource("SystemFont_il11y")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_ysg7y")
+theme_override_styles/pressed = ExtResource("4_g82wj")
+theme_override_styles/hover = ExtResource("5_qps51")
+text = "Начать игру
+"
+script = ExtResource("6_2in4n")
+
+[node name="SaveButton" type="Button" parent="." unique_id=112604908]
+visible = false
+offset_left = 426.0
+offset_top = -243.0
+offset_right = 686.0
+offset_bottom = -199.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = ExtResource("8_er5pt")
+theme_override_styles/pressed = ExtResource("9_gw61p")
+theme_override_styles/hover = ExtResource("5_qps51")
+text = "Сохранения"
+
+[node name="SettingsButton" type="Button" parent="." unique_id=806966876]
+offset_left = 445.0
+offset_top = 316.0
+offset_right = 705.0
+offset_bottom = 360.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_ysg7y")
+theme_override_styles/pressed = ExtResource("4_g82wj")
+theme_override_styles/hover = ExtResource("5_qps51")
+text = "Настройки
+"
+
+[node name="AchivmentsButton" type="Button" parent="." unique_id=2008761553]
+offset_left = 445.0
+offset_top = 365.0
+offset_right = 705.0
+offset_bottom = 409.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_ysg7y")
+theme_override_styles/pressed = ExtResource("4_g82wj")
+theme_override_styles/hover = ExtResource("5_qps51")
+text = "Достижения
+
+"
+
+[node name="QuitButton" type="Button" parent="." unique_id=1075697719]
+offset_left = 445.0
+offset_top = 414.0
+offset_right = 705.0
+offset_bottom = 458.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_ysg7y")
+theme_override_styles/pressed = ExtResource("4_g82wj")
+theme_override_styles/hover = ExtResource("5_qps51")
+text = "Выход
+
+
+"
+
+[node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
+offset_left = 519.0
+offset_top = 463.0
+offset_right = 563.0
+offset_bottom = 507.0
+mouse_filter = 1
+theme_override_styles/normal = ExtResource("10_vbgi1")
+theme_override_styles/pressed = ExtResource("11_i5l3u")
+theme_override_styles/hover = ExtResource("12_cpf58")
+icon = ExtResource("13_0e0et")
+expand_icon = true
+
+[node name="TelegramButton" type="Button" parent="." unique_id=1272725020]
+offset_left = 587.0
+offset_top = 463.0
+offset_right = 631.0
+offset_bottom = 507.0
+mouse_filter = 1
+theme_override_styles/normal = ExtResource("10_vbgi1")
+theme_override_styles/pressed = ExtResource("11_i5l3u")
+theme_override_styles/hover = ExtResource("12_cpf58")
+icon = ExtResource("14_rtvx6")
+expand_icon = true
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("14_sxqd3")]
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1827944283]
+offset_top = -2.0
+offset_right = 59.0
+offset_bottom = 28.0
+script = ExtResource("16_wo3ea")
+metadata/_edit_use_anchors_ = true
+
+[node name="MainMenuCamera" type="Camera2D" parent="." unique_id=1057194260]
+position = Vector2(578, 323)
+script = ExtResource("17_1q4bd")
+
+[node name="LogoArea" type="TextureRect" parent="." unique_id=2125491484]
+offset_left = 299.0
+offset_top = 37.0
+offset_right = 828.0
+offset_bottom = 137.0
+metadata/_edit_use_anchors_ = true
+
+[node name="LogoAnimation" type="AnimatedSprite2D" parent="LogoArea" unique_id=65456073]
+position = Vector2(278.00003, 90.99997)
+scale = Vector2(2.75, 2.75)
+sprite_frames = SubResource("SpriteFrames_2x044")
+autoplay = "default"
+frame_progress = 0.57846695
+
+[node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=1738621417]
+script = ExtResource("19_v64fb")
+
+[connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="AchivmentsButton" to="." method="_on_achivments_button_pressed"]
+[connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="DiscordButton" to="." method="_on_discord_button_pressed"]
+[connection signal="pressed" from="TelegramButton" to="." method="_on_discord_button_pressed"]

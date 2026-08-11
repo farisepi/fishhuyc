@@ -3,7 +3,6 @@
 [ext_resource type="AudioStream" uid="uid://bobi8iqutqy06" path="res://Fish Slaves/Sounds/SFX/MenuSFX/MenuButtonsClick.mp3" id="1_158hi"]
 [ext_resource type="Script" uid="uid://coiugcbw2wufv" path="res://Fish Slaves/Base/Scripts/Managers/SoundManager.gd" id="1_su6uh"]
 [ext_resource type="AudioStream" uid="uid://l7ggr02mqlu2" path="res://Fish Slaves/Sounds/SFX/Act1SFX/MechanicSFX/Act1MechanicVoise.MP3" id="3_7ba2l"]
-[ext_resource type="AudioStream" uid="uid://bren74sj2m0gl" path="res://Fish Slaves/Sounds/SFX/Act1SFX/ScienistSFX/Act1ScienistVoise.MP3" id="4_2wt5c"]
 [ext_resource type="AudioStream" uid="uid://d3305crf4d4y3" path="res://Fish Slaves/Sounds/SFX/Act1SFX/Ambience/Act1GlitchNoise.mp3" id="5_2wt5c"]
 [ext_resource type="AudioStream" uid="uid://d2bdlojhp18hb" path="res://Fish Slaves/Sounds/SFX/Act1SFX/Ambience/Act1FactoryAmbience.mp3" id="6_ycad0"]
 [ext_resource type="AudioStream" uid="uid://bo34bow1vb27x" path="res://Fish Slaves/Sounds/SFX/Act1SFX/CutsceneSFX/Act1Earthshake.mp3" id="7_eyato"]
@@ -21,7 +20,6 @@ volume_db = -10.0
 bus = &"SFX"
 
 [node name="ScientistPlayer" type="AudioStreamPlayer" parent="." unique_id=1177199826]
-stream = ExtResource("4_2wt5c")
 volume_db = -6.0
 bus = &"SFX"
 

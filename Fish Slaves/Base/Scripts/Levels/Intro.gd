@@ -45,7 +45,7 @@ func _ready() -> void:
 		custom_font.fixed_size = 10
 	
 	scientist_voice = AudioStreamPlayer.new()
-	scientist_voice.stream = load("res://Fish Slaves/Sounds/SFX/Act1SFX/ScienistSFX/Act1ScienistVoise.MP3")
+	scientist_voice.stream = load("res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3")
 	scientist_voice.volume_db = -10.0
 	scientist_voice.pitch_scale = 0.9
 	add_child(scientist_voice)
@@ -181,7 +181,6 @@ func _skip_intro() -> void:
 	
 	UISounds.start_factory_ambience()
 	
-	# === ЧЁРНЫЙ ЭКРАН В ROOT (переживёт смену сцены) ===
 	var root_black = ColorRect.new()
 	root_black.color = Color.BLACK
 	root_black.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -189,10 +188,8 @@ func _skip_intro() -> void:
 	root_black.z_index = 4095
 	get_tree().root.add_child(root_black)
 	
-	# Ждём 1 кадр — чёрный экран точно появился
 	await get_tree().process_frame
 	
-	# Теперь переключаем сцену
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
 
 func _stop_main_menu_music() -> void:
@@ -312,7 +309,6 @@ func _start_final_fade() -> void:
 	
 	UISounds.start_factory_ambience()
 	
-	# === ЧЁРНЫЙ ЭКРАН В ROOT ===
 	var root_black = ColorRect.new()
 	root_black.color = Color.BLACK
 	root_black.set_anchors_preset(Control.PRESET_FULL_RECT)

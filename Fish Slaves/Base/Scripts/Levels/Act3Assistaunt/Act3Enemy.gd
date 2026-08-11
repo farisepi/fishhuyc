@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
-@export var speed: float = 150.0
-@export var gravity: float = 980.0
+var speed: float = 150.0
+var gravity: float = 980.0
 
 var player: CharacterBody2D = null
 var stunned: bool = false

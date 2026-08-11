@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var bubble_scene: PackedScene
+var bubble_scene: PackedScene
 
 @onready var pause_menu: CanvasLayer = $Pausemenu
 @onready var player: CharacterBody2D = $рыбка
@@ -64,7 +64,7 @@ var text_glitch_timer: float = 0.0
 var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
-var scientist_icon = preload("res://Fish Slaves/Textures/Characters/Scienist/ScienistDialogPortrait/ScientistDialogPortrait.png")
+var scientist_icon = preload("res://Fish Slaves/Textures/Characters/Scientist/ScientistDialogPortrait/ScientistDialogPortrait.png")
 var mechanic_icon = preload("res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png")
 
 var interact_normal_texture: Texture2D = null
@@ -127,22 +127,17 @@ var chatter_phrases: Array[Dictionary] = [
 ]
 
 func _ready() -> void:
-	print("=== LEVEL_1 _ready START ===")
-	
-	# Находим чёрный экран из интро
 	var root_black: ColorRect = null
 	for child in get_tree().root.get_children():
 		if child is ColorRect and child.z_index == 4095:
 			root_black = child
 			break
 	
-	# Если чёрный экран есть — делаем плавное исчезновение
 	if root_black:
 		var tween = create_tween()
 		tween.tween_property(root_black, "modulate:a", 0.0, 0.5)
 		await tween.finished
 		root_black.queue_free()
-		print("Чёрный экран плавно исчез")
 	
 	GlobalMusic.play_level_music()
 	
@@ -158,14 +153,12 @@ func _ready() -> void:
 	phantom_left.visible = false
 	phantom_right.visible = false
 	
-	print("Player exists: ", player != null)
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
 		player_sprite.stop()
 		player_sprite.frame = 0
 		player_sprite.animation = "wake"
 	
-	print("Setting player.can_move = false")
 	player.can_move = false
 	if Global.just_returned_from_settings:
 		_on_return_from_settings()
@@ -216,23 +209,17 @@ func _ready() -> void:
 		add_child(fade_rect)
 	
 	fade_rect.color = Color.BLACK
-	fade_rect.modulate.a = 0.0  # Уже не нужен
+	fade_rect.modulate.a = 0.0
 	
 	await get_tree().process_frame
 	
 	var water_shader_mat = $WaterShader.material
 	if not water_shader_mat:
-		print("❌ Нет материала! Создаю новый...")
 		var new_mat = ShaderMaterial.new()
 		new_mat.shader = preload("res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader")
 		$WaterShader.material = new_mat
-		print("✅ Новый материал создан!")
-	else:
-		print("✅ Материал уже существует!")
 	
-	print("Calling _start_wake_sequence")
 	_start_wake_sequence()
-	print("=== LEVEL_1 _ready END ===")
 
 func _process(delta: float) -> void:
 	if get_tree().paused:
@@ -252,74 +239,52 @@ func _process(delta: float) -> void:
 		UISounds.set_glitch(0.0)
 
 func _start_wake_sequence() -> void:
-	print("=== _start_wake_sequence START ===")
-	
-	print("Waiting 0.2 seconds...")
 	await get_tree().create_timer(0.2).timeout
-	print("Wait finished")
 	
-	print("Starting chatter...")
 	start_chatter()
 	
-	print("Spawning bubbles...")
 	_spawn_bubbles()
 	
-	print("Starting wake animation...")
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
 		player_sprite.visible = true
 		player_sprite.play("wake")
 		player_sprite.speed_scale = 1.0
 		player_sprite.frame = 0
-		print("Wake animation started")
 	
-	print("Creating fade tween...")
 	var fade_tween = create_tween()
 	fade_tween.set_ease(Tween.EASE_IN_OUT)
 	fade_tween.set_trans(Tween.TRANS_CUBIC)
 	
-	print("Looking for all black rectangles...")
 	var root = get_tree().root
 	var all_black_rects = []
 	
 	if fade_rect:
-		print("Adding FadeRect to fade list")
 		all_black_rects.append(fade_rect)
 		fade_tween.tween_property(fade_rect, "modulate:a", 0.0, 1.0)
 	
 	for child in root.get_children():
 		if child is ColorRect and (child.color == Color.BLACK or child.color.r < 0.1):
 			if child != fade_rect:
-				print("Adding root black rect to fade list: ", child.name)
 				all_black_rects.append(child)
 				fade_tween.tween_property(child, "modulate:a", 0.0, 1.0)
 	
-	print("Waiting for fade to finish (1.0 seconds)...")
 	await fade_tween.finished
-	print("All fades FINISHED!")
 	
-	print("Cleaning up all black rects...")
 	for rect in all_black_rects:
 		if is_instance_valid(rect):
-			print("Queue free: ", rect.name)
 			rect.queue_free()
 	
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
 		if player_sprite.is_playing():
-			print("Waiting for wake animation to finish...")
 			await player_sprite.animation_finished
-			print("Wake animation finished!")
 		
 		player_sprite.speed_scale = 1.0
 		player_sprite.play("idle")
 	
-	print("Waiting 0.5 seconds before giving control...")
 	await get_tree().create_timer(0.5).timeout
-	print("Setting player.can_move = true")
 	player.can_move = true
-	
-	print("=== _start_wake_sequence END ===")
 
 func _remove_black_nodes(node: Node) -> void:
 	for child in node.get_children():
@@ -1589,7 +1554,6 @@ func _save_progress():
 	GlobalMusic.pause_level_music()
 	
 	if not has_node("/root/Global"):
-		print("Global не найден, сохранение невозможно")
 		return
 	
 	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
@@ -1678,7 +1642,6 @@ func _wait_dialog() -> void:
 
 func _toggle_pause() -> void:
 	if not pause_menu or not player:
-		print("PAUSE: нет pause_menu или player")
 		return
 	
 	var anim = player.get_node_or_null("AnimatedSprite2D")

@@ -1,9 +1,7 @@
 extends Camera2D
 
-@export var mouse_influence: float = 0.05
-@export var smooth_speed: float = 0.1
-
-
+var mouse_influence: float = 0.05
+var smooth_speed: float = 0.1
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS

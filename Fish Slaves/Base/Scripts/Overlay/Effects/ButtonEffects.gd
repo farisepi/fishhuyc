@@ -1,4 +1,3 @@
-# button_effects.gd
 class_name ButtonEffects
 extends Node
 
@@ -37,7 +36,6 @@ static func _on_button_hover(btn: Button, original_alpha: float) -> void:
 	if btn.has_meta("no_scale_animation") and btn.get_meta("no_scale_animation"):
 		return
 	
-	# Jelly симметричный — не сдвигается
 	var pos = btn.position
 	var jelly = btn.create_tween()
 	jelly.set_loops()
@@ -45,7 +43,6 @@ static func _on_button_hover(btn: Button, original_alpha: float) -> void:
 	jelly.tween_property(btn, "scale", Vector2(0.96, 1.04), 0.4).set_ease(Tween.EASE_IN_OUT)
 	btn.set_meta("jelly_tween", jelly)
 	
-	# Фиксируем позицию
 	btn.position = pos
 	
 	_spawn_bubbles(btn)

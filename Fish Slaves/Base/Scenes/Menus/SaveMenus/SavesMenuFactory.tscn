@@ -1,0 +1,153 @@
+[gd_scene format=3 uid="uid://b2g1j65ljrjwo"]
+
+[ext_resource type="Script" uid="uid://bwhafeqk5ab4s" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuFactory.gd" id="1_us2yi"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_fna08"]
+[ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="3_c4yi2"]
+[ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="4_u5yr1"]
+[ext_resource type="StyleBox" uid="uid://cbfwkdnsfbg3" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonHover.tres" id="5_v8ewb"]
+[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="6_wixif"]
+[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="7_bbkte"]
+[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="8_34wr3"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_3ug42"]
+
+[node name="SaveMenu" type="Node2D" unique_id=2084349734]
+script = ExtResource("1_us2yi")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=680956382]
+offset_left = -45.46
+offset_top = -120.95
+offset_right = 1479.7001
+offset_bottom = 840.01996
+mouse_filter = 2
+color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
+metadata/_edit_use_anchors_ = true
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_fna08")]
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=486581449]
+offset_left = 150.0
+offset_top = 120.0
+offset_right = 1319.4119
+offset_bottom = 584.0
+scale = Vector2(0.85, 0.85)
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=1034263232]
+custom_minimum_size = Vector2(1000, 500)
+clip_contents = true
+layout_mode = 2
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+
+[node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1657378626]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="SaveSlot2" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1296018424]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="SaveSlot3" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1668447269]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="SaveSlot4" type="Button" parent="ScrollContainer/SaveGrid" unique_id=613332536]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="SaveSlot5" type="Button" parent="ScrollContainer/SaveGrid" unique_id=367018473]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="SaveSlot6" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1879601160]
+custom_minimum_size = Vector2(1002, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = ExtResource("3_c4yi2")
+theme_override_styles/pressed = ExtResource("4_u5yr1")
+theme_override_styles/hover = ExtResource("5_v8ewb")
+text = "Пусто
+"
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1579598994]
+offset_left = 415.00003
+offset_top = 24.000002
+offset_right = 543.0
+offset_bottom = 48.0
+scale = Vector2(2.5, 2.5)
+theme_override_font_sizes/font_size = 12
+text = "Сохранения"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="Button" parent="." unique_id=363767151]
+offset_left = 456.0
+offset_top = 584.0
+offset_right = 688.0
+offset_bottom = 632.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("6_wixif")
+theme_override_styles/pressed = ExtResource("7_bbkte")
+theme_override_styles/hover = ExtResource("8_34wr3")
+text = "Закрыть
+"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1257404213]
+position = Vector2(576, 328)
+script = ExtResource("10_3ug42")
+
+[node name="SkipUI" type="CanvasLayer" parent="." unique_id=62705663]
+visible = false
+
+[node name="SkipBG" type="ColorRect" parent="SkipUI" unique_id=1943018579]
+offset_left = 908.0
+offset_top = 54.0
+offset_right = 1048.0
+offset_bottom = 84.0
+color = Color(0, 0, 0, 1)
+
+[node name="SkipFill" type="ColorRect" parent="SkipUI" unique_id=888038963]
+offset_left = 908.0
+offset_top = 55.0
+offset_right = 908.0
+offset_bottom = 85.0
+
+[node name="SkipLabel" type="Label" parent="SkipUI" unique_id=898263318]
+offset_left = 927.0
+offset_top = 78.0
+offset_right = 1023.0
+offset_bottom = 101.0
+text = "Пропустить"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

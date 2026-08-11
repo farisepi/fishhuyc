@@ -1,12 +1,12 @@
 extends CharacterBody2D
 
-@export var bubble_scene: PackedScene
-@export var speed: float = 200.0
-@export var acceleration: float = 800.0
-@export var tilt_amount: float = 0.3
-@export var tilt_speed: float = 2.0
-@export var float_strength: float = 1.5
-@export var float_speed: float = 2.0
+var bubble_scene: PackedScene
+var speed: float = 200.0
+var acceleration: float = 800.0
+var tilt_amount: float = 0.3
+var tilt_speed: float = 2.0
+var float_strength: float = 1.5
+var float_speed: float = 2.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -24,25 +24,12 @@ var shake_decay: float = 6.0
 var can_move: bool = true
 
 func _ready() -> void:
-	print("=== FISH _ready START ===")
 	if sprite:
-		var available_animations = sprite.sprite_frames.get_animation_names()
-		print("Available animations: ", available_animations)
-		if "wake" in available_animations:
-			print("SUCCESS: 'wake' animation exists!")
-			var frame_count = sprite.sprite_frames.get_frame_count("wake")
-			print("'wake' has ", frame_count, " frames")
-		else:
-			print("ERROR: 'wake' animation NOT FOUND!")
 		sprite.scale.x = 1.0 if facing_direction == -1 else -1.0
-	else:
-		print("ERROR: sprite is null!")
 	
 	if has_node("PlayerCamera"):
 		var cam = $PlayerCamera as Camera2D
 		cam.process_mode = Node.PROCESS_MODE_ALWAYS
-	
-	print("=== FISH _ready END ===")
 
 func _physics_process(delta: float) -> void:
 	if not sprite:
@@ -71,8 +58,6 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_clamp_to_viewport()
 
-# Функция обновления эффекта тряски камеры
-# Уменьшает shake_amount со временем
 func _update_shake(delta: float) -> void:
 	if shake_amount <= 0:
 		return
@@ -99,14 +84,10 @@ func _update_shake(delta: float) -> void:
 		else:
 			cam.offset = Vector2.ZERO
 
-# Функция анимации покачивания рыбки вверх-вниз
-# Создаёт эффект плавания на месте
 func _update_float_animation() -> void:
 	var float_offset = sin(Time.get_ticks_msec() * 0.001 * float_speed) * float_strength
 	sprite.position.y = float_offset
 
-# Функция обработки движения рыбки
-# Управляет анимацией, наклоном, пузырьками и звуками
 func _handle_movement(direction_input: Vector2, delta: float) -> void:
 	if not was_moving:
 		sprite.play("walk")
@@ -221,16 +202,12 @@ func _cleanup_bubble(bubble: Variant) -> void:
 	if is_instance_valid(bubble) and not bubble.popped:
 		bubble._auto_pop()
 
-# Функция ограничения позиции рыбки в пределах вьюпорта
-# Учитывает отступ для анимации покачивания
 func _clamp_to_viewport() -> void:
 	var margin = float_strength + 5.0
 	var viewport_size = get_viewport().get_visible_rect().size
 	global_position.x = clamp(global_position.x, margin, viewport_size.x - margin)
 	global_position.y = clamp(global_position.y, margin, viewport_size.y - margin)
 
-# Функция удара по стеклу (вызывается из катсцены)
-# Включает тряску камеры и звук удара
 func hit_glass() -> void:
 	if sprite:
 		var old_scale = sprite.scale

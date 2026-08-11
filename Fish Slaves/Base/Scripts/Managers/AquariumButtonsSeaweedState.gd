@@ -15,7 +15,7 @@ func _scan(node: Node) -> void:
 				if not states.has(path):
 					states[path] = {
 						"visible": randf() < 0.25,
-						"flip": randf() < 0.5  # 50% шанс отражения
+						"flip": randf() < 0.5
 					}
 		_scan(child)
 

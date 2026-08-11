@@ -1,6 +1,7 @@
 extends Camera2D
-@export var decay_speed: float = 0.3
-@export var max_offset: Vector2 = Vector2(25, 15)
+
+var decay_speed: float = 0.3
+var max_offset: Vector2 = Vector2(25, 15)
 var trauma: float = 0.0
 var external_offset: Vector2 = Vector2.ZERO
 

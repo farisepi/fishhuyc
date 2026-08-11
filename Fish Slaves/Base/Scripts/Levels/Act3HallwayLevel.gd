@@ -27,7 +27,6 @@ var check_timer: Timer
 var forklift_ready_for_throw: bool = false
 var forklift_stopped: bool = false
 
-# ПАРИРОВАНИЕ
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
@@ -73,33 +72,24 @@ func _ready():
 			_game_over()
 	)
 	
-	# ==========================================
-	# ТРИГГЕР ПАРИРОВАНИЯ
-	# ==========================================
 	var parrying_scene = get_node_or_null("ParryingScene")
 	if parrying_scene:
 		parry_trigger = parrying_scene.get_node_or_null("ParryTrigger")
 		var enemy = parrying_scene.get_node_or_null("AttackParry")
 		
 		if parry_trigger and enemy:
-			print("✅ Триггер и враг найдены!")
-			
 			enemy.visible = false
 			enemy.set_physics_process(false)
 			
-			# ОТКЛЮЧАЕМ КОЛЛИЗИЮ ВРАГА
 			var col = enemy.get_node_or_null("CollisionShape2D")
 			if col:
 				col.disabled = true
 			
 			parry_trigger.body_entered.connect(func(body):
 				if body == player and not parry_done and not player.parry_done:
-					print("🔔 ТРИГГЕР СРАБОТАЛ!")
 					player.start_parry(enemy, _on_parry_complete)
 					parry_trigger.monitoring = false
 			)
-		else:
-			print("❌ Ошибка: ParryTrigger или AttackParry не найдены!")
 	
 	if pause_menu:
 		pause_menu.visible = false
@@ -110,7 +100,6 @@ func _ready():
 	_start_intro()
 
 func _on_parry_complete():
-	print("✅ ПАРИРОВАНИЕ ЗАВЕРШЕНО!")
 	parry_done = true
 	
 	if parry_trigger:
@@ -227,9 +216,6 @@ func _process(delta):
 				if prompt.text != "Кинь предмет в погрузчик!":
 					prompt.visible = false
 		
-		# ==========================================
-		# ЛИФТ - ТОЛЬКО ПОСЛЕ ПАРИРОВАНИЯ
-		# ==========================================
 		if player.global_position.x > 3200 and parry_done:
 			if not can_press_button:
 				can_press_button = true

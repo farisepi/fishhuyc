@@ -38,8 +38,6 @@ func get_key_text(action: String) -> String:
 			return e.as_text()
 	return "Не назначено"
 
-# Функция получения текстуры клавиши
-# Проверяет существование файла .tres и .png
 func get_key_texture(action: String) -> Texture2D:
 	var events = InputMap.action_get_events(action)
 	for e in events:
@@ -48,16 +46,10 @@ func get_key_texture(action: String) -> Texture2D:
 			var tres_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.tres"
 			var png_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.png"
 			
-			print("Ищу текстуру для: ", key_string)
-			print("  Проверяю: ", tres_path, " -> ", ResourceLoader.exists(tres_path))
-			print("  Проверяю: ", png_path, " -> ", ResourceLoader.exists(png_path))
-			
 			if ResourceLoader.exists(tres_path):
 				return load(tres_path)
 			elif ResourceLoader.exists(png_path):
 				return load(png_path)
-			else:
-				print("Текстура не найдена: ", key_string)
 	return null
 
 func get_key_texture_pressed(action: String) -> Texture2D:
@@ -72,8 +64,6 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 				return load(tres_path)
 			elif ResourceLoader.exists(png_path):
 				return load(png_path)
-			else:
-				print("Текстура нажатия не найдена: ", key_string)
 	return null
 
 func _keycode_to_string(keycode: Key) -> String:
@@ -92,7 +82,6 @@ func _keycode_to_string(keycode: Key) -> String:
 		KEY_RIGHT: return "ArrowRight"
 		_:
 			var result = OS.get_keycode_string(keycode).to_lower()
-			# Для русской раскладки
 			match result:
 				"й": return "Q"
 				"ц": return "W"
@@ -129,7 +118,6 @@ func _keycode_to_string(keycode: Key) -> String:
 				_: return result
 
 func start_rebind(action: String) -> void:
-	print("start_rebind called with action: ", action)
 	rebinding_action = action
 	rebind_delay = 0.2
 
@@ -201,11 +189,9 @@ func _string_to_keycode(text: String) -> Key:
 		"ArrowLeft": return KEY_LEFT
 		"ArrowRight": return KEY_RIGHT
 		_:
-			# Пробуем найти по английской раскладке
 			var result = OS.find_keycode_from_string(text)
 			if result != KEY_NONE:
 				return result
-			# Пробуем русскую раскладку
 			var ru_map = {
 				"Q": "й", "W": "ц", "E": "у", "R": "к", "T": "е",
 				"Y": "н", "U": "г", "I": "ш", "O": "щ", "P": "з",

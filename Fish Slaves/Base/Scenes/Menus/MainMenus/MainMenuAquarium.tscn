@@ -1,0 +1,409 @@
+[gd_scene format=3 uid="uid://dhroy06x2e74b"]
+
+[ext_resource type="Script" uid="uid://da6rmit8qffo5" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAquarium.gd" id="1_tb57m"]
+[ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn" id="2_tb57m"]
+[ext_resource type="StyleBox" uid="uid://cdp5404itmfof" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonNormal.tres" id="3_qtcvm"]
+[ext_resource type="StyleBox" uid="uid://ekl2i1p6fa0s" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonPressed.tres" id="4_y6eke"]
+[ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonHover.tres" id="5_b484i"]
+[ext_resource type="Script" uid="uid://mkq572lg6l57" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/PlayButton.gd" id="6_3h1qo"]
+[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_ofhx6"]
+[ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="8_mijro"]
+[ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="9_ssfa7"]
+[ext_resource type="StyleBox" uid="uid://bxxvat40rdr8n" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonNormal.tres" id="10_78rcu"]
+[ext_resource type="StyleBox" uid="uid://c1rngqmtqoo1v" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonPressed.tres" id="11_k1jsw"]
+[ext_resource type="StyleBox" uid="uid://ccehocxigbms8" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareAquariumMenuButtons/ShareAquariumMenuButtonHover.tres" id="12_06uk7"]
+[ext_resource type="Texture2D" uid="uid://4oacvlud2hgi" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtonIcons/DiscordMenuButtonIcon.png" id="13_r3f85"]
+[ext_resource type="Texture2D" uid="uid://dxkytmc46dbt2" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtonIcons/TelegramMenuButtonIcon.png" id="14_1qkg3"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="15_f0hl2"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_8vnjk"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_u0o22"]
+[ext_resource type="Texture2D" uid="uid://demttav0h5uba" path="res://Fish Slaves/Textures/Interface/MainMenuLogo/AquariumMainMenuLogo.png" id="18_3yscn"]
+[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="19_7aoey"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="20_ptrrf"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
+particle_flag_disable_z = true
+gravity = Vector3(0, 98, 0)
+
+[sub_resource type="SystemFont" id="SystemFont_il11y"]
+subpixel_positioning = 0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i8f0v"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(0, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b45gd"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(240, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xrw2w"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(480, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ycqps"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(720, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_511r8"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(960, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7ykyg"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(1200, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ne66m"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(1440, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1ltd6"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(1680, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xbr4h"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(1920, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xaeb8"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(2160, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_il11y"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(2400, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_egx2l"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(2640, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n3g2m"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(2880, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lvyug"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(3120, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b567x"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(3360, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mvvfk"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(3600, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nlcfn"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(3840, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r46on"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(4080, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fikk0"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(4320, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6ocal"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(4560, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_53woq"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(4800, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w0pdi"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(5040, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lsdd6"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(5280, 0, 240, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k7bph"]
+atlas = ExtResource("18_3yscn")
+region = Rect2(5520, 0, 240, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2x044"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i8f0v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b45gd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xrw2w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ycqps")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_511r8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7ykyg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ne66m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1ltd6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xbr4h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xaeb8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_il11y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_egx2l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n3g2m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lvyug")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b567x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mvvfk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nlcfn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r46on")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fikk0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6ocal")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_53woq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w0pdi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lsdd6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k7bph")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uo4fs"]
+shader = ExtResource("20_ptrrf")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+
+[node name="MainMenu" type="Node2D" unique_id=387678729]
+script = ExtResource("1_tb57m")
+bubble_scene = ExtResource("2_tb57m")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1235397578]
+offset_left = -45.46
+offset_top = -120.95
+offset_right = 1479.7001
+offset_bottom = 840.01996
+mouse_filter = 2
+color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
+metadata/_edit_use_anchors_ = true
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=577935788]
+position = Vector2(-746, -566)
+amount = 30
+process_material = SubResource("ParticleProcessMaterial_xt27g")
+
+[node name="PlayButton" type="Button" parent="." unique_id=1747499209]
+offset_left = 445.0
+offset_top = 267.0
+offset_right = 705.0
+offset_bottom = 311.0
+mouse_filter = 1
+theme_override_fonts/font = SubResource("SystemFont_il11y")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_qtcvm")
+theme_override_styles/pressed = ExtResource("4_y6eke")
+theme_override_styles/hover = ExtResource("5_b484i")
+text = "Начать игру
+"
+script = ExtResource("6_3h1qo")
+
+[node name="Seaweed" type="Sprite2D" parent="PlayButton" unique_id=227390764]
+visible = false
+position = Vector2(129.99995, 21.99999)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("7_ofhx6")
+
+[node name="SaveButton" type="Button" parent="." unique_id=112604908]
+visible = false
+offset_left = 426.0
+offset_top = -243.0
+offset_right = 686.0
+offset_bottom = -199.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = ExtResource("8_mijro")
+theme_override_styles/pressed = ExtResource("9_ssfa7")
+theme_override_styles/hover = ExtResource("5_b484i")
+text = "Сохранения"
+
+[node name="SettingsButton" type="Button" parent="." unique_id=806966876]
+offset_left = 445.0
+offset_top = 316.0
+offset_right = 705.0
+offset_bottom = 360.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_qtcvm")
+theme_override_styles/pressed = ExtResource("4_y6eke")
+theme_override_styles/hover = ExtResource("5_b484i")
+text = "Настройки
+"
+
+[node name="Seaweed" type="Sprite2D" parent="SettingsButton" unique_id=89901388]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("7_ofhx6")
+
+[node name="AchivmentsButton" type="Button" parent="." unique_id=2008761553]
+offset_left = 445.0
+offset_top = 365.0
+offset_right = 705.0
+offset_bottom = 409.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_qtcvm")
+theme_override_styles/pressed = ExtResource("4_y6eke")
+theme_override_styles/hover = ExtResource("5_b484i")
+text = "Достижения
+
+"
+
+[node name="Seaweed" type="Sprite2D" parent="AchivmentsButton" unique_id=1652517943]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("7_ofhx6")
+
+[node name="QuitButton" type="Button" parent="." unique_id=1075697719]
+offset_left = 445.0
+offset_top = 414.0
+offset_right = 705.0
+offset_bottom = 458.0
+mouse_filter = 1
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("3_qtcvm")
+theme_override_styles/pressed = ExtResource("4_y6eke")
+theme_override_styles/hover = ExtResource("5_b484i")
+text = "Выход
+
+
+"
+
+[node name="Seaweed" type="Sprite2D" parent="QuitButton" unique_id=497475525]
+visible = false
+position = Vector2(129.99994, 22)
+scale = Vector2(2.113821, 1.5714288)
+texture = ExtResource("7_ofhx6")
+
+[node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
+offset_left = 519.0
+offset_top = 463.0
+offset_right = 563.0
+offset_bottom = 507.0
+mouse_filter = 1
+theme_override_styles/normal = ExtResource("10_78rcu")
+theme_override_styles/pressed = ExtResource("11_k1jsw")
+theme_override_styles/hover = ExtResource("12_06uk7")
+icon = ExtResource("13_r3f85")
+expand_icon = true
+
+[node name="TelegramButton" type="Button" parent="." unique_id=1272725020]
+offset_left = 587.0
+offset_top = 463.0
+offset_right = 631.0
+offset_bottom = 507.0
+mouse_filter = 1
+theme_override_styles/normal = ExtResource("10_78rcu")
+theme_override_styles/pressed = ExtResource("11_k1jsw")
+theme_override_styles/hover = ExtResource("12_06uk7")
+icon = ExtResource("14_1qkg3")
+expand_icon = true
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("15_f0hl2")]
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1827944283]
+offset_top = -2.0
+offset_right = 59.0
+offset_bottom = 28.0
+script = ExtResource("16_8vnjk")
+metadata/_edit_use_anchors_ = true
+
+[node name="MainMenuCamera" type="Camera2D" parent="." unique_id=1057194260]
+position = Vector2(578, 323)
+script = ExtResource("17_u0o22")
+
+[node name="LogoArea" type="TextureRect" parent="." unique_id=2125491484]
+offset_left = 299.0
+offset_top = 37.0
+offset_right = 828.0
+offset_bottom = 137.0
+metadata/_edit_use_anchors_ = true
+
+[node name="LogoAnimation" type="AnimatedSprite2D" parent="LogoArea" unique_id=65456073]
+position = Vector2(278.00003, 90.99997)
+scale = Vector2(2.75, 2.75)
+sprite_frames = SubResource("SpriteFrames_2x044")
+autoplay = "default"
+frame = 1
+frame_progress = 0.57846695
+
+[node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
+
+[node name="SeaweedApplier" type="Node" parent="." unique_id=1738621417]
+script = ExtResource("19_7aoey")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=1955406844]
+z_index = -1
+material = SubResource("ShaderMaterial_uo4fs")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -79.0
+offset_right = 1329.0
+offset_bottom = 916.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="AchivmentsButton" to="." method="_on_achivments_button_pressed"]
+[connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="DiscordButton" to="." method="_on_discord_button_pressed"]
+[connection signal="pressed" from="TelegramButton" to="." method="_on_discord_button_pressed"]

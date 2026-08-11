@@ -1,10 +1,10 @@
 extends CharacterBody2D
 
-@export var speed: float = 200.0
-@export var run_speed: float = 350.0
-@export var jump_velocity: float = -300.0
-@export var slide_speed: float = 650.0
-@export var gravity: float = 980.0
+var speed: float = 200.0
+var run_speed: float = 350.0
+var jump_velocity: float = -300.0
+var slide_speed: float = 650.0
+var gravity: float = 980.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $"../MechaFishCamera"
@@ -19,9 +19,6 @@ var held_texture: Texture2D
 var held_icon: Sprite2D
 var can_throw: bool = false
 
-# ==========================================
-# ПАРИРОВАНИЕ
-# ==========================================
 var parry_active: bool = false
 var parry_done: bool = false
 var parry_timer: float = 0.0
@@ -110,9 +107,6 @@ func _physics_process(delta):
 		held_icon.global_position = global_position + Vector2(0, -60)
 		held_icon.modulate = Color.RED if can_throw else Color.WHITE
 	
-	# ==========================================
-	# ПАРИРОВАНИЕ - ПРОВЕРКА КНОПКИ PARRY
-	# ==========================================
 	if parry_active and not parry_done:
 		if Input.is_action_just_pressed("parry"):
 			_parry_success()
@@ -135,7 +129,6 @@ func _input(event: InputEvent) -> void:
 		else:
 			_grab_item()
 	
-	# Парирование по кнопке parry
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
 			_parry_success()
@@ -195,27 +188,20 @@ func _throw_item():
 func set_can_throw(value: bool):
 	can_throw = value
 
-# ==========================================
-# ПАРИРОВАНИЕ - ОСНОВНЫЕ ФУНКЦИИ
-# ==========================================
-
 func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	if parry_active or parry_done:
 		return
 	
-	print("🔥 ПАРИРОВАНИЕ ЗАПУЩЕНО!")
 	parry_active = true
 	parry_done = false
 	parry_timer = 0.0
 	parry_enemy = enemy
 	parry_callback = callback
 	
-	# ПОКАЗЫВАЕМ ВРАГА
 	if parry_enemy:
 		parry_enemy.visible = true
 		parry_enemy.modulate = Color(1, 1, 1, 1)
 		
-		# ВЫХОД ИЗ ШКАФА (СЛЕВА НАПРАВО)
 		var start_x = parry_enemy.global_position.x - 100
 		parry_enemy.global_position.x = start_x
 		
@@ -224,10 +210,8 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 		tween.tween_property(parry_enemy, "global_position:x", start_x + 100, 0.3)
 		await tween.finished
 	
-	# ОСТАНАВЛИВАЕМ ВРЕМЯ
 	Engine.time_scale = 0.0
 	
-	# ЗАТЕМНЕНИЕ
 	parry_fade = ColorRect.new()
 	parry_fade.color = Color(0, 0, 0, 0)
 	parry_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -239,7 +223,6 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	fade_tween.tween_property(parry_fade, "color:a", 0.6, 0.3)
 	await fade_tween.finished
 	
-	# НАДПИСЬ
 	parry_label = Label.new()
 	parry_label.text = "ПКМ - ПАРИРУЙ"
 	parry_label.add_theme_font_size_override("font_size", 48)
@@ -255,21 +238,17 @@ func _parry_success():
 	if parry_done:
 		return
 	
-	print("🔥 ПАРИРОВАНИЕ УСПЕШНО!")
 	parry_done = true
 	parry_active = false
 	
-	# ОГЛУШАЕМ ВРАГА
 	if parry_enemy:
 		parry_enemy.modulate = Color(0.5, 0.5, 0.5, 1)
 		parry_enemy.set_physics_process(false)
 	
-	# УБИРАЕМ НАДПИСЬ
 	if parry_label:
 		parry_label.queue_free()
 		parry_label = null
 	
-	# УБИРАЕМ ЗАТЕМНЕНИЕ
 	if parry_fade:
 		var fade_tween = create_tween()
 		fade_tween.tween_property(parry_fade, "color:a", 0.0, 0.3)
@@ -277,10 +256,8 @@ func _parry_success():
 		parry_fade.queue_free()
 		parry_fade = null
 	
-	# ВОЗВРАЩАЕМ ВРЕМЯ
 	Engine.time_scale = 1.0
 	
-	# ВЫЗЫВАЕМ КОЛБЭК
 	if parry_callback != null:
 		parry_callback.call()
 
@@ -337,4 +314,3 @@ func _try_climb():
 					
 					is_climbing = false
 					velocity.x = speed * d
-					return
