@@ -4,30 +4,31 @@
 [ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish.gd" id="2_dw7qd"]
 [ext_resource type="Shader" uid="uid://cfsy48uvstp6g" path="res://Fish Slaves/Base/Shaders/Act3HallwayLevelShaders/Act3HallwayLevelShader.gdshader" id="2_gb2nh"]
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3GrabbableItem.gd" id="3_42m7p"]
-[ext_resource type="Texture2D" uid="uid://wnabl54bs81i" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/MechaFishIdle.png" id="3_pqd4u"]
-[ext_resource type="Texture2D" uid="uid://de3iw7e7wy04b" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3ObjectTiles.png" id="5_ii734"]
+[ext_resource type="Texture2D" uid="uid://c5vmbsmww8djs" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/MechaFishIdle.png" id="3_pqd4u"]
+[ext_resource type="Texture2D" uid="uid://pwgd2air676b" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3ObjectTiles.png" id="5_ii734"]
 [ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3Enemy.gd" id="6_42m7p"]
-[ext_resource type="Texture2D" uid="uid://n6jejp30fd76" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="7_8eynh"]
-[ext_resource type="Texture2D" uid="uid://dd2gqd64xnamw" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
-[ext_resource type="Texture2D" uid="uid://c7flfahlbyak8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
-[ext_resource type="Texture2D" uid="uid://db8l4khtprcs7" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishDeath/MechaFishDeathWithoutFish.png" id="14_vcm1k"]
-[ext_resource type="Texture2D" uid="uid://lgtakal4t558" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetDown.png" id="15_kym3o"]
+[ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="7_8eynh"]
+[ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
+[ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
+[ext_resource type="Texture2D" uid="uid://b13g1gnfuccu3" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishDeath/MechaFishDeathWithoutFish.png" id="14_vcm1k"]
+[ext_resource type="Texture2D" uid="uid://dxwjv7wddxuho" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetDown.png" id="15_kym3o"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFishCamera.gd" id="15_wsnn3"]
-[ext_resource type="Texture2D" uid="uid://k0ephffng6w8" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetUp.png" id="16_hl4fp"]
-[ext_resource type="Texture2D" uid="uid://jlu7rxxu02w2" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishRun/MechaFishRun.png" id="16_rmgbf"]
-[ext_resource type="Texture2D" uid="uid://be13lj7tf0djk" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishSlide.png" id="19_6ntdl"]
-[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="21_hl4fp"]
+[ext_resource type="Texture2D" uid="uid://27evrcb58l5k" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetUp.png" id="16_hl4fp"]
+[ext_resource type="Texture2D" uid="uid://beghv6t76ws52" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishRun/MechaFishRun.png" id="16_rmgbf"]
+[ext_resource type="Texture2D" uid="uid://so5v2v4abq3a" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishSlide.png" id="19_6ntdl"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="21_hl4fp"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="21_ktap7"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="22_6ntdl"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="22_c6ktk"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="23_5bbqq"]
+[ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Player/TightPassage.gd" id="23_v16hl"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="24_srbgl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
 shader = ExtResource("2_gb2nh")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
-size = Vector2(4739.3, 81.965)
+size = Vector2(5555, 81.965)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_43qq6"]
 texture = ExtResource("5_ii734")
@@ -866,7 +867,7 @@ texture = ExtResource("5_ii734")
 41:5/0 = 0
 42:5/0 = 0
 43:5/0 = 0
-0:6/0 = 03:6/0 = 0
+0:6/0 = 0
 4:6/0 = 0
 7:6/0 = 0
 8:6/0 = 0
@@ -1690,8 +1691,14 @@ radius = 12.649111
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1esiv"]
 size = Vector2(163.5, 68)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c0dwe"]
+size = Vector2(229.99997, 97)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_78ykq"]
+size = Vector2(21, 98)
+
 [node name="Level_3" type="Node2D" unique_id=928929783]
-position = Vector2(0, 122.34)
+position = Vector2(0, 232.91)
 script = ExtResource("1_jfe0f")
 metadata/_edit_vertical_guides_ = [93.0, 98.0]
 metadata/_edit_horizontal_guides_ = [334.0, 332.0]
@@ -1705,7 +1712,7 @@ script = ExtResource("15_wsnn3")
 material = SubResource("ShaderMaterial_jfe0f")
 offset_left = -15.045
 offset_top = -150.18
-offset_right = 4682.0
+offset_right = 5298.585
 offset_bottom = 345.44
 color = Color(0.7330637, 0.8145573, 0.9849141, 1)
 metadata/_edit_use_anchors_ = true
@@ -1714,7 +1721,7 @@ metadata/_edit_use_anchors_ = true
 position = Vector2(960, 340)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1278729066]
-position = Vector2(1156.6499, 37)
+position = Vector2(1564.5, 37)
 shape = SubResource("RectangleShape2D_43qq6")
 
 [node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1661476068]
@@ -2088,6 +2095,7 @@ position = Vector2(191.27002, 49)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ParryingScene/AttackParry" unique_id=749966825]
 position = Vector2(1, 4)
 shape = SubResource("CapsuleShape2D_bhunq")
+disabled = true
 
 [node name="ColorRect" type="ColorRect" parent="ParryingScene/AttackParry" unique_id=937659277]
 offset_left = -19.0
@@ -2100,10 +2108,10 @@ color = Color(0.84313726, 0, 0.08627451, 1)
 position = Vector2(191.27002, 15)
 texture = ExtResource("10_vcpp2")
 
-[node name="ParryTrigger" type="Area2D" parent="." unique_id=592565679]
-position = Vector2(3754, 299.66)
+[node name="ParryTrigger" type="Area2D" parent="ParryingScene" unique_id=592565679]
+position = Vector2(49.27002, 42.660004)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ParryTrigger" unique_id=175984235]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParryingScene/ParryTrigger" unique_id=175984235]
 position = Vector2(143.5, -10.53125)
 shape = SubResource("RectangleShape2D_qr0ht")
 
@@ -2251,3 +2259,48 @@ texture = ExtResource("21_hl4fp")
 
 [node name="SeaweedApplier" type="Node" parent="." unique_id=1504597157]
 script = ExtResource("22_6ntdl")
+
+[node name="TightPassageTrigger" type="Area2D" parent="." unique_id=226980607]
+position = Vector2(3460, 309.09)
+script = ExtResource("23_v16hl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TightPassageTrigger" unique_id=1965620769]
+position = Vector2(64, -22.5)
+shape = SubResource("RectangleShape2D_c0dwe")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1690086491]
+
+[node name="TightPassageUI" type="Control" parent="CanvasLayer" unique_id=1394956082]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="KeyButton" type="TextureRect" parent="CanvasLayer/TightPassageUI" unique_id=457144123]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="CanvasLayer/TightPassageUI/KeyButton" unique_id=1594602010]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "D"
+
+[node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+fill_mode = 4
+
+[node name="PromptLabel" type="Label" parent="CanvasLayer/TightPassageUI" unique_id=154742297]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="InteractionZone" type="Area2D" parent="." unique_id=1140717656]
+position = Vector2(3346, 324.09)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone" unique_id=1213343706]
+position = Vector2(51, -37)
+shape = SubResource("RectangleShape2D_78ykq")

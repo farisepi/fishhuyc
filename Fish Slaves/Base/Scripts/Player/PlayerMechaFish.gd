@@ -1,14 +1,18 @@
 extends CharacterBody2D
 
-var speed: float = 200.0
-var run_speed: float = 350.0
-var jump_velocity: float = -300.0
-var slide_speed: float = 650.0
-var gravity: float = 980.0
+@export var speed: float = 200.0
+@export var run_speed: float = 350.0
+@export var jump_velocity: float = -300.0
+@export var slide_speed: float = 650.0
+@export var gravity: float = 980.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $"../MechaFishCamera"
 
+
+var parry_cooldown: float = 0.0
+var parry_cooldown_time: float = 3.0
+var can_move: bool = true
 var is_crouching: bool = false
 var is_vaulting: bool = false
 var is_climbing: bool = false
@@ -19,14 +23,15 @@ var held_texture: Texture2D
 var held_icon: Sprite2D
 var can_throw: bool = false
 
+# ==========================================
+# ПАРИРОВАНИЕ
+# ==========================================
 var parry_active: bool = false
 var parry_done: bool = false
-var parry_timer: float = 0.0
-var parry_max_time: float = 1.5
-var parry_fade: ColorRect = null
-var parry_label: Label = null
 var parry_enemy: CharacterBody2D = null
 var parry_callback: Callable = Callable()
+var parry_fade: ColorRect = null
+var parry_label: Label = null
 
 func _ready():
 	sprite.play("Idle")
@@ -38,6 +43,9 @@ func _ready():
 	add_child(held_icon)
 
 func _physics_process(delta):
+	if parry_cooldown > 0:
+		parry_cooldown -= delta
+		
 	if get_tree().paused:
 		return
 	
@@ -107,15 +115,12 @@ func _physics_process(delta):
 		held_icon.global_position = global_position + Vector2(0, -60)
 		held_icon.modulate = Color.RED if can_throw else Color.WHITE
 	
+	# ==========================================
+	# ПАРИРОВАНИЕ - ПРОВЕРКА
+	# ==========================================
 	if parry_active and not parry_done:
-		if Input.is_action_just_pressed("parry"):
-			_parry_success()
-			return
-		
-		parry_timer += delta * 0.01
-		if parry_timer > parry_max_time:
-			_parry_success()
-			return
+		if Input.is_action_just_pressed("Parry"):
+			do_parry()
 
 func _end_slide():
 	is_sliding = false
@@ -131,7 +136,10 @@ func _input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
-			_parry_success()
+			do_parry()
+	elif parry_cooldown <= 0 and not parry_active and not parry_done:
+		# Можно начать новое парирование (если триггер активирует)
+		pass
 
 func _grab_item():
 	if has_item:
@@ -154,12 +162,13 @@ func _throw_item():
 	has_item = false
 	held_icon.visible = false
 	
+	
 	var thrown = Sprite2D.new()
 	thrown.texture = held_texture
 	thrown.scale = Vector2(0.4, 0.4)
 	thrown.global_position = global_position + Vector2(0, -20)
 	thrown.z_index = 5
-	thrown.modulate = Color.RED
+	thrown.modulate = Color.RED  # КРАСНЫЙ ЦВЕТ
 	get_parent().add_child(thrown)
 	
 	var dir = 1 if sprite.scale.x > 0 else -1
@@ -188,13 +197,29 @@ func _throw_item():
 func set_can_throw(value: bool):
 	can_throw = value
 
+# ==========================================
+# ПАРИРОВАНИЕ - ФУНКЦИИ
+# ==========================================
+
 func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
+	
+	if parry_cooldown > 0:
+		print("⏳ ПАРИРОВАНИЕ НА КД! Осталось: ", parry_cooldown)
+		return
+	
 	if parry_active or parry_done:
 		return
 	
+	print("🔥 ПАРИРОВАНИЕ ЗАПУЩЕНО!")
 	parry_active = true
 	parry_done = false
-	parry_timer = 0.0
+	# ... остальной код
+	if parry_active or parry_done:
+		return
+	
+	print("🔥 ПАРИРОВАНИЕ ЗАПУЩЕНО!")
+	parry_active = true
+	parry_done = false
 	parry_enemy = enemy
 	parry_callback = callback
 	
@@ -234,31 +259,60 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	parry_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	get_parent().add_child(parry_label)
 
-func _parry_success():
-	if parry_done:
+func do_parry():
+	if parry_done or not parry_active:
 		return
 	
+	print("🔥 ПАРИРОВАНИЕ УСПЕШНО!")
 	parry_done = true
 	parry_active = false
 	
-	if parry_enemy:
-		parry_enemy.modulate = Color(0.5, 0.5, 0.5, 1)
-		parry_enemy.set_physics_process(false)
+	# УДАЛЯЕМ ВРАГА
+	if is_instance_valid(parry_enemy):
+		parry_enemy.queue_free()
+		parry_enemy = null
 	
-	if parry_label:
+	# УБИРАЕМ НАДПИСЬ
+	if is_instance_valid(parry_label):
 		parry_label.queue_free()
 		parry_label = null
 	
-	if parry_fade:
-		var fade_tween = create_tween()
-		fade_tween.tween_property(parry_fade, "color:a", 0.0, 0.3)
-		await fade_tween.finished
+	# УБИРАЕМ ЗАТЕМНЕНИЕ
+	if is_instance_valid(parry_fade):
 		parry_fade.queue_free()
 		parry_fade = null
 	
+	# ВОЗВРАЩАЕМ ВРЕМЯ
 	Engine.time_scale = 1.0
+	get_tree().paused = false
 	
-	if parry_callback != null:
+	# СТАВИМ КД 3 СЕКУНДЫ
+	parry_cooldown = 3.0
+	
+	# БЛОКИРОВКА НА 1.5 СЕКУНДЫ
+	set_physics_process(false)
+	set_process(false)
+	
+	if sprite:
+		sprite.play("Idle")
+	
+	await get_tree().create_timer(1.5).timeout
+	
+	set_physics_process(true)
+	set_process(true)
+	is_vaulting = false
+	is_climbing = false
+	is_sliding = false
+	is_crouching = false
+	
+	velocity = Vector2.ZERO
+	
+	print("✅ ИГРОК РАЗБЛОКИРОВАН! КД: ", parry_cooldown)
+	
+	# ==========================================
+	# ВЫЗЫВАЕМ КОЛБЭК ТОЛЬКО ЕСЛИ ОН СУЩЕСТВУЕТ
+	# ==========================================
+	if parry_callback != null and parry_callback.is_valid():
 		parry_callback.call()
 
 func _try_vault() -> bool:
@@ -314,3 +368,4 @@ func _try_climb():
 					
 					is_climbing = false
 					velocity.x = speed * d
+					return

@@ -30,8 +30,6 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
-var enemy_positions: Dictionary = {}
-
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
@@ -44,7 +42,8 @@ func _ready():
 	
 	camera.zoom = Vector2(1.8, 1.8)
 	camera.limit_left = -5000
-	camera.limit_right = 5000	camera.limit_top = -5000
+	camera.limit_right = 5000
+	camera.limit_top = -5000
 	camera.limit_bottom = 5000
 	
 	for enemy in $Enemies.get_children():
@@ -79,17 +78,22 @@ func _ready():
 		var enemy = parrying_scene.get_node_or_null("AttackParry")
 		
 		if parry_trigger and enemy:
+			print("✅ Триггер и враг найдены!")
 			enemy.visible = false
 			enemy.set_physics_process(false)
+			enemy.set_process(false)
+			enemy.collision_layer = 0
+			enemy.collision_mask = 0
 			
 			var col = enemy.get_node_or_null("CollisionShape2D")
 			if col:
 				col.disabled = true
 			
 			parry_trigger.body_entered.connect(func(body):
-				if body == player and not parry_done and not player.parry_done:
+				if body == player and not player.parry_done:
+					print("🔔 ТРИГГЕР СРАБОТАЛ!")
 					player.start_parry(enemy, _on_parry_complete)
-					parry_trigger.monitoring = false
+					parry_trigger.set_deferred("monitoring", false)
 			)
 	
 	if pause_menu:
@@ -98,50 +102,19 @@ func _ready():
 		if continue_btn:
 			continue_btn.pressed.connect(_on_continue_pressed)
 	
-	_restore_state()
 	_start_intro()
 
-func _restore_state():
-	if Global.player_position != Vector2.ZERO:
-		player.global_position = Global.player_position
-		Global.player_position = Vector2.ZERO
-	
-	if Global.has("enemy_positions") and not Global.enemy_positions.is_empty():
-		enemy_positions = Global.enemy_positions
-		for enemy in $Enemies.get_children():
-			if enemy is CharacterBody2D:
-				var path = str(enemy.get_path())
-				if enemy_positions.has(path):
-					enemy.global_position = enemy_positions[path]
-		Global.enemy_positions = {}
-
-func _save_state():
-	Global.player_position = player.global_position
-	
-	enemy_positions = {}
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			var path = str(enemy.get_path())
-			enemy_positions[path] = enemy.global_position
-	Global.enemy_positions = enemy_positions
-	
-	Global.pending_save = true
-	Global.scene_to_save = get_tree().current_scene.scene_file_path
-
 func _on_parry_complete():
+	print("✅ ПАРИРОВАНИЕ ЗАВЕРШЕНО!")
 	parry_done = true
 	
-	if parry_trigger:
-		parry_trigger.monitoring = false
-		parry_trigger.queue_free()
-		parry_trigger = null
-	
-	prompt.text = "Отлично! Беги к лифту!"
-	prompt.visible = true
-	await get_tree().create_timer(2.0).timeout
-	prompt.visible = false
-	
-	_save_state()
+	if is_instance_valid(player):
+		player.set_physics_process(true)
+		player.set_process(true)
+		player.is_vaulting = false
+		player.is_climbing = false
+		player.is_sliding = false
+		player.is_crouching = false
 
 func _start_intro():
 	player.modulate = Color.RED
@@ -247,6 +220,9 @@ func _process(delta):
 				if prompt.text != "Кинь предмет в погрузчик!":
 					prompt.visible = false
 		
+		# ==========================================
+		# ЛИФТ - ТОЛЬКО ПОСЛЕ ПАРИРОВАНИЯ
+		# ==========================================
 		if player.global_position.x > 3200 and parry_done:
 			if not can_press_button:
 				can_press_button = true
@@ -339,8 +315,6 @@ func _throw_item_at_forklift():
 	prompt.visible = true
 	await get_tree().create_timer(2.0).timeout
 	prompt.visible = false
-	
-	_save_state()
 
 func _game_over():
 	if is_game_over or state == State.GAMEOVER:
@@ -397,8 +371,6 @@ func _game_over():
 func _win():
 	state = State.WIN
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	
-	Global.last_save_level = 3
 	
 	var black = ColorRect.new()
 	black.color = Color.BLACK

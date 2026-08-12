@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-var speed: float = 150.0
+var speed: float = 200.0
 var gravity: float = 980.0
 
 var player: CharacterBody2D = null
