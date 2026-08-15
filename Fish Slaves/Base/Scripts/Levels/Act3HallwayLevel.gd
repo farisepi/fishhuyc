@@ -30,6 +30,8 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
+var player_near_interaction: bool = false  # Для узкого прохода
+
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
@@ -95,6 +97,34 @@ func _ready():
 					player.start_parry(enemy, _on_parry_complete)
 					parry_trigger.set_deferred("monitoring", false)
 			)
+	
+	# ==========================================
+	# УЗКИЙ ПРОХОД - ТОЛЬКО ОТСЛЕЖИВАЕМ ПРИБЛИЖЕНИЕ
+	# ==========================================
+	var interaction_zone = $InteractionZone
+	var passage_trigger = $TightPassageTrigger
+	
+	if interaction_zone and passage_trigger:
+		print("✅ InteractionZone и TightPassageTrigger найдены!")
+		
+		if interaction_zone is StaticBody2D:
+			var detection = interaction_zone.get_node_or_null("DetectionArea")
+			if detection and detection is Area2D:
+				print("✅ DetectionArea найден!")
+				
+				detection.body_entered.connect(func(body):
+					if body == player:
+						print("🔔 ИГРОК РЯДОМ С ПРЕПЯТСТВИЕМ! Нажми Е чтобы пролезть")
+						player_near_interaction = true
+				)
+				
+				detection.body_exited.connect(func(body):
+					if body == player:
+						print("🚪 ИГРОК ОТОШЁЛ ОТ ПРЕПЯТСТВИЯ!")
+						player_near_interaction = false
+				)
+			else:
+				print("❌ У StaticBody2D нет дочернего Area2D! Создай DetectionArea")
 	
 	if pause_menu:
 		pause_menu.visible = false
@@ -386,6 +416,22 @@ func _win():
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
+	# ==========================================
+	# УЗКИЙ ПРОХОД (Е) - ПРИОРИТЕТ
+	# ==========================================
+	if event.is_action_pressed("interact"):
+		var passage_trigger = $TightPassageTrigger
+		
+		if player_near_interaction and passage_trigger and not passage_trigger.is_active:
+			print("🔴 НАЖАТА Е! СДВИГАЮ ИГРОКА!")
+			player.global_position.x += 10
+			passage_trigger.activate(player)
+			player_near_interaction = false
+			return  # ← Не идём дальше, чтобы не дублировать interact
+	
+	# ==========================================
+	# ПАУЗА
+	# ==========================================
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_pause()
 

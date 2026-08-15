@@ -1694,8 +1694,33 @@ size = Vector2(163.5, 68)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_c0dwe"]
 size = Vector2(229.99997, 97)
 
+[sub_resource type="GDScript" id="GDScript_v16hl"]
+script/source = "extends StaticBody2D
+
+@export var move_distance: float = 10.0
+@export var passage_trigger: Area2D = null
+
+var detection_area: Area2D = null
+
+func _ready():
+	# Ищем дочерний Area2D
+	detection_area = get_node_or_null(\"DetectionArea\")
+	if detection_area:
+		detection_area.body_entered.connect(_on_body_entered)
+	else:
+		print(\"❌ НЕТ ДОЧЕРНЕГО AREA2D! СОЗДАЙ DetectionArea ВНУТРИ\")
+
+func _on_body_entered(body: Node2D):
+	if body.name == \"Mecha_Fish\" and passage_trigger and not passage_trigger.is_active:
+		print(\"🔔 ИГРОК У ПРЕПЯТСТВИЯ!\")
+		passage_trigger.activate(body)
+"
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_78ykq"]
-size = Vector2(21, 98)
+size = Vector2(10, 98)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2r0jt"]
+size = Vector2(18, 97)
 
 [node name="Level_3" type="Node2D" unique_id=928929783]
 position = Vector2(0, 232.91)
@@ -2283,24 +2308,30 @@ offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="CanvasLayer/TightPassageUI/KeyButton" unique_id=1594602010]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = 3585.0
+offset_top = 427.0
+offset_right = 3598.0
+offset_bottom = 450.0
 text = "D"
 
 [node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 3578.0
+offset_top = 425.0
+offset_right = 3618.0
+offset_bottom = 465.0
 fill_mode = 4
 
-[node name="PromptLabel" type="Label" parent="CanvasLayer/TightPassageUI" unique_id=154742297]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-
-[node name="InteractionZone" type="Area2D" parent="." unique_id=1140717656]
+[node name="InteractionZone" type="StaticBody2D" parent="." unique_id=1971497442]
 position = Vector2(3346, 324.09)
+script = SubResource("GDScript_v16hl")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone" unique_id=1213343706]
-position = Vector2(51, -37)
+position = Vector2(56, -37)
 shape = SubResource("RectangleShape2D_78ykq")
+
+[node name="DetectionArea" type="Area2D" parent="InteractionZone" unique_id=1983304335]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone/DetectionArea" unique_id=553371105]
+position = Vector2(52, -37)
+shape = SubResource("RectangleShape2D_2r0jt")
