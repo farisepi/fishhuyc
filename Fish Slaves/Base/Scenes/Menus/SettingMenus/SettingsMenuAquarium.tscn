@@ -6,8 +6,8 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://bqkbfw61y1cbq" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/Switch.png" id="7_ugdgc"]
-[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
+[ext_resource type="Texture2D" uid="uid://u65js4g5tg2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/Switch.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="12_kd3mb"]
@@ -250,8 +250,8 @@ offset_bottom = 662.0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ControlsPage" unique_id=2024790193]
 layout_mode = 0
-offset_left = 83.0
-offset_top = 165.0
+offset_left = 251.0
+offset_top = 156.0
 offset_right = 1070.0
 offset_bottom = 528.0
 horizontal_scroll_mode = 0
@@ -267,15 +267,8 @@ theme_override_constants/separation = 35
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=709502145]
 layout_mode = 2
+offset_transform_enabled = true
 alignment = 1
-
-[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=2052933930]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Вверх"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="MoveUpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=565267772]
 custom_minimum_size = Vector2(100, 40)
@@ -286,14 +279,6 @@ size_flags_vertical = 4
 [node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1167399212]
 layout_mode = 2
 
-[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2" unique_id=1057749602]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Вниз"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="MoveDownButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2" unique_id=708118919]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
@@ -303,14 +288,6 @@ size_flags_stretch_ratio = 0.0
 [node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1335372062]
 layout_mode = 2
 
-[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3" unique_id=382700892]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Влево"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="MoveLeftButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3" unique_id=1597221555]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
@@ -318,14 +295,6 @@ size_flags_horizontal = 3
 
 [node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1654604942]
 layout_mode = 2
-
-[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4" unique_id=524739626]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Вправо"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="MoveRightButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4" unique_id=1453332579]
 custom_minimum_size = Vector2(100, 40)
@@ -335,14 +304,6 @@ size_flags_horizontal = 3
 [node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=273354029]
 layout_mode = 2
 
-[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5" unique_id=1026622778]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Прыжок"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="JumpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5" unique_id=695658269]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
@@ -350,14 +311,6 @@ size_flags_horizontal = 3
 
 [node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1066718228]
 layout_mode = 2
-
-[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6" unique_id=2068110502]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Взаимодействие"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="InteractButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6" unique_id=1220683337]
 custom_minimum_size = Vector2(100, 40)
@@ -367,14 +320,6 @@ size_flags_horizontal = 3
 [node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=2003708516]
 layout_mode = 2
 
-[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7" unique_id=1606541364]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Пауза"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="PauseButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7" unique_id=1251175926]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
@@ -382,14 +327,6 @@ size_flags_horizontal = 3
 
 [node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=580490677]
 layout_mode = 2
-
-[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8" unique_id=24195532]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Инвентарь"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="InventoryButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8" unique_id=86391702]
 custom_minimum_size = Vector2(100, 40)
@@ -399,14 +336,6 @@ size_flags_horizontal = 3
 [node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1598047638]
 layout_mode = 2
 
-[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer9" unique_id=1656085811]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Присесть"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="CrouchButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer9" unique_id=1073419493]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
@@ -415,7 +344,128 @@ size_flags_horizontal = 3
 [node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=476227223]
 layout_mode = 2
 
-[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer10" unique_id=1028505456]
+[node name="ParryingButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer10" unique_id=679565473]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="ControlsPage/ScrollContainer" unique_id=319168073]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.0
+offset_transform_enabled = true
+theme_override_constants/separation = 35
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=963525587]
+layout_mode = 2
+alignment = 1
+
+[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer" unique_id=1892398905]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Вверх"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=971712628]
+layout_mode = 2
+alignment = 1
+
+[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer2" unique_id=1327254580]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Вниз"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=1386599703]
+layout_mode = 2
+alignment = 1
+
+[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer3" unique_id=2081494111]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Влево"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=290369369]
+layout_mode = 2
+alignment = 1
+
+[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer4" unique_id=1761025548]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Вправо"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=451160418]
+layout_mode = 2
+alignment = 1
+
+[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer5" unique_id=794797930]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Прыжок"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=360134471]
+layout_mode = 2
+alignment = 1
+
+[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer6" unique_id=1663152504]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Взаимодействие"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=65764895]
+layout_mode = 2
+alignment = 1
+
+[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer7" unique_id=1003708802]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Пауза"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=1222664045]
+layout_mode = 2
+alignment = 1
+
+[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer8" unique_id=1305647306]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Инвентарь"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=636863595]
+layout_mode = 2
+alignment = 1
+
+[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer9" unique_id=1112852132]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Присесть"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=23693937]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -423,10 +473,9 @@ text = "Парировать"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ParryingButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer10" unique_id=679565473]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2/ParryingLabel" unique_id=5812131]
+layout_mode = 0
+alignment = 1
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0

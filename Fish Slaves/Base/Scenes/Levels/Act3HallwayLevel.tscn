@@ -1691,36 +1691,8 @@ radius = 12.649111
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1esiv"]
 size = Vector2(163.5, 68)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_c0dwe"]
-size = Vector2(229.99997, 97)
-
-[sub_resource type="GDScript" id="GDScript_v16hl"]
-script/source = "extends StaticBody2D
-
-@export var move_distance: float = 10.0
-@export var passage_trigger: Area2D = null
-
-var detection_area: Area2D = null
-
-func _ready():
-	# Ищем дочерний Area2D
-	detection_area = get_node_or_null(\"DetectionArea\")
-	if detection_area:
-		detection_area.body_entered.connect(_on_body_entered)
-	else:
-		print(\"❌ НЕТ ДОЧЕРНЕГО AREA2D! СОЗДАЙ DetectionArea ВНУТРИ\")
-
-func _on_body_entered(body: Node2D):
-	if body.name == \"Mecha_Fish\" and passage_trigger and not passage_trigger.is_active:
-		print(\"🔔 ИГРОК У ПРЕПЯТСТВИЯ!\")
-		passage_trigger.activate(body)
-"
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_78ykq"]
-size = Vector2(10, 98)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_2r0jt"]
-size = Vector2(18, 97)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x5kjr"]
+size = Vector2(229, 96)
 
 [node name="Level_3" type="Node2D" unique_id=928929783]
 position = Vector2(0, 232.91)
@@ -2285,14 +2257,6 @@ texture = ExtResource("21_hl4fp")
 [node name="SeaweedApplier" type="Node" parent="." unique_id=1504597157]
 script = ExtResource("22_6ntdl")
 
-[node name="TightPassageTrigger" type="Area2D" parent="." unique_id=226980607]
-position = Vector2(3460, 309.09)
-script = ExtResource("23_v16hl")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TightPassageTrigger" unique_id=1965620769]
-position = Vector2(64, -22.5)
-shape = SubResource("RectangleShape2D_c0dwe")
-
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1690086491]
 
 [node name="TightPassageUI" type="Control" parent="CanvasLayer" unique_id=1394956082]
@@ -2316,22 +2280,42 @@ text = "D"
 
 [node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
 layout_mode = 0
-offset_left = 3578.0
-offset_top = 425.0
-offset_right = 3618.0
-offset_bottom = 465.0
+offset_left = 3571.0
+offset_top = 420.0
+offset_right = 3611.0
+offset_bottom = 460.0
 fill_mode = 4
 
-[node name="InteractionZone" type="StaticBody2D" parent="." unique_id=1971497442]
-position = Vector2(3346, 324.09)
-script = SubResource("GDScript_v16hl")
+[node name="TightPassageTrigger" type="Area2D" parent="." unique_id=862275647]
+position = Vector2(3486, 297.09)
+script = ExtResource("23_v16hl")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone" unique_id=1213343706]
-position = Vector2(56, -37)
-shape = SubResource("RectangleShape2D_78ykq")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TightPassageTrigger" unique_id=304859994]
+position = Vector2(38.5, -9)
+shape = SubResource("RectangleShape2D_x5kjr")
 
-[node name="DetectionArea" type="Area2D" parent="InteractionZone" unique_id=1983304335]
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=972787217]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionZone/DetectionArea" unique_id=553371105]
-position = Vector2(52, -37)
-shape = SubResource("RectangleShape2D_2r0jt")
+[node name="TightPassageUI" type="Control" parent="CanvasLayer2" unique_id=1143034610]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer2/TightPassageUI" unique_id=1079815507]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="CanvasLayer2/TightPassageUI/TextureRect" unique_id=757535932]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "D"
+
+[node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer2/TightPassageUI" unique_id=1601687220]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+max_value = 10.0
+fill_mode = 4

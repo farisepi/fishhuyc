@@ -30,8 +30,6 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
-var player_near_interaction: bool = false  # Для узкого прохода
-
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
@@ -74,6 +72,7 @@ func _ready():
 			_game_over()
 	)
 	
+	# Парирование
 	var parrying_scene = get_node_or_null("ParryingScene")
 	if parrying_scene:
 		parry_trigger = parrying_scene.get_node_or_null("ParryTrigger")
@@ -97,34 +96,6 @@ func _ready():
 					player.start_parry(enemy, _on_parry_complete)
 					parry_trigger.set_deferred("monitoring", false)
 			)
-	
-	# ==========================================
-	# УЗКИЙ ПРОХОД - ТОЛЬКО ОТСЛЕЖИВАЕМ ПРИБЛИЖЕНИЕ
-	# ==========================================
-	var interaction_zone = $InteractionZone
-	var passage_trigger = $TightPassageTrigger
-	
-	if interaction_zone and passage_trigger:
-		print("✅ InteractionZone и TightPassageTrigger найдены!")
-		
-		if interaction_zone is StaticBody2D:
-			var detection = interaction_zone.get_node_or_null("DetectionArea")
-			if detection and detection is Area2D:
-				print("✅ DetectionArea найден!")
-				
-				detection.body_entered.connect(func(body):
-					if body == player:
-						print("🔔 ИГРОК РЯДОМ С ПРЕПЯТСТВИЕМ! Нажми Е чтобы пролезть")
-						player_near_interaction = true
-				)
-				
-				detection.body_exited.connect(func(body):
-					if body == player:
-						print("🚪 ИГРОК ОТОШЁЛ ОТ ПРЕПЯТСТВИЯ!")
-						player_near_interaction = false
-				)
-			else:
-				print("❌ У StaticBody2D нет дочернего Area2D! Создай DetectionArea")
 	
 	if pause_menu:
 		pause_menu.visible = false
@@ -250,9 +221,7 @@ func _process(delta):
 				if prompt.text != "Кинь предмет в погрузчик!":
 					prompt.visible = false
 		
-		# ==========================================
 		# ЛИФТ - ТОЛЬКО ПОСЛЕ ПАРИРОВАНИЯ
-		# ==========================================
 		if player.global_position.x > 3200 and parry_done:
 			if not can_press_button:
 				can_press_button = true
@@ -416,22 +385,28 @@ func _win():
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
-	# ==========================================
-	# УЗКИЙ ПРОХОД (Е) - ПРИОРИТЕТ
-	# ==========================================
 	if event.is_action_pressed("interact"):
 		var passage_trigger = $TightPassageTrigger
 		
-		if player_near_interaction and passage_trigger and not passage_trigger.is_active:
-			print("🔴 НАЖАТА Е! СДВИГАЮ ИГРОКА!")
-			player.global_position.x += 10
-			passage_trigger.activate(player)
-			player_near_interaction = false
-			return  # ← Не идём дальше, чтобы не дублировать interact
+		# Если игрок рядом с триггером и триггер ещё не активен
+		if passage_trigger and not passage_trigger.is_active:
+			var bodies = passage_trigger.get_overlapping_bodies()
+			if bodies.has(player):
+				print("🔴 НАЖАТА Е! ВХОД В ПРОХОД!")
+				
+				# СДВИГАЕМ ИГРОКА ВПЕРЁД НА 5 ПИКСЕЛЕЙ
+				player.global_position.x += 5
+				
+				# АКТИВИРУЕМ МИНИ-ИГРУ
+				passage_trigger.activate(player)
+				return
+		
+		# ОСВОБОЖДЕНИЕ В НАЧАЛЕ (если нужно)
+		if player.has_method("set_movement_blocked") and player.movement_blocked:
+			player.set_movement_blocked(false)
+			print("🔓 ИГРОК ОСВОБОЖДЁН!")
+			return
 	
-	# ==========================================
-	# ПАУЗА
-	# ==========================================
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_pause()
 

@@ -8,13 +8,10 @@ extends Area2D
 
 var press_count: int = 0
 var is_active: bool = false
-var is_interacting: bool = false
 var player: CharacterBody2D = null
 var press_cooldown: float = 0.0
 
 func _ready():
-	print("🔍 TightPassage: _ready()")
-	
 	var canvas_layer = get_parent().get_node_or_null("CanvasLayer")
 	if canvas_layer:
 		var ui = canvas_layer.get_node_or_null("TightPassageUI")
@@ -41,13 +38,10 @@ func activate(player_node: CharacterBody2D):
 	print("🔴 АКТИВАЦИЯ УЗКОГО ПРОХОДА!")
 	player = player_node
 	is_active = true
-	is_interacting = true
 	press_count = 0
 	
 	if player.has_method("set_movement_blocked"):
 		player.set_movement_blocked(true)
-	
-	player.global_position.x += move_distance
 	
 	if progress_ring:
 		progress_ring.visible = true
@@ -61,7 +55,7 @@ func activate(player_node: CharacterBody2D):
 		prompt_label.text = "Нажимай D"
 
 func _process(delta):
-	if not is_interacting or not player:
+	if not is_active or not player:
 		return
 	
 	if press_cooldown > 0:
@@ -86,7 +80,13 @@ func _process(delta):
 		if press_count >= required_presses:
 			_complete_passage()
 
-func _hide_ui():
+func _complete_passage():
+	print("✅ ПРОХОД ПРОЙДЕН!")
+	is_active = false
+	
+	if player and player.has_method("set_movement_blocked"):
+		player.set_movement_blocked(false)
+	
 	if progress_ring:
 		progress_ring.visible = false
 	
@@ -94,18 +94,8 @@ func _hide_ui():
 		key_button.visible = false
 	
 	if prompt_label:
+		prompt_label.text = "✅ ПРОХОД ПРОЙДЕН!"
+		await get_tree().create_timer(1.0).timeout
 		prompt_label.visible = false
-
-func _complete_passage():
-	print("✅ ПРОХОД ПРОЙДЕН!")
-	is_interacting = false
-	is_active = false
 	
-	if player and player.has_method("set_movement_blocked"):
-		player.set_movement_blocked(false)
-	
-	_hide_ui()
-	
-	monitoring = false
-	monitorable = false
 	queue_free()

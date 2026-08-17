@@ -20,6 +20,7 @@ var held_icon: Sprite2D
 var can_throw: bool = false
 var movement_blocked: bool = false
 
+
 # ==========================================
 # ПАРИРОВАНИЕ
 # ==========================================
@@ -47,6 +48,7 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
+	
 	
 	if get_tree().paused:
 		return
@@ -200,12 +202,9 @@ func _throw_item():
 func set_can_throw(value: bool):
 	can_throw = value
 
+
 func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
-
-# ==========================================
-# ПАРИРОВАНИЕ - ФУНКЦИИ
-# ==========================================
 
 func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	if parry_cooldown > 0:
@@ -308,7 +307,7 @@ func _try_vault() -> bool:
 	var c = get_parent().get_node_or_null("Barriers")
 	if not c: return false
 	for o in c.get_children():
-		if o is StaticBody2D and global_position.distance_to(o.global_position) < 80:
+		if o is StaticBody2D and global_position.distance_to(o.global_position) < 60:  # ← БЫЛО 80
 			var s = o.get_node("CollisionShape2D").shape
 			if s is RectangleShape2D:
 				if s.size.y > 60: return false
@@ -321,8 +320,8 @@ func _jump_over(o: StaticBody2D, high: bool):
 	velocity = Vector2.ZERO
 	var d = 1 if sprite.scale.x > 0 else -1
 	var t = global_position
-	t.x = o.global_position.x + d * 80
-	t.y = o.global_position.y - 60 if high else global_position.y
+	t.x = o.global_position.x + d * 50  # ← БЫЛО 80
+	t.y = o.global_position.y - 30 if high else global_position.y  # ← БЫЛО -60
 	create_tween().set_trans(Tween.TRANS_SINE).tween_property(self, "global_position", t, 0.3 if high else 0.15)
 	await get_tree().create_timer(0.3 if high else 0.15).timeout
 	is_vaulting = false
@@ -358,3 +357,4 @@ func _try_climb():
 					is_climbing = false
 					velocity.x = speed * d
 					return
+	
