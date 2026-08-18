@@ -9,6 +9,12 @@ extends CharacterBody2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $"../MechaFishCamera"
 
+
+var is_dead: bool = false
+var original_color: Color = Color(1, 1, 1, 1)
+var block_color: Color = Color(0.5, 0.8, 1.0, 1)
+var hp: int = 100
+var is_blocking: bool = false
 var is_crouching: bool = false
 var is_vaulting: bool = false
 var is_climbing: bool = false
@@ -43,7 +49,10 @@ func _ready():
 	add_child(held_icon)
 
 func _physics_process(delta):
-	# БЛОКИРОВКА ДВИЖЕНИЯ ДЛЯ УЗКОГО ПРОХОДА
+	if is_blocking:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
 	if movement_blocked:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -136,6 +145,16 @@ func _end_slide():
 	$CollisionShape2D.scale.y = 1.0
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("block"):
+		is_blocking = true
+		print("Блок работает")
+		if sprite:
+			sprite.modulate = block_color
+	if event.is_action_released("block"):
+		is_blocking = false
+		print("отжал блок")
+		if sprite:
+			sprite.modulate = original_color			
 	if event.is_action_pressed("interact"):
 		if has_item:
 			_throw_item()
@@ -357,4 +376,39 @@ func _try_climb():
 					is_climbing = false
 					velocity.x = speed * d
 					return
+
+
+func die():
+	if is_dead:
+		return
 	
+	is_dead = true
+	print("💀 die() ВЫЗВАНА! Начинаю анимацию...")
+	if sprite:
+		print("🔍 Спрайт найден, играю 'Death'")
+		sprite.play("Death")
+		await sprite.animation_finished
+		print("🔍 Анимация завершена, стопорю кадр")
+		
+		sprite.stop()
+		sprite.frame = sprite.sprite_frames.get_frame_count("Death") - 1
+		print("🔍 Последний кадр: ", sprite.frame)
+		await get_tree().create_timer(2.0).timeout
+	else:
+		print("❌ Спрайт не найден!")
+	
+	print("💀 Перезагружаю уровень...")
+	get_tree().reload_current_scene()
+					
+					
+func take_damage(amount: int):
+	hp -= amount
+	print("hitdamage")
+	if sprite:
+		sprite.play("Hit")
+		await sprite.animation_finished
+		sprite.play("Idle")
+	if hp <= 0:
+		die()	
+		
+		

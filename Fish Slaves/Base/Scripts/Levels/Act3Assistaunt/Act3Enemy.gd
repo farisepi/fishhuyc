@@ -8,6 +8,8 @@ var stunned: bool = false
 
 func _ready():
 	add_to_group("enemies")
+	collision_layer = 2
+	collision_mask = 1
 
 func _physics_process(delta):
 	if not player or stunned:

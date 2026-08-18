@@ -31,6 +31,9 @@ var parry_done: bool = false
 var parry_trigger: Area2D = null
 
 func _ready():
+	print("📍 ИГРОК СПАВНИТСЯ: ", player.global_position)
+	print("📍 DEATHZONE НАХОДИТСЯ: ", death_zone.global_position)
+	print("📍 DEATHZONE2 НАХОДИТСЯ: ", death_zone2.global_position)
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	player.set_physics_process(false)
@@ -62,15 +65,16 @@ func _ready():
 			_activate_forklift()
 	)
 	
+# В _ready():
 	death_zone.body_entered.connect(func(body):
 		if body == player and not is_game_over:
 			_game_over()
-	)
-	
+)
+
 	death_zone2.body_entered.connect(func(body):
 		if body == player and not is_game_over:
 			_game_over()
-	)
+)
 	
 	# Парирование
 	var parrying_scene = get_node_or_null("ParryingScene")
@@ -97,6 +101,26 @@ func _ready():
 					parry_trigger.set_deferred("monitoring", false)
 			)
 	
+	# ==========================================
+	# УЗКИЙ ПРОХОД
+	# ==========================================
+	var entrance_gate = $EntranceGate
+	var entrance_trigger = $EntranceTrigger
+	var passage_trigger = $TightPassageTrigger
+	
+	if entrance_gate and entrance_trigger and passage_trigger:
+		print("✅ EntranceGate, EntranceTrigger и TightPassageTrigger найдены!")
+		
+		var col = entrance_gate.get_node_or_null("CollisionShape2D")
+		if col:
+			col.disabled = false
+			print("🔒 ВХОД ЗАБЛОКИРОВАН!")
+		
+		entrance_trigger.body_entered.connect(func(body):
+			if body == player:
+				print("🔔 ИГРОК У ВХОДА! Нажми Е чтобы открыть")
+		)
+	
 	if pause_menu:
 		pause_menu.visible = false
 		var continue_btn = pause_menu.get_node_or_null("ContinueButton")
@@ -116,6 +140,8 @@ func _on_parry_complete():
 		player.is_climbing = false
 		player.is_sliding = false
 		player.is_crouching = false
+			
+		
 
 func _start_intro():
 	player.modulate = Color.RED
@@ -154,8 +180,12 @@ func _check_enemy_collision():
 	for enemy in $Enemies.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = enemy.global_position.distance_to(player_pos)
+			print("🔍 ВРАГ ", enemy.name, " дистанция: ", dist)  # ← ДОБАВЬ!
 			if dist < 45:
-				_game_over()
+				if player.has_method("die"):
+					player.die()
+				else:
+					_game_over()
 				return
 
 func _activate_forklift():
@@ -329,43 +359,12 @@ func _game_over():
 		if enemy is CharacterBody2D:
 			enemy.set_physics_process(false)
 	
-	var overlay = ColorRect.new()
-	overlay.color = Color(1, 0, 0, 0.3)
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.z_index = 100
-	add_child(overlay)
-	
-	if camera and camera.has_method("add_trauma"):
-		camera.add_trauma(1.0)
-	
-	game_over_label.visible = true
-	game_over_label.text = "ТЕБЯ СХВАТИЛИ!"
-	game_over_label.modulate = Color.RED
-	game_over_label.position = Vector2(player.global_position.x - 150, player.global_position.y - 50)
-	game_over_label.z_index = 101
-	
-	Engine.time_scale = 0.3
-	await get_tree().create_timer(0.5).timeout
-	Engine.time_scale = 1.0
-	
-	var fade_tween = create_tween()
-	fade_tween.tween_property(overlay, "modulate:a", 0.0, 0.5)
-	await fade_tween.finished
-	overlay.queue_free()
-	
-	var black = ColorRect.new()
-	black.color = Color.BLACK
-	black.set_anchors_preset(Control.PRESET_FULL_RECT)
-	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	black.z_index = 200
-	add_child(black)
-	
-	var black_tween = create_tween()
-	black_tween.tween_property(black, "modulate:a", 1.0, 0.5)
-	await black_tween.finished
-	
-	get_tree().reload_current_scene()
+	# ВЫЗЫВАЕМ СМЕРТЬ ИГРОКА
+	if player.has_method("die"):
+		player.die()
+	else:
+		await get_tree().create_timer(1.0).timeout
+		get_tree().reload_current_scene()
 
 func _win():
 	state = State.WIN
@@ -386,22 +385,31 @@ func _win():
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
-		var passage_trigger = $TightPassageTrigger
+		var entrance_trigger = get_node_or_null("EntranceTrigger")
+		var passage_trigger = get_node_or_null("TightPassageTrigger")
 		
-		# Если игрок рядом с триггером и триггер ещё не активен
-		if passage_trigger and not passage_trigger.is_active:
-			var bodies = passage_trigger.get_overlapping_bodies()
-			if bodies.has(player):
-				print("🔴 НАЖАТА Е! ВХОД В ПРОХОД!")
+		if not entrance_trigger:
+			print("❌ EntranceTrigger не найден!")
+			return
+		
+		if not passage_trigger:
+			print("❌ TightPassageTrigger не найден!")
+			return
+		
+		if entrance_trigger:
+			var bodies = entrance_trigger.get_overlapping_bodies()
+			if bodies.has(player) and passage_trigger and not passage_trigger.is_active:
+				print("🔴 НАЖАТА Е! ОТКРЫВАЮ ВХОД!")
 				
-				# СДВИГАЕМ ИГРОКА ВПЕРЁД НА 5 ПИКСЕЛЕЙ
-				player.global_position.x += 5
+				var col = $EntranceGate.get_node_or_null("CollisionShape2D")
+				if col:
+					col.set_deferred("disabled", true)
 				
-				# АКТИВИРУЕМ МИНИ-ИГРУ
+				player.global_position.x += 10
+				
 				passage_trigger.activate(player)
 				return
 		
-		# ОСВОБОЖДЕНИЕ В НАЧАЛЕ (если нужно)
 		if player.has_method("set_movement_blocked") and player.movement_blocked:
 			player.set_movement_blocked(false)
 			print("🔓 ИГРОК ОСВОБОЖДЁН!")
