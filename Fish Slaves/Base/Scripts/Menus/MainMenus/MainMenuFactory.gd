@@ -1,4 +1,4 @@
-extends CanvasLayer
+extends Node2D
 
 @onready var continue_btn: Button = $ContinueButton
 @onready var settings_btn: Button = $SettingsButton

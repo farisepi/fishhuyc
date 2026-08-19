@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://csjyi7n70eaoj"]
+
+[ext_resource type="Texture2D" uid="uid://bedowrkgsp10c" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButton.png" id="1_nkqr8"]
+
+[resource]
+texture = ExtResource("1_nkqr8")
+modulate_color = Color(0.5391072, 0.5391072, 0.5391072, 0.78431374)

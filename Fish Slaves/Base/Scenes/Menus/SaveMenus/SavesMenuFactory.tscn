@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" uid="uid://bwhafeqk5ab4s" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuFactory.gd" id="1_us2yi"]
 [ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_fna08"]
-[ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="3_c4yi2"]
-[ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="4_u5yr1"]
-[ext_resource type="StyleBox" uid="uid://cbfwkdnsfbg3" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonHover.tres" id="5_v8ewb"]
-[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="6_wixif"]
-[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="7_bbkte"]
-[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="8_34wr3"]
+[ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="3_us2yi"]
+[ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="4_fna08"]
+[ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="5_53wng"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_8n7ws"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_rpfps"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_c4yi2"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_3ug42"]
 
 [node name="SaveMenu" type="Node2D" unique_id=2084349734]
@@ -44,9 +44,9 @@ theme_override_constants/v_separation = 15
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -54,9 +54,9 @@ text = "Пусто
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -64,9 +64,9 @@ text = "Пусто
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -74,9 +74,9 @@ text = "Пусто
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -84,9 +84,9 @@ text = "Пусто
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -94,9 +94,9 @@ text = "Пусто
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_c4yi2")
-theme_override_styles/pressed = ExtResource("4_u5yr1")
-theme_override_styles/hover = ExtResource("5_v8ewb")
+theme_override_styles/normal = ExtResource("3_us2yi")
+theme_override_styles/pressed = ExtResource("4_fna08")
+theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
@@ -117,9 +117,9 @@ offset_top = 584.0
 offset_right = 688.0
 offset_bottom = 632.0
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("6_wixif")
-theme_override_styles/pressed = ExtResource("7_bbkte")
-theme_override_styles/hover = ExtResource("8_34wr3")
+theme_override_styles/normal = ExtResource("6_8n7ws")
+theme_override_styles/pressed = ExtResource("7_rpfps")
+theme_override_styles/hover = ExtResource("8_c4yi2")
 text = "Закрыть
 "
 
