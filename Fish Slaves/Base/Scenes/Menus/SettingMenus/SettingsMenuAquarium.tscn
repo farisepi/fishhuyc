@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/Switch.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://bov62f8x3pnow" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff.png" id="7_ugdgc"]
 [ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
@@ -89,6 +89,7 @@ offset_bottom = 254.0
 text = "Разрешение"
 
 [node name="ResolutionButton" type="OptionButton" parent="GraphicsPage" unique_id=391987072]
+visible = false
 layout_mode = 0
 offset_left = 480.0
 offset_top = 224.0

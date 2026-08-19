@@ -22,8 +22,8 @@
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="21_ktap7"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="22_6ntdl"]
-[ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Player/TightPassage.gd" id="23_v16hl"]
-[ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://Fish Slaves/Base/Scripts/Player/Act3SniperScript.gd" id="24_u6mdv"]
+[ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
+[ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3Sniper.gd" id="24_u6mdv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
 shader = ExtResource("2_gb2nh")
@@ -2235,6 +2235,7 @@ shape = SubResource("RectangleShape2D_1esiv")
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
 process_mode = 2
 layer = 2
+visible = false
 script = ExtResource("21_ktap7")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1142893149]

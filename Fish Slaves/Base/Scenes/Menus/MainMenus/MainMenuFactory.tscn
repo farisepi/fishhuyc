@@ -12,6 +12,7 @@
 [ext_resource type="StyleBox" uid="uid://b4s0ftomanbuh" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButtonPressed.tres" id="10_ysg7y"]
 [ext_resource type="StyleBox" uid="uid://b0yllbanl0jli" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButtonHover.tres" id="11_g82wj"]
 [ext_resource type="Texture2D" uid="uid://vgqruybr7go6" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/DiscordMenuButtonIcon.png" id="13_0e0et"]
+[ext_resource type="Texture2D" uid="uid://battpb27goors" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TikTokMenuButtonIcon.png" id="14_8nuso"]
 [ext_resource type="Texture2D" uid="uid://d320r4jhb4k1g" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TelegramMenuButtonIcon.png" id="14_rtvx6"]
 [ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="14_sxqd3"]
 [ext_resource type="Texture2D" uid="uid://by5syt24untoc" path="res://Fish Slaves/Textures/Interface/MainMenuLogos/FactoryMainMenuLogo.png" id="16_8pq2d"]
@@ -41,13 +42,12 @@ animations = [{
 script = ExtResource("1_8pq2d")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1795470732]
-offset_left = -45.46
+offset_left = -79.46
 offset_top = -120.95
-offset_right = 1479.7001
+offset_right = 1445.7001
 offset_bottom = 840.01996
 mouse_filter = 2
 color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
-metadata/_edit_use_anchors_ = true
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=577935788]
 position = Vector2(-746, -566)
@@ -125,9 +125,9 @@ text = "Выход
 "
 
 [node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
-offset_left = 519.0
+offset_left = 485.0
 offset_top = 463.0
-offset_right = 563.0
+offset_right = 529.0
 offset_bottom = 507.0
 mouse_filter = 1
 theme_override_styles/normal = ExtResource("9_0w4o0")
@@ -137,15 +137,27 @@ icon = ExtResource("13_0e0et")
 expand_icon = true
 
 [node name="TelegramButton" type="Button" parent="." unique_id=1272725020]
-offset_left = 587.0
+offset_left = 553.0
 offset_top = 463.0
-offset_right = 631.0
+offset_right = 597.0
 offset_bottom = 507.0
 mouse_filter = 1
 theme_override_styles/normal = ExtResource("9_0w4o0")
 theme_override_styles/pressed = ExtResource("10_ysg7y")
 theme_override_styles/hover = ExtResource("11_g82wj")
 icon = ExtResource("14_rtvx6")
+expand_icon = true
+
+[node name="TikTokButton" type="Button" parent="." unique_id=1533523721]
+offset_left = 621.0
+offset_top = 463.0
+offset_right = 665.0
+offset_bottom = 507.0
+mouse_filter = 1
+theme_override_styles/normal = ExtResource("9_0w4o0")
+theme_override_styles/pressed = ExtResource("10_ysg7y")
+theme_override_styles/hover = ExtResource("11_g82wj")
+icon = ExtResource("14_8nuso")
 expand_icon = true
 
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("14_sxqd3")]
@@ -186,4 +198,5 @@ script = ExtResource("19_v64fb")
 [connection signal="pressed" from="AchivmentsButton" to="." method="_on_achivments_button_pressed"]
 [connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="pressed" from="DiscordButton" to="." method="_on_discord_button_pressed"]
-[connection signal="pressed" from="TelegramButton" to="." method="_on_discord_button_pressed"]
+[connection signal="pressed" from="TelegramButton" to="." method="_on_telegram_button_pressed"]
+[connection signal="pressed" from="TikTokButton" to="." method="_on_tiktok_button_pressed"]

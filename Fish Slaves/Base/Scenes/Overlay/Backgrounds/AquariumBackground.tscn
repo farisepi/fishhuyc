@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://c8v3c74ined2d"]
 
-[ext_resource type="Script" uid="uid://b1ty4286lclmd" path="res://Fish Slaves/Base/Scripts/Overlay/Backgrounds/Background.gd" id="1_7r8h1"]
-[ext_resource type="Texture2D" uid="uid://cnbhsxr5baacq" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer1.png" id="2_kfiv4"]
-[ext_resource type="Texture2D" uid="uid://bosxiqe6krxg2" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer6.png" id="3_hcv45"]
-[ext_resource type="Texture2D" uid="uid://de5qmeaii0h3b" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer5.png" id="4_ju8yk"]
-[ext_resource type="Texture2D" uid="uid://bdrgc1q2iad5x" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer4.png" id="5_qgypw"]
-[ext_resource type="Texture2D" uid="uid://ba6f1rysq2aj6" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer3.png" id="6_urmoq"]
-[ext_resource type="Texture2D" uid="uid://b8q6xdv3ekr7s" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer2.png" id="7_iapre"]
+[ext_resource type="Script" uid="uid://b1ty4286lclmd" path="res://Fish Slaves/Base/Scripts/Overlay/Backgrounds/AquariumBackground.gd" id="1_7r8h1"]
+[ext_resource type="Texture2D" uid="uid://bi8cxnp5fou74" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer1.png" id="2_kfiv4"]
+[ext_resource type="Texture2D" uid="uid://dwtrttwtvxe3q" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer6.png" id="3_hcv45"]
+[ext_resource type="Texture2D" uid="uid://diaf8mifn86uu" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer5.png" id="4_ju8yk"]
+[ext_resource type="Texture2D" uid="uid://c24o7xdy1kqub" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer4.png" id="5_qgypw"]
+[ext_resource type="Texture2D" uid="uid://j4oxsll8twy6" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer3.png" id="6_urmoq"]
+[ext_resource type="Texture2D" uid="uid://bjnkp7byi3nbv" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuAquariumBackground/AquariumBackgroundLayer2.png" id="7_iapre"]
 
 [node name="BG" type="ParallaxBackground" unique_id=1653505568]
 script = ExtResource("1_7r8h1")

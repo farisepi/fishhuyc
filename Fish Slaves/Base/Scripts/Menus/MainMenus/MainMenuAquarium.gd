@@ -7,6 +7,7 @@ var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/E
 @onready var achiv_btn: Button = $AchivmentsButton
 @onready var discord_btn: Button = $DiscordButton
 @onready var telegram_btn: Button = $TelegramButton
+@onready var tiktok_btn: Button = $TikTokButton
 @onready var quit_btn: Button = $QuitButton
 @onready var save_btn: Button = $SaveButton
 @onready var fps_label: Label = $FPSCounter
@@ -59,10 +60,14 @@ func _ready() -> void:
 
 	_apply_fps_visibility()
 
-	var buttons = [play_btn, settings_btn, achiv_btn, discord_btn, telegram_btn, quit_btn, save_btn]
+	var buttons = [play_btn, settings_btn, achiv_btn, discord_btn, telegram_btn, tiktok_btn, quit_btn, save_btn]
 	for btn in buttons:
 		if btn != null:
 			ButtonEffects.setup(btn)
+
+	if tiktok_btn != null:
+		if not tiktok_btn.pressed.is_connected(_on_tiktok_button_pressed):
+			tiktok_btn.pressed.connect(_on_tiktok_button_pressed)
 
 	if logo:
 		logo_original_y = logo.position.y
@@ -208,6 +213,10 @@ func _on_discord_button_pressed() -> void:
 func _on_telegram_button_pressed() -> void:
 	UISounds.play_click()
 	OS.shell_open("https://t.me/fishslaves")
+
+func _on_tiktok_button_pressed() -> void:
+	UISounds.play_click()
+	OS.shell_open("https://www.tiktok.com/@fish.slaves.official")
 
 func _on_quit_button_pressed() -> void:
 	UISounds.play_click()
