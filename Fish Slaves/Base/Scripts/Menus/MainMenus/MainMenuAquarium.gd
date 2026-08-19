@@ -1,6 +1,6 @@
 extends Node2D
 
-var bubble_scene: PackedScene
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
 @onready var play_btn: Button = $PlayButton
 @onready var settings_btn: Button = $SettingsButton
@@ -61,22 +61,8 @@ func _ready() -> void:
 
 	var buttons = [play_btn, settings_btn, achiv_btn, discord_btn, telegram_btn, quit_btn, save_btn]
 	for btn in buttons:
-		ButtonEffects.setup(btn)
-
-	if not play_btn.pressed.is_connected(_on_play_button_pressed):
-		play_btn.pressed.connect(_on_play_button_pressed)
-	if not settings_btn.pressed.is_connected(_on_settings_button_pressed):
-		settings_btn.pressed.connect(_on_settings_button_pressed)
-	if not achiv_btn.pressed.is_connected(_on_achivments_button_pressed):
-		achiv_btn.pressed.connect(_on_achivments_button_pressed)
-	if not save_btn.pressed.is_connected(_on_save_button_pressed):
-		save_btn.pressed.connect(_on_save_button_pressed)
-	if not discord_btn.pressed.is_connected(_on_discord_button_pressed):
-		discord_btn.pressed.connect(_on_discord_button_pressed)
-	if not telegram_btn.pressed.is_connected(_on_telegram_button_pressed):
-		telegram_btn.pressed.connect(_on_telegram_button_pressed)
-	if not quit_btn.pressed.is_connected(_on_quit_button_pressed):
-		quit_btn.pressed.connect(_on_quit_button_pressed)
+		if btn != null:
+			ButtonEffects.setup(btn)
 
 	if logo:
 		logo_original_y = logo.position.y
@@ -191,6 +177,7 @@ func _goto_scene(path: String) -> void:
 	Global.goto_scene(path)
 
 func _on_play_button_pressed() -> void:
+	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = true
 	Global.intro_completed = false
@@ -199,25 +186,31 @@ func _on_play_button_pressed() -> void:
 	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
 
 func _on_settings_button_pressed() -> void:
+	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
 
 func _on_achivments_button_pressed() -> void:
+	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/AchievementMenus/AchievementMenuAquarium.tscn")
 
 func _on_save_button_pressed() -> void:
+	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = false
 	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
 
 func _on_discord_button_pressed() -> void:
+	UISounds.play_click()
 	OS.shell_open("https://discord.gg/64CKW4kXrq")
 
 func _on_telegram_button_pressed() -> void:
+	UISounds.play_click()
 	OS.shell_open("https://t.me/fishslaves")
 
 func _on_quit_button_pressed() -> void:
+	UISounds.play_click()
 	if is_instance_valid(Fade):
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
@@ -262,54 +255,3 @@ func _make_menu_bubble() -> void:
 	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
-
-func _show_pop_star_achievement():
-	var canvas = CanvasLayer.new()
-	canvas.layer = 200
-	add_child(canvas)
-	var ctrl = Control.new()
-	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
-	canvas.add_child(ctrl)
-	var view_size = get_viewport().get_visible_rect().size
-	var bg = ColorRect.new()
-	bg.color = Color(0.1, 0.2, 0.35, 0.85)
-	bg.size = Vector2(320, 60)
-	bg.position = Vector2(view_size.x, 10)
-	ctrl.add_child(bg)
-	var icon = Label.new()
-	icon.text = "★"
-	icon.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
-	icon.add_theme_font_size_override("font_size", 28)
-	icon.position = Vector2(view_size.x + 15, 20)
-	icon.size = Vector2(40, 40)
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	ctrl.add_child(icon)
-	var header = Label.new()
-	header.text = "ДОСТИЖЕНИЕ"
-	header.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.9))
-	header.add_theme_font_size_override("font_size", 18)
-	header.position = Vector2(view_size.x + 65, 18)
-	ctrl.add_child(header)
-	var l = Label.new()
-	l.text = "Поп-стар"
-	l.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
-	l.add_theme_font_size_override("font_size", 36)
-	l.position = Vector2(view_size.x + 65, 35)
-	ctrl.add_child(l)
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
-	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
-	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
-	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
-	await get_tree().create_timer(3.0).timeout
-	var tween2 = create_tween()
-	tween2.set_ease(Tween.EASE_IN)
-	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
-	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
-	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
-	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
-	await tween2.finished
-	canvas.queue_free()
