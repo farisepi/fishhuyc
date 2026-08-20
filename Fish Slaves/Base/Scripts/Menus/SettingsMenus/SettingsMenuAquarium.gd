@@ -37,6 +37,12 @@ extends Control
 var config: ConfigFile = ConfigFile.new()
 const CONFIG_PATH: String = "user://settings.cfg"
 
+# Путь к текстуре для выпадающего меню
+const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FalledFallingAquariumMenuButton/FalledFallingAquariumMenuButton.png"
+# Пути к текстурам для кружочков (радиокнопок)
+const UNCHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png"
+const CHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
+
 func _ready() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		if is_instance_valid(Fade):
@@ -57,6 +63,9 @@ func _ready() -> void:
 	load_settings()
 	update_key_labels()
 	show_page(0)
+	
+	# Применяем текстуру к выпадающим меню
+	_apply_popup_textures()
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -116,6 +125,114 @@ func setup_options() -> void:
 		language_option.clear()
 		language_option.add_item("Русский")
 		language_option.add_item("English")
+
+# Применяет текстуру ко всем выпадающим меню
+func _apply_popup_textures() -> void:
+	# Загружаем текстуру фона
+	var texture = load(POPUP_MENU_TEXTURE_PATH)
+	if not texture:
+		print("Ошибка: текстура не найдена по пути: ", POPUP_MENU_TEXTURE_PATH)
+		return
+	
+	# Применяем к resolution_option
+	if resolution_option:
+		_apply_texture_to_option_button(resolution_option, texture)
+	
+	# Применяем к language_option
+	if language_option:
+		_apply_texture_to_option_button(language_option, texture)
+
+# Применяет текстуру к одному OptionButton
+func _apply_texture_to_option_button(option_btn: OptionButton, texture: Texture2D) -> void:
+	# Получаем PopupMenu (выпадающее меню)
+	var popup = option_btn.get_popup()
+	if not popup:
+		return
+	
+	# Загружаем иконки для кружочков
+	var unchecked_icon = load(UNCHECKED_ICON_PATH)
+	var checked_icon = load(CHECKED_ICON_PATH)
+	
+	# Создаем увеличенные иконки
+	var unchecked_scaled = _scale_texture_pixel_art(unchecked_icon, 2.0) if unchecked_icon else null
+	var checked_scaled = _scale_texture_pixel_art(checked_icon, 2.0) if checked_icon else null
+	
+	# 1. НАСТРАИВАЕМ ФОН МЕНЮ
+	var panel_style = StyleBoxTexture.new()
+	panel_style.texture = texture
+	popup.add_theme_stylebox_override("panel", panel_style)
+	
+	# 2. ПОЛНОСТЬЮ УБИРАЕМ ВСЕ СТАНДАРТНЫЕ РАДИОКНОПКИ
+	# Делаем их невидимыми через StyleBoxEmpty
+	var empty_style = StyleBoxEmpty.new()
+	popup.add_theme_stylebox_override("radio_checked", empty_style)
+	popup.add_theme_stylebox_override("radio_unchecked", empty_style)
+	popup.add_theme_stylebox_override("check", empty_style)
+	
+	# Отключаем радиокнопки для всех пунктов
+	for i in range(popup.item_count):
+		popup.set_item_as_radio_checkable(i, false)
+	
+	# 3. УСТАНАВЛИВАЕМ СВОИ ИКОНКИ КАК ОБЫЧНЫЕ ИКОНКИ ПУНКТОВ
+	for i in range(popup.item_count):
+		if popup.is_item_checked(i):
+			if checked_scaled:
+				popup.set_item_icon(i, checked_scaled)
+		else:
+			if unchecked_scaled:
+				popup.set_item_icon(i, unchecked_scaled)
+	
+	# 4. СОЗДАЕМ СТИЛИ ДЛЯ ФОНА ПУНКТОВ
+	var normal_style = StyleBoxTexture.new()
+	normal_style.texture = texture
+	
+	var selected_style = StyleBoxTexture.new()
+	selected_style.texture = texture
+	selected_style.modulate_color = Color(0.5, 0.5, 0.5, 1.0)
+	
+	var hover_style = StyleBoxTexture.new()
+	hover_style.texture = texture
+	hover_style.modulate_color = Color(0.8, 0.8, 0.8, 1.0)
+	
+	popup.add_theme_stylebox_override("normal", normal_style)
+	popup.add_theme_stylebox_override("selected", selected_style)
+	popup.add_theme_stylebox_override("hover", hover_style)
+	
+	# 5. НАСТРАИВАЕМ РАЗМЕРЫ И ОТСТУПЫ
+	popup.add_theme_constant_override("item_height", 50)   
+	popup.add_theme_constant_override("item_icon_size", 48) 
+	popup.add_theme_constant_override("h_separation", 20)  # Отступ между иконкой и текстом
+	popup.add_theme_constant_override("item_padding", 25)  # УВЕЛИЧЕНО: двигаем правее
+	popup.add_theme_constant_override("icon_max_width", 48)
+	
+	# Настраиваем шрифт для пунктов
+	popup.add_theme_font_size_override("font_size", 16)
+	popup.add_theme_color_override("font_color", Color.WHITE)
+	popup.add_theme_color_override("font_color_hover", Color.YELLOW)
+	
+	# 6. УБИРАЕМ ИКОНКУ С САМОЙ КНОПКИ
+	option_btn.icon = null
+
+# Функция масштабирования для пиксельных текстур (без сглаживания)
+func _scale_texture_pixel_art(texture: Texture2D, scale: float) -> Texture2D:
+	if not texture:
+		return null
+	
+	# Получаем изображение из текстуры
+	var image = texture.get_image()
+	
+	# Вычисляем новые размеры
+	var new_width = int(image.get_width() * scale)
+	var new_height = int(image.get_height() * scale)
+	
+	# Увеличиваем изображение без сглаживания (для пиксель-арта)
+	image.resize(new_width, new_height, Image.INTERPOLATE_NEAREST)
+	
+	# Создаём новую текстуру из увеличенного изображения
+	var new_texture = ImageTexture.create_from_image(image)
+	
+	# Возвращаем готовую текстуру
+	return new_texture
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)

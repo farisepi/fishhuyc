@@ -8,8 +8,11 @@
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
 [ext_resource type="Texture2D" uid="uid://bov62f8x3pnow" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff.png" id="7_ugdgc"]
 [ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
+[ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonPressed.tres" id="8_4m4e8"]
+[ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonHover.tres" id="9_td0rv"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
+[ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="12_kd3mb"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 
@@ -48,7 +51,6 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -76,6 +78,7 @@ theme_override_styles/hover = ExtResource("5_bb24s")
 text = "Полный экран"
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/FullscreenButton" unique_id=702049749]
+visible = false
 position = Vector2(99.49996, 20.00001)
 scale = Vector2(1.6178864, 1.4285724)
 texture = ExtResource("7_xpquy")
@@ -89,13 +92,15 @@ offset_bottom = 254.0
 text = "Разрешение"
 
 [node name="ResolutionButton" type="OptionButton" parent="GraphicsPage" unique_id=391987072]
-visible = false
 layout_mode = 0
 offset_left = 480.0
 offset_top = 224.0
 offset_right = 677.0
 offset_bottom = 263.0
 theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
 theme_override_icons/arrow = SubResource("DPITexture_xchot")
 alignment = 1
 icon_alignment = 1
@@ -120,16 +125,19 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 480.0
 offset_top = 272.0
-offset_right = 672.0
-offset_bottom = 309.0
+offset_right = 677.0
+offset_bottom = 312.0
 theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
 theme_override_icons/arrow = SubResource("DPITexture_ugdgc")
 alignment = 1
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/LanguageOption" unique_id=2066254607]
 visible = false
-position = Vector2(99.49996, 20.00001)
-scale = Vector2(1.6178864, 1.4285724)
+position = Vector2(98.49999, 20.00001)
+scale = Vector2(1.6016266, 1.4285724)
 texture = ExtResource("7_xpquy")
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
@@ -243,6 +251,7 @@ offset_bottom = 334.0
 text = "Звуковые эффекты"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
+visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0

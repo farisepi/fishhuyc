@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://dfca6b7n4m2is"]
+
+[ext_resource type="Texture2D" uid="uid://x5586ux2lijl" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButton.png" id="1_kwn3f"]
+
+[resource]
+texture = ExtResource("1_kwn3f")
+modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)
