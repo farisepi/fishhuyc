@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://dbhu8rxysob6n"]
+
+[ext_resource type="Texture2D" uid="uid://bov62f8x3pnow" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="1_ehaeg"]
+
+[resource]
+texture = ExtResource("1_ehaeg")
+modulate_color = Color(0.5391072, 0.5391072, 0.5391072, 0.78431374)
