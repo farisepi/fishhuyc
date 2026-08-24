@@ -84,7 +84,8 @@ func _setup_ui() -> void:
 	var buttons: Array[Button] = [
 		graphics_tab, audio_tab, controls_tab, fullscreen_btn,
 		move_up_btn, move_down_btn, move_left_btn, move_right_btn,
-		interact_btn, jump_btn, inventory_btn, pause_btn
+		interact_btn, jump_btn, inventory_btn, pause_btn,
+		resolution_option, language_option  # ← ДОБАВЬ СЮДА!
 	]
 	
 	if apply_btn: buttons.append(apply_btn)
@@ -94,6 +95,97 @@ func _setup_ui() -> void:
 	for btn in buttons:
 		if btn:
 			ButtonEffects.setup(btn)
+
+func _setup_option_button_effects(opt_btn: OptionButton) -> void:
+	if not opt_btn:
+		return
+	
+	var original_alpha = opt_btn.modulate.a
+	var original_scale = Vector2.ONE
+	
+	# Эффект при наведении (как в ButtonEffects)
+	opt_btn.mouse_entered.connect(func():
+		# Останавливаем idle анимацию
+		if opt_btn.has_meta("idle_tween"):
+			var t: Tween = opt_btn.get_meta("idle_tween")
+			if t and t.is_valid():
+				t.kill()
+		
+		# Анимация изменения цвета (как в ButtonEffects)
+		var color_tween = opt_btn.create_tween()
+		color_tween.set_loops()
+		color_tween.tween_property(opt_btn, "modulate", Color(0.75, 0.88, 1.0, original_alpha), 1.2).set_ease(Tween.EASE_IN_OUT)
+		color_tween.tween_property(opt_btn, "modulate", Color(0.55, 0.72, 1.0, original_alpha), 1.2).set_ease(Tween.EASE_IN_OUT)
+		opt_btn.set_meta("color_tween", color_tween)
+		
+		# Jelly анимация
+		var jelly = opt_btn.create_tween()
+		jelly.set_loops()
+		jelly.tween_property(opt_btn, "scale", Vector2(1.04, 0.96), 0.4).set_ease(Tween.EASE_IN_OUT)
+		jelly.tween_property(opt_btn, "scale", Vector2(0.96, 1.04), 0.4).set_ease(Tween.EASE_IN_OUT)
+		opt_btn.set_meta("jelly_tween", jelly)
+		
+		# Пузырьки (как в ButtonEffects)
+		_spawn_option_bubbles(opt_btn)
+	)
+	
+	# Эффект при уходе мыши
+	opt_btn.mouse_exited.connect(func():
+		# Убиваем все анимации
+		if opt_btn.has_meta("color_tween"):
+			var t: Tween = opt_btn.get_meta("color_tween")
+			if t and t.is_valid():
+				t.kill()
+		if opt_btn.has_meta("jelly_tween"):
+			var t: Tween = opt_btn.get_meta("jelly_tween")
+			if t and t.is_valid():
+				t.kill()
+		
+		# Возвращаем в исходное состояние
+		opt_btn.scale = Vector2.ONE
+		
+		# Плавный возврат цвета
+		var settle = opt_btn.create_tween()
+		settle.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+		settle.tween_property(opt_btn, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
+		
+		# Запускаем idle анимацию
+		var idle_tween = opt_btn.create_tween()
+		idle_tween.set_loops()
+		idle_tween.tween_property(opt_btn, "scale", Vector2(1.01, 1.01), 2.5).set_ease(Tween.EASE_IN_OUT)
+		idle_tween.tween_property(opt_btn, "scale", Vector2(0.99, 0.99), 2.5).set_ease(Tween.EASE_IN_OUT)
+		opt_btn.set_meta("idle_tween", idle_tween)
+	)
+	
+	# Запускаем idle анимацию
+	var idle_tween = opt_btn.create_tween()
+	idle_tween.set_loops()
+	idle_tween.tween_property(opt_btn, "scale", Vector2(1.01, 1.01), 2.5).set_ease(Tween.EASE_IN_OUT)
+	idle_tween.tween_property(opt_btn, "scale", Vector2(0.99, 0.99), 2.5).set_ease(Tween.EASE_IN_OUT)
+	opt_btn.set_meta("idle_tween", idle_tween)
+
+func _spawn_option_bubbles(opt_btn: OptionButton) -> void:
+	var container = opt_btn.get_parent()
+	if not container:
+		return
+	
+	var btn_pos = opt_btn.global_position
+	var btn_width = opt_btn.size.x
+	
+	for _i in range(2):
+		var bubble = ColorRect.new()
+		bubble.color = Color(1.0, 1.0, 1.0, 0.4)
+		bubble.size = Vector2(4, 4)
+		bubble.position = btn_pos + Vector2(randf_range(5, btn_width - 5), opt_btn.size.y - 5)
+		container.add_child(bubble)
+		
+		var t = opt_btn.create_tween()
+		t.set_ease(Tween.EASE_IN_OUT)
+		t.tween_property(bubble, "position:y", bubble.position.y - 50, 1.5)
+		t.parallel().tween_property(bubble, "position:x", bubble.position.x + randf_range(-8, 8), 1.5)
+		t.parallel().tween_property(bubble, "modulate:a", 0.0, 1.5)
+		t.parallel().tween_property(bubble, "scale", Vector2(0.5, 0.5), 1.5)
+		t.finished.connect(bubble.queue_free)
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))

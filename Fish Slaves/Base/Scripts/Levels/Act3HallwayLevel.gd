@@ -30,10 +30,24 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
+# Переменные для подсказки SHIFT
+var shift_prompt: Label = null
+var is_shift_active: bool = false
+var shift_timer: float = 0.0
+var shift_duration: float = 1.5
+
 func _ready():
-	print("📍 ИГРОК СПАВНИТСЯ: ", player.global_position)
-	print("📍 DEATHZONE НАХОДИТСЯ: ", death_zone.global_position)
-	print("📍 DEATHZONE2 НАХОДИТСЯ: ", death_zone2.global_position)
+	# Создаём подсказку SHIFT
+	shift_prompt = Label.new()
+	shift_prompt.text = "SHIFT"
+	shift_prompt.add_theme_font_size_override("font_size", 48)
+	shift_prompt.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	shift_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shift_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	shift_prompt.visible = false
+	shift_prompt.z_index = 100
+	add_child(shift_prompt)
+	
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	
 	player.set_physics_process(false)
@@ -43,7 +57,7 @@ func _ready():
 	forklift.visible = false
 	falling_shelf.visible = false
 	
-	camera.zoom = Vector2(1.8, 1.8)
+	camera.zoom = Vector2(2.5, 2.5)
 	camera.limit_left = -5000
 	camera.limit_right = 5000
 	camera.limit_top = -5000
@@ -62,19 +76,24 @@ func _ready():
 	
 	forklift_trigger.body_entered.connect(func(body):
 		if body == player and not forklift_activated:
+			await get_tree().create_timer(2).timeout
+			if shift_prompt:
+				shift_prompt.visible = true
+				shift_prompt.global_position = player.global_position + Vector2(-50, -100)
+			is_shift_active = true
+			shift_timer = 0.0
 			_activate_forklift()
 	)
 	
-# В _ready():
 	death_zone.body_entered.connect(func(body):
 		if body == player and not is_game_over:
 			_game_over()
-)
-
+	)
+	
 	death_zone2.body_entered.connect(func(body):
 		if body == player and not is_game_over:
 			_game_over()
-)
+	)
 	
 	# Парирование
 	var parrying_scene = get_node_or_null("ParryingScene")
@@ -101,9 +120,7 @@ func _ready():
 					parry_trigger.set_deferred("monitoring", false)
 			)
 	
-	# ==========================================
-	# УЗКИЙ ПРОХОД
-	# ==========================================
+	# Узкий проход
 	var entrance_gate = $EntranceGate
 	var entrance_trigger = $EntranceTrigger
 	var passage_trigger = $TightPassageTrigger
@@ -140,8 +157,6 @@ func _on_parry_complete():
 		player.is_climbing = false
 		player.is_sliding = false
 		player.is_crouching = false
-			
-		
 
 func _start_intro():
 	player.modulate = Color.RED
@@ -180,7 +195,6 @@ func _check_enemy_collision():
 	for enemy in $Enemies.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = enemy.global_position.distance_to(player_pos)
-			print("🔍 ВРАГ ", enemy.name, " дистанция: ", dist)  # ← ДОБАВЬ!
 			if dist < 45:
 				if player.has_method("die"):
 					player.die()
@@ -192,6 +206,16 @@ func _activate_forklift():
 	forklift_activated = true
 	forklift.visible = true
 	falling_shelf.visible = true
+	
+	# ==========================================
+	# ПОДСКАЗКА SHIFT ПОЯВЛЯЕТСЯ СРАЗУ
+	# ==========================================
+	if shift_prompt:
+		shift_prompt.visible = true
+		shift_prompt.global_position = player.global_position + Vector2(-50, -100)
+	
+	is_shift_active = true
+	shift_timer = 0.0
 	
 	var shelf_y = falling_shelf.global_position.y
 	var fork_y = forklift.global_position.y
@@ -211,8 +235,6 @@ func _activate_forklift():
 	
 	forklift_ready_for_throw = true
 	
-	prompt.text = "Кинь предмет в погрузчик!"
-	prompt.visible = true
 
 func _process(delta):
 	if get_tree().paused or state == State.GAMEOVER:
@@ -220,6 +242,43 @@ func _process(delta):
 	
 	if camera:
 		camera.global_position = player.global_position
+	
+	# ==========================================
+	# ПОДСКАЗКА SHIFT И ПРОХОД СКВОЗЬ ПОГРУЗЧИК
+	# ==========================================
+	if is_shift_active:
+		shift_timer += delta
+		
+		# Обновляем позицию подсказки
+		if shift_prompt and shift_prompt.visible:
+			shift_prompt.global_position = player.global_position + Vector2(-50, -100)
+		
+		# ЕСЛИ ИГРОК НАЖАЛ SHIFT
+		if Input.is_action_just_pressed("Run"):
+			print("💨 ПРОХОД СКВОЗЬ ПОГРУЗЧИК!")
+			is_shift_active = false
+			shift_prompt.visible = false
+			
+			# ОТКЛЮЧАЕМ КОЛЛИЗИЮ ПОГРУЗЧИКА
+			var forklift_col = forklift.get_node_or_null("CollisionShape2D")
+			if forklift_col:
+				forklift_col.disabled = true
+				await get_tree().create_timer(0.3).timeout
+				forklift_col.disabled = false
+			
+			prompt.text = "Отлично! Беги дальше!"
+			prompt.visible = true
+			await get_tree().create_timer(1.0).timeout
+			prompt.visible = false
+			return
+		
+		# ЕСЛИ ВРЕМЯ ВЫШЛО
+		if shift_timer > shift_duration:
+			print("💀 НЕ УСПЕЛ НАЖАТЬ SHIFT!")
+			is_shift_active = false
+			shift_prompt.visible = false
+			_game_over()
+			return
 	
 	if state == State.RUNNING:
 		_check_enemy_collision()
@@ -359,7 +418,6 @@ func _game_over():
 		if enemy is CharacterBody2D:
 			enemy.set_physics_process(false)
 	
-	# ВЫЗЫВАЕМ СМЕРТЬ ИГРОКА
 	if player.has_method("die"):
 		player.die()
 	else:
@@ -388,14 +446,6 @@ func _input(event: InputEvent) -> void:
 		var entrance_trigger = get_node_or_null("EntranceTrigger")
 		var passage_trigger = get_node_or_null("TightPassageTrigger")
 		
-		if not entrance_trigger:
-			print("❌ EntranceTrigger не найден!")
-			return
-		
-		if not passage_trigger:
-			print("❌ TightPassageTrigger не найден!")
-			return
-		
 		if entrance_trigger:
 			var bodies = entrance_trigger.get_overlapping_bodies()
 			if bodies.has(player) and passage_trigger and not passage_trigger.is_active:
@@ -406,7 +456,6 @@ func _input(event: InputEvent) -> void:
 					col.set_deferred("disabled", true)
 				
 				player.global_position.x += 10
-				
 				passage_trigger.activate(player)
 				return
 		

@@ -1750,11 +1750,8 @@ radius = 39.012817
 radius = 31.0
 height = 62.0
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_6f8o3"]
-size = Vector2(75, 125.75)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qr0ht"]
-size = Vector2(15, 94.9375)
+size = Vector2(32.5, 94.9375)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
 radius = 12.649111
@@ -1780,7 +1777,8 @@ metadata/_edit_vertical_guides_ = [93.0, 98.0]
 metadata/_edit_horizontal_guides_ = [334.0, 332.0]
 
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
-position = Vector2(49, 289)
+position = Vector2(49, 289.00003)
+offset = Vector2(0, -69)
 zoom = Vector2(-0.025, -0.025)
 script = ExtResource("15_wsnn3")
 
@@ -2146,17 +2144,13 @@ position = Vector2(87, 56)
 shape = SubResource("CapsuleShape2D_bhunq")
 
 [node name="ColorRect" type="ColorRect" parent="ForkliftScene/Forklift" unique_id=978390234]
-offset_left = 68.0
-offset_top = 37.0
-offset_right = 108.0
-offset_bottom = 77.0
+offset_left = 123.0
+offset_top = 39.089966
+offset_right = 163.0
+offset_bottom = 79.089966
 color = Color(0.84402776, 0.6058836, 0.086505435, 1)
 
 [node name="FallingShelf" type="StaticBody2D" parent="ForkliftScene" unique_id=1327964272]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftScene/FallingShelf" unique_id=872260048]
-position = Vector2(89.5, 13.875)
-shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="Sprite2D" type="Sprite2D" parent="ForkliftScene/FallingShelf" unique_id=556734115]
 position = Vector2(90, 14)
@@ -2188,7 +2182,7 @@ texture = ExtResource("10_vcpp2")
 position = Vector2(49.27002, 42.660004)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ParryingScene/ParryTrigger" unique_id=175984235]
-position = Vector2(143.5, -10.53125)
+position = Vector2(91.75, -11.570007)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="Elevator" type="ColorRect" parent="." unique_id=1219834248]
@@ -2215,7 +2209,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(2852, 288.09)
+position = Vector2(2558, 287.09)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=855912430]
@@ -2307,6 +2301,7 @@ text = "Рестарт
 script = ExtResource("22_6ntdl")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1690086491]
+layer = 10
 
 [node name="TightPassageUI" type="Control" parent="CanvasLayer" unique_id=1394956082]
 layout_mode = 3

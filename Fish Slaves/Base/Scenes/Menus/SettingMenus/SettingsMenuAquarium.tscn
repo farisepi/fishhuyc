@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://bov62f8x3pnow" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="7_ugdgc"]
+[ext_resource type="Texture2D" uid="uid://bfneohdbxq02r" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="7_ugdgc"]
 [ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonPressed.tres" id="8_4m4e8"]
 [ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonHover.tres" id="9_td0rv"]
@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="12_kd3mb"]
 [ext_resource type="StyleBox" uid="uid://cvlaa0s3gp5dj" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnNormal.tres" id="12_p7da6"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
+[ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="13_p7da6"]
 
 [sub_resource type="DPITexture" id="DPITexture_xchot"]
 
@@ -53,6 +54,7 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -163,7 +165,8 @@ theme_override_styles/hover = ExtResource("11_nmydp")
 theme_override_styles/hover_pressed = ExtResource("12_p7da6")
 theme_override_styles/disabled = ExtResource("12_p7da6")
 theme_override_styles/focus = ExtResource("12_p7da6")
-theme_override_icons/unchecked_mirrored = ExtResource("7_ugdgc")
+theme_override_icons/checked = ExtResource("13_p7da6")
+theme_override_icons/unchecked = ExtResource("7_ugdgc")
 
 [node name="CameraSensivityLabel" type="Label" parent="GraphicsPage" unique_id=1931320122]
 layout_mode = 0
@@ -259,7 +262,6 @@ offset_bottom = 334.0
 text = "Звуковые эффекты"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
-visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0
@@ -483,17 +485,17 @@ text = "Присесть"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=23693937]
+[node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=5812131]
+layout_mode = 2
+alignment = 1
+
+[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer10" unique_id=23693937]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Парировать"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2/ParryingLabel" unique_id=5812131]
-layout_mode = 0
-alignment = 1
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0
@@ -624,10 +626,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -90.0
-offset_top = -74.0
-offset_right = 1326.0
-offset_bottom = 794.0
+offset_left = -93.0
+offset_top = -47.0
+offset_right = 1323.0
+offset_bottom = 821.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

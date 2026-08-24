@@ -31,12 +31,12 @@ func _ready():
 	if progress_ring:
 		progress_ring.max_value = required_presses
 		progress_ring.value = 0
-		progress_ring.visible = false
-		print("✅ ProgressRing настроен!")
+		progress_ring.visible = true
+	
 	
 	if key_button:
-		key_button.visible = false
-		print("✅ KeyButton настроен!")
+		key_button.visible = true
+		
 
 func activate(player_node: CharacterBody2D):
 	if is_active:

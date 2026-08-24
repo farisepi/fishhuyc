@@ -682,6 +682,7 @@ func _update_glitch(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
+		print("Пауза Нажата")
 		if cutscene_active:
 			return
 		_toggle_pause()

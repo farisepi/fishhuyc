@@ -9,7 +9,6 @@ extends CharacterBody2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $"../MechaFishCamera"
 
-
 var is_dead: bool = false
 var original_color: Color = Color(1, 1, 1, 1)
 var block_color: Color = Color(0.5, 0.8, 1.0, 1)
@@ -25,11 +24,13 @@ var held_texture: Texture2D
 var held_icon: Sprite2D
 var can_throw: bool = false
 var movement_blocked: bool = false
+var dash_cooldown: float = 0.0
+var is_dashing: bool = false
+var shift_held_time: float = 0.0
+var is_shift_held: bool = false
+var dash_distance: float = 120.0  
+var dash_duration: float = 0.2     
 
-
-# ==========================================
-# ПАРИРОВАНИЕ
-# ==========================================
 var parry_active: bool = false
 var parry_done: bool = false
 var parry_enemy: CharacterBody2D = null
@@ -41,7 +42,6 @@ var parry_cooldown_time: float = 3.0
 
 func _ready():
 	sprite.play("Idle")
-	
 	held_icon = Sprite2D.new()
 	held_icon.visible = false
 	held_icon.scale = Vector2(0.5, 0.5)
@@ -49,20 +49,33 @@ func _ready():
 	add_child(held_icon)
 
 func _physics_process(delta):
+	# ОБНОВЛЯЕМ КД РЫВКА
+	if dash_cooldown > 0:
+		dash_cooldown -= delta
+	
+	# ЕСЛИ В РЫВКЕ — НЕ ДВИГАЕМСЯ
+	if is_dashing:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+	
 	if is_blocking:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
+	
 	if movement_blocked:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
 	
+	if is_shift_held:
+		shift_held_time += delta
 	
 	if get_tree().paused:
 		return
 	
-	# Обновляем КД
+	# Обновляем КД парирования
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
 	
@@ -132,9 +145,7 @@ func _physics_process(delta):
 		held_icon.global_position = global_position + Vector2(0, -60)
 		held_icon.modulate = Color.RED if can_throw else Color.WHITE
 	
-	# ==========================================
-	# ПАРИРОВАНИЕ - ПРОВЕРКА КНОПКИ
-	# ==========================================
+	# ПАРИРОВАНИЕ
 	if parry_active and not parry_done:
 		if Input.is_action_just_pressed("Parry"):
 			do_parry()
@@ -145,23 +156,21 @@ func _end_slide():
 	$CollisionShape2D.scale.y = 1.0
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("block"):
-		is_blocking = true
-		print("Блок работает")
-		if sprite:
-			sprite.modulate = block_color
-	if event.is_action_released("block"):
-		is_blocking = false
-		print("отжал блок")
-		if sprite:
-			sprite.modulate = original_color			
+	if event is InputEventKey and event.keycode == KEY_SHIFT:
+		if event.pressed:
+			is_shift_held = true
+			shift_held_time = 0.0
+		else:  
+			is_shift_held = false
+			if not is_sliding and shift_held_time < 0.2 and dash_cooldown <= 0 and not is_dashing:
+				_dash()
+
 	if event.is_action_pressed("interact"):
 		if has_item:
 			_throw_item()
 		else:
 			_grab_item()
 	
-	# Парирование по кнопке Parry
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
 			do_parry()
@@ -220,7 +229,6 @@ func _throw_item():
 
 func set_can_throw(value: bool):
 	can_throw = value
-
 
 func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
@@ -283,27 +291,22 @@ func do_parry():
 	parry_done = true
 	parry_active = false
 	
-	# УДАЛЯЕМ ВРАГА
 	if is_instance_valid(parry_enemy):
 		parry_enemy.queue_free()
 		parry_enemy = null
 		print("✅ Враг удалён!")
 	
-	# УБИРАЕМ НАДПИСЬ
 	if is_instance_valid(parry_label):
 		parry_label.queue_free()
 		parry_label = null
 	
-	# УБИРАЕМ ЗАТЕМНЕНИЕ
 	if is_instance_valid(parry_fade):
 		parry_fade.queue_free()
 		parry_fade = null
 	
-	# ВОЗВРАЩАЕМ ВРЕМЯ
 	Engine.time_scale = 1.0
 	get_tree().paused = false
 	
-	# ВКЛЮЧАЕМ ИГРОКА
 	set_physics_process(true)
 	set_process(true)
 	is_vaulting = false
@@ -311,7 +314,6 @@ func do_parry():
 	is_sliding = false
 	is_crouching = false
 	
-	# АНИМАЦИЯ
 	if sprite:
 		sprite.play("Idle")
 	
@@ -326,7 +328,7 @@ func _try_vault() -> bool:
 	var c = get_parent().get_node_or_null("Barriers")
 	if not c: return false
 	for o in c.get_children():
-		if o is StaticBody2D and global_position.distance_to(o.global_position) < 60:  # ← БЫЛО 80
+		if o is StaticBody2D and global_position.distance_to(o.global_position) < 60:
 			var s = o.get_node("CollisionShape2D").shape
 			if s is RectangleShape2D:
 				if s.size.y > 60: return false
@@ -339,8 +341,8 @@ func _jump_over(o: StaticBody2D, high: bool):
 	velocity = Vector2.ZERO
 	var d = 1 if sprite.scale.x > 0 else -1
 	var t = global_position
-	t.x = o.global_position.x + d * 50  # ← БЫЛО 80
-	t.y = o.global_position.y - 30 if high else global_position.y  # ← БЫЛО -60
+	t.x = o.global_position.x + d * 50
+	t.y = o.global_position.y - 30 if high else global_position.y
 	create_tween().set_trans(Tween.TRANS_SINE).tween_property(self, "global_position", t, 0.3 if high else 0.15)
 	await get_tree().create_timer(0.3 if high else 0.15).timeout
 	is_vaulting = false
@@ -377,7 +379,6 @@ func _try_climb():
 					velocity.x = speed * d
 					return
 
-
 func die():
 	if is_dead:
 		return
@@ -400,7 +401,6 @@ func die():
 	print("💀 Перезагружаю уровень...")
 	get_tree().reload_current_scene()
 					
-					
 func take_damage(amount: int):
 	hp -= amount
 	print("hitdamage")
@@ -411,4 +411,22 @@ func take_damage(amount: int):
 	if hp <= 0:
 		die()	
 		
-		
+func _dash():
+	if is_dashing or dash_cooldown > 0:
+		return
+	
+	print("💨 РЫВОК!")
+	is_dashing = true
+	dash_cooldown = 1.2  
+
+	var direction = Vector2.RIGHT if sprite.scale.x > 0 else Vector2.LEFT
+	var target_x = global_position.x + direction.x * dash_distance  
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUINT) 
+	tween.tween_property(self, "global_position:x", target_x, dash_duration)  
+
+	await tween.finished
+	
+	is_dashing = false

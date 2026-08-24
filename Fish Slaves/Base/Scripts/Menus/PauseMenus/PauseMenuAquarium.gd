@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var settings_btn: Button = $SettingsButton
 @onready var save_btn: Button = $SaveButton
 @onready var exit_btn: Button = $ExitButton
+@onready var restart_btn: Button = $RestartButton
 
 func _ready() -> void:
 	var buttons = [continue_btn, settings_btn, save_btn, exit_btn]
@@ -14,6 +15,7 @@ func _ready() -> void:
 	settings_btn.pressed.connect(_on_settings_pressed)
 	save_btn.pressed.connect(_on_save_pressed)
 	exit_btn.pressed.connect(_on_exit_pressed)
+	restart_btn.pressed.connect(_on_restart_pressed)
 	
 	var cr = get_node_or_null("ColorRect")
 	if cr:
@@ -44,3 +46,10 @@ func _on_exit_pressed() -> void:
 	get_tree().paused = false
 	hide()
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+
+func _on_restart_pressed() -> void:
+	UISounds.play_click()
+	Global.came_from = Global.MenuSource.GAME
+	get_tree().paused = false
+	hide()
+	get_tree().reload_current_scene()
