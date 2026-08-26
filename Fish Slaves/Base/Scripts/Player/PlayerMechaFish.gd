@@ -49,11 +49,13 @@ func _ready():
 	add_child(held_icon)
 
 func _physics_process(delta):
-	# ОБНОВЛЯЕМ КД РЫВКА
+	if is_blocking:
+			velocity = Vector2.ZERO
+			move_and_slide()
+			return
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
 	
-	# ЕСЛИ В РЫВКЕ — НЕ ДВИГАЕМСЯ
 	if is_dashing:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -75,7 +77,6 @@ func _physics_process(delta):
 	if get_tree().paused:
 		return
 	
-	# Обновляем КД парирования
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
 	
@@ -145,7 +146,6 @@ func _physics_process(delta):
 		held_icon.global_position = global_position + Vector2(0, -60)
 		held_icon.modulate = Color.RED if can_throw else Color.WHITE
 	
-	# ПАРИРОВАНИЕ
 	if parry_active and not parry_done:
 		if Input.is_action_just_pressed("Parry"):
 			do_parry()
@@ -156,15 +156,19 @@ func _end_slide():
 	$CollisionShape2D.scale.y = 1.0
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_SHIFT:
-		if event.pressed:
-			is_shift_held = true
-			shift_held_time = 0.0
-		else:  
-			is_shift_held = false
-			if not is_sliding and shift_held_time < 0.2 and dash_cooldown <= 0 and not is_dashing:
-				_dash()
 
+	if event.is_action_pressed("block"):
+		is_blocking = true
+		print("🛡️ БЛОК АКТИВИРОВАН!")
+		if sprite:
+			sprite.modulate = Color(0.5, 0.8, 1.0, 1)  
+	
+	if event.is_action_released("block"):
+		is_blocking = false
+		print("🛡️ БЛОК СНЯТ!")
+		if sprite:
+			sprite.modulate = Color(1, 1, 1, 1) 
+	
 	if event.is_action_pressed("interact"):
 		if has_item:
 			_throw_item()
@@ -348,10 +352,14 @@ func _jump_over(o: StaticBody2D, high: bool):
 	is_vaulting = false
 	velocity.x = speed * d
 
+var climbed_obstacles: Array = []
+
 func _try_climb():
 	if is_on_floor():
 		return
 	if has_item:
+		return
+	if movement_blocked:
 		return
 	
 	var c = get_parent().get_node_or_null("Barriers")
@@ -361,24 +369,34 @@ func _try_climb():
 	for o in c.get_children():
 		if o is StaticBody2D:
 			var dist = global_position.distance_to(o.global_position)
-			if dist < 100:
+			if dist < 20:
 				var s = o.get_node("CollisionShape2D").shape
 				if s is RectangleShape2D and s.size.y > 60:
+					if o in climbed_obstacles:
+						continue
+					var offset_x = abs(global_position.x - o.global_position.x)
+					var offset_y = abs(global_position.y - o.global_position.y)
+					
+					if offset_y < 30 and offset_x < 50:
+						continue					
 					is_climbing = true
-					velocity = Vector2.ZERO
-					
-					var d = 1 if sprite.scale.x > 0 else -1
-					var land = Vector2(o.global_position.x + d * 80, o.global_position.y - s.size.y - 20)
-					
+					velocity = Vector2.ZERO					
+					var d = 1 if sprite.scale.x > 0 else -1	
+					var land = Vector2(
+						o.global_position.x + d * 3,
+						o.global_position.y - s.size.y - 1
+					)
 					var t = create_tween()
 					t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-					t.tween_property(self, "global_position", land, 0.5)
+					t.tween_property(self, "global_position", land, 0.3)
 					await t.finished
 					
 					is_climbing = false
 					velocity.x = speed * d
+					
+			
+					climbed_obstacles.append(o)
 					return
-
 func die():
 	if is_dead:
 		return
@@ -400,7 +418,7 @@ func die():
 	
 	print("💀 Перезагружаю уровень...")
 	get_tree().reload_current_scene()
-					
+
 func take_damage(amount: int):
 	hp -= amount
 	print("hitdamage")
@@ -409,23 +427,23 @@ func take_damage(amount: int):
 		await sprite.animation_finished
 		sprite.play("Idle")
 	if hp <= 0:
-		die()	
-		
+		die()
+
 func _dash():
 	if is_dashing or dash_cooldown > 0:
 		return
 	
 	print("💨 РЫВОК!")
 	is_dashing = true
-	dash_cooldown = 1.2  
+	dash_cooldown = 1.2
 
 	var direction = Vector2.RIGHT if sprite.scale.x > 0 else Vector2.LEFT
-	var target_x = global_position.x + direction.x * dash_distance  
+	var target_x = global_position.x + direction.x * dash_distance
 	
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_QUINT) 
-	tween.tween_property(self, "global_position:x", target_x, dash_duration)  
+	tween.set_trans(Tween.TRANS_QUINT)
+	tween.tween_property(self, "global_position:x", target_x, dash_duration)
 
 	await tween.finished
 	

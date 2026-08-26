@@ -2,26 +2,26 @@
 
 [ext_resource type="Script" uid="uid://d2vnwskd2kio0" path="res://Fish Slaves/Base/Scripts/Levels/Act1AquariumLevel.gd" id="1_u46od"]
 [ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="2_schuh"]
-[ext_resource type="PackedScene" uid="uid://ba1v3ohrfskpx" path="res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn" id="2_x2xif"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Act1CutsceneCamera.gd" id="4_4y1cg"]
-[ext_resource type="Texture2D" uid="uid://feneaejev1f0" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
-[ext_resource type="Texture2D" uid="uid://yra4diqy7fgs" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle1.png" id="5_avqyc"]
-[ext_resource type="Texture2D" uid="uid://ctlygo4c8byyq" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Laboratory.png" id="5_k3j2e"]
-[ext_resource type="Texture2D" uid="uid://dos1xigir3w7g" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle2.png" id="6_ovisf"]
-[ext_resource type="Texture2D" uid="uid://bq8gee2wwa162" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle1.png" id="7_3t3m1"]
-[ext_resource type="Texture2D" uid="uid://chatjeweajsnq" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle2.png" id="8_lwacy"]
+[ext_resource type="Texture2D" uid="uid://dbxpnqh0oyd62" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
+[ext_resource type="Texture2D" uid="uid://deq3f175m2qul" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle1.png" id="5_avqyc"]
+[ext_resource type="Texture2D" uid="uid://tuu3en4qyi37" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Laboratory.png" id="5_k3j2e"]
+[ext_resource type="Texture2D" uid="uid://csngcuohvh8x3" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle2.png" id="6_ovisf"]
+[ext_resource type="Texture2D" uid="uid://nxmxdfpj1xo7" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle1.png" id="7_3t3m1"]
+[ext_resource type="Texture2D" uid="uid://cmi1bwvg8bclg" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicIdle/MechanicIdle2.png" id="8_lwacy"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="9_s01hn"]
-[ext_resource type="Texture2D" uid="uid://b7p81xqc0qhx1" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png" id="10_udgr8"]
+[ext_resource type="Texture2D" uid="uid://c08hy00vgxm0n" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png" id="10_udgr8"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="11_2vfrf"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://dh4pau21uv5a2" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
-[ext_resource type="AudioStream" uid="uid://c6mvqoyw78yt4" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
+[ext_resource type="AudioStream" uid="uid://b08yppwyfe6qi" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
 [ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="21_5vwn5"]
+[ext_resource type="Script" uid="uid://dufj0ltmmr25" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Ui_HealthBar.gd" id="23_0wkmr"]
 [ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="24_fbjru"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]
@@ -135,7 +135,6 @@ shader = ExtResource("19_0a6ic")
 
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
-bubble_scene = ExtResource("2_x2xif")
 metadata/_edit_vertical_guides_ = [296.0, 300.0]
 metadata/_edit_horizontal_guides_ = [192.0, 1159.0]
 
@@ -445,6 +444,85 @@ color = Color(1, 1, 1, 0)
 
 [node name="SeaweedApplier" type="Node" parent="." unique_id=1325519063]
 script = ExtResource("24_fbjru")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=870273218]
+script = ExtResource("23_0wkmr")
+
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=2120730306]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HealthBar" type="Control" parent="CanvasLayer/UI" unique_id=896792234]
+anchors_preset = 0
+offset_right = 1156.0
+offset_bottom = 647.0
+
+[node name="Barbg" type="ColorRect" parent="CanvasLayer/UI/HealthBar" unique_id=1061815536]
+layout_mode = 0
+offset_right = 168.0
+offset_bottom = 29.0
+color = Color(0.003921569, 0.003921569, 0.003921569, 0.03137255)
+
+[node name="BarFill" type="ColorRect" parent="CanvasLayer/UI/HealthBar" unique_id=704021764]
+layout_mode = 0
+offset_left = 1.64
+offset_top = 5.04
+offset_right = 167.2
+offset_bottom = 25.665
+color = Color(0.7379284, 0, 0.20252573, 1)
+
+[node name="AirBar" type="Control" parent="CanvasLayer/UI" unique_id=1238609136]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="AirBg" type="ColorRect" parent="CanvasLayer/UI/AirBar" unique_id=191147872]
+layout_mode = 0
+offset_left = 1067.0
+offset_top = 70.0
+offset_right = 1122.0
+offset_bottom = 540.0
+color = Color(0.003921569, 0.003921569, 0.003921569, 0.03137255)
+
+[node name="AirFill" type="ColorRect" parent="CanvasLayer/UI/AirBar" unique_id=1026299668]
+layout_mode = 0
+offset_left = 1076.0
+offset_top = 76.0
+offset_right = 1115.0
+offset_bottom = 535.0
+color = Color(0.08627451, 1, 1, 1)
+
+[node name="AirLabel" type="Label" parent="CanvasLayer/UI/AirBar" unique_id=1955766988]
+layout_mode = 0
+offset_left = 1081.0001
+offset_top = 548.0
+offset_right = 1100.0001
+offset_bottom = 571.0
+scale = Vector2(2.265, 2.265)
+text = "O₂"
+
+[node name="Control" type="Control" parent="CanvasLayer/UI" unique_id=1190738690]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SuitIcon" type="ColorRect" parent="CanvasLayer/UI/Control" unique_id=1128496539]
+layout_mode = 0
+offset_left = 11.05
+offset_top = 88.84
+offset_right = 51.05
+offset_bottom = 128.83997
+color = Color(0, 1, 1, 1)
+
+[node name="SuitCross" type="ColorRect" parent="CanvasLayer/UI/Control" unique_id=1781496153]
+layout_mode = 0
+offset_left = 14.03
+offset_top = 92.225
+offset_right = 48.244995
+offset_bottom = 125.045
+color = Color(0.8189962, 0, 0.23739189, 1)
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]

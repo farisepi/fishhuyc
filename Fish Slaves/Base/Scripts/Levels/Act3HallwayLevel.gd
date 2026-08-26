@@ -37,7 +37,9 @@ var shift_timer: float = 0.0
 var shift_duration: float = 1.5
 
 func _ready():
-	# Создаём подсказку SHIFT
+	var sniper = $SniperEnemy
+	if sniper:
+		sniper.is_active = true
 	shift_prompt = Label.new()
 	shift_prompt.text = "SHIFT"
 	shift_prompt.add_theme_font_size_override("font_size", 48)
@@ -234,6 +236,9 @@ func _activate_forklift():
 	forklift.velocity = Vector2.ZERO
 	
 	forklift_ready_for_throw = true
+	var sniper = $SniperEnemy
+	if sniper:
+			sniper.disable_sniper
 	
 
 func _process(delta):

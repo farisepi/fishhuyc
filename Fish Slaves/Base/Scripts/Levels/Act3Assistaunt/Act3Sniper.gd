@@ -1,16 +1,17 @@
 extends CharacterBody2D
 
 @export var detection_range: float = 600.0
-@export var aim_duration: float = 3.0
-@export var shoot_delay: float = 2.0
-@export var reload_time: float = 2.5
+@export var aim_duration: float = 2.5
+@export var shoot_delay: float = 1.0
+@export var reload_time: float = 2.0
 @export var damage: int = 50
 
 var player: CharacterBody2D = null
 var is_aiming: bool = false
 var is_shooting: bool = false
 var is_reloading: bool = false
-var is_active: bool = false
+var is_active: bool = true
+var is_triggered: bool = false
 
 var aim_timer: float = 0.0
 var shoot_timer: float = 0.0
@@ -20,21 +21,21 @@ var reload_timer: float = 0.0
 @onready var visual_rect: ColorRect = $ColorRect
 
 func _ready():
-	is_active = false
 	laser_line.visible = false
-	
 	if visual_rect:
 		visual_rect.color = Color(0.3, 0.3, 0.3, 1)
 	
-	# Проверяем игрока каждые 0.5 секунды через таймер
 	var check_timer = Timer.new()
-	check_timer.wait_time = 0.5
+	check_timer.wait_time = 0.3
 	check_timer.autostart = true
 	check_timer.timeout.connect(_check_player)
 	add_child(check_timer)
 
 func _check_player():
 	if not is_active:
+		return
+	
+	if is_triggered:
 		return
 	
 	if not player:
@@ -53,6 +54,8 @@ func _check_player():
 
 func _start_aiming():
 	if is_aiming or is_shooting or is_reloading:
+		return
+	if not is_active:
 		return
 	
 	print("🔴 СНАЙПЕР ПРИЦЕЛИВАЕТСЯ!")
@@ -77,25 +80,21 @@ func _process(delta):
 	if not is_active or not player:
 		return
 	
-	# Обновляем лазер
 	if laser_line.visible:
 		var start = global_position
 		var end = player.global_position + Vector2(0, -20)
 		laser_line.points = [start, end]
 	
-	# Таймер прицеливания
 	if is_aiming:
 		aim_timer += delta
 		if aim_timer >= aim_duration:
 			_on_aim_timeout()
 	
-	# Таймер выстрела
 	if is_shooting:
 		shoot_timer += delta
 		if shoot_timer >= shoot_delay:
 			_shoot()
 	
-	# Таймер перезарядки
 	if is_reloading:
 		reload_timer += delta
 		if reload_timer >= reload_time:
@@ -149,9 +148,10 @@ func _on_reload_finished():
 	print("🔄 ПЕРЕЗАРЯДКА ЗАВЕРШЕНА!")
 	is_reloading = false
 	
-	if player and not player.is_in_group("in_tight_passage"):
+	if player and not player.is_in_group("in_tight_passage") and is_active:
 		_start_aiming()
 
+# ВЫЗЫВАЕТСЯ, КОГДА ИГРОК В МИНИ-ИГРЕ (PAUSE)
 func pause_sniper():
 	is_active = false
 	laser_line.visible = false
@@ -165,7 +165,27 @@ func pause_sniper():
 	if visual_rect:
 		visual_rect.color = Color(0.3, 0.3, 0.3, 1)
 
+# ВЫЗЫВАЕТСЯ, КОГДА ИГРОК ВЫШЕЛ ИЗ МИНИ-ИГРЫ
 func resume_sniper():
+	if is_active:
+		return
 	is_active = true
 	if player and not player.is_in_group("in_tight_passage"):
 		_start_aiming()
+
+# ВЫЗЫВАЕТСЯ, КОГДА ПОГРУЗЧИК ВЗОРВАЛСЯ (ШИФТ)
+func disable_sniper():
+	print("🔴 СНАЙПЕР ОТКЛЮЧЁН!")
+	is_active = false
+	is_triggered = true
+	laser_line.visible = false
+	is_aiming = false
+	is_shooting = false
+	is_reloading = false
+	
+	if visual_rect:
+		visual_rect.color = Color(0.3, 0.3, 0.3, 1)
+	
+	# УДАЛЯЕМ СНАЙПЕРА ЧЕРЕЗ 2 СЕКУНДЫ
+	await get_tree().create_timer(2.0).timeout
+	queue_free()

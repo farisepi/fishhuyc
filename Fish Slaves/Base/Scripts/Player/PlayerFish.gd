@@ -7,6 +7,8 @@ var tilt_amount: float = 0.3
 var tilt_speed: float = 2.0
 var float_strength: float = 1.5
 var float_speed: float = 2.0
+var hp: int = 1
+var max_hp: int = 100
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -24,6 +26,9 @@ var shake_decay: float = 6.0
 var can_move: bool = true
 
 func _ready() -> void:
+	add_to_group("player")
+	hp = 1
+	max_hp = 100
 	if sprite:
 		sprite.scale.x = 1.0 if facing_direction == -1 else -1.0
 	
@@ -57,6 +62,12 @@ func _physics_process(delta: float) -> void:
 	velocity = direction_input * current_speed
 	move_and_slide()
 	_clamp_to_viewport()
+
+func get_hp() -> int:
+	return hp
+
+func get_max_hp() -> int:
+	return max_hp
 
 func _update_shake(delta: float) -> void:
 	if shake_amount <= 0:
