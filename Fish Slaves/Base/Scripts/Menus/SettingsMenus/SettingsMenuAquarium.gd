@@ -17,7 +17,6 @@ extends Control
 @onready var music_slider: HSlider = $AudioPage/MusicSlider
 @onready var sfx_slider: HSlider = $AudioPage/SFXSlider
 @onready var ambience_slider: HSlider = $AudioPage/AmbienceSlider
-@onready var ui_sound_check = $AudioPage/UISoundCheck
 
 @onready var move_up_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer/MoveUpButton
 @onready var move_down_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2/MoveDownButton
@@ -43,6 +42,15 @@ const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/Me
 const UNCHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png"
 const CHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
 
+# Пути к текстурам для ползунков
+const SLIDER_HANDLE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
+const SLIDER_EMPTY_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider.png"
+const SLIDER_FULL_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider.png"
+
+# Пути к текстурам для свитча
+const SWITCH_OFF_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png"
+const SWITCH_ON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png"
+
 func _ready() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		if is_instance_valid(Fade):
@@ -66,6 +74,12 @@ func _ready() -> void:
 	
 	# Применяем текстуру к выпадающим меню
 	_apply_popup_textures()
+	
+	# Применяем текстуры к ползункам
+	_apply_slider_textures()
+	
+	# Применяем текстуры к свитчам
+	_apply_switch_textures()
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -85,7 +99,7 @@ func _setup_ui() -> void:
 		graphics_tab, audio_tab, controls_tab, fullscreen_btn,
 		move_up_btn, move_down_btn, move_left_btn, move_right_btn,
 		interact_btn, jump_btn, inventory_btn, pause_btn,
-		resolution_option, language_option  # ← ДОБАВЬ СЮДА!
+		resolution_option, language_option
 	]
 	
 	if apply_btn: buttons.append(apply_btn)
@@ -326,6 +340,170 @@ func _scale_texture_pixel_art(texture: Texture2D, scale: float) -> Texture2D:
 	# Возвращаем готовую текстуру
 	return new_texture
 
+# Создает осветленную копию текстуры на 25%
+func _create_highlighted_texture(texture: Texture2D) -> Texture2D:
+	if not texture:
+		return null
+	
+	var image = texture.get_image()
+	
+	# Осветляем каждый пиксель на 25%
+	for x in range(image.get_width()):
+		for y in range(image.get_height()):
+			var color = image.get_pixel(x, y)
+			color.r = min(color.r * 1.25, 1.0)
+			color.g = min(color.g * 1.25, 1.0)
+			color.b = min(color.b * 1.25, 1.0)
+			image.set_pixel(x, y, color)
+	
+	var new_texture = ImageTexture.create_from_image(image)
+	return new_texture
+
+# Применяет текстуры ко всем ползункам
+func _apply_slider_textures() -> void:
+	# Загружаем текстуры
+	var handle_texture = load(SLIDER_HANDLE_PATH)
+	var empty_texture = load(SLIDER_EMPTY_PATH)
+	var full_texture = load(SLIDER_FULL_PATH)
+	
+	if not handle_texture:
+		print("Ошибка: текстура ручки не найдена по пути: ", SLIDER_HANDLE_PATH)
+		return
+	if not empty_texture:
+		print("Ошибка: текстура пустого слайдера не найдена по пути: ", SLIDER_EMPTY_PATH)
+		return
+	if not full_texture:
+		print("Ошибка: текстура заполненного слайдера не найдена по пути: ", SLIDER_FULL_PATH)
+		return
+	
+	# Создаем увеличенную текстуру ручки (в 2 раза)
+	var handle_scaled = _scale_texture_pixel_art(handle_texture, 2.0)
+	if not handle_scaled:
+		handle_scaled = handle_texture
+	
+	# Создаем осветленную версию ручки (на 25%)
+	var handle_highlighted = _create_highlighted_texture(handle_scaled)
+	
+	# Создаем стили для ползунка
+	var slider_style = StyleBoxTexture.new()
+	slider_style.texture = empty_texture
+	slider_style.content_margin_left = 4
+	slider_style.content_margin_right = 4
+	slider_style.content_margin_top = 4
+	slider_style.content_margin_bottom = 4
+	
+	var slider_hover_style = StyleBoxTexture.new()
+	slider_hover_style.texture = empty_texture
+	slider_hover_style.content_margin_left = 4
+	slider_hover_style.content_margin_right = 4
+	slider_hover_style.content_margin_top = 4
+	slider_hover_style.content_margin_bottom = 4
+	slider_hover_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
+	
+	var slider_pressed_style = StyleBoxTexture.new()
+	slider_pressed_style.texture = empty_texture
+	slider_pressed_style.content_margin_left = 4
+	slider_pressed_style.content_margin_right = 4
+	slider_pressed_style.content_margin_top = 4
+	slider_pressed_style.content_margin_bottom = 4
+	slider_pressed_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
+	
+	# Стили для заполненной части
+	var slider_full_style = StyleBoxTexture.new()
+	slider_full_style.texture = full_texture
+	slider_full_style.content_margin_left = 4
+	slider_full_style.content_margin_right = 4
+	slider_full_style.content_margin_top = 4
+	slider_full_style.content_margin_bottom = 4
+	
+	var slider_full_hover_style = StyleBoxTexture.new()
+	slider_full_hover_style.texture = full_texture
+	slider_full_hover_style.content_margin_left = 4
+	slider_full_hover_style.content_margin_right = 4
+	slider_full_hover_style.content_margin_top = 4
+	slider_full_hover_style.content_margin_bottom = 4
+	slider_full_hover_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
+	
+	var slider_full_pressed_style = StyleBoxTexture.new()
+	slider_full_pressed_style.texture = full_texture
+	slider_full_pressed_style.content_margin_left = 4
+	slider_full_pressed_style.content_margin_right = 4
+	slider_full_pressed_style.content_margin_top = 4
+	slider_full_pressed_style.content_margin_bottom = 4
+	slider_full_pressed_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
+	
+	# Список всех ползунков
+	var sliders = [
+		camera_sensitivity_slider,
+		music_slider,
+		sfx_slider,
+		ambience_slider
+	]
+	
+	for slider in sliders:
+		if not slider:
+			continue
+		
+		# Применяем стили к ползунку
+		slider.add_theme_stylebox_override("slider", slider_style)
+		slider.add_theme_stylebox_override("slider_highlighted", slider_hover_style)
+		slider.add_theme_stylebox_override("slider_pressed", slider_pressed_style)
+		
+		# Применяем стили к заполненной части
+		slider.add_theme_stylebox_override("grabber_area", slider_full_style)
+		slider.add_theme_stylebox_override("grabber_area_highlighted", slider_full_hover_style)
+		slider.add_theme_stylebox_override("grabber_area_pressed", slider_full_pressed_style)
+		
+		# Применяем иконки ручки
+		slider.add_theme_icon_override("grabber", handle_scaled)
+		slider.add_theme_icon_override("grabber_highlighted", handle_highlighted if handle_highlighted else handle_scaled)
+		slider.add_theme_icon_override("grabber_pressed", handle_highlighted if handle_highlighted else handle_scaled)
+		slider.add_theme_icon_override("grabber_disabled", handle_scaled)
+		
+		# Настраиваем размер ручки
+		slider.add_theme_constant_override("grabber_size", int(handle_scaled.get_height()))
+		slider.add_theme_constant_override("grabber_offset", 0)
+		
+		# Увеличиваем высоту слайдера
+		slider.custom_minimum_size = Vector2(slider.custom_minimum_size.x, 55)
+
+# Применяет текстуры к свитчам
+func _apply_switch_textures() -> void:
+	# Загружаем текстуры
+	var switch_off = load(SWITCH_OFF_PATH)
+	var switch_on = load(SWITCH_ON_PATH)
+	
+	if not switch_off:
+		print("Ошибка: текстура выключенного свитча не найдена по пути: ", SWITCH_OFF_PATH)
+		return
+	if not switch_on:
+		print("Ошибка: текстура включенного свитча не найдена по пути: ", SWITCH_ON_PATH)
+		return
+	
+	# Создаем осветленные версии для состояний (на 25%)
+	var switch_off_highlighted = _create_highlighted_texture(switch_off)
+	var switch_on_highlighted = _create_highlighted_texture(switch_on)
+	
+	# Список всех свитчей
+	var switches = [
+		fps_check
+	]
+	
+	for switch in switches:
+		if not switch:
+			continue
+		
+		# Применяем текстуры для свитча
+		switch.add_theme_icon_override("unchecked", switch_off)
+		switch.add_theme_icon_override("checked", switch_on)
+		
+		# Для состояния наведения используем осветленные текстуры
+		switch.add_theme_icon_override("unchecked_highlighted", switch_off_highlighted if switch_off_highlighted else switch_off)
+		switch.add_theme_icon_override("checked_highlighted", switch_on_highlighted if switch_on_highlighted else switch_on)
+		
+		# Увеличиваем размер свитча
+		switch.custom_minimum_size = Vector2(40, 40)
+
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
 	if err != OK:
@@ -349,8 +527,6 @@ func load_settings() -> void:
 		sfx_slider.value = config.get_value("audio", "sfx_volume", 0.2)
 	if ambience_slider:
 		ambience_slider.value = config.get_value("audio", "ambience_volume", 0.2)
-	if ui_sound_check:
-		ui_sound_check.button_pressed = config.get_value("audio", "ui_sounds", true)
 	
 	if fullscreen_btn:
 		fullscreen_btn.text = "Полный экран"
@@ -369,7 +545,6 @@ func apply_defaults() -> void:
 	if music_slider: music_slider.value = 0.2
 	if sfx_slider: sfx_slider.value = 0.2
 	if ambience_slider: ambience_slider.value = 0.2
-	if ui_sound_check: ui_sound_check.button_pressed = true
 
 func _show_reset_confirm() -> void:
 	var page = _get_current_page()
@@ -411,7 +586,6 @@ func _show_reset_confirm() -> void:
 					if music_slider: music_slider.value = 0.2
 					if sfx_slider: sfx_slider.value = 0.2
 					if ambience_slider: ambience_slider.value = 0.2
-					if ui_sound_check: ui_sound_check.button_pressed = true
 				2:
 					_reset_controls_only()
 			save_settings()
@@ -452,7 +626,6 @@ func save_settings() -> void:
 	if music_slider: config.set_value("audio", "music_volume", music_slider.value)
 	if sfx_slider: config.set_value("audio", "sfx_volume", sfx_slider.value)
 	if ambience_slider: config.set_value("audio", "ambience_volume", ambience_slider.value)
-	if ui_sound_check: config.set_value("audio", "ui_sounds", ui_sound_check.button_pressed)
 	
 	config.save(CONFIG_PATH)
 	apply_audio_volumes()
