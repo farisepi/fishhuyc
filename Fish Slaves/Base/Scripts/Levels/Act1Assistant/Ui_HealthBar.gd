@@ -1,18 +1,26 @@
 extends CanvasLayer
 
-@onready var bar_fill: ColorRect = $UI/HealthBar/BarFill
+@onready var health_bar: Control = $UI/HealthBar
+@onready var stamina_bar: Control = $UI/StaminaBar
+@onready var hp_hearts: AnimatedSprite2D = $UI/HealthBar/Hp
 
-var shake_amount: float = 0.0
-var shake_decay: float = 5.0
-var pulse_timer: float = 0.0
 var glow: ColorRect
+var shake_amount: float = 0.0
+var shake_decay: float = 2.0
+var pulse_timer: float = 0.0
+
+# ЗАПОМИНАЕМ ИСХОДНЫЕ ПОЗИЦИИ
+var health_bar_base_pos: Vector2
+var stamina_bar_base_pos: Vector2
+var hp_hearts_base_pos: Vector2
 
 func _ready():
-	bar_fill = get_node_or_null("UI/HealthBar/BarFill")
+
+	health_bar_base_pos = health_bar.position
+	stamina_bar_base_pos = stamina_bar.position
+	hp_hearts_base_pos = hp_hearts.position
 	
-	if bar_fill:
-		bar_fill.scale = Vector2(1.5, 1.5)
-	
+
 	glow = ColorRect.new()
 	glow.mouse_filter = 0
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -20,25 +28,25 @@ func _ready():
 	var shader = Shader.new()
 	shader.code = """
 	shader_type canvas_item;
-	
 	uniform vec4 glow_color : source_color = vec4(1.0, 0.0, 0.0, 0.15);
 	uniform float pulse : hint_range(0.0, 1.0) = 0.5;
-	
 	void fragment() {
 		vec2 uv = UV;
 		vec2 dist = abs(uv - 0.5) * 2.0;
 		float d = max(dist.x, dist.y);
-		float alpha = smoothstep(0.7, 1.0, d) * glow_color.a * pulse;
+		float alpha = smoothstep(0.2, 1.0, d) * glow_color.a * pulse;
 		COLOR = vec4(glow_color.rgb, alpha);
 	}
 	"""
-	
 	glow.material = ShaderMaterial.new()
 	glow.material.shader = shader
 	glow.material.set_shader_parameter("glow_color", Color(1, 0, 0, 0.15))
 	glow.material.set_shader_parameter("pulse", 0.0)
-	
 	add_child(glow)
+	
+	if hp_hearts:
+		hp_hearts.frame = 4
+		hp_hearts.stop()
 
 func _process(delta):
 	if get_tree().paused:
@@ -55,29 +63,34 @@ func _process(delta):
 	var max_hp = player.get_max_hp()
 	var percent = float(hp) / float(max_hp)
 	
-	if bar_fill:
-		bar_fill.size.x = 196 * clamp(percent, 0, 1)
-		bar_fill.size.y = 26
-		bar_fill.position.x = 22 + 10
-		bar_fill.position.y = 22 + 5
-	
+	# СВЕЧЕНИЕ
 	if percent <= 0.5:
-		bar_fill.color = Color(1, 0.2, 0.2)
-		shake_amount = 2.0 * (1.0 - percent / 0.5)
-		
+		shake_amount = 1.5 * (1.0 - percent / 0.5)
 		pulse_timer += delta
 		var pulse = 0.3 + 0.3 * sin(pulse_timer * 2.0)
 		glow.material.set_shader_parameter("pulse", pulse)
 	else:
-		bar_fill.color = Color(0.2, 0.8, 0.2)
 		shake_amount = 0.0
 		pulse_timer = 0.0
 		glow.material.set_shader_parameter("pulse", 0.0)
 	
+	# ==========================================
+	# ТРЯСКА НА МЕСТЕ (БЕЗ НАКОПЛЕНИЯ)
+	# ==========================================
 	if shake_amount > 0:
 		var shake = Vector2(
 			randf_range(-shake_amount, shake_amount),
 			randf_range(-shake_amount, shake_amount)
 		)
-		bar_fill.position = Vector2(22 + 10, 22 + 5) + shake
+		
+		# ВОЗВРАЩАЕМ НА БАЗУ + ДОБАВЛЯЕМ ТРЯСКУ
+		health_bar.position = health_bar_base_pos + shake
+		stamina_bar.position = stamina_bar_base_pos + shake
+		hp_hearts.position = hp_hearts_base_pos + shake
+		
 		shake_amount = max(shake_amount - shake_decay * delta, 0.0)
+	else:
+		# ВОЗВРАЩАЕМ НА БАЗУ, КОГДА ТРЯСКА ЗАКОНЧИЛАСЬ
+		health_bar.position = health_bar_base_pos
+		stamina_bar.position = stamina_bar_base_pos
+		hp_hearts.position = hp_hearts_base_pos
