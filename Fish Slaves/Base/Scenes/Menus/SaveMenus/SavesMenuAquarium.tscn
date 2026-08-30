@@ -11,7 +11,6 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="7_gj8n2"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="8_rdut3"]
 [ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_mhwe5"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="11_m6vio"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="12_u0fkc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_oya6r"]
@@ -174,6 +173,7 @@ text = "Закрыть
 "
 
 [node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=1807977731]
+visible = false
 position = Vector2(115.99998, 24.000021)
 scale = Vector2(1.8861796, 1.7142874)
 texture = ExtResource("9_mhwe5")
@@ -204,9 +204,6 @@ offset_top = 78.0
 offset_right = 1023.0
 offset_bottom = 101.0
 text = "Пропустить"
-
-[node name="SeaweedApplier" type="Node" parent="." unique_id=581270038]
-script = ExtResource("11_m6vio")
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=2101383234]
 z_index = -1

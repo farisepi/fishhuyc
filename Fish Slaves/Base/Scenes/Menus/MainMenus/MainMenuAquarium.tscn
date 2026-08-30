@@ -18,7 +18,6 @@
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_8vnjk"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_u0o22"]
 [ext_resource type="Texture2D" uid="uid://0n37ukr5ti0s" path="res://Fish Slaves/Textures/Interface/MainMenuLogos/AquariumMainMenuLogo.png" id="18_3yscn"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="19_7aoey"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="20_ptrrf"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
@@ -392,9 +391,6 @@ frame = 1
 frame_progress = 0.57846695
 
 [node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
-
-[node name="SeaweedApplier" type="Node" parent="." unique_id=1738621417]
-script = ExtResource("19_7aoey")
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=1955406844]
 z_index = -1

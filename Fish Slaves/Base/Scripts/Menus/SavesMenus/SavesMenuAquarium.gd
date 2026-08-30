@@ -58,6 +58,18 @@ func _ready() -> void:
 	if custom_font and title:
 		title.add_theme_font_override("font", custom_font)
 		title.add_theme_font_size_override("font_size", 18)
+	
+	# ПРИМЕНЯЕМ ВОДОРОСЛИ - используем call_deferred чтобы избежать ошибок
+	call_deferred("_apply_seaweed_deferred")
+
+func _apply_seaweed_deferred() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var global = get_node("/root/Global")
+	if global and global.has_method("_force_apply_seaweed"):
+		global._force_apply_seaweed(self)
+	else:
+		print("Global or _force_apply_seaweed not found!")
 
 func _update_slot_text(slot: Button, index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"

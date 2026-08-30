@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal scene_loaded
+
 var dot_timer: Timer
 var dot_count: int = 0
 var loading_text: String = "Загрузка"
@@ -68,6 +70,11 @@ func start_loading(scene_path: String) -> void:
 			return
 	
 	hide_loading()
+	
+	await get_tree().create_timer(0.1).timeout
+	
+	scene_loaded.emit()
+	
 	await get_tree().create_timer(0.2).timeout
 	queue_free()
 

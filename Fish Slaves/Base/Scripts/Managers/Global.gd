@@ -29,8 +29,28 @@ var loading_instance: CanvasLayer = null
 var last_save_level: int = 1
 var enemy_positions: Dictionary = {}
 
+var seaweed_state: Node = null
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# СОЗДАЕМ SEAWEEDSTATE С ПРАВИЛЬНЫМ ПУТЕМ
+	print("=== CREATING SEAWEEDSTATE ===")
+	var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedState.gd"
+	if FileAccess.file_exists(seaweed_path):
+		seaweed_state = load(seaweed_path).new()
+		add_child(seaweed_state)
+		seaweed_state.name = "SeaweedState"
+		print("SeaweedState created from: ", seaweed_path)
+	else:
+		print("ERROR: SeaweedState not found at: ", seaweed_path)
+		# Пробуем альтернативный путь
+		var alt_path = "res://Fish Slaves/Base/Scripts/Managers/SeaweedState.gd"
+		if FileAccess.file_exists(alt_path):
+			seaweed_state = load(alt_path).new()
+			add_child(seaweed_state)
+			seaweed_state.name = "SeaweedState"
+			print("SeaweedState created from alt path: ", alt_path)
 	
 	var font_path = "res://Fish Slaves/Textures/Font/Font.ttf"
 	
@@ -112,6 +132,83 @@ func _on_scene_changed() -> void:
 	var scene = tree.current_scene
 	if scene:
 		_apply_font(scene)
+		_force_apply_seaweed(scene)
+
+func _force_apply_seaweed(scene: Node) -> void:
+	print("=== FORCE APPLY SEAWEED to: ", scene.name)
+	
+	if not has_node("SeaweedState"):
+		print("ERROR: SeaweedState not found! Creating new one...")
+		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedState.gd"
+		if FileAccess.file_exists(seaweed_path):
+			seaweed_state = load(seaweed_path).new()
+			add_child(seaweed_state)
+			seaweed_state.name = "SeaweedState"
+			print("SeaweedState recreated!")
+		else:
+			print("ERROR: Cannot find SeaweedState file!")
+			return
+	
+	var seaweed_state_node = get_node("SeaweedState")
+	
+	# Проверяем наличие водорослей в сцене
+	var found_count = 0
+	_find_all_buttons(scene, found_count)
+	print("Found buttons with seaweed: ", found_count)
+	
+	# Принудительно применяем
+	seaweed_state_node.scan_and_apply(scene)
+	
+	# Дополнительно: принудительно показываем
+	_force_show_seaweed(scene)
+	
+	print("=== FORCE APPLY FINISHED ===")
+
+func _find_all_buttons(node: Node, found: Variant) -> void:
+	for child in node.get_children():
+		if child is Button:
+			var seaweed = _find_seaweed_in_node(child)
+			if seaweed:
+				found += 1
+				print("Found button: ", child.name, " with seaweed")
+		_find_all_buttons(child, found)
+
+func _find_seaweed_in_node(node: Node) -> Node:
+	for child in node.get_children():
+		if child.name == "Seaweed":
+			return child
+	return null
+
+func _force_show_seaweed(node: Node) -> void:
+	for child in node.get_children():
+		if child is Button:
+			var seaweed = _find_seaweed_in_node(child)
+			if seaweed:
+				var path = str(child.get_path())
+				var seaweed_state_node = get_node("SeaweedState")
+				if seaweed_state_node.states.has(path):
+					var data = seaweed_state_node.states[path]
+					seaweed.visible = data["visible"]
+					if data["flip"]:
+						seaweed.scale.x = -abs(seaweed.scale.x)
+					else:
+						seaweed.scale.x = abs(seaweed.scale.x)
+					print("Applied seaweed to: ", child.name, " visible=", data["visible"])
+				else:
+					# Если нет состояния - создаем
+					var visible = randf() < 0.25
+					var flip = randf() < 0.5
+					seaweed_state_node.states[path] = {
+						"visible": visible,
+						"flip": flip
+					}
+					seaweed.visible = visible
+					if flip:
+						seaweed.scale.x = -abs(seaweed.scale.x)
+					else:
+						seaweed.scale.x = abs(seaweed.scale.x)
+					print("Created and applied seaweed to: ", child.name, " visible=", visible)
+		_force_show_seaweed(child)
 
 func _apply_font(node: Node) -> void:
 	if not _font:
@@ -145,9 +242,29 @@ func goto_scene(scene_path: String) -> void:
 		get_tree().root.add_child(loading_instance)
 		
 		if loading_instance and loading_instance.has_method("start_loading"):
+			if loading_instance.has_signal("scene_loaded"):
+				if loading_instance.scene_loaded.is_connected(_on_scene_loaded):
+					loading_instance.scene_loaded.disconnect(_on_scene_loaded)
+				loading_instance.scene_loaded.connect(_on_scene_loaded)
 			loading_instance.start_loading(scene_path)
+
+func _on_scene_loaded() -> void:
+	print("=== SCENE LOADED SIGNAL ===")
+	var scene = get_tree().current_scene
+	if scene:
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_force_apply_seaweed(scene)
 
 func _cleanup_loading() -> void:
 	if loading_instance and is_instance_valid(loading_instance):
+		if loading_instance.has_signal("scene_loaded"):
+			if loading_instance.scene_loaded.is_connected(_on_scene_loaded):
+				loading_instance.scene_loaded.disconnect(_on_scene_loaded)
 		loading_instance.queue_free()
 		loading_instance = null
+
+func reset_seaweed() -> void:
+	if has_node("SeaweedState"):
+		get_node("SeaweedState").reset()
+		print("Seaweed states reset")

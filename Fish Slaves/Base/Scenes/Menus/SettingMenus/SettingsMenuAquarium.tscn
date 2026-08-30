@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="12_kd3mb"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 [ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="13_p7da6"]
 
@@ -52,7 +51,6 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -81,8 +79,8 @@ text = "Полный экран"
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/FullscreenButton" unique_id=702049749]
 visible = false
-position = Vector2(99.49996, 20.00001)
-scale = Vector2(1.6178864, 1.4285724)
+position = Vector2(100, 20.00001)
+scale = Vector2(1.6260171, 1.4285724)
 texture = ExtResource("7_xpquy")
 
 [node name="ResolutionLabel" type="Label" parent="GraphicsPage" unique_id=61398240]
@@ -109,8 +107,8 @@ icon_alignment = 1
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/ResolutionButton" unique_id=2098690276]
 visible = false
-position = Vector2(99.49996, 20.00001)
-scale = Vector2(1.6178864, 1.4285724)
+position = Vector2(98.49997, 19.49999)
+scale = Vector2(1.6016263, 1.3928567)
 texture = ExtResource("7_xpquy")
 
 [node name="LanguageLabel" type="Label" parent="GraphicsPage" unique_id=2025691448]
@@ -178,6 +176,7 @@ offset_right = 775.0
 offset_bottom = 392.0
 
 [node name="AudioPage" type="Control" parent="." unique_id=209264160]
+visible = false
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
@@ -547,8 +546,8 @@ icon_alignment = 1
 
 [node name="Seaweed" type="Sprite2D" parent="AudioTab" unique_id=392488541]
 visible = false
-position = Vector2(91.99997, 28)
-scale = Vector2(1.4959354, 2)
+position = Vector2(91.99997, 27)
+scale = Vector2(1.4959354, 1.9285715)
 texture = ExtResource("7_xpquy")
 
 [node name="ControlsTab" type="Button" parent="." unique_id=968413340]
@@ -598,9 +597,6 @@ script = ExtResource("9_ugdgc")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
 position = Vector2(576, 320)
 script = ExtResource("10_l8d1f")
-
-[node name="SeaweedApplier" type="Node" parent="." unique_id=1411421395]
-script = ExtResource("12_kd3mb")
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=799857351]
 z_index = -1
