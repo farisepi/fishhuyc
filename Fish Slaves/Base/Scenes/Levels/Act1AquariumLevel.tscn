@@ -15,7 +15,7 @@
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="12_x2xif"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
 [ext_resource type="AudioStream" uid="uid://b08yppwyfe6qi" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
