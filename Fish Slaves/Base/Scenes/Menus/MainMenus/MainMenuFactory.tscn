@@ -102,7 +102,6 @@ text = "Настройки
 "
 
 [node name="Rust" type="Sprite2D" parent="SettingsButton" unique_id=526235553]
-visible = false
 position = Vector2(130, 21.999996)
 scale = Vector2(2.1666663, 1.8333342)
 texture = ExtResource("6_8nuso")
