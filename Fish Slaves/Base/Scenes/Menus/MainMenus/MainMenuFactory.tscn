@@ -6,19 +6,19 @@
 [ext_resource type="StyleBox" uid="uid://cd3ovrwgkbuxl" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigFactoryMenuButtons/BigFactoryMenuButtonHover.tres" id="4_l6i1u"]
 [ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonHover.tres" id="5_qps51"]
 [ext_resource type="Script" uid="uid://mkq572lg6l57" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/PlayButton.gd" id="6_2in4n"]
+[ext_resource type="Texture2D" uid="uid://bgco0f4v0coxq" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/BigButtonFactoryMenuRust/BigButtonFactoryMenuRust.png" id="6_8nuso"]
 [ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="8_er5pt"]
 [ext_resource type="StyleBox" uid="uid://csjyi7n70eaoj" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButtonNormal.tres" id="9_0w4o0"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="9_gw61p"]
 [ext_resource type="StyleBox" uid="uid://b4s0ftomanbuh" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButtonPressed.tres" id="10_ysg7y"]
 [ext_resource type="StyleBox" uid="uid://b0yllbanl0jli" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtons/ShareFactoryMenuButtons/ShareFactoryMenuButtonHover.tres" id="11_g82wj"]
 [ext_resource type="Texture2D" uid="uid://vgqruybr7go6" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/DiscordMenuButtonIcon.png" id="13_0e0et"]
-[ext_resource type="Texture2D" uid="uid://battpb27goors" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TikTokMenuButtonIcon.png" id="14_8nuso"]
+[ext_resource type="Texture2D" uid="uid://cjtkcka3js333" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TikTokMenuButtonIcon.png" id="14_8nuso"]
 [ext_resource type="Texture2D" uid="uid://d320r4jhb4k1g" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TelegramMenuButtonIcon.png" id="14_rtvx6"]
 [ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="14_sxqd3"]
 [ext_resource type="Texture2D" uid="uid://by5syt24untoc" path="res://Fish Slaves/Textures/Interface/MainMenuLogos/FactoryMainMenuLogo.png" id="16_8pq2d"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_wo3ea"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_1q4bd"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="19_v64fb"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
 particle_flag_disable_z = true
@@ -69,6 +69,12 @@ text = "Начать игру
 "
 script = ExtResource("6_2in4n")
 
+[node name="Rust" type="Sprite2D" parent="PlayButton" unique_id=1854087076]
+visible = false
+position = Vector2(130, 21.999996)
+scale = Vector2(2.1666663, 1.8333342)
+texture = ExtResource("6_8nuso")
+
 [node name="SaveButton" type="Button" parent="." unique_id=112604908]
 visible = false
 offset_left = 426.0
@@ -95,6 +101,12 @@ theme_override_styles/hover = ExtResource("4_l6i1u")
 text = "Настройки
 "
 
+[node name="Rust" type="Sprite2D" parent="SettingsButton" unique_id=526235553]
+visible = false
+position = Vector2(130, 21.999996)
+scale = Vector2(2.1666663, 1.8333342)
+texture = ExtResource("6_8nuso")
+
 [node name="AchivmentsButton" type="Button" parent="." unique_id=2008761553]
 offset_left = 445.0
 offset_top = 365.0
@@ -108,6 +120,12 @@ theme_override_styles/hover = ExtResource("4_l6i1u")
 text = "Достижения
 
 "
+
+[node name="Rust" type="Sprite2D" parent="AchivmentsButton" unique_id=1006000548]
+visible = false
+position = Vector2(130, 21.999996)
+scale = Vector2(2.1666663, 1.8333342)
+texture = ExtResource("6_8nuso")
 
 [node name="QuitButton" type="Button" parent="." unique_id=1075697719]
 offset_left = 445.0
@@ -123,6 +141,12 @@ text = "Выход
 
 
 "
+
+[node name="Rust" type="Sprite2D" parent="QuitButton" unique_id=1562272871]
+visible = false
+position = Vector2(130, 21.999996)
+scale = Vector2(2.1666663, 1.8333342)
+texture = ExtResource("6_8nuso")
 
 [node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
 offset_left = 485.0
@@ -188,9 +212,6 @@ autoplay = "default"
 frame_progress = 0.57846695
 
 [node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
-
-[node name="SeaweedApplier" type="Node" parent="." unique_id=1738621417]
-script = ExtResource("19_v64fb")
 
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]

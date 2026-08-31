@@ -188,10 +188,10 @@ offset_bottom = 14.0
 
 [node name="ResetButton" type="Button" parent="." unique_id=606168002]
 layout_mode = 0
-offset_left = 783.0
-offset_top = 424.0
-offset_right = 1036.0
-offset_bottom = 488.0
+offset_left = 802.0
+offset_top = 409.0
+offset_right = 1002.0
+offset_bottom = 465.0
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_31va1")
 theme_override_styles/pressed = ExtResource("4_thjyk")
@@ -199,8 +199,9 @@ theme_override_styles/hover = ExtResource("4_thjyk")
 text = "Сбросить прогресс"
 
 [node name="Seaweed" type="Sprite2D" parent="ResetButton" unique_id=1398001712]
-position = Vector2(126.49998, 31.999985)
-scale = Vector2(2.0569112, 2.2857134)
+visible = false
+position = Vector2(99.999954, 28.000004)
+scale = Vector2(1.6260165, 2.0000005)
 texture = ExtResource("5_w3s35")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1201786992]
@@ -249,10 +250,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -87.0
-offset_top = -79.0
-offset_right = 1329.0
-offset_bottom = 789.0
+offset_left = -166.0
+offset_top = -46.0
+offset_right = 1250.0
+offset_bottom = 822.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

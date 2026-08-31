@@ -6,9 +6,11 @@
 [ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="4_fna08"]
 [ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="5_53wng"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_8n7ws"]
+[ext_resource type="Texture2D" uid="uid://cmvu6wx8pty3w" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_53wng"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_rpfps"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_c4yi2"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_3ug42"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_8n7ws"]
 
 [node name="SaveMenu" type="Node2D" unique_id=2084349734]
 script = ExtResource("1_us2yi")
@@ -50,6 +52,12 @@ theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot1" unique_id=2078308856]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
+
 [node name="SaveSlot2" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1296018424]
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
@@ -59,6 +67,12 @@ theme_override_styles/pressed = ExtResource("4_fna08")
 theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
+
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot2" unique_id=1129198816]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
 
 [node name="SaveSlot3" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1668447269]
 custom_minimum_size = Vector2(1002, 100)
@@ -70,6 +84,12 @@ theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot3" unique_id=192907361]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
+
 [node name="SaveSlot4" type="Button" parent="ScrollContainer/SaveGrid" unique_id=613332536]
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
@@ -79,6 +99,12 @@ theme_override_styles/pressed = ExtResource("4_fna08")
 theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
+
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot4" unique_id=710183157]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
 
 [node name="SaveSlot5" type="Button" parent="ScrollContainer/SaveGrid" unique_id=367018473]
 custom_minimum_size = Vector2(1002, 100)
@@ -90,6 +116,12 @@ theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
 
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot5" unique_id=159556559]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
+
 [node name="SaveSlot6" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1879601160]
 custom_minimum_size = Vector2(1002, 100)
 layout_mode = 2
@@ -99,6 +131,12 @@ theme_override_styles/pressed = ExtResource("4_fna08")
 theme_override_styles/hover = ExtResource("5_53wng")
 text = "Пусто
 "
+
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot6" unique_id=260830032]
+visible = false
+position = Vector2(501.1765, 50.00001)
+scale = Vector2(2.784314, 2.6315794)
+texture = ExtResource("6_53wng")
 
 [node name="TitleLabel" type="Label" parent="." unique_id=1579598994]
 offset_left = 415.00003
@@ -122,6 +160,12 @@ theme_override_styles/pressed = ExtResource("7_rpfps")
 theme_override_styles/hover = ExtResource("8_c4yi2")
 text = "Закрыть
 "
+
+[node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1473415239]
+visible = false
+position = Vector2(116.00002, 24.00002)
+scale = Vector2(3.314286, 2.666664)
+texture = ExtResource("10_8n7ws")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1257404213]
 position = Vector2(576, 328)

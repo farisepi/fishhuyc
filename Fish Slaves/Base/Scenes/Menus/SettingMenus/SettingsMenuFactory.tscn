@@ -8,11 +8,10 @@
 [ext_resource type="StyleBox" uid="uid://c0ck1x27nrwfj" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonNormal.tres" id="6_6hsp8"]
 [ext_resource type="StyleBox" uid="uid://cbd42ikbtrhos" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonPressed.tres" id="7_6hsp8"]
 [ext_resource type="StyleBox" uid="uid://8w80r31dxqhk" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonHover.tres" id="8_a2cw7"]
-[ext_resource type="Texture2D" uid="uid://bov62f8x3pnow" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="8_vvur5"]
+[ext_resource type="Texture2D" uid="uid://bfneohdbxq02r" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="8_vvur5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_3ivvd"]
 [ext_resource type="StyleBox" uid="uid://4rsmhqrh86tv" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonDisaibled.tres" id="9_j8y4l"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_o1jbc"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="11_j2mno"]
 
 [sub_resource type="DPITexture" id="DPITexture_xchot"]
 
@@ -490,8 +489,5 @@ script = ExtResource("9_3ivvd")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
 position = Vector2(576, 320)
 script = ExtResource("10_o1jbc")
-
-[node name="SeaweedApplier" type="Node" parent="." unique_id=1411421395]
-script = ExtResource("11_j2mno")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]
