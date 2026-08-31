@@ -21,7 +21,7 @@
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="21_ktap7"]
-[ext_resource type="Script" uid="uid://bjlr8wnel8a1r" path="res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedApplier.gd" id="22_6ntdl"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
 [ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
 [ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3Sniper.gd" id="24_u6mdv"]
 
@@ -2238,7 +2238,6 @@ shape = SubResource("RectangleShape2D_1esiv")
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
 process_mode = 2
 layer = 2
-visible = false
 script = ExtResource("21_ktap7")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1142893149]
@@ -2260,6 +2259,12 @@ theme_override_styles/hover = ExtResource("21_80wgb")
 text = "Продолжить
 "
 
+[node name="Rust" type="Sprite2D" parent="Pausemenu/ContinueButton" unique_id=1802999197]
+visible = false
+position = Vector2(90.00003, 28.000021)
+scale = Vector2(2.5714288, 3.1111085)
+texture = ExtResource("22_u6mdv")
+
 [node name="SaveButton" type="Button" parent="Pausemenu" unique_id=539176302]
 offset_left = 486.0
 offset_top = 236.0
@@ -2270,6 +2275,12 @@ theme_override_styles/normal = ExtResource("19_u6mdv")
 theme_override_styles/pressed = ExtResource("20_muljq")
 theme_override_styles/hover = ExtResource("21_80wgb")
 text = "Сохраниться"
+
+[node name="Rust" type="Sprite2D" parent="Pausemenu/SaveButton" unique_id=492620375]
+visible = false
+position = Vector2(90.00003, 28.000021)
+scale = Vector2(2.5714288, 3.1111085)
+texture = ExtResource("22_u6mdv")
 
 [node name="ExitButton" type="Button" parent="Pausemenu" unique_id=1788775237]
 offset_left = 486.0
@@ -2283,6 +2294,12 @@ theme_override_styles/hover = ExtResource("21_80wgb")
 text = "Выход
 "
 
+[node name="Rust" type="Sprite2D" parent="Pausemenu/ExitButton" unique_id=1163604220]
+visible = false
+position = Vector2(90.00003, 28.000021)
+scale = Vector2(2.5714288, 3.1111085)
+texture = ExtResource("22_u6mdv")
+
 [node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=1761585930]
 offset_left = 486.0
 offset_top = 358.0
@@ -2293,6 +2310,12 @@ theme_override_styles/normal = ExtResource("19_u6mdv")
 theme_override_styles/pressed = ExtResource("20_muljq")
 theme_override_styles/hover = ExtResource("21_80wgb")
 text = "Настройки"
+
+[node name="Rust" type="Sprite2D" parent="Pausemenu/SettingsButton" unique_id=1034897371]
+visible = false
+position = Vector2(90.00003, 28.000021)
+scale = Vector2(2.5714288, 3.1111085)
+texture = ExtResource("22_u6mdv")
 
 [node name="RestartButton" type="Button" parent="Pausemenu" unique_id=552670074]
 offset_left = 486.0
@@ -2306,8 +2329,11 @@ theme_override_styles/hover = ExtResource("21_80wgb")
 text = "Рестарт
 "
 
-[node name="SeaweedApplier" type="Node" parent="." unique_id=1504597157]
-script = ExtResource("22_6ntdl")
+[node name="Rust" type="Sprite2D" parent="Pausemenu/RestartButton" unique_id=1816910547]
+visible = false
+position = Vector2(90.00003, 28.000021)
+scale = Vector2(2.5714288, 3.1111085)
+texture = ExtResource("22_u6mdv")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1690086491]
 layer = 10
