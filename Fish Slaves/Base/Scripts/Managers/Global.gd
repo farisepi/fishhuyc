@@ -36,7 +36,7 @@ func _ready() -> void:
 	
 	# СОЗДАЕМ SEAWEEDSTATE С ПРАВИЛЬНЫМ ПУТЕМ
 	print("=== CREATING SEAWEEDSTATE ===")
-	var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedState.gd"
+	var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 	if FileAccess.file_exists(seaweed_path):
 		seaweed_state = load(seaweed_path).new()
 		add_child(seaweed_state)
@@ -45,7 +45,7 @@ func _ready() -> void:
 	else:
 		print("ERROR: SeaweedState not found at: ", seaweed_path)
 		# Пробуем альтернативный путь
-		var alt_path = "res://Fish Slaves/Base/Scripts/Managers/SeaweedState.gd"
+		var alt_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 		if FileAccess.file_exists(alt_path):
 			seaweed_state = load(alt_path).new()
 			add_child(seaweed_state)
@@ -139,7 +139,7 @@ func _force_apply_seaweed(scene: Node) -> void:
 	
 	if not has_node("SeaweedState"):
 		print("ERROR: SeaweedState not found! Creating new one...")
-		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/AquariumButtonsSeaweedState.gd"
+		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 		if FileAccess.file_exists(seaweed_path):
 			seaweed_state = load(seaweed_path).new()
 			add_child(seaweed_state)
