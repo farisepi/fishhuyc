@@ -26,7 +26,7 @@ extends Control
 @onready var interact_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6/InteractButton
 @onready var inventory_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8/InventoryButton
 @onready var pause_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7/PauseButton
-
+@onready var controls_grid: GridContainer = $ControlsPage/ScrollContainer/VBoxContainer
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)
 @onready var back_btn: Button = find_child("BackButton", true, false)
@@ -80,6 +80,8 @@ func _ready() -> void:
 	
 	# Применяем текстуры к свитчам
 	_apply_switch_textures()
+	if controls_grid:
+		controls_grid.columns = 2
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:

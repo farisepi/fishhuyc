@@ -51,6 +51,7 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -243,7 +244,6 @@ offset_bottom = 334.0
 text = "Звуковые эффекты"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
-visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0
@@ -259,13 +259,15 @@ offset_bottom = 528.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ControlsPage/ScrollContainer" unique_id=2077340390]
+[node name="VBoxContainer" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=1425537031]
 custom_minimum_size = Vector2(23, 23)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
 size_flags_stretch_ratio = 0.0
-theme_override_constants/separation = 35
+theme_override_constants/h_separation = 40
+theme_override_constants/v_separation = 46
+columns = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=709502145]
 layout_mode = 2
@@ -351,19 +353,20 @@ custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="ControlsPage/ScrollContainer" unique_id=319168073]
+[node name="GridContainer" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=910545739]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.0
 offset_transform_enabled = true
-theme_override_constants/separation = 35
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 79
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=963525587]
+[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=963525587]
 layout_mode = 2
 alignment = 1
 
-[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer" unique_id=1892398905]
+[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer" unique_id=1892398905]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -371,11 +374,11 @@ text = "Вверх"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=971712628]
+[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=971712628]
 layout_mode = 2
 alignment = 1
 
-[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer2" unique_id=1327254580]
+[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer2" unique_id=1327254580]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -383,11 +386,11 @@ text = "Вниз"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=1386599703]
+[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=1386599703]
 layout_mode = 2
 alignment = 1
 
-[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer3" unique_id=2081494111]
+[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer3" unique_id=2081494111]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -395,11 +398,11 @@ text = "Влево"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=290369369]
+[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=290369369]
 layout_mode = 2
 alignment = 1
 
-[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer4" unique_id=1761025548]
+[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer4" unique_id=1761025548]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -407,11 +410,11 @@ text = "Вправо"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=451160418]
+[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=451160418]
 layout_mode = 2
 alignment = 1
 
-[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer5" unique_id=794797930]
+[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer5" unique_id=794797930]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -419,11 +422,11 @@ text = "Прыжок"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=360134471]
+[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=360134471]
 layout_mode = 2
 alignment = 1
 
-[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer6" unique_id=1663152504]
+[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer6" unique_id=1663152504]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -431,11 +434,11 @@ text = "Взаимодействие"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=65764895]
+[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=65764895]
 layout_mode = 2
 alignment = 1
 
-[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer7" unique_id=1003708802]
+[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer7" unique_id=1003708802]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -443,11 +446,11 @@ text = "Пауза"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=1222664045]
+[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=1222664045]
 layout_mode = 2
 alignment = 1
 
-[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer8" unique_id=1305647306]
+[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer8" unique_id=1305647306]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -455,11 +458,11 @@ text = "Инвентарь"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=636863595]
+[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=636863595]
 layout_mode = 2
 alignment = 1
 
-[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer9" unique_id=1112852132]
+[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer9" unique_id=1112852132]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -467,11 +470,11 @@ text = "Присесть"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer2" unique_id=5812131]
+[node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=5812131]
 layout_mode = 2
 alignment = 1
 
-[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/VBoxContainer2/HBoxContainer10" unique_id=23693937]
+[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer10" unique_id=23693937]
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3

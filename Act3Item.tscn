@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://du6okcvj7dvpp"]
+
+[ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3GrabbableItem.gd" id="1_7w5se"]
+[ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="2_fj5uh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t8xdf"]
+size = Vector2(38, 18.5)
+
+[node name="Pallets" type="Area2D" unique_id=1719662579]
+position = Vector2(423, 575)
+script = ExtResource("1_7w5se")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=886276304]
+position = Vector2(24, 6)
+shape = SubResource("RectangleShape2D_t8xdf")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=198411245]
+position = Vector2(24, 3)
+texture = ExtResource("2_fj5uh")

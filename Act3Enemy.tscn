@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://cddeofwnwxg4p"]
+
+[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3Enemy.gd" id="1_14vm1"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bhunq"]
+radius = 11.0
+height = 40.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
+radius = 22.022715
+
+[node name="Enemy" type="CharacterBody2D" unique_id=81114687]
+script = ExtResource("1_14vm1")
+speed = 207.335
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1511496015]
+offset_left = 45.0
+offset_top = 8.0
+offset_right = 65.0
+offset_bottom = 48.0
+color = Color(0.8117647, 0.023529412, 0.12941177, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=449587121]
+position = Vector2(55, 28)
+shape = SubResource("CapsuleShape2D_bhunq")
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=473153116]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1916047618]
+position = Vector2(55, 28)
+shape = SubResource("CircleShape2D_bhunq")

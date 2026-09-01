@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://dk2g500x8wvmt"]
+
+[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
+[ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Act3Item.tscn" id="2_2y021"]
+[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Act3Enemy.tscn" id="2_jieml"]
+[ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="3_t5sma"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
+size = Vector2(2365.5, 57)
+
+[node name="PlayerTestSandbox" type="Node2D" unique_id=821784471]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=402871249]
+position = Vector2(2, 611)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=2102717239]
+position = Vector2(1180.25, 9.5)
+shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="ColorRect" type="ColorRect" parent="StaticBody2D" unique_id=1535644364]
+offset_top = -21.0
+offset_right = 2363.0
+offset_bottom = 40.0
+color = Color(0.4540879, 0.31730825, 0.20443648, 1)
+
+[node name="Mecha_Fish" parent="." unique_id=221706649 node_paths=PackedStringArray("enemies_node") instance=ExtResource("1_txi32")]
+position = Vector2(286, 561)
+collision_mask = 7
+enemies_node = NodePath("../Enemy")
+
+[node name="Pallets" parent="." unique_id=1719662579 instance=ExtResource("2_2y021")]
+position = Vector2(543, 574)
+item_texture = ExtResource("3_t5sma")
+
+[node name="Enemy" parent="." unique_id=81114687 instance=ExtResource("2_jieml")]
+position = Vector2(286, 561)
