@@ -30,6 +30,7 @@ var last_save_level: int = 1
 var enemy_positions: Dictionary = {}
 
 var seaweed_state: Node = null
+var _pending_seaweed_apply: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -44,7 +45,6 @@ func _ready() -> void:
 		print("SeaweedState created from: ", seaweed_path)
 	else:
 		print("ERROR: SeaweedState not found at: ", seaweed_path)
-		# Пробуем альтернативный путь
 		var alt_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 		if FileAccess.file_exists(alt_path):
 			seaweed_state = load(alt_path).new()
@@ -132,7 +132,25 @@ func _on_scene_changed() -> void:
 	var scene = tree.current_scene
 	if scene:
 		_apply_font(scene)
-		_force_apply_seaweed(scene)
+		
+		# Если есть ожидающее применение - применяем
+		if _pending_seaweed_apply:
+			_pending_seaweed_apply = false
+			_force_apply_seaweed(scene)
+		else:
+			# Иначе применяем с задержкой
+			_apply_seaweed_with_delay(scene)
+
+func _apply_seaweed_with_delay(scene: Node) -> void:
+	# Ждем несколько кадров для полной загрузки
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	if not is_instance_valid(scene):
+		return
+	
+	_force_apply_seaweed(scene)
 
 func _force_apply_seaweed(scene: Node) -> void:
 	print("=== FORCE APPLY SEAWEED to: ", scene.name)
@@ -151,64 +169,90 @@ func _force_apply_seaweed(scene: Node) -> void:
 	
 	var seaweed_state_node = get_node("SeaweedState")
 	
-	# Проверяем наличие водорослей в сцене
+	# Проверяем наличие декораций в сцене
 	var found_count = 0
-	_find_all_buttons(scene, found_count)
-	print("Found buttons with seaweed: ", found_count)
+	_find_all_decorations(scene, found_count)
+	print("Found decorations (Seaweed/Rust): ", found_count)
 	
 	# Принудительно применяем
 	seaweed_state_node.scan_and_apply(scene)
 	
 	# Дополнительно: принудительно показываем
-	_force_show_seaweed(scene)
+	_force_show_decorations(scene)
 	
 	print("=== FORCE APPLY FINISHED ===")
 
-func _find_all_buttons(node: Node, found: Variant) -> void:
+func _find_all_decorations(node: Node, found: Variant) -> void:
 	for child in node.get_children():
 		if child is Button:
-			var seaweed = _find_seaweed_in_node(child)
-			if seaweed:
+			var decoration = _find_decoration_in_node(child)
+			if decoration:
 				found += 1
-				print("Found button: ", child.name, " with seaweed")
-		_find_all_buttons(child, found)
+				print("Found decoration: ", child.name, " -> ", decoration.name)
+		_find_all_decorations(child, found)
 
-func _find_seaweed_in_node(node: Node) -> Node:
+func _find_decoration_in_node(node: Node) -> Node:
 	for child in node.get_children():
-		if child.name == "Seaweed":
+		if child.name == "Seaweed" or child.name == "Rust":
 			return child
 	return null
 
-func _force_show_seaweed(node: Node) -> void:
+func _force_show_decorations(node: Node) -> void:
 	for child in node.get_children():
 		if child is Button:
-			var seaweed = _find_seaweed_in_node(child)
-			if seaweed:
+			var decoration = _find_decoration_in_node(child)
+			if decoration:
 				var path = str(child.get_path())
 				var seaweed_state_node = get_node("SeaweedState")
+				
 				if seaweed_state_node.states.has(path):
 					var data = seaweed_state_node.states[path]
-					seaweed.visible = data["visible"]
-					if data["flip"]:
-						seaweed.scale.x = -abs(seaweed.scale.x)
+					decoration.visible = data["visible"]
+					
+					# Применяем флип с сохранением оригинального масштаба
+					var original_scale = data.get("scale", Vector2.ONE)
+					if data.get("flip", false):
+						decoration.scale.x = -abs(original_scale.x)
+						decoration.scale.y = abs(original_scale.y)
 					else:
-						seaweed.scale.x = abs(seaweed.scale.x)
-					print("Applied seaweed to: ", child.name, " visible=", data["visible"])
+						decoration.scale.x = abs(original_scale.x)
+						decoration.scale.y = abs(original_scale.y)
+					
+					# Восстанавливаем текстуру для Rust
+					if decoration.name == "Rust" and decoration is Sprite2D:
+						var tex_data = data.get("texture_data", {})
+						if tex_data.has("path") and tex_data["path"] != "":
+							var texture = load(tex_data["path"])
+							if texture:
+								decoration.texture = texture
+								print("  Restored texture for: ", child.name)
+					
+					print("  Applied to: ", child.name, " visible=", data["visible"])
 				else:
 					# Если нет состояния - создаем
 					var visible = randf() < 0.25
 					var flip = randf() < 0.5
+					
+					var texture_path = ""
+					if decoration is Sprite2D and decoration.texture:
+						texture_path = decoration.texture.resource_path
+					
 					seaweed_state_node.states[path] = {
 						"visible": visible,
-						"flip": flip
+						"flip": flip,
+						"texture_data": {"path": texture_path} if texture_path != "" else {},
+						"type": decoration.name,
+						"scale": decoration.scale
 					}
-					seaweed.visible = visible
+					
+					decoration.visible = visible
 					if flip:
-						seaweed.scale.x = -abs(seaweed.scale.x)
+						decoration.scale.x = -abs(decoration.scale.x)
 					else:
-						seaweed.scale.x = abs(seaweed.scale.x)
-					print("Created and applied seaweed to: ", child.name, " visible=", visible)
-		_force_show_seaweed(child)
+						decoration.scale.x = abs(decoration.scale.x)
+					
+					print("  Created and applied to: ", child.name, " visible=", visible)
+		_force_show_decorations(child)
 
 func _apply_font(node: Node) -> void:
 	if not _font:
@@ -236,6 +280,9 @@ func _apply_font(node: Node) -> void:
 func goto_scene(scene_path: String) -> void:
 	_cleanup_loading()
 	
+	# Устанавливаем флаг, что нужно применить водоросли после загрузки
+	_pending_seaweed_apply = true
+	
 	var loading_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/LoadingScreen.tscn")
 	if loading_scene:
 		loading_instance = loading_scene.instantiate()
@@ -252,6 +299,7 @@ func _on_scene_loaded() -> void:
 	print("=== SCENE LOADED SIGNAL ===")
 	var scene = get_tree().current_scene
 	if scene:
+		await get_tree().process_frame
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_force_apply_seaweed(scene)

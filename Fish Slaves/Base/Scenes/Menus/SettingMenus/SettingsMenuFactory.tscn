@@ -39,7 +39,6 @@ metadata/_edit_use_anchors_ = true
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_r8b5y")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0

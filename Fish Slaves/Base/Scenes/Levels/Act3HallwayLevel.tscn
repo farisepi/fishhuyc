@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3GrabbableItem.gd" id="3_42m7p"]
 [ext_resource type="Texture2D" uid="uid://pwgd2air676b" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3ObjectTiles.png" id="5_ii734"]
 [ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="7_8eynh"]
-[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Act3Enemy.tscn" id="8_it0yu"]
+[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Enemy.tscn" id="8_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFishCamera.gd" id="15_wsnn3"]

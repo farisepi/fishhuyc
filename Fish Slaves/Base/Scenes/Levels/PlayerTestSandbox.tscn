@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dk2g500x8wvmt"]
 
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
-[ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Act3Item.tscn" id="2_2y021"]
-[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Act3Enemy.tscn" id="2_jieml"]
+[ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
+[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Enemy.tscn" id="2_jieml"]
 [ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="3_t5sma"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
