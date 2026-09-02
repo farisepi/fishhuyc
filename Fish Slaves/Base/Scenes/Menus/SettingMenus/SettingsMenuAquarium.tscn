@@ -14,7 +14,10 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
+[ext_resource type="StyleBox" uid="uid://dhc3isvcdhptd" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonNormal.tres" id="13_3nkhw"]
 [ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="13_p7da6"]
+[ext_resource type="StyleBox" uid="uid://cxe4r5neiorux" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonPressed.tres" id="14_02ri3"]
+[ext_resource type="StyleBox" uid="uid://cn87qhd5yjoge" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonHover.tres" id="15_dqa2l"]
 
 [sub_resource type="DPITexture" id="DPITexture_xchot"]
 
@@ -279,6 +282,9 @@ custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1167399212]
 layout_mode = 2
@@ -288,6 +294,9 @@ custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.0
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1335372062]
 layout_mode = 2
@@ -296,6 +305,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1654604942]
 layout_mode = 2
@@ -304,6 +316,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=273354029]
 layout_mode = 2
@@ -312,6 +327,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1066718228]
 layout_mode = 2
@@ -320,6 +338,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=2003708516]
 layout_mode = 2
@@ -328,6 +349,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=580490677]
 layout_mode = 2
@@ -336,6 +360,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1598047638]
 layout_mode = 2
@@ -344,6 +371,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=476227223]
 layout_mode = 2
@@ -352,6 +382,9 @@ layout_mode = 2
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("13_3nkhw")
+theme_override_styles/pressed = ExtResource("14_02ri3")
+theme_override_styles/hover = ExtResource("15_dqa2l")
 
 [node name="GridContainer" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=910545739]
 layout_mode = 2
