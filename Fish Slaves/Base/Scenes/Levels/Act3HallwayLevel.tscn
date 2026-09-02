@@ -1818,7 +1818,9 @@ position = Vector2(3510, 288.09)
 position = Vector2(8, 6)
 shape = SubResource("RectangleShape2D_xvofd")
 
-[node name="MechaFish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
+[node name="Player" type="Node2D" parent="." unique_id=1527498841]
+
+[node name="MechaFish" parent="Player" unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
 position = Vector2(0, 318.09)
-barriers_node = NodePath("../Barriers")
-enemies_node = NodePath("../Enemies")
+barriers_node = NodePath("../../Barriers")
+enemies_node = NodePath("../../Enemies")

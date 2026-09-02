@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://cuispyebr488k"]
+
+[ext_resource type="Script" uid="uid://ct7oit7jw5rqc" path="res://AttackEnemy.gd" id="1_v30r4"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bhunq"]
+radius = 14.0
+height = 52.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
+radius = 110.11358
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_riqys"]
+radius = 30.016663
+
+[node name="AtackEnemy" type="CharacterBody2D" unique_id=1112525611]
+script = ExtResource("1_v30r4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1510479674]
+position = Vector2(105, 42)
+shape = SubResource("CapsuleShape2D_bhunq")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=516385186]
+offset_left = 96.0
+offset_top = 20.0
+offset_right = 114.0
+offset_bottom = 64.0
+color = Color(0.28627452, 1, 0.41568628, 1)
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=1358862994]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1424119491]
+position = Vector2(105, 42)
+shape = SubResource("CircleShape2D_bhunq")
+
+[node name="HitArea" type="Area2D" parent="." unique_id=1540339369]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=112529985]
+position = Vector2(105, 42)
+shape = SubResource("CircleShape2D_riqys")
+
+[connection signal="body_entered" from="DetectionArea" to="." method="_on_detector_body_entered"]
+[connection signal="body_exited" from="DetectionArea" to="." method="_on_detector_body_exited"]

@@ -1,7 +1,7 @@
 extends Camera2D
 
 var target_position: Vector2
-var follow_speed: float = 1.2          # ← ОЧЕНЬ МЕДЛЕННО
+var follow_speed: float = 1.2         
 var look_ahead_distance: float = 20.0
 var look_ahead_speed: float = 4.0
 var look_offset: Vector2 = Vector2.ZERO
@@ -25,9 +25,6 @@ func _process(delta):
 	else:
 		look_offset = look_offset.lerp(Vector2.ZERO, look_ahead_speed * delta)
 	
-	# ==========================================
-	# МЕДЛЕННОЕ СЛЕДОВАНИЕ С ЗАДЕРЖКОЙ
-	# ==========================================
 	var target = target_position + look_offset
 	global_position = global_position.lerp(target, follow_speed * delta)
 

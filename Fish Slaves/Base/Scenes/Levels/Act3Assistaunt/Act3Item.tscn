@@ -6,9 +6,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t8xdf"]
 size = Vector2(38, 18.5)
 
-[node name="Pallets" type="Area2D" unique_id=1719662579]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_riqys"]
+radius = 9.166672
+height = 24.0
+
+[node name="Pallets" type="RigidBody2D" unique_id=210130566]
 position = Vector2(423, 575)
-script = ExtResource("1_7w5se")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=886276304]
 position = Vector2(24, 6)
@@ -17,3 +20,12 @@ shape = SubResource("RectangleShape2D_t8xdf")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=198411245]
 position = Vector2(24, 3)
 texture = ExtResource("2_fj5uh")
+
+[node name="PickupArea" type="Area2D" parent="." unique_id=1946750875]
+script = ExtResource("1_7w5se")
+item_texture = ExtResource("2_fj5uh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupArea" unique_id=1842635624]
+position = Vector2(23, 5)
+scale = Vector2(2.5387418, -1.0558366)
+shape = SubResource("CapsuleShape2D_riqys")

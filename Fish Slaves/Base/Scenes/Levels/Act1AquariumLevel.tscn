@@ -137,6 +137,28 @@ shader = ExtResource("20_b02qe")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5vwn5"]
 shader = ExtResource("19_0a6ic")
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_048sb"]
+atlas = ExtResource("25_ccpdg")
+region = Rect2(280, 0, 70, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lciar"]
+atlas = ExtResource("25_ccpdg")
+region = Rect2(350, 0, 70, 18)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_riqys"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_048sb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lciar")
+}],
+"loop": 1,
+"name": &"hp_drain",
+"speed": 5.0
+}]
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_tsph4"]
 atlas = ExtResource("23_pqwoh")
 region = Rect2(0, 0, 70, 18)
@@ -248,28 +270,6 @@ animations = [{
 "loop": 1,
 "name": &"hp_fill",
 "speed": 14.0
-}]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_048sb"]
-atlas = ExtResource("25_ccpdg")
-region = Rect2(280, 0, 70, 18)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_lciar"]
-atlas = ExtResource("25_ccpdg")
-region = Rect2(350, 0, 70, 18)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_riqys"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_048sb")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_lciar")
-}],
-"loop": 1,
-"name": &"hp_drain",
-"speed": 5.0
 }]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_y3tg7"]
@@ -632,6 +632,7 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
+visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
@@ -863,6 +864,7 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=870273218]
+visible = false
 script = ExtResource("23_ccpdg")
 
 [node name="UI" type="Control" parent="CanvasLayer" unique_id=2120730306]
@@ -876,22 +878,24 @@ anchors_preset = 0
 offset_right = 488.0
 offset_bottom = 187.0
 
-[node name="BarFill" type="AnimatedSprite2D" parent="CanvasLayer/UI/HealthBar" unique_id=988972901]
-position = Vector2(209.75002, 68.5)
-scale = Vector2(5.9785705, 7.4999986)
-sprite_frames = SubResource("SpriteFrames_bhunq")
-animation = &"hp_fill"
+[node name="Sprite2D" type="Sprite2D" parent="CanvasLayer/UI/HealthBar" unique_id=1533733899]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/HealthBar/BarFill" unique_id=1658963411]
-root_node = NodePath("../../../../..")
-
-[node name="Hp" type="AnimatedSprite2D" parent="CanvasLayer/UI/HealthBar" unique_id=1829897765]
+[node name="Hp" type="AnimatedSprite2D" parent="CanvasLayer/UI/HealthBar/Sprite2D" unique_id=1829897765]
 position = Vector2(210.5, 68.53125)
 scale = Vector2(6.042856, 8.059028)
 sprite_frames = SubResource("SpriteFrames_riqys")
 animation = &"hp_drain"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/HealthBar/Hp" unique_id=995932188]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/HealthBar/Sprite2D/Hp" unique_id=995932188]
+
+[node name="BarFill" type="AnimatedSprite2D" parent="CanvasLayer/UI/HealthBar/Sprite2D" unique_id=988972901]
+position = Vector2(209.75002, 68.5)
+scale = Vector2(5.9785705, 7.4999986)
+sprite_frames = SubResource("SpriteFrames_bhunq")
+animation = &"hp_fill"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/HealthBar/Sprite2D/BarFill" unique_id=1658963411]
+root_node = NodePath("../../../../../..")
 
 [node name="AirBar" type="Control" parent="CanvasLayer/UI" unique_id=1238609136]
 anchors_preset = 0

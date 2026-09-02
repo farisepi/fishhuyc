@@ -2,8 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
 [ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
-[ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Enemy.tscn" id="2_jieml"]
-[ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="3_t5sma"]
+[ext_resource type="PackedScene" uid="uid://cuispyebr488k" path="res://AtackEnemy.tscn" id="3_w85fw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
@@ -12,27 +11,36 @@ size = Vector2(2365.5, 57)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=402871249]
 position = Vector2(2, 611)
-collision_layer = 4
-collision_mask = 3
+collision_layer = 5
+collision_mask = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=2102717239]
 position = Vector2(1180.25, 9.5)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="ColorRect" type="ColorRect" parent="StaticBody2D" unique_id=1535644364]
-offset_top = -21.0
-offset_right = 2363.0
-offset_bottom = 40.0
+offset_left = -9.0
+offset_top = -19.0
+offset_right = 2354.0
+offset_bottom = 42.0
 color = Color(0.4540879, 0.31730825, 0.20443648, 1)
 
-[node name="Mecha_Fish" parent="." unique_id=221706649 node_paths=PackedStringArray("enemies_node") instance=ExtResource("1_txi32")]
-position = Vector2(286, 561)
+[node name="Player" type="Node2D" parent="." unique_id=794074027]
+
+[node name="Mecha_Fish" parent="Player" unique_id=221706649 instance=ExtResource("1_txi32")]
+position = Vector2(259, 563)
 collision_mask = 7
-enemies_node = NodePath("../Enemy")
+item_scene = ExtResource("2_2y021")
 
 [node name="Pallets" parent="." unique_id=1719662579 instance=ExtResource("2_2y021")]
-position = Vector2(543, 574)
-item_texture = ExtResource("3_t5sma")
+position = Vector2(544, 576)
+collision_layer = 5
+collision_mask = 5
 
-[node name="Enemy" parent="." unique_id=81114687 instance=ExtResource("2_jieml")]
-position = Vector2(286, 561)
+[node name="Pallets2" parent="." unique_id=135434298 instance=ExtResource("2_2y021")]
+position = Vector2(481, 576)
+collision_layer = 5
+collision_mask = 5
+
+[node name="AtackEnemy" parent="." unique_id=1112525611 instance=ExtResource("3_w85fw")]
+position = Vector2(643, 514)

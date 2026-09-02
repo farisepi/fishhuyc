@@ -7,6 +7,7 @@ extends CharacterBody2D
 @export var gravity: float = 980.0
 @export var barriers_node: Node2D = null
 @export var enemies_node: Node2D = null
+@export var item_scene: PackedScene = null
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
@@ -28,10 +29,12 @@ var can_throw: bool = false
 var movement_blocked: bool = false
 var dash_cooldown: float = 0.0
 var is_dashing: bool = false
-var shift_held_time: float = 0.0
+var dash_timer: float = 0.0
+var dash_duration: float = 0.25
+var dash_speed_multiplier: float = 1.8
+var original_speed: float = 0.0
 var is_shift_held: bool = false
-var dash_distance: float = 120.0
-var dash_duration: float = 0.2
+var shift_held_time: float = 0.0
 
 var parry_active: bool = false
 var parry_done: bool = false
@@ -47,10 +50,12 @@ func _ready():
 	sprite.play("Idle")
 	held_icon = Sprite2D.new()
 	held_icon.visible = false
-	held_icon.scale = Vector2(0.5, 0.5)
+	held_icon.scale = Vector2(0.8, 0.8)
 	held_icon.z_index = 100
 	add_child(held_icon)
 func _physics_process(delta):
+	if is_shift_held:
+		shift_held_time += delta
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
 	if is_dashing:
@@ -66,7 +71,7 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 	if is_shift_held:
-		shift_held_time += delta
+		shift_pressed_time += delta
 	if get_tree().paused:
 		return
 	if parry_cooldown > 0:
@@ -75,15 +80,24 @@ func _physics_process(delta):
 		return
 	if not is_on_floor():
 		velocity.y += gravity * delta
+
 	var direction = Input.get_axis("ui_left", "ui_right")
 	var running = Input.is_action_pressed("Run")
+
+	if direction < 0:
+		facing_direction = -1
+	elif direction > 0:
+		facing_direction = 1
+
 	sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 	var spd = run_speed if running else speed
+
 	if not is_sliding and not is_vaulting and not is_climbing:
 		if direction != 0 and running:
 			sprite.play("Run")
 		else:
 			sprite.play("Idle")
+
 	if is_crouching and running and (abs(velocity.x) > 10 or is_sliding):
 		if not is_sliding:
 			is_sliding = true
@@ -110,22 +124,30 @@ func _physics_process(delta):
 			velocity.x = direction * spd
 			sprite.scale.y = 1.0
 			$CollisionShape2D.scale.y = 1.0
+
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		if not _try_vault():
 			velocity.y = jump_velocity
+
 	if Input.is_action_just_pressed("interact") and not is_on_floor() and not has_item:
 		_try_climb()
+
 	is_crouching = Input.is_action_pressed("crouch")
 	move_and_slide()
+
 	if is_sliding and is_on_wall():
 		global_position.y += 3
+
 	if camera:
 		camera.global_position = global_position
+
+	if held_item_icon:
+		held_item_icon.global_position = global_position + Vector2(0, -60)
+
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
 		held_icon.modulate = Color.RED if can_throw else Color.WHITE
-	if held_item_icon:
-		held_item_icon.global_position = global_position + Vector2(0, -60)		
+
 	if parry_active and not parry_done:
 		if Input.is_action_just_pressed("Parry"):
 			do_parry()
@@ -134,6 +156,9 @@ func _end_slide():
 	is_sliding = false
 	slide_timer = 0.0
 	$CollisionShape2D.scale.y = 1.0
+
+var shift_pressed_time: float = 0.0
+var shift_just_pressed: bool = false
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("block"):
@@ -152,71 +177,154 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
 			do_parry()
+	
 	if event is InputEventKey and event.keycode == KEY_SHIFT:
 		if event.pressed:
 			is_shift_held = true
 			shift_held_time = 0.0
 		else:
 			is_shift_held = false
-			if not is_sliding and shift_held_time < 0.2 and dash_cooldown <= 0 and not is_dashing:
+			if shift_held_time < 0.3 and dash_cooldown <= 0 and not is_dashing and not is_sliding:
 				_dash()
+			shift_just_pressed = false
 
-var held_item: Area2D = null
+var held_item: Node2D = null
 var held_item_icon: Sprite2D = null
+var held_item_texture: Texture2D = null
+var item_thrown: bool = false
+var facing_direction: int = 1
 
 func _grab_item():
 	if has_item:
 		return
+	item_thrown = false
 	for body in $GrabArea.get_overlapping_areas():
 		if body.is_in_group("grabbable"):
-			has_item = true
-			held_item = body
-			held_texture = body.item_texture
-			
-			if held_item_icon:
-				held_item_icon.queue_free()
-			
-			held_item_icon = Sprite2D.new()
-			held_item_icon.texture = held_texture
-			held_item_icon.scale = Vector2(0.8, 0.8)
-			held_item_icon.modulate = Color.WHITE
-			held_item_icon.global_position = global_position + Vector2(0, -60)
-			held_item_icon.z_index = 10
-			get_tree().current_scene.add_child(held_item_icon)
-			body.grab()
-			break
+			var parent = body.get_parent()
+			if parent:
+				has_item = true
+				held_item = parent
+				held_item_texture = body.item_texture
+
+				if held_item_icon:
+					held_item_icon.queue_free()
+
+				held_item_icon = Sprite2D.new()
+				held_item_icon.texture = held_item_texture
+				held_item_icon.scale = Vector2(0.8, 0.8)
+				held_item_icon.global_position = global_position + Vector2(0, -60)
+				held_item_icon.z_index = 10
+				get_tree().current_scene.add_child(held_item_icon)
+
+				parent.queue_free()
+				break
 
 func _throw_item():
 	if not has_item:
 		return
+	print("_throw_item вызван, facing_direction = ", facing_direction)
 	has_item = false
-	
+	item_thrown = false
+
 	if held_item_icon:
 		held_item_icon.queue_free()
 		held_item_icon = null
-	
-	if held_item:
+
+	if held_item_texture:
 		var enemy = _find_nearest_enemy()
-		if enemy:
-			held_item.throw_at_target(enemy)
+		if enemy and global_position.distance_to(enemy.global_position) < 500:
+			print("бросаю во врага")
+			_throw_item_at_target(enemy, held_item_texture)
 		else:
-			print("❌ НЕТ ВРАГА ДЛЯ БРОСКА!")
-		held_item = null
-	
+			print("бросаю по дуге")
+			_throw_item_physics(held_item_texture)
+	else:
+		print("нет текстуры предмета")
+
+	held_item = null
+	held_item_texture = null
 	held_icon.visible = false
+func _throw_item_physics(texture: Texture2D):
+	print("бросаю предмет по дуге")
+	if not item_scene:
+		print("нет сцены предмета")
+		return
+
+	var thrown = item_scene.instantiate()
+	thrown.global_position = global_position + Vector2(0, -20)
+	get_tree().current_scene.add_child(thrown)
+
+	if thrown is RigidBody2D:
+		thrown.collision_layer = 3
+		thrown.collision_mask = 3
+		thrown.gravity_scale = 2.0
+		thrown.freeze = false
+		var dir = -1 if facing_direction == -1 else 1
+		thrown.apply_impulse(Vector2(dir * 300, -150), Vector2.ZERO)
+
+		var pickup = thrown.get_node_or_null("PickupArea")
+		if pickup:
+			pickup.monitoring = false
+			pickup.monitorable = false
+			pickup.queue_free()
+
+		await get_tree().create_timer(0.5).timeout
+
+		var tween = create_tween()
+		tween.tween_property(thrown, "modulate:a", 0.0, 0.8)
+		await tween.finished
+		thrown.queue_free()
+		print("предмет разрушен")
+
+func _throw_item_at_target(enemy: Node2D, texture: Texture2D):
+	print("бросаю предмет во врага")
+	if not item_scene:
+		return
+
+	var thrown = item_scene.instantiate()
+	thrown.global_position = global_position + Vector2(0, -20)
+	get_tree().current_scene.add_child(thrown)
+
+	if thrown is RigidBody2D:
+		thrown.collision_layer = 3
+		thrown.collision_mask = 3
+		thrown.gravity_scale = 0.5
+		thrown.freeze = false
+		var dir = -1 if facing_direction == -1 else 1
+		var target_pos = enemy.global_position + Vector2(0, -20)
+		var distance = global_position.distance_to(target_pos)
+		var force = min(distance * 1.2, 500)
+		thrown.apply_impulse(Vector2(dir * force, -50), Vector2.ZERO)
+
+		var pickup = thrown.get_node_or_null("PickupArea")
+		if pickup:
+			pickup.monitoring = false
+			pickup.monitorable = false
+			pickup.queue_free()
+
+		await get_tree().create_timer(0.3).timeout
+		thrown.queue_free()
+		if enemy.has_method("stun"):
+			enemy.stun()
+		print("враг оглушен")
 
 func _find_nearest_enemy():
 	if not enemies_node:
-		print("❌ enemies_node = null! Перетащи врага в инспектор.")
+		print("enemies_node = null")
 		return null
 	var nearest = null
 	var min_dist = 9999
 	for enemy in enemies_node.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = global_position.distance_to(enemy.global_position)
+			print("враг: ", enemy.name, " дистанция: ", dist)
 			if dist < min_dist:
 				min_dist = dist
 				nearest = enemy
+	if nearest:
+		print("ближайший враг: ", nearest.name, " дистанция: ", min_dist)
+	else:
+		print("врагов нет")
 	return nearest
 func set_can_throw(value: bool):
 	can_throw = value
@@ -226,11 +334,11 @@ func set_movement_blocked(blocked: bool):
 
 func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	if parry_cooldown > 0:
-		print("⏳ ПАРИРОВАНИЕ НА КД! Осталось: ", parry_cooldown)
+		print("ПАРИРОВАНИЕ НА КД Осталось: ", parry_cooldown)
 		return
 	if parry_active or parry_done:
 		return
-	print("🔥 ПАРИРОВАНИЕ ЗАПУЩЕНО!")
+	print("ПАРИРОВАНИЕ ЗАПУЩЕНО!")
 	parry_active = true
 	parry_done = false
 	parry_enemy = enemy
@@ -268,13 +376,13 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 func do_parry():
 	if parry_done or not parry_active:
 		return
-	print("🔥 ПАРИРОВАНИЕ УСПЕШНО!")
+	print("ПАРИРОВАНИЕ УСПЕШНО!")
 	parry_done = true
 	parry_active = false
 	if is_instance_valid(parry_enemy):
 		parry_enemy.queue_free()
 		parry_enemy = null
-		print("✅ Враг удалён!")
+		print("Враг удалён!")
 	if is_instance_valid(parry_label):
 		parry_label.queue_free()
 		parry_label = null
@@ -292,7 +400,7 @@ func do_parry():
 	if sprite:
 		sprite.play("Idle")
 	velocity = Vector2.ZERO
-	print("✅ ИГРОК ВКЛЮЧЁН!")
+	print("ИГРОК ВКЛЮЧЁН!")
 	if parry_callback != null:
 		parry_callback.call()
 
@@ -383,14 +491,14 @@ func take_damage(amount: int):
 func _dash():
 	if is_dashing or dash_cooldown > 0:
 		return
-	print("💨 РЫВОК!")
+	print("рывок")
 	is_dashing = true
-	dash_cooldown = 1.2
-	var direction = Vector2.RIGHT if sprite.scale.x > 0 else Vector2.LEFT
-	var target_x = global_position.x + direction.x * dash_distance
+	dash_cooldown = 1.5
+	var direction = -1 if facing_direction == -1 else 1
+	var target_x = global_position.x + direction * 120  # ← ЗДЕСЬ МЕНЯЙ РАССТОЯНИЕ
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_QUINT)
-	tween.tween_property(self, "global_position:x", target_x, dash_duration)
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.tween_property(self, "global_position:x", target_x, 0.25)
 	await tween.finished
 	is_dashing = false

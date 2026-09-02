@@ -7,7 +7,7 @@ radius = 11.0
 height = 40.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
-radius = 22.022715
+radius = 16.03122
 
 [node name="Enemy" type="CharacterBody2D" unique_id=81114687]
 script = ExtResource("1_14vm1")
@@ -24,7 +24,7 @@ color = Color(0.8117647, 0.023529412, 0.12941177, 1)
 position = Vector2(55, 28)
 shape = SubResource("CapsuleShape2D_bhunq")
 
-[node name="DetectionArea" type="Area2D" parent="." unique_id=473153116]
+[node name="DetectionArea" type="Area2D" parent="." unique_id=1600326783]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1916047618]
 position = Vector2(55, 28)
