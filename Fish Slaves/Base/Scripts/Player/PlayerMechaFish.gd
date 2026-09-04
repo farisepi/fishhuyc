@@ -29,10 +29,6 @@ var can_throw: bool = false
 var movement_blocked: bool = false
 var dash_cooldown: float = 0.0
 var is_dashing: bool = false
-var dash_timer: float = 0.0
-var dash_duration: float = 0.25
-var dash_speed_multiplier: float = 1.8
-var original_speed: float = 0.0
 var is_shift_held: bool = false
 var shift_held_time: float = 0.0
 
@@ -169,11 +165,13 @@ func _input(event: InputEvent) -> void:
 		is_blocking = false
 		if sprite:
 			sprite.modulate = Color(1, 1, 1, 1)
+	
 	if event.is_action_pressed("interact"):
 		if has_item:
 			_throw_item()
 		else:
 			_grab_item()
+	
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
 			do_parry()
@@ -184,9 +182,8 @@ func _input(event: InputEvent) -> void:
 			shift_held_time = 0.0
 		else:
 			is_shift_held = false
-			if shift_held_time < 0.3 and dash_cooldown <= 0 and not is_dashing and not is_sliding:
+			if shift_held_time < 0.3 and dash_cooldown <= 0 and not is_dashing and not is_sliding and not movement_blocked:
 				_dash()
-			shift_just_pressed = false
 
 var held_item: Node2D = null
 var held_item_icon: Sprite2D = null
@@ -463,24 +460,20 @@ func die():
 	if is_dead:
 		return
 	is_dead = true
-	print("💀 die() ВЫЗВАНА! Начинаю анимацию...")
+	print("смерть игрока")
 	if sprite:
-		print("🔍 Спрайт найден, играю 'Death'")
 		sprite.play("Death")
 		await sprite.animation_finished
-		print("🔍 Анимация завершена, стопорю кадр")
 		sprite.stop()
 		sprite.frame = sprite.sprite_frames.get_frame_count("Death") - 1
-		print("🔍 Последний кадр: ", sprite.frame)
 		await get_tree().create_timer(2.0).timeout
-	else:
-		print("❌ Спрайт не найден!")
-	print("💀 Перезагружаю уровень...")
 	get_tree().reload_current_scene()
 
 func take_damage(amount: int):
 	hp -= amount
-	print("hitdamage")
+	if hp < 0:
+		hp = 0
+	print("урон, хп: ", hp)
 	if sprite:
 		sprite.play("Hit")
 		await sprite.animation_finished
@@ -495,7 +488,7 @@ func _dash():
 	is_dashing = true
 	dash_cooldown = 1.5
 	var direction = -1 if facing_direction == -1 else 1
-	var target_x = global_position.x + direction * 120  # ← ЗДЕСЬ МЕНЯЙ РАССТОЯНИЕ
+	var target_x = global_position.x + direction * 120
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_SINE)

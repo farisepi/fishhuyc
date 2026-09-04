@@ -1,7 +1,7 @@
 extends Camera2D
 
 var smooth_speed: float = 0.1
-var max_offset: float = 50.0
+var max_offset: float = 30.0
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -15,7 +15,7 @@ func _process(_delta):
 	var window_size = get_viewport().get_visible_rect().size
 	var center = window_size / 2
 	
-	var sens = Global.camera_sensitivity * 0.003
+	var sens = Global.camera_sensitivity * 0.0002
 	if sens <= 0.0:
 		global_position = center
 		return

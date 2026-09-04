@@ -6,7 +6,7 @@ signal fade_out_finished
 func _ready() -> void:
 	color = Color.BLACK
 	modulate.a = 0.0
-	size = get_viewport().get_visible_rect().size
+	size = Vector2(10000, 10000)
 	position = Vector2.ZERO
 	mouse_filter = MOUSE_FILTER_IGNORE
 	z_index = 100

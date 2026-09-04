@@ -388,7 +388,7 @@ animations = [{
 }],
 "loop": 1,
 "name": &"Hit",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -968,7 +968,9 @@ script = ExtResource("9_aikcy")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Idle"
+animation = &"Hit"
+frame = 8
+frame_progress = 0.790356
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)
@@ -991,8 +993,8 @@ offset_right = 1157.0
 offset_bottom = 652.0
 
 [node name="SuitIcon" type="Sprite2D" parent="GUI/UI_Container" unique_id=10592403]
-position = Vector2(127.18749, 303)
-scale = Vector2(6.8942304, 7.0769243)
+position = Vector2(102.093765, 257)
+scale = Vector2(5.5240383, 5.6923056)
 texture = ExtResource("13_7xaar")
 
 [node name="HP_Bar" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1711761751]

@@ -2,10 +2,13 @@
 
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
 [ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
-[ext_resource type="PackedScene" uid="uid://cuispyebr488k" path="res://AtackEnemy.tscn" id="3_w85fw"]
+[ext_resource type="Script" uid="uid://etqpqhw6vxqw" path="res://DeathZone.gd" id="3_w85fw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2jjgd"]
+size = Vector2(157, 56.589966)
 
 [node name="PlayerTestSandbox" type="Node2D" unique_id=821784471]
 
@@ -22,7 +25,7 @@ shape = SubResource("RectangleShape2D_bhunq")
 offset_left = -9.0
 offset_top = -19.0
 offset_right = 2354.0
-offset_bottom = 42.0
+offset_bottom = 8.0
 color = Color(0.4540879, 0.31730825, 0.20443648, 1)
 
 [node name="Player" type="Node2D" parent="." unique_id=794074027]
@@ -32,15 +35,17 @@ position = Vector2(259, 563)
 collision_mask = 7
 item_scene = ExtResource("2_2y021")
 
-[node name="Pallets" parent="." unique_id=1719662579 instance=ExtResource("2_2y021")]
-position = Vector2(544, 576)
-collision_layer = 5
-collision_mask = 5
+[node name="DeathZone" type="Area2D" parent="." unique_id=1585757294]
+position = Vector2(508, 478)
+script = ExtResource("3_w85fw")
 
-[node name="Pallets2" parent="." unique_id=135434298 instance=ExtResource("2_2y021")]
-position = Vector2(481, 576)
-collision_layer = 5
-collision_mask = 5
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=68046366]
+position = Vector2(58.5, 84.79501)
+shape = SubResource("RectangleShape2D_2jjgd")
 
-[node name="AtackEnemy" parent="." unique_id=1112525611 instance=ExtResource("3_w85fw")]
-position = Vector2(643, 514)
+[node name="ColorRect" type="ColorRect" parent="DeathZone" unique_id=921111016]
+offset_left = -20.0
+offset_top = 56.0
+offset_right = 138.0
+offset_bottom = 114.0
+color = Color(0.9630055, 0, 0.19449541, 1)
