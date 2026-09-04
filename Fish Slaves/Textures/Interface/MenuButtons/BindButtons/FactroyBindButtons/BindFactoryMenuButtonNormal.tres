@@ -1,7 +1,7 @@
 [gd_resource type="StyleBoxTexture" format=3 uid="uid://buat0nyf0gj27"]
 
-[ext_resource type="Texture2D" uid="uid://bma7kwo4hyw0m" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/AquariumBindButton.png" id="1_ko8w4"]
+[ext_resource type="Texture2D" uid="uid://coxdn473yljpg" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/FactroyBindButtons/FactroyBindButtons.png" id="1_vsmpb"]
 
 [resource]
-texture = ExtResource("1_ko8w4")
+texture = ExtResource("1_vsmpb")
 modulate_color = Color(0.5391072, 0.5391072, 0.5391072, 0.78431374)
