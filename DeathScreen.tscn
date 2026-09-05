@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://ddcd2c3myeks3"]
+
+[ext_resource type="Script" uid="uid://bprsc3a63qog5" path="res://DeathScreen.gd" id="1_58ct5"]
+
+[node name="DeathScreen" type="CanvasLayer" unique_id=655264103]
+layer = 401
+script = ExtResource("1_58ct5")
+
+[node name="Panel" type="Control" parent="." unique_id=495306175]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1155.0
+offset_bottom = 650.0
+
+[node name="Background" type="ColorRect" parent="." unique_id=1657085099]
+offset_right = 1155.0
+offset_bottom = 649.0
+color = Color(0, 0, 0, 0.1764706)
+
+[node name="DeathLabel" type="Label" parent="." unique_id=599904336]
+offset_left = 408.0
+offset_right = 502.375
+offset_bottom = 61.25
+scale = Vector2(3.22, 3.22)
+text = "СМЕРТЬ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="." unique_id=898664572]
+offset_left = 456.0
+offset_top = 200.0
+offset_right = 688.0
+offset_bottom = 264.0
+text = "Заново
+"
+icon_alignment = 1
+
+[node name="MainMenuButton" type="Button" parent="." unique_id=554049829]
+offset_left = 456.0
+offset_top = 328.0
+offset_right = 688.0
+offset_bottom = 393.0
+text = "Выйти в главное меню"
+
+[node name="QuitButton" type="Button" parent="." unique_id=1123354656]
+offset_left = 456.0
+offset_top = 448.0
+offset_right = 688.0
+offset_bottom = 514.0
+text = "Выйти на рабочий стол"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1519118785]
+
+[connection signal="pressed" from="RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="MainMenuButton" to="." method="_on_main_menu_button_pressed"]
+[connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]

@@ -8,6 +8,7 @@ extends CharacterBody2D
 @export var barriers_node: Node2D = null
 @export var enemies_node: Node2D = null
 @export var item_scene: PackedScene = null
+@export var deathzone_scene: PackedScene = null
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
@@ -31,6 +32,8 @@ var dash_cooldown: float = 0.0
 var is_dashing: bool = false
 var is_shift_held: bool = false
 var shift_held_time: float = 0.0
+var last_shift_state: bool = false
+var shift_just_pressed: bool = false
 
 var parry_active: bool = false
 var parry_done: bool = false
@@ -50,6 +53,18 @@ func _ready():
 	held_icon.z_index = 100
 	add_child(held_icon)
 func _physics_process(delta):
+	if is_dead:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+	
+	if get_tree().paused:
+		return
+	
+
+	
+	if get_tree().paused:
+		return
 	if is_shift_held:
 		shift_held_time += delta
 	if dash_cooldown > 0:
@@ -154,7 +169,7 @@ func _end_slide():
 	$CollisionShape2D.scale.y = 1.0
 
 var shift_pressed_time: float = 0.0
-var shift_just_pressed: bool = false
+
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("block"):
@@ -182,7 +197,7 @@ func _input(event: InputEvent) -> void:
 			shift_held_time = 0.0
 		else:
 			is_shift_held = false
-			if shift_held_time < 0.3 and dash_cooldown <= 0 and not is_dashing and not is_sliding and not movement_blocked:
+			if shift_held_time < 0.2 and dash_cooldown <= 0 and not is_dashing and not is_sliding and not movement_blocked:
 				_dash()
 
 var held_item: Node2D = null
@@ -460,14 +475,37 @@ func die():
 	if is_dead:
 		return
 	is_dead = true
-	print("смерть игрока")
+	
+	print("die() вызвана")
+	
+	movement_blocked = true
+	velocity = Vector2.ZERO
+	is_crouching = false
+	is_sliding = false
+	is_vaulting = false
+	is_climbing = false
+	is_dashing = false
+	
 	if sprite:
+		print("проигрываю анимацию Death")
 		sprite.play("Death")
-		await sprite.animation_finished
+		sprite.speed_scale = 1.0
+		
+		var total_frames = sprite.sprite_frames.get_frame_count("Death")
+		print("всего кадров: ", total_frames)
+		
+		var frame_duration = 1.0 / 12.0
+		var total_duration = total_frames * frame_duration
+		print("длительность анимации: ", total_duration, " секунд")
+		
+		while sprite.frame < total_frames - 1:
+			await get_tree().process_frame
+		
 		sprite.stop()
-		sprite.frame = sprite.sprite_frames.get_frame_count("Death") - 1
-		await get_tree().create_timer(2.0).timeout
-	get_tree().reload_current_scene()
+		sprite.frame = total_frames - 1
+		print("остановлен на кадре: ", sprite.frame)
+	
+
 
 func take_damage(amount: int):
 	hp -= amount
@@ -495,3 +533,5 @@ func _dash():
 	tween.tween_property(self, "global_position:x", target_x, 0.25)
 	await tween.finished
 	is_dashing = false
+func on_death_zone_entered():
+	die()

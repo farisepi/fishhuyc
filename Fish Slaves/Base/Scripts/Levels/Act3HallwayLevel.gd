@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var player: CharacterBody2D = $MechaFish
+@onready var player: CharacterBody2D = $Node2D/Mecha_Fish
 @onready var prompt: Label = $UI/PromptLabel
 @onready var elevator: ColorRect = $Elevator
 @onready var elevator_button: Area2D = $ElevatorButton

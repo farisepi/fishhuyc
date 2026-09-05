@@ -21,7 +21,6 @@
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
 [ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="21_5vwn5"]
-[ext_resource type="Script" uid="uid://dufj0ltmmr25" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Ui_HealthBar.gd" id="23_ccpdg"]
 [ext_resource type="Texture2D" uid="uid://nc3jv6tsdyk2" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HPBar/HPBar.png" id="23_pqwoh"]
 [ext_resource type="Texture2D" uid="uid://bskuoirgq3fyu" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HP/HP.png" id="25_ccpdg"]
 [ext_resource type="Texture2D" uid="uid://ce3utsq8i6fdq" path="res://Fish Slaves/Textures/Interface/In-GameInterface/AirBallon/AirBallon.png" id="25_ilx6o"]
@@ -865,7 +864,6 @@ color = Color(1, 1, 1, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=870273218]
 visible = false
-script = ExtResource("23_ccpdg")
 
 [node name="UI" type="Control" parent="CanvasLayer" unique_id=2120730306]
 layout_mode = 3
