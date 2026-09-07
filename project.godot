@@ -105,7 +105,7 @@ folder_colors={
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/": "yellow",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishDeath/": "green",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishHit/": "teal",
-"res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishRun/": "blue",
+"res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/": "blue",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/": "purple",
 "res://Fish Slaves/Textures/Characters/Scientist/": "pink",
 "res://Fish Slaves/Textures/Characters/Scientist/ScientistAngry/": "gray",

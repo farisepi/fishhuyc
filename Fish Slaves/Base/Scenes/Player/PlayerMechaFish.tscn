@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://27evrcb58l5k" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetUp.png" id="4_nylm6"]
 [ext_resource type="Texture2D" uid="uid://vvnm0iysaho8" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishHit/MechaFishHit.png" id="5_q6h80"]
 [ext_resource type="Texture2D" uid="uid://c5vmbsmww8djs" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/MechaFishIdle.png" id="6_bpw81"]
-[ext_resource type="Texture2D" uid="uid://beghv6t76ws52" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishRun/MechaFishRun.png" id="7_7xaar"]
+[ext_resource type="Texture2D" uid="uid://beghv6t76ws52" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png" id="7_7xaar"]
 [ext_resource type="Texture2D" uid="uid://so5v2v4abq3a" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishSlide.png" id="8_2sw6b"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFishCamera.gd" id="9_aikcy"]
 [ext_resource type="Script" uid="uid://coahytvv3fbyk" path="res://MechaInterface.gd" id="10_2sw6b"]
