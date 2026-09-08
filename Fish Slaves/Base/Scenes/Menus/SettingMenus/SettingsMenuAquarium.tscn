@@ -517,10 +517,10 @@ vertical_alignment = 1
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0
-offset_left = 784.0
-offset_top = 416.0
-offset_right = 936.0
-offset_bottom = 463.0
+offset_left = 573.0
+offset_top = 550.0
+offset_right = 805.0
+offset_bottom = 597.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -534,10 +534,10 @@ texture = ExtResource("7_xpquy")
 
 [node name="DefaultButton" type="Button" parent="." unique_id=2024975690]
 layout_mode = 0
-offset_left = 784.0
-offset_top = 480.0
-offset_right = 936.0
-offset_bottom = 527.0
+offset_left = 820.0
+offset_top = 550.0
+offset_right = 1052.0
+offset_bottom = 597.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -551,10 +551,10 @@ texture = ExtResource("7_xpquy")
 
 [node name="GeneralTab" type="Button" parent="." unique_id=785485694]
 layout_mode = 0
-offset_left = 176.0
-offset_top = 64.0
-offset_right = 360.0
-offset_bottom = 120.0
+offset_left = 212.0
+offset_top = 50.0
+offset_right = 444.0
+offset_bottom = 98.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -570,10 +570,10 @@ texture = ExtResource("7_xpquy")
 
 [node name="AudioTab" type="Button" parent="." unique_id=931140739]
 layout_mode = 0
-offset_left = 456.0
-offset_top = 64.0
-offset_right = 640.0
-offset_bottom = 118.0
+offset_left = 459.0
+offset_top = 50.0
+offset_right = 691.0
+offset_bottom = 98.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -588,10 +588,10 @@ texture = ExtResource("7_xpquy")
 
 [node name="ControlsTab" type="Button" parent="." unique_id=968413340]
 layout_mode = 0
-offset_left = 752.0
-offset_top = 64.0
-offset_right = 936.0
-offset_bottom = 120.0
+offset_left = 706.0
+offset_top = 50.0
+offset_right = 938.0
+offset_bottom = 98.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -606,10 +606,10 @@ texture = ExtResource("7_xpquy")
 
 [node name="BackButton" type="Button" parent="." unique_id=1884264781]
 layout_mode = 0
-offset_left = 456.0
-offset_top = 584.0
-offset_right = 688.0
-offset_bottom = 632.0
+offset_left = 100.0
+offset_top = 550.0
+offset_right = 332.0
+offset_bottom = 598.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
@@ -635,6 +635,7 @@ position = Vector2(576, 320)
 script = ExtResource("10_l8d1f")
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=799857351]
+visible = false
 z_index = -1
 material = SubResource("ShaderMaterial_8uthl")
 layout_mode = 1
