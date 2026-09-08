@@ -2,15 +2,15 @@
 
 [ext_resource type="Script" uid="uid://bs6763qirkbg" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuAquarium.gd" id="1_6mnqf"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="2_gjd28"]
-[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="2_inu85"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="2_inu85"]
 [ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="3_yojsw"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="4_er5dx"]
 [ext_resource type="StyleBox" uid="uid://cbfwkdnsfbg3" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonHover.tres" id="5_0gev2"]
-[ext_resource type="Texture2D" uid="uid://crsbct406q7yg" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed.png" id="6_ms13i"]
+[ext_resource type="Texture2D" uid="uid://ciu02624n4ai6" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed.png" id="6_ms13i"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="6_xsmip"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="7_gj8n2"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="8_rdut3"]
-[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_mhwe5"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_mhwe5"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="12_u0fkc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_oya6r"]

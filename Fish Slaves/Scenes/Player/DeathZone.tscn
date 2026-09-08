@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://8ssopim30utx"]
 
-[ext_resource type="Script" uid="uid://etqpqhw6vxqw" path="res://DeathZone.gd" id="1_cpr33"]
+[ext_resource type="Script" uid="uid://etqpqhw6vxqw" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish/DeathZone.gd" id="1_cpr33"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(198, 72)

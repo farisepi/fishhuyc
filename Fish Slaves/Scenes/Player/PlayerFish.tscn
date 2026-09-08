@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dr1p62m7bi368"]
 
-[ext_resource type="Script" uid="uid://bg460pgdqj2dp" path="res://Fish Slaves/Base/Scripts/Player/PlayerFish.gd" id="1_f8hhw"]
+[ext_resource type="Script" uid="uid://bg460pgdqj2dp" path="res://Fish Slaves/Base/Scripts/Player/PlayerFish/PlayerFish.gd" id="1_f8hhw"]
 [ext_resource type="Texture2D" uid="uid://n6ps3vl8u336" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishHit/Act1FishHit.png" id="2_6411s"]
 [ext_resource type="Texture2D" uid="uid://dq2tlp5j4phnk" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishIdle/FishIdle1.png" id="2_a4jka"]
 [ext_resource type="Texture2D" uid="uid://deuis3i48cha6" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishIdle/FishIdle2.png" id="3_g5j16"]

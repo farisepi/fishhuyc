@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://dk2g500x8wvmt"]
 
-[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
-[ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
-[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://DeathScreen.tscn" id="3_w85fw"]
-[ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://ObstacleVariant1.tscn" id="4_yt2i1"]
+[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
+[ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Scenes/Enemy/DeathScreen.tscn" id="3_w85fw"]
+[ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
