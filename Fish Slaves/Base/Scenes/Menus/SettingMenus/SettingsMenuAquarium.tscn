@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ixfow7tuskw8"]
 
 [ext_resource type="Script" uid="uid://duglsjmo880sj" path="res://Fish Slaves/Base/Scripts/Menus/SettingsMenus/SettingsMenuAquarium.gd" id="1_cqlcn"]
-[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="2_cxufn"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="2_cxufn"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="3_cxufn"]
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
-[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 [ext_resource type="StyleBox" uid="uid://dhc3isvcdhptd" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonNormal.tres" id="13_3nkhw"]
 [ext_resource type="Texture2D" uid="uid://chs8stxjps5te" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="13_p7da6"]
 [ext_resource type="StyleBox" uid="uid://cxe4r5neiorux" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonPressed.tres" id="14_02ri3"]

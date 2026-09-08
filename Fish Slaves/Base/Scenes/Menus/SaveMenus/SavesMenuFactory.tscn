@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b2g1j65ljrjwo"]
 
 [ext_resource type="Script" uid="uid://bwhafeqk5ab4s" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuFactory.gd" id="1_us2yi"]
-[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_fna08"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_fna08"]
 [ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="3_us2yi"]
 [ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="4_fna08"]
 [ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="5_53wng"]

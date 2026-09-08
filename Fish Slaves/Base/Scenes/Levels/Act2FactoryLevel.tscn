@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bpg2y1uxesep3"]
 
-[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Scenes/Player/PlayerMechaFish.tscn" id="1_1hprj"]
+[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_1hprj"]
 [ext_resource type="Script" uid="uid://3a7oowaeqa6" path="res://Fish Slaves/Base/Scripts/Levels/Act2FactoryLevel.gd" id="1_ptfog"]
 [ext_resource type="Script" uid="uid://cobq3qxdm1xnu" path="res://Fish Slaves/Base/Scripts/Levels/Act2Assistant/2ActCutsceneCamera.gd" id="2_d6dj4"]
 

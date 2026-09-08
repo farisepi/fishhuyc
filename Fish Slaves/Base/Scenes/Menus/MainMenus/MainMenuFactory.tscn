@@ -15,7 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://vgqruybr7go6" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/DiscordMenuButtonIcon.png" id="13_0e0et"]
 [ext_resource type="Texture2D" uid="uid://battpb27goors" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TikTokMenuButtonIcon.png" id="14_8nuso"]
 [ext_resource type="Texture2D" uid="uid://d320r4jhb4k1g" path="res://Fish Slaves/Textures/Interface/MenuButtons/ShareMenuButtons/ShareMenuButtonIcons/TelegramMenuButtonIcon.png" id="14_rtvx6"]
-[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="14_sxqd3"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="14_sxqd3"]
 [ext_resource type="Texture2D" uid="uid://by5syt24untoc" path="res://Fish Slaves/Textures/Interface/MainMenuLogos/FactoryMainMenuLogo.png" id="16_8pq2d"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_wo3ea"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_1q4bd"]
