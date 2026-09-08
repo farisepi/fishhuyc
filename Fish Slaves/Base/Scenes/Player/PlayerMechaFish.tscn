@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish.gd" id="1_wwsif"]
 [ext_resource type="Texture2D" uid="uid://b13g1gnfuccu3" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishDeath/MechaFishDeathWithoutFish.png" id="2_aikcy"]
+[ext_resource type="Texture2D" uid="uid://jkog31jkmgy1" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishClimb/MechaFishClimb.png" id="3_70hpr"]
 [ext_resource type="Texture2D" uid="uid://dxwjv7wddxuho" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetDown.png" id="3_77rrf"]
 [ext_resource type="Texture2D" uid="uid://27evrcb58l5k" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishGetUp.png" id="4_nylm6"]
 [ext_resource type="Texture2D" uid="uid://vvnm0iysaho8" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishHit/MechaFishHit.png" id="5_q6h80"]
+[ext_resource type="Texture2D" uid="uid://djhlqm77v86cj" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishFall/MechaFishFall.png" id="6_8emc6"]
 [ext_resource type="Texture2D" uid="uid://c5vmbsmww8djs" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/MechaFishIdle.png" id="6_bpw81"]
-[ext_resource type="Texture2D" uid="uid://beghv6t76ws52" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png" id="7_7xaar"]
+[ext_resource type="Texture2D" uid="uid://bhxgoyipldlyj" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png" id="7_7xaar"]
 [ext_resource type="Texture2D" uid="uid://so5v2v4abq3a" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/MechaFishSlide.png" id="8_2sw6b"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFishCamera.gd" id="9_aikcy"]
 [ext_resource type="Script" uid="uid://coahytvv3fbyk" path="res://MechaInterface.gd" id="10_2sw6b"]
@@ -15,6 +17,50 @@
 [ext_resource type="Texture2D" uid="uid://chj0qgvbcsnij" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Stamina/Stamina.png" id="12_bpw81"]
 [ext_resource type="Texture2D" uid="uid://cbusbcbipnf8b" path="res://Fish Slaves/Textures/Interface/In-GameInterface/MehIndicator/MehIndicatorOn.png" id="13_7xaar"]
 [ext_resource type="Texture2D" uid="uid://ce3utsq8i6fdq" path="res://Fish Slaves/Textures/Interface/In-GameInterface/AirBallon/AirBallon.png" id="14_7xaar"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4al58"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(0, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nd8h4"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(75, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1sngu"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(150, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eo73l"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(225, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bphw1"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(300, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrmfm"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(375, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sw6h8"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(450, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_80mru"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(525, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_txupk"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(600, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xwkyg"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(675, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0rthv"]
+atlas = ExtResource("3_70hpr")
+region = Rect2(750, 0, 75, 75)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lhjos"]
 atlas = ExtResource("2_aikcy")
@@ -87,6 +133,14 @@ region = Rect2(256, 0, 128, 75)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ykshk"]
 atlas = ExtResource("3_77rrf")
 region = Rect2(384, 0, 128, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4d6ho"]
+atlas = ExtResource("6_8emc6")
+region = Rect2(0, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bbsl3"]
+atlas = ExtResource("6_8emc6")
+region = Rect2(75, 0, 75, 75)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_csclx"]
 atlas = ExtResource("4_nylm6")
@@ -276,6 +330,44 @@ region = Rect2(384, 0, 128, 75)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_4al58")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nd8h4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1sngu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eo73l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bphw1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrmfm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sw6h8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_80mru")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_txupk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xwkyg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0rthv")
+}],
+"loop": 1,
+"name": &"Climb",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_lhjos")
 }, {
 "duration": 1.0,
@@ -337,6 +429,17 @@ animations = [{
 "loop": 1,
 "name": &"Fall",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4d6ho")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bbsl3")
+}],
+"loop": 1,
+"name": &"Falling",
+"speed": 7.0
 }, {
 "frames": [{
 "duration": 1.0,

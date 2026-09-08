@@ -24,7 +24,7 @@ func _ready():
 	hp_bar.play("HP_Bar")
 	_update_hearts()
 	_update_stamina()
-	_update_suit()
+	
 	
 	hp_bar_base_pos = hp_bar.position
 	hearts_base_pos = hearts.position
@@ -112,13 +112,6 @@ func _update_stamina():
 	stamina.frame = clamp(frame, 0, total_frames - 1)
 	stamina.stop()
 
-func _update_suit():
-	if not suit_icon:
-		return
-	if has_suit:
-		suit_icon.modulate = Color(1, 1, 1, 1)
-	else:
-		suit_icon.modulate = Color(0.3, 0.3, 0.3, 1)
 
 func set_hearts(value: int):
 	current_hearts = clamp(value, 0, max_hearts)
@@ -127,7 +120,3 @@ func set_hearts(value: int):
 func set_stamina(value: float):
 	stamina_value = clamp(value, 0, max_stamina)
 	_update_stamina()
-
-func set_suit(active: bool):
-	has_suit = active
-	_update_suit()

@@ -47,31 +47,31 @@ func _process(delta):
 	match state:
 		0:
 			fade_timer += delta
-			var alpha = min(fade_timer / 2.5, 1.0)
+			var alpha = min(fade_timer / 1.2, 1.0)
 			background.color.a = alpha * 0.8
-			if fade_timer >= 2.5:
+			if fade_timer >= 1.2:
 				state = 1
 				appear_timer = 0.0
 		
 		1:
 			appear_timer += delta
 			
-			var label_alpha = min((appear_timer) / 1.5, 1.0)
+			var label_alpha = min((appear_timer) / 1.0, 1.0)
 			death_label.modulate.a = label_alpha
 			
-			var restart_alpha = min(max((appear_timer - 0.5) / 0.8, 0.0), 1.0)
+			var restart_alpha = min(max((appear_timer - 0.3) / 0.6, 0.0), 1.0)
 			restart_button.modulate.a = restart_alpha
 			
-			var menu_alpha = min(max((appear_timer - 0.7) / 0.8, 0.0), 1.0)
+			var menu_alpha = min(max((appear_timer - 0.5) / 0.6, 0.0), 1.0)
 			menu_button.modulate.a = menu_alpha
 			
-			var quit_alpha = min(max((appear_timer - 0.9) / 0.8, 0.0), 1.0)
+			var quit_alpha = min(max((appear_timer - 0.7) / 0.6, 0.0), 1.0)
 			quit_button.modulate.a = quit_alpha
 			
 			var wave = sin(appear_timer * 1.5) * 0.075 + 0.925
 			death_label.modulate.a = death_label.modulate.a * wave
 			
-			if appear_timer >= 3.0:
+			if appear_timer >= 2.0:
 				fading_in = false
 				can_interact = true
 				get_tree().paused = true

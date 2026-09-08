@@ -1251,11 +1251,11 @@ sources/0 = SubResource("TileSetAtlasSource_mti0u")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wsnn3"]
 size = Vector2(38, 18.5)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_riqys"]
-size = Vector2(65.0625, 65.5)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vcpp2"]
 size = Vector2(66, 38)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_riqys"]
+size = Vector2(65.0625, 65.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pqd4u"]
 size = Vector2(28, 41)
@@ -1463,16 +1463,16 @@ physics_interpolation_mode = 1
 position = Vector2(1360, 33.089966)
 collision_layer = 2
 
-[node name="Obstacle" type="StaticBody2D" parent="Barriers/Obstacle" unique_id=819853499]
-position = Vector2(1015, -40.089966)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Barriers/Obstacle/Obstacle" unique_id=881910956]
-position = Vector2(-99, -12)
-shape = SubResource("RectangleShape2D_riqys")
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Barriers/Obstacle" unique_id=467410988]
 position = Vector2(33, 10)
 shape = SubResource("RectangleShape2D_vcpp2")
+
+[node name="Obstacle5" type="StaticBody2D" parent="Barriers" unique_id=819853499]
+position = Vector2(2375, -7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barriers/Obstacle5" unique_id=881910956]
+position = Vector2(-99, -12)
+shape = SubResource("RectangleShape2D_riqys")
 
 [node name="Obstacle2" type="StaticBody2D" parent="Barriers" unique_id=702061462]
 position = Vector2(48, 33)
@@ -1818,9 +1818,7 @@ position = Vector2(3510, 288.09)
 position = Vector2(8, 6)
 shape = SubResource("RectangleShape2D_xvofd")
 
-[node name="Player" type="Node2D" parent="." unique_id=1527498841]
-
-[node name="MechaFish" parent="Player" unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
-position = Vector2(0, 318.09)
-barriers_node = NodePath("../../Barriers")
-enemies_node = NodePath("../../Enemies")
+[node name="MechaFish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
+position = Vector2(-16, 307.09)
+barriers_node = NodePath("../Barriers")
+enemies_node = NodePath("../Enemies")

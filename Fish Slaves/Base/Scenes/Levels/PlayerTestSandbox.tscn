@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
 [ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://DeathScreen.tscn" id="3_w85fw"]
-[ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://DeathZone.tscn" id="4_yt2i1"]
+[ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://ObstacleVariant1.tscn" id="4_yt2i1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
@@ -28,12 +28,14 @@ color = Color(0.4540879, 0.31730825, 0.20443648, 1)
 
 [node name="Player" type="Node2D" parent="." unique_id=794074027]
 
-[node name="Mecha_Fish" parent="Player" unique_id=221706649 instance=ExtResource("1_txi32")]
+[node name="Mecha_Fish" parent="Player" unique_id=221706649 node_paths=PackedStringArray("barriers_node") instance=ExtResource("1_txi32")]
 position = Vector2(259, 563)
 collision_mask = 7
+barriers_node = NodePath("../../Obstacle")
 item_scene = ExtResource("2_2y021")
 
-[node name="DeathZone" parent="." unique_id=2095264132 instance=ExtResource("4_yt2i1")]
-position = Vector2(345, 519)
-
 [node name="DeathScreen" parent="." unique_id=655264103 instance=ExtResource("3_w85fw")]
+visible = false
+
+[node name="Obstacle" parent="." unique_id=1967249374 instance=ExtResource("4_yt2i1")]
+position = Vector2(361, 514)

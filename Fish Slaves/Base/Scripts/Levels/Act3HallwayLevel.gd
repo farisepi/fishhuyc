@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var player: CharacterBody2D = $Node2D/Mecha_Fish
+@onready var player: CharacterBody2D = $MechaFish
 @onready var prompt: Label = $UI/PromptLabel
 @onready var elevator: ColorRect = $Elevator
 @onready var elevator_button: Area2D = $ElevatorButton
@@ -30,14 +30,12 @@ var forklift_stopped: bool = false
 var parry_done: bool = false
 var parry_trigger: Area2D = null
 
-# Переменные для подсказки SHIFT
 var shift_prompt: Label = null
 var is_shift_active: bool = false
 var shift_timer: float = 0.0
 var shift_duration: float = 1.5
 
 func _ready():
-	
 	shift_prompt = Label.new()
 	shift_prompt.text = "SHIFT"
 	shift_prompt.add_theme_font_size_override("font_size", 48)
@@ -95,7 +93,6 @@ func _ready():
 			_game_over()
 	)
 	
-	# Парирование
 	var parrying_scene = get_node_or_null("ParryingScene")
 	if parrying_scene:
 		parry_trigger = parrying_scene.get_node_or_null("ParryTrigger")
@@ -120,7 +117,6 @@ func _ready():
 					parry_trigger.set_deferred("monitoring", false)
 			)
 	
-	# Узкий проход
 	var entrance_gate = $EntranceGate
 	var entrance_trigger = $EntranceTrigger
 	var passage_trigger = $TightPassageTrigger
@@ -207,9 +203,6 @@ func _activate_forklift():
 	forklift.visible = true
 	falling_shelf.visible = true
 	
-	# ==========================================
-	# ПОДСКАЗКА SHIFT ПОЯВЛЯЕТСЯ СРАЗУ
-	# ==========================================
 	if shift_prompt:
 		shift_prompt.visible = true
 		shift_prompt.global_position = player.global_position + Vector2(-50, -100)
@@ -234,7 +227,6 @@ func _activate_forklift():
 	forklift.velocity = Vector2.ZERO
 	
 	forklift_ready_for_throw = true
-	
 
 func _process(delta):
 	if get_tree().paused or state == State.GAMEOVER:
@@ -243,21 +235,17 @@ func _process(delta):
 	if camera:
 		camera.global_position = player.global_position
 	
-
 	if is_shift_active:
 		shift_timer += delta
 		
-
 		if shift_prompt and shift_prompt.visible:
 			shift_prompt.global_position = player.global_position + Vector2(-50, -100)
 		
-		# ЕСЛИ ИГРОК НАЖАЛ SHIFT
 		if Input.is_action_just_pressed("Run"):
 			print("💨 ПРОХОД СКВОЗЬ ПОГРУЗЧИК!")
 			is_shift_active = false
 			shift_prompt.visible = false
 			
-			# ОТКЛЮЧАЕМ КОЛЛИЗИЮ ПОГРУЗЧИКА
 			var forklift_col = forklift.get_node_or_null("CollisionShape2D")
 			if forklift_col:
 				forklift_col.disabled = true
@@ -270,7 +258,6 @@ func _process(delta):
 			prompt.visible = false
 			return
 		
-		# ЕСЛИ ВРЕМЯ ВЫШЛО
 		if shift_timer > shift_duration:
 			print("💀 НЕ УСПЕЛ НАЖАТЬ SHIFT!")
 			is_shift_active = false
@@ -308,7 +295,6 @@ func _process(delta):
 				if prompt.text != "Кинь предмет в погрузчик!":
 					prompt.visible = false
 		
-		# ЛИФТ - ТОЛЬКО ПОСЛЕ ПАРИРОВАНИЯ
 		if player.global_position.x > 3200 and parry_done:
 			if not can_press_button:
 				can_press_button = true

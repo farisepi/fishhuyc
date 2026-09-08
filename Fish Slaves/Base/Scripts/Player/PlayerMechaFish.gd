@@ -18,10 +18,10 @@ var original_color: Color = Color(1, 1, 1, 1)
 var block_color: Color = Color(0.5, 0.8, 1.0, 1)
 var hp: int = 100
 var is_blocking: bool = false
-var is_crouching: bool = false
 var is_vaulting: bool = false
 var is_climbing: bool = false
 var is_sliding: bool = false
+var slide_duration: float = 0.6
 var slide_timer: float = 0.0
 var has_item: bool = false
 var held_texture: Texture2D
@@ -44,6 +44,7 @@ var parry_label: Label = null
 var parry_cooldown: float = 0.0
 var parry_cooldown_time: float = 3.0
 
+
 func _ready():
 	add_to_group("player")
 	sprite.play("Idle")
@@ -52,6 +53,10 @@ func _ready():
 	held_icon.scale = Vector2(0.8, 0.8)
 	held_icon.z_index = 100
 	add_child(held_icon)
+
+var was_on_floor: bool = true
+var velocity_y_before_jump: float = 0.0
+
 func _physics_process(delta):
 	if is_dead:
 		velocity = Vector2.ZERO
@@ -61,10 +66,6 @@ func _physics_process(delta):
 	if get_tree().paused:
 		return
 	
-
-	
-	if get_tree().paused:
-		return
 	if is_shift_held:
 		shift_held_time += delta
 	if dash_cooldown > 0:
@@ -81,8 +82,6 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-	if is_shift_held:
-		shift_pressed_time += delta
 	if get_tree().paused:
 		return
 	if parry_cooldown > 0:
@@ -104,27 +103,33 @@ func _physics_process(delta):
 	var spd = run_speed if running else speed
 
 	if not is_sliding and not is_vaulting and not is_climbing:
-		if direction != 0 and running:
+		if not is_on_floor() and velocity.y > 0:
+			sprite.play("Falling")
+		elif direction != 0 and running:
 			sprite.play("Run")
 		else:
 			sprite.play("Idle")
 
-	if is_crouching and running and (abs(velocity.x) > 10 or is_sliding):
+	var slide_input = running and Input.is_action_pressed("crouch")
+	var slide_tap = running and Input.is_action_just_pressed("crouch")
+	
+	if slide_input and (abs(velocity.x) > 10 or is_sliding):
 		if not is_sliding:
 			is_sliding = true
 			slide_timer = 0.0
 			sprite.play("Fall")
 			await get_tree().create_timer(0.3).timeout
 			sprite.play("Slide")
-			$CollisionShape2D.scale.y = 0.6
 		slide_timer += delta
-		var sp = min(slide_timer / 1, 2)
+		var sp = min(slide_timer / 2.0, 2)
 		velocity.x = lerp(slide_speed, 0.0, sp) * direction
-	elif is_crouching and running:
-		velocity.x = 0
-	elif is_crouching and not running:
-		velocity.x = direction * speed * 0.3
-		sprite.scale.y = 0.6
+	elif slide_tap and running and not is_sliding and abs(velocity.x) > 10:
+		is_sliding = true
+		slide_timer = 0.0
+		sprite.play("Slide")
+		slide_timer += delta
+		var sp = min(slide_timer / 1.0, 2)
+		velocity.x = lerp(slide_speed, 0.0, sp) * direction
 	else:
 		if is_sliding:
 			sprite.play("GetUp")
@@ -136,16 +141,15 @@ func _physics_process(delta):
 			sprite.scale.y = 1.0
 			$CollisionShape2D.scale.y = 1.0
 
-	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
+	if Input.is_action_just_pressed("jump") and is_on_floor():
 		if not _try_vault():
 			velocity.y = jump_velocity
 
 	if Input.is_action_just_pressed("interact") and not is_on_floor() and not has_item:
 		_try_climb()
 
-	is_crouching = Input.is_action_pressed("crouch")
 	move_and_slide()
-
+	
 	if is_sliding and is_on_wall():
 		global_position.y += 3
 
@@ -169,7 +173,6 @@ func _end_slide():
 	$CollisionShape2D.scale.y = 1.0
 
 var shift_pressed_time: float = 0.0
-
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("block"):
@@ -256,6 +259,7 @@ func _throw_item():
 	held_item = null
 	held_item_texture = null
 	held_icon.visible = false
+
 func _throw_item_physics(texture: Texture2D):
 	print("бросаю предмет по дуге")
 	if not item_scene:
@@ -338,6 +342,7 @@ func _find_nearest_enemy():
 	else:
 		print("врагов нет")
 	return nearest
+
 func set_can_throw(value: bool):
 	can_throw = value
 
@@ -408,7 +413,6 @@ func do_parry():
 	is_vaulting = false
 	is_climbing = false
 	is_sliding = false
-	is_crouching = false
 	if sprite:
 		sprite.play("Idle")
 	velocity = Vector2.ZERO
@@ -421,6 +425,7 @@ func _try_vault() -> bool:
 		return false
 	for o in barriers_node.get_children():
 		if o is StaticBody2D and global_position.distance_to(o.global_position) < 60:
+			sprite.play("Climb")
 			var s = o.get_node("CollisionShape2D").shape
 			if s is RectangleShape2D:
 				if s.size.y > 60:
@@ -442,34 +447,69 @@ func _jump_over(o: StaticBody2D, high: bool):
 	velocity.x = speed * d
 
 func _try_climb():
-	if is_on_floor():
-		return
 	if has_item:
-		return
+		return false
 	if movement_blocked:
-		return
+		return false
 	if not barriers_node:
-		return
-	for o in barriers_node.get_children():
-		if o is StaticBody2D:
-			var dist = global_position.distance_to(o.global_position)
-			if dist < 100:
-				var s = o.get_node("CollisionShape2D").shape
-				if s is RectangleShape2D and s.size.y > 60:
-					is_climbing = true
-					velocity = Vector2.ZERO
-					var d = 1 if sprite.scale.x > 0 else -1
-					var target = Vector2(
-						o.global_position.x + d * 5,
-						o.global_position.y - s.size.y - 5
-					)
-					var t = create_tween()
-					t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-					t.tween_property(self, "global_position", target, 0.3)
-					await t.finished
-					is_climbing = false
-					velocity.x = speed * d
-					return
+		return false
+	
+	var player_pos = global_position
+	var player_height = 30
+	var player_bottom = player_pos.y + player_height / 2
+	var player_center_x = player_pos.x
+	
+	for child in barriers_node.get_children():
+		var obstacle = null
+		if child is StaticBody2D:
+			obstacle = child
+		else:
+			var parent = child.get_parent()
+			if parent and parent is StaticBody2D:
+				obstacle = parent
+		
+		if not obstacle:
+			continue
+		
+		var col = obstacle.get_node_or_null("CollisionShape2D")
+		if not col:
+			continue
+		
+		var s = col.shape
+		if s is RectangleShape2D:
+			var obstacle_top = obstacle.global_position.y - s.size.y / 2
+			var obstacle_left = obstacle.global_position.x - s.size.x / 2
+			var obstacle_right = obstacle.global_position.x + s.size.x / 2
+			
+			if player_bottom < obstacle_top - 5:
+				continue
+			
+			var is_left = player_center_x < obstacle_left
+			var is_right = player_center_x > obstacle_right
+			var is_over = player_center_x > obstacle_left - 30 and player_center_x < obstacle_right + 30
+			
+			if is_left or is_right or is_over:
+				is_climbing = true
+				velocity = Vector2.ZERO
+				
+				var d = -1 if is_left else 1
+				if is_over:
+					d = 1 if sprite.scale.x > 0 else -1
+				
+				var target = Vector2(
+					obstacle.global_position.x + d * 15,
+					obstacle_top - 10
+				)
+				sprite.play("Climb")
+				var t = create_tween()
+				t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				t.tween_property(self, "global_position", target, 0.4)
+				await t.finished
+				is_climbing = false
+				velocity.x = speed * d
+				return true
+	
+	return false
 
 func die():
 	if is_dead:
@@ -480,7 +520,6 @@ func die():
 	
 	movement_blocked = true
 	velocity = Vector2.ZERO
-	is_crouching = false
 	is_sliding = false
 	is_vaulting = false
 	is_climbing = false
@@ -494,18 +533,12 @@ func die():
 		var total_frames = sprite.sprite_frames.get_frame_count("Death")
 		print("всего кадров: ", total_frames)
 		
-		var frame_duration = 1.0 / 12.0
-		var total_duration = total_frames * frame_duration
-		print("длительность анимации: ", total_duration, " секунд")
-		
 		while sprite.frame < total_frames - 1:
 			await get_tree().process_frame
 		
 		sprite.stop()
 		sprite.frame = total_frames - 1
 		print("остановлен на кадре: ", sprite.frame)
-	
-
 
 func take_damage(amount: int):
 	hp -= amount
@@ -533,5 +566,6 @@ func _dash():
 	tween.tween_property(self, "global_position:x", target_x, 0.25)
 	await tween.finished
 	is_dashing = false
+
 func on_death_zone_entered():
 	die()
