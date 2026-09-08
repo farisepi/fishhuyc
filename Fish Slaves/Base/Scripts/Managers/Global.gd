@@ -150,6 +150,11 @@ func _apply_seaweed_with_delay(scene: Node) -> void:
 	if not is_instance_valid(scene):
 		return
 	
+	# ПРОВЕРЯЕМ, ЧТО СЦЕНА В ДЕРЕВЕ
+	if not scene.is_inside_tree():
+		print("Сцена не в дереве, пропускаем")
+		return
+	
 	_force_apply_seaweed(scene)
 
 func _force_apply_seaweed(scene: Node) -> void:
@@ -183,7 +188,19 @@ func _force_apply_seaweed(scene: Node) -> void:
 	print("=== FORCE APPLY FINISHED ===")
 
 func _find_all_decorations(node: Node, found: Variant) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	if not node.is_inside_tree():
+		return
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child is Button:
 			var decoration = _find_decoration_in_node(child)
 			if decoration:
@@ -192,16 +209,40 @@ func _find_all_decorations(node: Node, found: Variant) -> void:
 		_find_all_decorations(child, found)
 
 func _find_decoration_in_node(node: Node) -> Node:
+	if not node or not is_instance_valid(node):
+		return null
+	
+	if not node.is_inside_tree():
+		return null
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child.name == "Seaweed" or child.name == "Rust":
 			return child
 	return null
 
 func _force_show_decorations(node: Node) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	if not node.is_inside_tree():
+		return
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child is Button:
 			var decoration = _find_decoration_in_node(child)
-			if decoration:
+			if decoration and decoration.is_inside_tree():
 				var path = str(child.get_path())
 				var seaweed_state_node = get_node("SeaweedState")
 				
@@ -209,7 +250,6 @@ func _force_show_decorations(node: Node) -> void:
 					var data = seaweed_state_node.states[path]
 					decoration.visible = data["visible"]
 					
-					# Применяем флип с сохранением оригинального масштаба
 					var original_scale = data.get("scale", Vector2.ONE)
 					if data.get("flip", false):
 						decoration.scale.x = -abs(original_scale.x)
@@ -218,18 +258,13 @@ func _force_show_decorations(node: Node) -> void:
 						decoration.scale.x = abs(original_scale.x)
 						decoration.scale.y = abs(original_scale.y)
 					
-					# Восстанавливаем текстуру для Rust
 					if decoration.name == "Rust" and decoration is Sprite2D:
 						var tex_data = data.get("texture_data", {})
 						if tex_data.has("path") and tex_data["path"] != "":
 							var texture = load(tex_data["path"])
 							if texture:
 								decoration.texture = texture
-								print("  Restored texture for: ", child.name)
-					
-					print("  Applied to: ", child.name, " visible=", data["visible"])
 				else:
-					# Если нет состояния - создаем
 					var visible = randf() < 0.25
 					var flip = randf() < 0.5
 					
@@ -250,8 +285,7 @@ func _force_show_decorations(node: Node) -> void:
 						decoration.scale.x = -abs(decoration.scale.x)
 					else:
 						decoration.scale.x = abs(decoration.scale.x)
-					
-					print("  Created and applied to: ", child.name, " visible=", visible)
+		
 		_force_show_decorations(child)
 
 func _apply_font(node: Node) -> void:
@@ -261,8 +295,14 @@ func _apply_font(node: Node) -> void:
 	if not is_instance_valid(node):
 		return
 	
+	if not node.is_inside_tree():
+		return
+	
 	for child in node.get_children():
 		if not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
 			continue
 		
 		if child is Label:

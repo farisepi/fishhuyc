@@ -19,10 +19,22 @@ func scan_and_apply(scene: Node) -> void:
 	print("Found ", states.size(), " seaweed/rust states")
 
 func _scan(node: Node) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	if not node.is_inside_tree():
+		return
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child is Button:
 			var decoration = _find_decoration(child)
-			if decoration:
+			if decoration and decoration.is_inside_tree():
 				var path = str(child.get_path())
 				if not states.has(path):
 					var visible = randf() < 0.25
@@ -44,10 +56,22 @@ func _scan(node: Node) -> void:
 		_scan(child)
 
 func _apply(node: Node) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	if not node.is_inside_tree():
+		return
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child is Button:
 			var decoration = _find_decoration(child)
-			if decoration:
+			if decoration and decoration.is_inside_tree():
 				var path = str(child.get_path())
 				if states.has(path):
 					var data = states[path]
@@ -72,7 +96,19 @@ func _apply(node: Node) -> void:
 		_apply(child)
 
 func _find_decoration(node: Node) -> Node:
+	if not node or not is_instance_valid(node):
+		return null
+	
+	if not node.is_inside_tree():
+		return null
+	
 	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if not child.is_inside_tree():
+			continue
+		
 		if child.name == "Seaweed" or child.name == "Rust":
 			return child
 	return null

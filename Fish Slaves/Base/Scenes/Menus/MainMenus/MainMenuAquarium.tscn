@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dhroy06x2e74b"]
 
-[ext_resource type="Script" uid="uid://da6rmit8qffo5" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAquarium.gd" id="1_tb57m"]
+[ext_resource type="Script" uid="uid://c77x0cti5wqs" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAquarium.gd" id="1_tb57m"]
 [ext_resource type="StyleBox" uid="uid://cdp5404itmfof" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonNormal.tres" id="3_qtcvm"]
 [ext_resource type="StyleBox" uid="uid://ekl2i1p6fa0s" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonPressed.tres" id="4_y6eke"]
 [ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://Fish Slaves/Textures/Interface/MenuButtons/BigMenuButtons/BigAquariumMenuButtons/BigAquariumMenuButtonHover.tres" id="5_b484i"]

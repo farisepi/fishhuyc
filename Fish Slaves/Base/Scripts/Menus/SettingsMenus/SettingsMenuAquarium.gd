@@ -42,14 +42,30 @@ const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/Me
 const UNCHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png"
 const CHECKED_ICON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
 
-# Пути к текстурам для ползунков
+# Пути к текстурам для ручки ползунка
 const SLIDER_HANDLE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
-const SLIDER_EMPTY_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider.png"
-const SLIDER_FULL_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider.png"
+const SLIDER_HANDLE_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png"
+const SLIDER_HANDLE_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandlePressed.png"
 
-# Пути к текстурам для свитча
-const SWITCH_OFF_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png"
+# Пути к текстурам для фона слайдера
+const SLIDER_EMPTY_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSlider.png"
+const SLIDER_EMPTY_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSliderHover.png"
+const SLIDER_EMPTY_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSliderPressed.png"
+
+# Пути к текстурам для заполненной части слайдера
+const SLIDER_FULL_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSlider.png"
+const SLIDER_FULL_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderHover.png"
+const SLIDER_FULL_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderPressed.png"
+
+# Пути к текстурам для свитча ON
 const SWITCH_ON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png"
+const SWITCH_ON_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnHover.png"
+const SWITCH_ON_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnPressed.png"
+
+# Пути к текстурам для свитча OFF
+const SWITCH_OFF_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png"
+const SWITCH_OFF_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffHover.png"
+const SWITCH_OFF_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffPressed.png"
 
 func _ready() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
@@ -342,51 +358,38 @@ func _scale_texture_pixel_art(texture: Texture2D, scale: float) -> Texture2D:
 	# Возвращаем готовую текстуру
 	return new_texture
 
-# Создает осветленную копию текстуры на 25%
-func _create_highlighted_texture(texture: Texture2D) -> Texture2D:
-	if not texture:
-		return null
-	
-	var image = texture.get_image()
-	
-	# Осветляем каждый пиксель на 25%
-	for x in range(image.get_width()):
-		for y in range(image.get_height()):
-			var color = image.get_pixel(x, y)
-			color.r = min(color.r * 1.25, 1.0)
-			color.g = min(color.g * 1.25, 1.0)
-			color.b = min(color.b * 1.25, 1.0)
-			image.set_pixel(x, y, color)
-	
-	var new_texture = ImageTexture.create_from_image(image)
-	return new_texture
-
 # Применяет текстуры ко всем ползункам
 func _apply_slider_textures() -> void:
 	# Загружаем текстуры
 	var handle_texture = load(SLIDER_HANDLE_PATH)
-	var empty_texture = load(SLIDER_EMPTY_PATH)
-	var full_texture = load(SLIDER_FULL_PATH)
+	var handle_hover = load(SLIDER_HANDLE_HOVER_PATH)
+	var handle_pressed = load(SLIDER_HANDLE_PRESSED_PATH)
 	
+	var empty_texture = load(SLIDER_EMPTY_PATH)
+	var empty_hover = load(SLIDER_EMPTY_HOVER_PATH)
+	var empty_pressed = load(SLIDER_EMPTY_PRESSED_PATH)
+	
+	var full_texture = load(SLIDER_FULL_PATH)
+	var full_hover = load(SLIDER_FULL_HOVER_PATH)
+	var full_pressed = load(SLIDER_FULL_PRESSED_PATH)
+	
+	# Проверяем загрузку текстур
 	if not handle_texture:
-		print("Ошибка: текстура ручки не найдена по пути: ", SLIDER_HANDLE_PATH)
+		print("Ошибка: ручка не найдена по пути: ", SLIDER_HANDLE_PATH)
 		return
 	if not empty_texture:
-		print("Ошибка: текстура пустого слайдера не найдена по пути: ", SLIDER_EMPTY_PATH)
+		print("Ошибка: слайдер не найден по пути: ", SLIDER_EMPTY_PATH)
 		return
 	if not full_texture:
-		print("Ошибка: текстура заполненного слайдера не найдена по пути: ", SLIDER_FULL_PATH)
+		print("Ошибка: заполненный слайдер не найден по пути: ", SLIDER_FULL_PATH)
 		return
 	
-	# Создаем увеличенную текстуру ручки (в 2 раза)
+	# Масштабируем ручку в 2.0 раза
 	var handle_scaled = _scale_texture_pixel_art(handle_texture, 2.0)
-	if not handle_scaled:
-		handle_scaled = handle_texture
+	var handle_hover_scaled = _scale_texture_pixel_art(handle_hover, 2.0) if handle_hover else handle_scaled
+	var handle_pressed_scaled = _scale_texture_pixel_art(handle_pressed, 2.0) if handle_pressed else handle_scaled
 	
-	# Создаем осветленную версию ручки (на 25%)
-	var handle_highlighted = _create_highlighted_texture(handle_scaled)
-	
-	# Создаем стили для ползунка
+	# Создаем стили для пустой части (фон) - без масштабирования
 	var slider_style = StyleBoxTexture.new()
 	slider_style.texture = empty_texture
 	slider_style.content_margin_left = 4
@@ -395,22 +398,20 @@ func _apply_slider_textures() -> void:
 	slider_style.content_margin_bottom = 4
 	
 	var slider_hover_style = StyleBoxTexture.new()
-	slider_hover_style.texture = empty_texture
+	slider_hover_style.texture = empty_hover if empty_hover else empty_texture
 	slider_hover_style.content_margin_left = 4
 	slider_hover_style.content_margin_right = 4
 	slider_hover_style.content_margin_top = 4
 	slider_hover_style.content_margin_bottom = 4
-	slider_hover_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
 	
 	var slider_pressed_style = StyleBoxTexture.new()
-	slider_pressed_style.texture = empty_texture
+	slider_pressed_style.texture = empty_pressed if empty_pressed else empty_texture
 	slider_pressed_style.content_margin_left = 4
 	slider_pressed_style.content_margin_right = 4
 	slider_pressed_style.content_margin_top = 4
 	slider_pressed_style.content_margin_bottom = 4
-	slider_pressed_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
 	
-	# Стили для заполненной части
+	# Стили для заполненной части - без масштабирования
 	var slider_full_style = StyleBoxTexture.new()
 	slider_full_style.texture = full_texture
 	slider_full_style.content_margin_left = 4
@@ -419,20 +420,18 @@ func _apply_slider_textures() -> void:
 	slider_full_style.content_margin_bottom = 4
 	
 	var slider_full_hover_style = StyleBoxTexture.new()
-	slider_full_hover_style.texture = full_texture
+	slider_full_hover_style.texture = full_hover if full_hover else full_texture
 	slider_full_hover_style.content_margin_left = 4
 	slider_full_hover_style.content_margin_right = 4
 	slider_full_hover_style.content_margin_top = 4
 	slider_full_hover_style.content_margin_bottom = 4
-	slider_full_hover_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
 	
 	var slider_full_pressed_style = StyleBoxTexture.new()
-	slider_full_pressed_style.texture = full_texture
+	slider_full_pressed_style.texture = full_pressed if full_pressed else full_texture
 	slider_full_pressed_style.content_margin_left = 4
 	slider_full_pressed_style.content_margin_right = 4
 	slider_full_pressed_style.content_margin_top = 4
 	slider_full_pressed_style.content_margin_bottom = 4
-	slider_full_pressed_style.modulate_color = Color(1.25, 1.25, 1.25, 1.0)
 	
 	# Список всех ползунков
 	var sliders = [
@@ -456,35 +455,49 @@ func _apply_slider_textures() -> void:
 		slider.add_theme_stylebox_override("grabber_area_highlighted", slider_full_hover_style)
 		slider.add_theme_stylebox_override("grabber_area_pressed", slider_full_pressed_style)
 		
-		# Применяем иконки ручки
-		slider.add_theme_icon_override("grabber", handle_scaled)
-		slider.add_theme_icon_override("grabber_highlighted", handle_highlighted if handle_highlighted else handle_scaled)
-		slider.add_theme_icon_override("grabber_pressed", handle_highlighted if handle_highlighted else handle_scaled)
-		slider.add_theme_icon_override("grabber_disabled", handle_scaled)
+		# Применяем иконки ручки (масштабированные)
+		slider.add_theme_icon_override("grabber", handle_scaled if handle_scaled else handle_texture)
+		slider.add_theme_icon_override("grabber_highlighted", handle_hover_scaled if handle_hover_scaled else handle_texture)
+		slider.add_theme_icon_override("grabber_pressed", handle_pressed_scaled if handle_pressed_scaled else handle_texture)
+		slider.add_theme_icon_override("grabber_disabled", handle_scaled if handle_scaled else handle_texture)
 		
-		# Настраиваем размер ручки
-		slider.add_theme_constant_override("grabber_size", int(handle_scaled.get_height()))
+		# Настраиваем размер ручки (берем из масштабированной текстуры)
+		if handle_scaled:
+			slider.add_theme_constant_override("grabber_size", int(handle_scaled.get_height()))
+		else:
+			slider.add_theme_constant_override("grabber_size", 32)
 		slider.add_theme_constant_override("grabber_offset", 0)
 		
-		# Увеличиваем высоту слайдера
-		slider.custom_minimum_size = Vector2(slider.custom_minimum_size.x, 55)
+		# Высота слайдера
+		slider.custom_minimum_size = Vector2(slider.custom_minimum_size.x, 40)
 
 # Применяет текстуры к свитчам
 func _apply_switch_textures() -> void:
-	# Загружаем текстуры
-	var switch_off = load(SWITCH_OFF_PATH)
+	# Загружаем текстуры ON
 	var switch_on = load(SWITCH_ON_PATH)
+	var switch_on_hover = load(SWITCH_ON_HOVER_PATH)
+	var switch_on_pressed = load(SWITCH_ON_PRESSED_PATH)
 	
-	if not switch_off:
-		print("Ошибка: текстура выключенного свитча не найдена по пути: ", SWITCH_OFF_PATH)
-		return
+	# Загружаем текстуры OFF
+	var switch_off = load(SWITCH_OFF_PATH)
+	var switch_off_hover = load(SWITCH_OFF_HOVER_PATH)
+	var switch_off_pressed = load(SWITCH_OFF_PRESSED_PATH)
+	
 	if not switch_on:
-		print("Ошибка: текстура включенного свитча не найдена по пути: ", SWITCH_ON_PATH)
+		print("Ошибка: свитч ON не найден по пути: ", SWITCH_ON_PATH)
+		return
+	if not switch_off:
+		print("Ошибка: свитч OFF не найден по пути: ", SWITCH_OFF_PATH)
 		return
 	
-	# Создаем осветленные версии для состояний (на 25%)
-	var switch_off_highlighted = _create_highlighted_texture(switch_off)
-	var switch_on_highlighted = _create_highlighted_texture(switch_on)
+	# Масштабируем свитч в 1.0 раза (оригинальный размер)
+	var switch_on_scaled = _scale_texture_pixel_art(switch_on, 1.0)
+	var switch_on_hover_scaled = _scale_texture_pixel_art(switch_on_hover, 1.0) if switch_on_hover else switch_on_scaled
+	var switch_on_pressed_scaled = _scale_texture_pixel_art(switch_on_pressed, 1.0) if switch_on_pressed else switch_on_scaled
+	
+	var switch_off_scaled = _scale_texture_pixel_art(switch_off, 1.0)
+	var switch_off_hover_scaled = _scale_texture_pixel_art(switch_off_hover, 1.0) if switch_off_hover else switch_off_scaled
+	var switch_off_pressed_scaled = _scale_texture_pixel_art(switch_off_pressed, 1.0) if switch_off_pressed else switch_off_scaled
 	
 	# Список всех свитчей
 	var switches = [
@@ -496,15 +509,19 @@ func _apply_switch_textures() -> void:
 			continue
 		
 		# Применяем текстуры для свитча
-		switch.add_theme_icon_override("unchecked", switch_off)
-		switch.add_theme_icon_override("checked", switch_on)
+		switch.add_theme_icon_override("unchecked", switch_off_scaled if switch_off_scaled else switch_off)
+		switch.add_theme_icon_override("checked", switch_on_scaled if switch_on_scaled else switch_on)
 		
-		# Для состояния наведения используем осветленные текстуры
-		switch.add_theme_icon_override("unchecked_highlighted", switch_off_highlighted if switch_off_highlighted else switch_off)
-		switch.add_theme_icon_override("checked_highlighted", switch_on_highlighted if switch_on_highlighted else switch_on)
+		# Для состояния наведения
+		switch.add_theme_icon_override("unchecked_highlighted", switch_off_hover_scaled if switch_off_hover_scaled else switch_off)
+		switch.add_theme_icon_override("checked_highlighted", switch_on_hover_scaled if switch_on_hover_scaled else switch_on)
 		
-		# Увеличиваем размер свитча
-		switch.custom_minimum_size = Vector2(40, 40)
+		# Для состояния нажатия
+		switch.add_theme_icon_override("unchecked_pressed", switch_off_pressed_scaled if switch_off_pressed_scaled else switch_off)
+		switch.add_theme_icon_override("checked_pressed", switch_on_pressed_scaled if switch_on_pressed_scaled else switch_on)
+		
+		# Размер свитча
+		switch.custom_minimum_size = Vector2(30, 30)
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
