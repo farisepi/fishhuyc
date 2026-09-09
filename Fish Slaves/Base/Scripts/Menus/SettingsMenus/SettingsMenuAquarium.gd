@@ -472,6 +472,7 @@ func _apply_slider_textures() -> void:
 		slider.custom_minimum_size = Vector2(slider.custom_minimum_size.x, 40)
 
 # Применяет текстуры к свитчам
+# Применяет текстуры к свитчам
 func _apply_switch_textures() -> void:
 	# Загружаем текстуры ON
 	var switch_on = load(SWITCH_ON_PATH)
@@ -490,14 +491,14 @@ func _apply_switch_textures() -> void:
 		print("Ошибка: свитч OFF не найден по пути: ", SWITCH_OFF_PATH)
 		return
 	
-	# Масштабируем свитч в 1.0 раза (оригинальный размер)
-	var switch_on_scaled = _scale_texture_pixel_art(switch_on, 1.0)
-	var switch_on_hover_scaled = _scale_texture_pixel_art(switch_on_hover, 1.0) if switch_on_hover else switch_on_scaled
-	var switch_on_pressed_scaled = _scale_texture_pixel_art(switch_on_pressed, 1.0) if switch_on_pressed else switch_on_scaled
+	# Масштабируем свитч в 0.7 раза
+	var switch_on_scaled = _scale_texture_pixel_art(switch_on, 0.7)
+	var switch_on_hover_scaled = _scale_texture_pixel_art(switch_on_hover, 0.7) if switch_on_hover else switch_on_scaled
+	var switch_on_pressed_scaled = _scale_texture_pixel_art(switch_on_pressed, 0.7) if switch_on_pressed else switch_on_scaled
 	
-	var switch_off_scaled = _scale_texture_pixel_art(switch_off, 1.0)
-	var switch_off_hover_scaled = _scale_texture_pixel_art(switch_off_hover, 1.0) if switch_off_hover else switch_off_scaled
-	var switch_off_pressed_scaled = _scale_texture_pixel_art(switch_off_pressed, 1.0) if switch_off_pressed else switch_off_scaled
+	var switch_off_scaled = _scale_texture_pixel_art(switch_off, 0.7)
+	var switch_off_hover_scaled = _scale_texture_pixel_art(switch_off_hover, 0.7) if switch_off_hover else switch_off_scaled
+	var switch_off_pressed_scaled = _scale_texture_pixel_art(switch_off_pressed, 0.7) if switch_off_pressed else switch_off_scaled
 	
 	# Список всех свитчей
 	var switches = [
@@ -521,7 +522,7 @@ func _apply_switch_textures() -> void:
 		switch.add_theme_icon_override("checked_pressed", switch_on_pressed_scaled if switch_on_pressed_scaled else switch_on)
 		
 		# Размер свитча
-		switch.custom_minimum_size = Vector2(30, 30)
+		switch.custom_minimum_size = Vector2(22, 22)
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
