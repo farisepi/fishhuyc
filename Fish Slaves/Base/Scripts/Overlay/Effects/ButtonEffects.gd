@@ -60,6 +60,10 @@ static func _on_button_unhover(btn: Button, original_alpha: float) -> void:
 	settle.finished.connect(_idle_animation.bind(btn), ConnectFlags.CONNECT_ONE_SHOT)
 
 static func _spawn_bubbles(btn: Button) -> void:
+	# ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ ЭФФЕКТЫ КНОПОК (зависит от атрибутов интерфейса)
+	if not Global.button_effects_enabled:
+		return
+	
 	var container = btn.get_parent()
 	if not container:
 		return

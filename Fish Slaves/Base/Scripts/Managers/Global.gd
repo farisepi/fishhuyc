@@ -22,6 +22,11 @@ var show_fps: bool = false
 var pending_save: bool = false
 var scene_to_save: String = ""
 
+# НАСТРОЙКИ ЭФФЕКТОВ
+var atmospheric_effects_enabled: bool = true
+var interface_attributes_enabled: bool = true
+var button_effects_enabled: bool = true
+
 var _font: FontFile
 var intro_active: bool = false
 var loading_instance: CanvasLayer = null
@@ -59,10 +64,20 @@ func _ready() -> void:
 		if _font:
 			_font.fixed_size = 10
 	
+	# ЗАГРУЖАЕМ НАСТРОЙКИ ЭФФЕКТОВ И АТРИБУТОВ
+	_load_effect_settings()
+	
 	reapply_theme()
 	get_tree().tree_changed.connect(_on_scene_changed)
 	
 	_detect_last_save_level()
+
+func _load_effect_settings() -> void:
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
+		interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
+		button_effects_enabled = interface_attributes_enabled
 
 func _detect_last_save_level() -> void:
 	last_save_level = 1
@@ -140,9 +155,53 @@ func _on_scene_changed() -> void:
 		else:
 			# Иначе применяем с задержкой
 			_apply_seaweed_with_delay(scene)
+		
+		# ПРИМЕНЯЕМ НАСТРОЙКИ ЭФФЕКТОВ И АТРИБУТОВ К НОВОЙ СЦЕНЕ
+		_apply_effect_settings_to_scene(scene)
+
+func _apply_effect_settings_to_scene(scene: Node) -> void:
+	if not scene or not is_instance_valid(scene):
+		return
+	
+	# Если атмосферные эффекты выключены - удаляем все пузыри
+	if not atmospheric_effects_enabled:
+		_remove_all_bubbles_recursive(scene)
+	
+	# Если атрибуты интерфейса выключены - скрываем водоросли/ржавчину
+	if not interface_attributes_enabled:
+		_hide_all_decorations_recursive(scene, true)
+
+func _remove_all_bubbles_recursive(node: Node) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if child.name.to_lower().contains("bubble"):
+			child.queue_free()
+		else:
+			_remove_all_bubbles_recursive(child)
+
+func _hide_all_decorations_recursive(node: Node, hide: bool) -> void:
+	if not node or not is_instance_valid(node):
+		return
+	
+	for child in node.get_children():
+		if not child or not is_instance_valid(child):
+			continue
+		
+		if child is Button:
+			for btn_child in child.get_children():
+				if btn_child.name == "Seaweed" or btn_child.name == "Rust":
+					btn_child.visible = not hide
+		elif child.name == "Seaweed" or child.name == "Rust":
+			child.visible = not hide
+		else:
+			_hide_all_decorations_recursive(child, hide)
 
 func _apply_seaweed_with_delay(scene: Node) -> void:
-	# Ждем несколько кадров для полной загрузки
 	await get_tree().process_frame
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -150,7 +209,6 @@ func _apply_seaweed_with_delay(scene: Node) -> void:
 	if not is_instance_valid(scene):
 		return
 	
-	# ПРОВЕРЯЕМ, ЧТО СЦЕНА В ДЕРЕВЕ
 	if not scene.is_inside_tree():
 		print("Сцена не в дереве, пропускаем")
 		return
@@ -158,7 +216,10 @@ func _apply_seaweed_with_delay(scene: Node) -> void:
 	_force_apply_seaweed(scene)
 
 func _force_apply_seaweed(scene: Node) -> void:
-	print("=== FORCE APPLY SEAWEED to: ", scene.name)
+	print("=== FORCE APPLY SEAWEED to: ", scene.name if scene else "null")
+	
+	if not scene or not is_instance_valid(scene):
+		return
 	
 	if not has_node("SeaweedState"):
 		print("ERROR: SeaweedState not found! Creating new one...")
@@ -174,15 +235,12 @@ func _force_apply_seaweed(scene: Node) -> void:
 	
 	var seaweed_state_node = get_node("SeaweedState")
 	
-	# Проверяем наличие декораций в сцене
 	var found_count = 0
 	_find_all_decorations(scene, found_count)
 	print("Found decorations (Seaweed/Rust): ", found_count)
 	
-	# Принудительно применяем
 	seaweed_state_node.scan_and_apply(scene)
 	
-	# Дополнительно: принудительно показываем
 	_force_show_decorations(scene)
 	
 	print("=== FORCE APPLY FINISHED ===")
@@ -248,7 +306,7 @@ func _force_show_decorations(node: Node) -> void:
 				
 				if seaweed_state_node.states.has(path):
 					var data = seaweed_state_node.states[path]
-					decoration.visible = data["visible"]
+					decoration.visible = data["visible"] and interface_attributes_enabled
 					
 					var original_scale = data.get("scale", Vector2.ONE)
 					if data.get("flip", false):
@@ -280,7 +338,7 @@ func _force_show_decorations(node: Node) -> void:
 						"scale": decoration.scale
 					}
 					
-					decoration.visible = visible
+					decoration.visible = visible and interface_attributes_enabled
 					if flip:
 						decoration.scale.x = -abs(decoration.scale.x)
 					else:
@@ -320,7 +378,6 @@ func _apply_font(node: Node) -> void:
 func goto_scene(scene_path: String) -> void:
 	_cleanup_loading()
 	
-	# Устанавливаем флаг, что нужно применить водоросли после загрузки
 	_pending_seaweed_apply = true
 	
 	var loading_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/LoadingScreen.tscn")
@@ -343,6 +400,7 @@ func _on_scene_loaded() -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		_force_apply_seaweed(scene)
+		_apply_effect_settings_to_scene(scene)
 
 func _cleanup_loading() -> void:
 	if loading_instance and is_instance_valid(loading_instance):
