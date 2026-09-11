@@ -13,9 +13,6 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
-[ext_resource type="StyleBox" uid="uid://dhc3isvcdhptd" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonNormal.tres" id="13_3nkhw"]
-[ext_resource type="StyleBox" uid="uid://cxe4r5neiorux" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonPressed.tres" id="14_02ri3"]
-[ext_resource type="StyleBox" uid="uid://cn87qhd5yjoge" path="res://Fish Slaves/Textures/Interface/MenuButtons/BindButtons/AquariumBindButtons/BindAquariumMenuButtonHover.tres" id="15_dqa2l"]
 [ext_resource type="Texture2D" uid="uid://ejd2vrvsocid" path="res://Fish Slaves/Textures/Interface/MenuButtons/DividingLines/AquariumDividingLine.png" id="19_3nkhw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8uthl"]
@@ -66,9 +63,9 @@ color = Color(1, 1, 1, 0)
 
 [node name="ResolutionLabel" type="Label" parent="GraphicsPage" unique_id=61398240]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 122.0
-offset_right = 321.0
+offset_right = 324.0
 offset_bottom = 145.0
 text = "Разрешение"
 
@@ -92,9 +89,9 @@ texture = ExtResource("7_xpquy")
 
 [node name="LanguageLabel" type="Label" parent="GraphicsPage" unique_id=2025691448]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 159.0
-offset_right = 260.0
+offset_right = 263.0
 offset_bottom = 182.0
 text = "Язык"
 horizontal_alignment = 1
@@ -120,17 +117,17 @@ texture = ExtResource("7_xpquy")
 
 [node name="BrightnessLabel" type="Label" parent="GraphicsPage" unique_id=2089159619]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 212.0
-offset_right = 285.0
+offset_right = 288.0
 offset_bottom = 235.0
 text = "Яркость"
 
 [node name="BrightnessSlider" type="HSlider" parent="GraphicsPage" unique_id=2089159620]
 layout_mode = 0
-offset_left = 551.0
+offset_left = 554.0
 offset_top = 199.0
-offset_right = 855.0
+offset_right = 858.0
 offset_bottom = 239.0
 max_value = 1.0
 step = 0.01
@@ -138,9 +135,9 @@ value = 1.0
 
 [node name="CameraSensivityLabel" type="Label" parent="GraphicsPage" unique_id=1931320122]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 250.0
-offset_right = 368.0
+offset_right = 371.0
 offset_bottom = 273.0
 text = "Слежение камеры"
 horizontal_alignment = 1
@@ -148,215 +145,213 @@ vertical_alignment = 1
 
 [node name="CameraSensitivitySlider" type="HSlider" parent="GraphicsPage" unique_id=1934867960]
 layout_mode = 0
-offset_left = 551.0
+offset_left = 554.0
 offset_top = 242.0
-offset_right = 855.0
+offset_right = 858.0
 offset_bottom = 282.0
 max_value = 1.0
 step = 0.01
 
 [node name="FullScreenLabel" type="Label" parent="GraphicsPage" unique_id=134815476]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 301.0
-offset_right = 336.0
+offset_right = 339.0
 offset_bottom = 324.0
 text = "Полный экран"
 
 [node name="FullScreenCheck" type="CheckButton" parent="GraphicsPage" unique_id=134815477]
 layout_mode = 0
-offset_left = 546.0
+offset_left = 549.0
 offset_top = 283.0
-offset_right = 590.0
+offset_right = 593.0
 offset_bottom = 311.0
 
 [node name="V-SyncLabel" type="Label" parent="GraphicsPage" unique_id=1981078602]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 350.0
-offset_right = 270.0
+offset_right = 273.0
 offset_bottom = 373.0
 text = "V-Sync"
 
 [node name="VSyncCheck" type="CheckButton" parent="GraphicsPage" unique_id=1981078603]
 layout_mode = 0
-offset_left = 546.0
+offset_left = 549.0
 offset_top = 333.0
-offset_right = 590.0
+offset_right = 593.0
 offset_bottom = 361.0
 button_pressed = true
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 400.0
-offset_right = 326.0
+offset_right = 329.0
 offset_bottom = 423.0
 text = "Показать FPS"
 
 [node name="FPSCheck" type="CheckButton" parent="GraphicsPage" unique_id=626264177]
 layout_mode = 0
-offset_left = 546.0
+offset_left = 549.0
 offset_top = 383.0
-offset_right = 590.0
+offset_right = 593.0
 offset_bottom = 411.0
 
 [node name="EffectsLabel" type="Label" parent="GraphicsPage" unique_id=1658047112]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 450.0
-offset_right = 409.0
+offset_right = 412.0
 offset_bottom = 473.0
 text = "Атмосферные эффекты"
 
 [node name="EffectsCheck" type="CheckButton" parent="GraphicsPage" unique_id=1658047113]
 layout_mode = 0
-offset_left = 546.0
+offset_left = 549.0
 offset_top = 433.0
-offset_right = 590.0
+offset_right = 593.0
 offset_bottom = 461.0
 button_pressed = true
 
 [node name="IntarfaceAtributesLabel" type="Label" parent="GraphicsPage" unique_id=1503275156]
 layout_mode = 0
-offset_left = 219.0
+offset_left = 222.0
 offset_top = 500.0
-offset_right = 409.0
+offset_right = 412.0
 offset_bottom = 523.0
 text = "Атрибуты интерфейса"
 
 [node name="InterfaceAttributesCheck" type="CheckButton" parent="GraphicsPage" unique_id=1503275157]
 layout_mode = 0
-offset_left = 546.0
+offset_left = 549.0
 offset_top = 483.0
-offset_right = 590.0
+offset_right = 593.0
 offset_bottom = 511.0
 button_pressed = true
 
 [node name="AudioPage" type="Control" parent="." unique_id=209264160]
 anchors_preset = 0
-offset_left = -3.0
-offset_top = -1.0
-offset_right = 1149.0
-offset_bottom = 647.0
+offset_right = 1152.0
+offset_bottom = 648.0
 
 [node name="ColorRect" type="ColorRect" parent="AudioPage" unique_id=1349034489]
 layout_mode = 0
-offset_left = 8.0
-offset_top = -4.0
-offset_right = 1152.0
-offset_bottom = 644.0
+offset_left = 90.0
+offset_top = -6.0
+offset_right = 1234.0
+offset_bottom = 642.0
 color = Color(0.1764706, 0.1764706, 0.1764706, 0)
 
 [node name="MasterLabel" type="Label" parent="AudioPage" unique_id=1000000001]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 188.0
-offset_right = 404.0
-offset_bottom = 211.0
+offset_left = 222.0
+offset_top = 182.0
+offset_right = 402.0
+offset_bottom = 205.0
 text = "Общая громкость"
 
 [node name="MasterSlider" type="HSlider" parent="AudioPage" unique_id=1000000002]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 174.0
-offset_right = 880.0
-offset_bottom = 214.0
+offset_left = 582.0
+offset_top = 172.0
+offset_right = 878.0
+offset_bottom = 212.0
 max_value = 1.0
 step = 0.01
-value = 0.2
+value = 1.0
 
 [node name="MusicLabel" type="Label" parent="AudioPage" unique_id=1631299506]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 238.0
-offset_right = 404.0
-offset_bottom = 261.0
-text = "Громкость музыки"
+offset_left = 222.0
+offset_top = 232.0
+offset_right = 402.0
+offset_bottom = 255.0
+text = "Музыка"
 
 [node name="MusicSlider" type="HSlider" parent="AudioPage" unique_id=516089308]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 224.0
-offset_right = 880.0
-offset_bottom = 264.0
+offset_left = 582.0
+offset_top = 222.0
+offset_right = 878.0
+offset_bottom = 262.0
 max_value = 1.0
 step = 0.01
-value = 0.2
+value = 1.0
 
 [node name="SFXLabel" type="Label" parent="AudioPage" unique_id=11202023]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 288.0
-offset_right = 404.0
-offset_bottom = 311.0
-text = "Громкость звуковых эффектов"
+offset_left = 222.0
+offset_top = 282.0
+offset_right = 402.0
+offset_bottom = 305.0
+text = "Звуковые эффекты"
 
 [node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 274.0
-offset_right = 880.0
-offset_bottom = 314.0
+offset_left = 582.0
+offset_top = 272.0
+offset_right = 878.0
+offset_bottom = 312.0
 max_value = 1.0
 step = 0.01
-value = 0.2
+value = 1.0
 
 [node name="AmbienceLabel" type="Label" parent="AudioPage" unique_id=121444495]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 338.0
-offset_right = 404.0
-offset_bottom = 361.0
-text = "Громкость окружения"
+offset_left = 222.0
+offset_top = 332.0
+offset_right = 402.0
+offset_bottom = 355.0
+text = "Окружение"
 
 [node name="AmbienceSlider" type="HSlider" parent="AudioPage" unique_id=1923459666]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 324.0
-offset_right = 880.0
-offset_bottom = 364.0
+offset_left = 582.0
+offset_top = 322.0
+offset_right = 878.0
+offset_bottom = 362.0
 max_value = 1.0
 step = 0.01
-value = 0.2
+value = 1.0
 
 [node name="UILabel" type="Label" parent="AudioPage" unique_id=1000000003]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 388.0
-offset_right = 412.0
-offset_bottom = 411.0
+offset_left = 222.0
+offset_top = 382.0
+offset_right = 410.0
+offset_bottom = 405.0
 text = "Громкость интерфейса"
 
 [node name="UISlider" type="HSlider" parent="AudioPage" unique_id=1000000004]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 374.0
-offset_right = 880.0
-offset_bottom = 414.0
+offset_left = 582.0
+offset_top = 372.0
+offset_right = 878.0
+offset_bottom = 412.0
 max_value = 1.0
 step = 0.01
-value = 0.2
+value = 1.0
 
 [node name="DynamicRangeLabel" type="Label" parent="AudioPage" unique_id=1000000005]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 440.0
-offset_right = 484.0
-offset_bottom = 463.0
+offset_left = 222.0
+offset_top = 434.0
+offset_right = 482.0
+offset_bottom = 457.0
 text = "Динамический диапазон"
 
 [node name="DynamicRangeOption" type="Button" parent="AudioPage" unique_id=1000000006]
 layout_mode = 0
-offset_left = 642.0
-offset_top = 426.0
-offset_right = 840.0
-offset_bottom = 465.0
+offset_left = 639.0
+offset_top = 420.0
+offset_right = 837.0
+offset_bottom = 459.0
 theme_override_styles/normal = ExtResource("3_xchot")
 theme_override_styles/pressed = ExtResource("8_4m4e8")
 theme_override_styles/hover = ExtResource("9_td0rv")
 theme_override_styles/disabled = ExtResource("10_nmydp")
-text = "Средний"
+text = "Стандартный"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
 visible = false
@@ -368,265 +363,186 @@ offset_bottom = 662.0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ControlsPage" unique_id=2024790193]
 layout_mode = 0
-offset_left = 251.0
-offset_top = 156.0
-offset_right = 1070.0
+offset_left = 197.0
+offset_top = 130.0
+offset_right = 1145.0
 offset_bottom = 528.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="VBoxContainer" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=1425537031]
-custom_minimum_size = Vector2(23, 23)
+[node name="ContentGrid" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=910545739]
 layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 6
-size_flags_stretch_ratio = 0.0
 theme_override_constants/h_separation = 40
-theme_override_constants/v_separation = 46
-columns = 2
+theme_override_constants/v_separation = 12
+columns = 4
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=709502145]
+[node name="ActionHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000010]
+custom_minimum_size = Vector2(160, 30)
 layout_mode = 2
-offset_transform_enabled = true
-alignment = 1
+text = "Действие"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveUpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer" unique_id=565267772]
-custom_minimum_size = Vector2(100, 40)
+[node name="KeyHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000011]
+custom_minimum_size = Vector2(160, 30)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
+text = "Клавиша"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1167399212]
+[node name="ActionHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000012]
+custom_minimum_size = Vector2(160, 30)
 layout_mode = 2
+text = "Действие"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MoveDownButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2" unique_id=708118919]
-custom_minimum_size = Vector2(100, 40)
+[node name="KeyHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000013]
+custom_minimum_size = Vector2(160, 30)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.0
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
+text = "Клавиша"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1335372062]
+[node name="HLine1" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000014]
+custom_minimum_size = Vector2(160, 2)
 layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
-[node name="MoveLeftButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3" unique_id=1597221555]
-custom_minimum_size = Vector2(100, 40)
+[node name="HLine2" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000015]
+custom_minimum_size = Vector2(160, 2)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1654604942]
+[node name="HLine3" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000016]
+custom_minimum_size = Vector2(160, 2)
 layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
-[node name="MoveRightButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4" unique_id=1453332579]
-custom_minimum_size = Vector2(100, 40)
+[node name="HLine4" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000017]
+custom_minimum_size = Vector2(160, 2)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=273354029]
+[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000020]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-
-[node name="JumpButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5" unique_id=695658269]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1066718228]
-layout_mode = 2
-
-[node name="InteractButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6" unique_id=1220683337]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=2003708516]
-layout_mode = 2
-
-[node name="PauseButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7" unique_id=1251175926]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=580490677]
-layout_mode = 2
-
-[node name="InventoryButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8" unique_id=86391702]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=1598047638]
-layout_mode = 2
-
-[node name="CrouchButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer9" unique_id=1073419493]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/VBoxContainer" unique_id=476227223]
-layout_mode = 2
-
-[node name="ParryingButton" type="Button" parent="ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer10" unique_id=679565473]
-custom_minimum_size = Vector2(100, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("13_3nkhw")
-theme_override_styles/pressed = ExtResource("14_02ri3")
-theme_override_styles/hover = ExtResource("15_dqa2l")
-
-[node name="GridContainer" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=910545739]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.0
-offset_transform_enabled = true
-theme_override_constants/h_separation = 0
-theme_override_constants/v_separation = 79
-
-[node name="HBoxContainer" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=963525587]
-layout_mode = 2
-alignment = 1
-
-[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer" unique_id=1892398905]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
 text = "Вверх"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=971712628]
+[node name="MoveUpButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=565267772]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer2" unique_id=1327254580]
-clip_contents = true
+[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000022]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Вниз"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=1386599703]
+[node name="MoveDownButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=708118919]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer3" unique_id=2081494111]
-clip_contents = true
+[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000024]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Влево"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=290369369]
+[node name="MoveLeftButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1597221555]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer4" unique_id=1761025548]
-clip_contents = true
+[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000026]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Вправо"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=451160418]
+[node name="MoveRightButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1453332579]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer5" unique_id=794797930]
-clip_contents = true
+[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000028]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Прыжок"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer6" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=360134471]
+[node name="JumpButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=695658269]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer6" unique_id=1663152504]
-clip_contents = true
+[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000030]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Взаимодействие"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer7" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=65764895]
+[node name="InteractButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1220683337]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer7" unique_id=1003708802]
-clip_contents = true
+[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000032]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Пауза"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="HBoxContainer8" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=1222664045]
-layout_mode = 2
-alignment = 1
-
-[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer8" unique_id=1305647306]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
 text = "Инвентарь"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer9" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=636863595]
+[node name="InventoryButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=86391702]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
-[node name="CrouchLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer9" unique_id=1112852132]
-clip_contents = true
+[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000034]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Присесть"
+text = "Пауза"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HBoxContainer10" type="HBoxContainer" parent="ControlsPage/ScrollContainer/GridContainer" unique_id=5812131]
+[node name="PauseButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1251175926]
+custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
-alignment = 1
-
-[node name="ParryingLabel" type="Label" parent="ControlsPage/ScrollContainer/GridContainer/HBoxContainer10" unique_id=23693937]
-clip_contents = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Парировать"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0

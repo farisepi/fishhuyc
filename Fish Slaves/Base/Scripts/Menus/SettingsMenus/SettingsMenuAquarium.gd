@@ -26,15 +26,15 @@ extends Control
 @onready var master_slider: HSlider = $AudioPage/MasterSlider
 @onready var ui_slider: HSlider = $AudioPage/UISlider
 
-@onready var move_up_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer/MoveUpButton
-@onready var move_down_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer2/MoveDownButton
-@onready var move_left_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer3/MoveLeftButton
-@onready var move_right_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer4/MoveRightButton
-@onready var jump_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer5/JumpButton
-@onready var interact_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer6/InteractButton
-@onready var inventory_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer8/InventoryButton
-@onready var pause_btn = $ControlsPage/ScrollContainer/VBoxContainer/HBoxContainer7/PauseButton
-@onready var controls_grid: GridContainer = $ControlsPage/ScrollContainer/VBoxContainer
+@onready var move_up_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/MoveUpButton
+@onready var move_down_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/MoveDownButton
+@onready var move_left_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/MoveLeftButton
+@onready var move_right_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/MoveRightButton
+@onready var jump_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/JumpButton
+@onready var interact_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/InteractButton
+@onready var inventory_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/InventoryButton
+@onready var pause_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/PauseButton
+
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)
 @onready var back_btn: Button = find_child("BackButton", true, false)
@@ -83,7 +83,6 @@ var ui_percent_label: Label = null
 var has_unsaved_changes: bool = false
 var current_popup: AcceptDialog = null
 
-# Данные опций
 var resolution_items: Array[String] = []
 var language_items: Array[String] = []
 var dynamic_range_items: Array[String] = []
@@ -92,12 +91,10 @@ var resolution_selected: int = 0
 var language_selected: int = 0
 var dynamic_range_selected: int = 1
 
-# Кастомные попапы
 var resolution_dropdown: Control = null
 var language_dropdown: Control = null
 var dynamic_range_dropdown: Control = null
 
-# Стрелки
 var resolution_arrow: TextureRect = null
 var language_arrow: TextureRect = null
 var dynamic_range_arrow: TextureRect = null
@@ -134,9 +131,6 @@ func _ready() -> void:
 	_apply_brightness_deferred()
 	
 	has_unsaved_changes = false
-	
-	if controls_grid:
-		controls_grid.columns = 2
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -278,8 +272,6 @@ func _flip_arrow(button: Button, flipped: bool) -> void:
 	
 	arrow.scale.y = -1 if flipped else 1
 
-# ==================== ЗАПОЛНЕНИЕ ПОПАПОВ ====================
-
 func _populate_dropdown(container: Control, items: Array[String], selected: int, id: String) -> void:
 	if not container:
 		return
@@ -291,7 +283,6 @@ func _populate_dropdown(container: Control, items: Array[String], selected: int,
 	for child in vbox.get_children():
 		child.queue_free()
 	
-	# Высота пунктов в 2 раза меньше
 	for i in range(items.size()):
 		var btn = Button.new()
 		btn.text = items[i]
@@ -300,7 +291,6 @@ func _populate_dropdown(container: Control, items: Array[String], selected: int,
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		
-		# Цвет текста: выбранный — белый, остальные — тёмно-серые
 		if i == selected:
 			btn.add_theme_color_override("font_color", Color.WHITE)
 			btn.add_theme_color_override("font_hover_color", Color.WHITE)
@@ -308,7 +298,6 @@ func _populate_dropdown(container: Control, items: Array[String], selected: int,
 			btn.add_theme_color_override("font_color", Color(0.35, 0.35, 0.35))
 			btn.add_theme_color_override("font_hover_color", Color(0.7, 0.7, 0.7))
 		
-		# Фон: лёгкое затемнение, при наведении — сильнее
 		var normal_bg = StyleBoxFlat.new()
 		normal_bg.bg_color = Color(0, 0, 0, 0.07)
 		normal_bg.content_margin_left = 6
@@ -418,14 +407,6 @@ func setup_audio_options() -> void:
 
 func _on_dynamic_range_selected(index: int) -> void:
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, index, "dynamic_range")
-	
-	match index:
-		0:
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), -3.0)
-		1:
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), 0.0)
-		2:
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), 3.0)
 	_mark_unsaved()
 
 # ==================== ПРОЦЕНТЫ ДЛЯ ПОЛЗУНКОВ ====================
@@ -582,7 +563,7 @@ func _setup_ui() -> void:
 	var buttons: Array[Button] = [
 		graphics_tab, audio_tab, controls_tab,
 		move_up_btn, move_down_btn, move_left_btn, move_right_btn,
-		interact_btn, jump_btn, inventory_btn, pause_btn,
+		jump_btn, interact_btn, inventory_btn, pause_btn,
 		resolution_button, language_button, dynamic_range_button
 	]
 	
@@ -867,7 +848,6 @@ func load_settings() -> void:
 		brightness_slider.step = 0.01
 		brightness_slider.value = config.get_value("graphics", "brightness", 1.0)
 	
-	# Все ползунки звука по умолчанию 100%
 	if music_slider:
 		music_slider.value = config.get_value("audio", "music_volume", 1.0)
 	if sfx_slider:
@@ -916,7 +896,6 @@ func apply_defaults() -> void:
 	if effects_check: effects_check.button_pressed = true
 	if interface_attributes_check: interface_attributes_check.button_pressed = true
 	
-	# Все ползунки звука по умолчанию на 100%
 	if music_slider: music_slider.value = 1.0
 	if sfx_slider: sfx_slider.value = 1.0
 	if ambience_slider: ambience_slider.value = 1.0
