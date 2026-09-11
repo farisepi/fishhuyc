@@ -136,7 +136,7 @@ offset_top = 33.0
 offset_right = 766.0
 offset_bottom = 61.0
 theme_override_font_sizes/font_size = 12
-text = "Послушать разговор между механиком и ученым"
+text = "Подслушать разговор между механиком и ученым"
 vertical_alignment = 1
 autowrap_mode = 1
 
@@ -224,7 +224,7 @@ offset_top = 33.0
 offset_right = 686.0
 offset_bottom = 61.0
 theme_override_font_sizes/font_size = 12
-text = "Лопнуть 100 пузырей в меню"
+text = "Лопнуть 100 пузырей "
 vertical_alignment = 1
 autowrap_mode = 1
 
@@ -279,7 +279,7 @@ offset_top = 33.0
 offset_right = 686.0
 offset_bottom = 61.0
 theme_override_font_sizes/font_size = 12
-text = "Скинуть 50 коробок в меню"
+text = "Скинуть 50 коробок с конвейера"
 vertical_alignment = 1
 autowrap_mode = 1
 
