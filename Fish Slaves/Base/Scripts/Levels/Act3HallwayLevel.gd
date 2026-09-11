@@ -185,6 +185,8 @@ func _start_intro():
 func _check_enemy_collision():
 	if state != State.RUNNING or is_game_over:
 		return
+	if player.is_dead:
+		return
 	
 	var player_pos = player.global_position
 	

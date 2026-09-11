@@ -364,7 +364,7 @@ animations = [{
 }],
 "loop": 1,
 "name": &"Climb",
-"speed": 9.0
+"speed": 13.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1071,7 +1071,9 @@ script = ExtResource("9_aikcy")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Idle"
+animation = &"Climb"
+frame = 1
+frame_progress = 0.45202073
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)
@@ -1085,6 +1087,8 @@ position = Vector2(70, 63)
 shape = SubResource("CircleShape2D_hvceo")
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=683734343]
+follow_viewport_enabled = true
+follow_viewport_scale = 7.76
 script = ExtResource("10_2sw6b")
 
 [node name="UI_Container" type="Control" parent="GUI" unique_id=94013607]
@@ -1125,8 +1129,8 @@ frame_progress = 0.3426
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GUI/UI_Container/Stamina" unique_id=1110501806]
 
 [node name="Air_Bar" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=435738828]
-position = Vector2(1808.8438, 525.3125)
-scale = Vector2(3.307304, 3.900841)
+position = Vector2(1066.0781, 337.99997)
+scale = Vector2(2.4869835, 2.3942306)
 sprite_frames = SubResource("SpriteFrames_1esiv")
 animation = &"AirBalloon"
 

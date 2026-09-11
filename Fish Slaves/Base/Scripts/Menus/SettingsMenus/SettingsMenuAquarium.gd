@@ -487,7 +487,6 @@ func _on_brightness_slider_changed(_value: float) -> void:
 
 func _on_camera_sensitivity_changed(value: float) -> void:
 	_update_percent_label(camera_sensitivity_percent_label, camera_sensitivity_slider)
-	Global.camera_sensitivity = value
 	_mark_unsaved()
 
 func _on_music_slider_changed(_value: float) -> void:
@@ -560,20 +559,24 @@ func _apply_fps_visibility() -> void:
 		fps_label.z_index = 200
 
 func _setup_ui() -> void:
-	var buttons: Array[Button] = [
+	var controls: Array[Control] = [
 		graphics_tab, audio_tab, controls_tab,
 		move_up_btn, move_down_btn, move_left_btn, move_right_btn,
 		jump_btn, interact_btn, inventory_btn, pause_btn,
-		resolution_button, language_button, dynamic_range_button
+		resolution_button, language_button, dynamic_range_button,
+		fps_check, fullscreen_check, vsync_check, effects_check, interface_attributes_check,
+		music_slider, sfx_slider, ambience_slider, master_slider, ui_slider,
+		camera_sensitivity_slider, brightness_slider
 	]
 	
-	if apply_btn: buttons.append(apply_btn)
-	if default_btn: buttons.append(default_btn)
-	if back_btn: buttons.append(back_btn)
+	if apply_btn: controls.append(apply_btn)
+	if default_btn: controls.append(default_btn)
+	if back_btn: controls.append(back_btn)
 	
-	for btn in buttons:
-		if btn:
-			ButtonEffects.setup(btn)
+	for control in controls:
+		if control:
+			ButtonEffects.setup(control)
+			
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))

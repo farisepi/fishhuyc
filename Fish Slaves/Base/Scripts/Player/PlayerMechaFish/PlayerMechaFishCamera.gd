@@ -9,7 +9,7 @@ var look_offset: Vector2 = Vector2.ZERO
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	zoom = Vector2(2.4, 2.4)
+	zoom = Vector2(2.3, 2.3)
 
 func _process(delta):
 	var parent = get_parent()

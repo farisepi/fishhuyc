@@ -10,11 +10,12 @@
 [ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish/PlayerMechaFishCamera.gd" id="15_wsnn3"]
+[ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Player/DeathZone.tscn" id="17_cu5p6"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
 [ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="21_ktap7"]
-[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
 [ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
@@ -1282,9 +1283,6 @@ size = Vector2(32.5, 94.9375)
 [sub_resource type="CircleShape2D" id="CircleShape2D_bhunq"]
 radius = 12.649111
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1esiv"]
-size = Vector2(157, 56.589966)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_x5kjr"]
 size = Vector2(229, 96)
 
@@ -1354,6 +1352,11 @@ tile_set = SubResource("TileSet_gb2nh")
 
 [node name="TileMapLayer6" type="TileMapLayer" parent="Decoration" unique_id=989401329]
 tile_set = SubResource("TileSet_8eynh")
+
+[node name="MechaFish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
+position = Vector2(-16, 307.09)
+barriers_node = NodePath("../Barriers")
+enemies_node = NodePath("../Enemies")
 
 [node name="Items" type="Node2D" parent="." unique_id=824029113]
 position = Vector2(546, 0)
@@ -1503,7 +1506,7 @@ position = Vector2(666, -14)
 collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Barriers/Obstacle6" unique_id=793187547]
-position = Vector2(-56, -15.346436)
+position = Vector2(-46, -15)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Obstacle9" type="StaticBody2D" parent="Barriers" unique_id=992900093]
@@ -1648,20 +1651,6 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
 position = Vector2(2629, 288.09)
 shape = SubResource("RectangleShape2D_qr0ht")
-
-[node name="DeathZone" type="Area2D" parent="." unique_id=855912430]
-position = Vector2(2064, 219)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=1971889121]
-position = Vector2(58.5, 84.79501)
-shape = SubResource("RectangleShape2D_1esiv")
-
-[node name="DeathZone2" type="Area2D" parent="." unique_id=17740277]
-position = Vector2(1250, 219)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone2" unique_id=928551746]
-position = Vector2(-74.875, 82.59)
-shape = SubResource("RectangleShape2D_1esiv")
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
 process_mode = 2
@@ -1818,7 +1807,8 @@ position = Vector2(3510, 288.09)
 position = Vector2(8, 6)
 shape = SubResource("RectangleShape2D_xvofd")
 
-[node name="MechaFish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
-position = Vector2(-16, 307.09)
-barriers_node = NodePath("../Barriers")
-enemies_node = NodePath("../Enemies")
+[node name="DeathZone" parent="." unique_id=2095264132 instance=ExtResource("17_cu5p6")]
+position = Vector2(1083, 265.09)
+
+[node name="DeathZone2" parent="." unique_id=248427837 instance=ExtResource("17_cu5p6")]
+position = Vector2(1083, 265.09)

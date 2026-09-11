@@ -13,6 +13,8 @@ extends CharacterBody2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
 
+
+var climb_sprite_offset: float = 0.0
 var is_dead: bool = false
 var original_color: Color = Color(1, 1, 1, 1)
 var block_color: Color = Color(0.5, 0.8, 1.0, 1)
@@ -34,7 +36,7 @@ var is_shift_held: bool = false
 var shift_held_time: float = 0.0
 var last_shift_state: bool = false
 var shift_just_pressed: bool = false
-
+var is_climbing_animation: bool = false
 var parry_active: bool = false
 var parry_done: bool = false
 var parry_enemy: CharacterBody2D = null
@@ -43,6 +45,7 @@ var parry_fade: ColorRect = null
 var parry_label: Label = null
 var parry_cooldown: float = 0.0
 var parry_cooldown_time: float = 3.0
+var last_climbed_obstacle: Node = null
 
 
 func _ready():
@@ -102,7 +105,7 @@ func _physics_process(delta):
 	sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 	var spd = run_speed if running else speed
 
-	if not is_sliding and not is_vaulting and not is_climbing:
+	if not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation:
 		if not is_on_floor() and velocity.y > 0:
 			sprite.play("Falling")
 		elif direction != 0 and running:
@@ -112,17 +115,19 @@ func _physics_process(delta):
 
 	var slide_input = running and Input.is_action_pressed("crouch")
 	var slide_tap = running and Input.is_action_just_pressed("crouch")
-	
+
 	if slide_input and (abs(velocity.x) > 10 or is_sliding):
 		if not is_sliding:
 			is_sliding = true
 			slide_timer = 0.0
 			sprite.play("Fall")
 			await get_tree().create_timer(0.3).timeout
-			sprite.play("Slide")
-		slide_timer += delta
-		var sp = min(slide_timer / 2.0, 2)
-		velocity.x = lerp(slide_speed, 0.0, sp) * direction
+			if is_sliding:
+				sprite.play("Slide")
+		if is_sliding:
+			slide_timer += delta
+			var sp = min(slide_timer / 2.0, 2)
+			velocity.x = lerp(slide_speed, 0.0, sp) * direction
 	elif slide_tap and running and not is_sliding and abs(velocity.x) > 10:
 		is_sliding = true
 		slide_timer = 0.0
@@ -445,7 +450,7 @@ func _jump_over(o: StaticBody2D, high: bool):
 	await get_tree().create_timer(0.3 if high else 0.15).timeout
 	is_vaulting = false
 	velocity.x = speed * d
-
+	
 func _try_climb():
 	if has_item:
 		return false
@@ -457,6 +462,100 @@ func _try_climb():
 	var player_pos = global_position
 	var player_height = 30
 	var player_bottom = player_pos.y + player_height / 2
+	var player_center_x = player_pos.x
+	var player_top = player_pos.y - player_height / 2
+	
+	for child in barriers_node.get_children():
+		var obstacle = null
+		if child is StaticBody2D:
+			obstacle = child
+		else:
+			var parent = child.get_parent()
+			if parent and parent is StaticBody2D:
+				obstacle = parent
+		
+		if not obstacle:
+			continue
+		
+		if obstacle == last_climbed_obstacle:
+			continue
+		
+		var col = obstacle.get_node_or_null("CollisionShape2D")
+		if not col:
+			continue
+		
+		var s = col.shape
+		if s is RectangleShape2D:
+			var obstacle_top = obstacle.global_position.y - s.size.y / 2
+			var obstacle_bottom = obstacle.global_position.y + s.size.y / 2
+			var obstacle_left = obstacle.global_position.x - s.size.x / 2
+			var obstacle_right = obstacle.global_position.x + s.size.x / 2
+			
+			if player_bottom < obstacle_top - 5:
+				continue
+			
+			if player_top > obstacle_bottom + 5:
+				continue
+			
+			var is_left = player_center_x < obstacle_left
+			var is_right = player_center_x > obstacle_right
+			var is_over = player_center_x > obstacle_left - 30 and player_center_x < obstacle_right + 30
+			
+			if is_left or is_right or is_over:
+				var target_x = 0.0
+				
+				if is_left:
+					target_x = obstacle_left - 2
+				elif is_right:
+					target_x = obstacle_right + 2
+				else:
+					var d = 1 if sprite.scale.x > 0 else -1
+					target_x = obstacle.global_position.x + d * 5
+				
+				var target = Vector2(
+					target_x,
+					obstacle_top - 10
+				)
+				
+				if global_position.distance_to(target) > 150:
+					continue
+				
+				last_climbed_obstacle = obstacle
+				
+				is_climbing = true
+				is_climbing_animation = true
+				velocity = Vector2.ZERO
+				sprite.play("Climb")
+				
+				var t = create_tween()
+				t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				t.tween_property(self, "global_position", target, 0.4)
+				await t.finished
+				
+				is_climbing = false
+				var d_dir = 1 if target_x > global_position.x else -1
+				velocity.x = speed * d_dir
+				
+				var total_frames = sprite.sprite_frames.get_frame_count("Climb")
+				while sprite.frame < total_frames - 1:
+					await get_tree().process_frame
+				
+				sprite.stop()
+				sprite.frame = total_frames - 1
+				is_climbing_animation = false
+				
+				await get_tree().create_timer(0.3).timeout
+				last_climbed_obstacle = null
+				return true
+	
+	return false
+
+func _is_touching_climbable() -> bool:
+	if not barriers_node:
+		return false
+	
+	var player_pos = global_position
+	var player_bottom = player_pos.y + 15
 	var player_center_x = player_pos.x
 	
 	for child in barriers_node.get_children():
@@ -481,33 +580,9 @@ func _try_climb():
 			var obstacle_left = obstacle.global_position.x - s.size.x / 2
 			var obstacle_right = obstacle.global_position.x + s.size.x / 2
 			
-			if player_bottom < obstacle_top - 5:
-				continue
-			
-			var is_left = player_center_x < obstacle_left
-			var is_right = player_center_x > obstacle_right
-			var is_over = player_center_x > obstacle_left - 30 and player_center_x < obstacle_right + 30
-			
-			if is_left or is_right or is_over:
-				is_climbing = true
-				velocity = Vector2.ZERO
-				
-				var d = -1 if is_left else 1
-				if is_over:
-					d = 1 if sprite.scale.x > 0 else -1
-				
-				var target = Vector2(
-					obstacle.global_position.x + d * 15,
-					obstacle_top - 10
-				)
-				sprite.play("Climb")
-				var t = create_tween()
-				t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-				t.tween_property(self, "global_position", target, 0.4)
-				await t.finished
-				is_climbing = false
-				velocity.x = speed * d
-				return true
+			if abs(player_bottom - obstacle_top) < 15:
+				if player_center_x > obstacle_left - 10 and player_center_x < obstacle_right + 10:
+					return true
 	
 	return false
 
@@ -515,8 +590,6 @@ func die():
 	if is_dead:
 		return
 	is_dead = true
-	
-	print("die() вызвана")
 	
 	movement_blocked = true
 	velocity = Vector2.ZERO
@@ -526,19 +599,28 @@ func die():
 	is_dashing = false
 	
 	if sprite:
-		print("проигрываю анимацию Death")
 		sprite.play("Death")
 		sprite.speed_scale = 1.0
 		
 		var total_frames = sprite.sprite_frames.get_frame_count("Death")
-		print("всего кадров: ", total_frames)
 		
 		while sprite.frame < total_frames - 1:
 			await get_tree().process_frame
 		
 		sprite.stop()
 		sprite.frame = total_frames - 1
-		print("остановлен на кадре: ", sprite.frame)
+	
+	await get_tree().create_timer(0.3).timeout
+	
+	var death_screen = get_tree().current_scene.get_node_or_null("DeathScreen")
+	if death_screen and death_screen.has_method("show_death"):
+		death_screen.show_death()
+	else:
+		var death_screen_scene = load("res://Fish Slaves/Base/Scenes/Enemy/DeathScreen.tscn")
+		if death_screen_scene:
+			var new_death_screen = death_screen_scene.instantiate()
+			get_tree().current_scene.add_child(new_death_screen)
+			new_death_screen.show_death()
 
 func take_damage(amount: int):
 	hp -= amount

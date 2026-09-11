@@ -4,22 +4,23 @@
 [ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Enemy/DeathScreen.tscn" id="3_w85fw"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
+[ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Player/DeathZone.tscn" id="5_powlu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
 
 [node name="PlayerTestSandbox" type="Node2D" unique_id=821784471]
 
-[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=402871249]
+[node name="Floor" type="StaticBody2D" parent="." unique_id=402871249]
 position = Vector2(2, 611)
 collision_layer = 5
 collision_mask = 7
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=2102717239]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=2102717239]
 position = Vector2(1180.25, 9.5)
 shape = SubResource("RectangleShape2D_bhunq")
 
-[node name="ColorRect" type="ColorRect" parent="StaticBody2D" unique_id=1535644364]
+[node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1535644364]
 offset_left = -9.0
 offset_top = -19.0
 offset_right = 2354.0
@@ -39,3 +40,6 @@ visible = false
 
 [node name="Obstacle" parent="." unique_id=1967249374 instance=ExtResource("4_yt2i1")]
 position = Vector2(361, 514)
+
+[node name="DeathZone" parent="." unique_id=2095264132 instance=ExtResource("5_powlu")]
+position = Vector2(787, 519)

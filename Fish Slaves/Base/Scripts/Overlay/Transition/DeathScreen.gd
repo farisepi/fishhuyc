@@ -17,10 +17,20 @@ var fading_in: bool = false
 var can_interact: bool = false
 
 func _ready():
-	hide()
-	restart_button.pressed.connect(_on_restart_pressed)
-	menu_button.pressed.connect(_on_menu_pressed)
-	quit_button.pressed.connect(_on_quit_pressed)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	menu_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	quit_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	show()
+	
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	ButtonEffects.setup(restart_button)
+	ButtonEffects.setup(menu_button)
+	ButtonEffects.setup(quit_button)
 	
 	death_label.modulate = Color(1, 1, 1, 0)
 	restart_button.modulate = Color(1, 1, 1, 0)
@@ -29,10 +39,11 @@ func _ready():
 	background.color = Color(0, 0, 0, 0)
 	
 	set_process(false)
+	hide()
 
 func show_death():
-	print("show_death() вызван")
 	show()
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	state = 0
 	fade_timer = 0.0
 	appear_timer = 0.0
@@ -47,25 +58,25 @@ func _process(delta):
 	match state:
 		0:
 			fade_timer += delta
-			var alpha = min(fade_timer / 1.2, 1.0)
+			var alpha = min(fade_timer / 1.0, 1.0)
 			background.color.a = alpha * 0.8
-			if fade_timer >= 1.2:
+			if fade_timer >= 1.0:
 				state = 1
 				appear_timer = 0.0
 		
 		1:
 			appear_timer += delta
 			
-			var label_alpha = min((appear_timer) / 1.0, 1.0)
+			var label_alpha = min((appear_timer) / 0.8, 1.0)
 			death_label.modulate.a = label_alpha
 			
-			var restart_alpha = min(max((appear_timer - 0.3) / 0.6, 0.0), 1.0)
+			var restart_alpha = min(max((appear_timer - 0.2) / 0.4, 0.0), 1.0)
 			restart_button.modulate.a = restart_alpha
 			
-			var menu_alpha = min(max((appear_timer - 0.5) / 0.6, 0.0), 1.0)
+			var menu_alpha = min(max((appear_timer - 0.5) / 0.4, 0.0), 1.0)
 			menu_button.modulate.a = menu_alpha
 			
-			var quit_alpha = min(max((appear_timer - 0.7) / 0.6, 0.0), 1.0)
+			var quit_alpha = min(max((appear_timer - 0.8) / 0.4, 0.0), 1.0)
 			quit_button.modulate.a = quit_alpha
 			
 			var wave = sin(appear_timer * 1.5) * 0.075 + 0.925
@@ -77,23 +88,66 @@ func _process(delta):
 				get_tree().paused = true
 				set_process(false)
 
-func _on_restart_pressed():
+func _on_restart_button_pressed():
 	if not can_interact:
 		return
 	print("рестарт нажат")
 	get_tree().paused = false
-	get_tree().reload_current_scene()
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	_fade_out_and_reload()
 
-func _on_menu_pressed():
+func _on_main_menu_button_pressed():
 	if not can_interact:
 		return
 	print("меню нажато")
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	_fade_out_and_goto("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
 
-func _on_quit_pressed():
+func _on_quit_button_pressed():
 	if not can_interact:
 		return
 	print("выход нажат")
 	get_tree().paused = false
 	get_tree().quit()
+
+func _fade_out_and_reload():
+	var canvas = CanvasLayer.new()
+	canvas.layer = 500
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(canvas)
+	
+	var fade = ColorRect.new()
+	fade.color = Color(0, 0, 0, 0)
+	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(fade)
+	
+	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(fade, "color:a", 1.0, 0.4)
+	await tween.finished
+	
+	var current_path = get_tree().current_scene.scene_file_path
+	get_tree().paused = false
+	get_tree().change_scene_to_file(current_path)
+
+func _fade_out_and_goto(path: String):
+	var canvas = CanvasLayer.new()
+	canvas.layer = 500
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(canvas)
+	
+	var fade = ColorRect.new()
+	fade.color = Color(0, 0, 0, 0)
+	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(fade)
+	
+	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(fade, "color:a", 1.0, 0.4)
+	await tween.finished
+	
+	get_tree().paused = false
+	get_tree().change_scene_to_file(path)
