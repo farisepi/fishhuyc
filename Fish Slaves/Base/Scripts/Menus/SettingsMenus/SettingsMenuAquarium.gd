@@ -411,7 +411,7 @@ func _apply_brightness() -> void:
 # ==================== АУДИО ОПЦИИ ====================
 
 func setup_audio_options() -> void:
-	dynamic_range_items = ["Высокий", "Средний", "Низкий"]
+	dynamic_range_items = ["Высокий", "Стандартный", "Низкий"]
 	dynamic_range_selected = 1
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 	_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
