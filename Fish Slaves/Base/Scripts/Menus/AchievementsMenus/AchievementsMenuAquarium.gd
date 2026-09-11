@@ -5,23 +5,24 @@ extends Control
 @onready var progress_bar: ProgressBar = $ProgressBar
 @onready var progress_label: Label = $ProgressLabel
 
-@onready var coffee_achievement: Control = $CoffeeAchievement
-@onready var coffee_icon: TextureRect = $CoffeeAchievement/Icon
-@onready var coffee_check: TextureRect = $CoffeeAchievement/Check
-@onready var coffee_name: Label = $CoffeeAchievement/NameLabel
-@onready var coffee_desc: Label = $CoffeeAchievement/DescLabel
+@onready var coffee_achievement: Control = $AchievementsScroll/AchievementsList/CoffeeAchievement
+@onready var coffee_icon: TextureRect = $AchievementsScroll/AchievementsList/CoffeeAchievement/Icon
+@onready var coffee_check: TextureRect = $AchievementsScroll/AchievementsList/CoffeeAchievement/Check
+@onready var coffee_name: Label = $AchievementsScroll/AchievementsList/CoffeeAchievement/NameLabel
+@onready var coffee_desc: Label = $AchievementsScroll/AchievementsList/CoffeeAchievement/DescLabel
 
-@onready var flashback_achievement: Control = $FlashbackAchievement
-@onready var flashback_icon: TextureRect = $FlashbackAchievement/Icon
-@onready var flashback_check: TextureRect = $FlashbackAchievement/Check
-@onready var flashback_name: Label = $FlashbackAchievement/NameLabel
+@onready var flashback_achievement: Control = $AchievementsScroll/AchievementsList/FlashbackAchievement
+@onready var flashback_icon: TextureRect = $AchievementsScroll/AchievementsList/FlashbackAchievement/Icon
+@onready var flashback_check: TextureRect = $AchievementsScroll/AchievementsList/FlashbackAchievement/Check
+@onready var flashback_name: Label = $AchievementsScroll/AchievementsList/FlashbackAchievement/NameLabel
+@onready var flashback_desc: Label = $AchievementsScroll/AchievementsList/FlashbackAchievement/DescLabel
 
-@onready var pop_star_achievement: Control = $PopStarAchievement
-@onready var pop_star_icon: TextureRect = $PopStarAchievement/Icon
-@onready var pop_star_check: TextureRect = $PopStarAchievement/Check
-@onready var pop_star_name: Label = $PopStarAchievement/NameLabel
-@onready var pop_star_desc: Label = $PopStarAchievement/DescLabel
-@onready var pop_star_progress: Label = $PopStarAchievement/ProgressLabel
+@onready var pop_star_achievement: Control = $AchievementsScroll/AchievementsList/PopStarAchievement
+@onready var pop_star_icon: TextureRect = $AchievementsScroll/AchievementsList/PopStarAchievement/Icon
+@onready var pop_star_check: TextureRect = $AchievementsScroll/AchievementsList/PopStarAchievement/Check
+@onready var pop_star_name: Label = $AchievementsScroll/AchievementsList/PopStarAchievement/NameLabel
+@onready var pop_star_desc: Label = $AchievementsScroll/AchievementsList/PopStarAchievement/DescLabel
+@onready var pop_star_progress: Label = $AchievementsScroll/AchievementsList/PopStarAchievement/ProgressLabel
 
 var total_achievements: int = 3
 var unlocked_count: int = 0
@@ -57,13 +58,15 @@ func update_achievements() -> void:
 		coffee_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
 		_set_achievement_gray(coffee_achievement, coffee_icon, coffee_check, coffee_name)
-		coffee_desc.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+		coffee_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
 	if Achievements.flashback_unlocked:
 		unlocked_count += 1
 		_set_achievement_bright(flashback_achievement, flashback_icon, flashback_check, flashback_name)
+		flashback_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
 		_set_achievement_gray(flashback_achievement, flashback_icon, flashback_check, flashback_name)
+		flashback_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
 	if Achievements.pop_star_unlocked:
 		unlocked_count += 1
@@ -74,11 +77,11 @@ func update_achievements() -> void:
 			pop_star_progress.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
 		_set_achievement_gray(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
-		pop_star_desc.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+		pop_star_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 		if pop_star_progress:
 			var popped = min(Global.bubbles_popped, 100)
 			pop_star_progress.text = str(popped) + "/100"
-			pop_star_progress.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+			pop_star_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
 	if progress_bar:
 		progress_bar.value = unlocked_count
@@ -92,8 +95,8 @@ func _set_achievement_bright(ach: Control, icon: TextureRect, check: TextureRect
 	if name_label: name_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 
 func _set_achievement_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
-	if ach: ach.modulate = Color(0.3, 0.3, 0.3, 1.0)
-	if icon: icon.modulate = Color(0.3, 0.3, 0.3, 1.0)
+	if ach: ach.modulate = Color(0.4, 0.4, 0.4, 1.0)
+	if icon: icon.modulate = Color(0.4, 0.4, 0.4, 1.0)
 	if check: check.visible = false
 	if name_label: name_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 

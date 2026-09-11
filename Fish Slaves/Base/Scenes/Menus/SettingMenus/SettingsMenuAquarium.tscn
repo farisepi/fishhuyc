@@ -689,7 +689,7 @@ offset_bottom = 614.0
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
-text = "Закрыть
+text = "Назад
 "
 
 [node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=1306186201]
