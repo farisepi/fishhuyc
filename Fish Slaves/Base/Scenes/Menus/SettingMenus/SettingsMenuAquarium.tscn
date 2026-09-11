@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
-[ext_resource type="Texture2D" uid="uid://ejd2vrvsocid" path="res://Fish Slaves/Textures/Interface/MenuButtons/DividingLines/AquariumDividingLine.png" id="19_3nkhw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8uthl"]
 shader = ExtResource("13_2vibe")
@@ -231,6 +230,7 @@ offset_bottom = 511.0
 button_pressed = true
 
 [node name="AudioPage" type="Control" parent="." unique_id=209264160]
+visible = false
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
@@ -354,7 +354,6 @@ theme_override_styles/disabled = ExtResource("10_nmydp")
 text = "Стандартный"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
-visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0
@@ -365,7 +364,7 @@ offset_bottom = 662.0
 layout_mode = 0
 offset_left = 197.0
 offset_top = 130.0
-offset_right = 1145.0
+offset_right = 1134.0
 offset_bottom = 528.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
@@ -377,28 +376,28 @@ theme_override_constants/v_separation = 12
 columns = 4
 
 [node name="ActionHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000010]
-custom_minimum_size = Vector2(160, 30)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "Действие"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KeyHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000011]
-custom_minimum_size = Vector2(160, 30)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "Клавиша"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ActionHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000012]
-custom_minimum_size = Vector2(160, 30)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "Действие"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KeyHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000013]
-custom_minimum_size = Vector2(160, 30)
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "Клавиша"
 horizontal_alignment = 1
@@ -439,6 +438,12 @@ theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveUpButton" unique_id=267447346]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
 [node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000022]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
@@ -453,6 +458,12 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveDownButton" unique_id=59484970]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
 
 [node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000024]
 custom_minimum_size = Vector2(160, 44)
@@ -469,6 +480,12 @@ theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveLeftButton" unique_id=283809734]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
 [node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000026]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
@@ -483,6 +500,12 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveRightButton" unique_id=1121697421]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
 
 [node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000028]
 custom_minimum_size = Vector2(160, 44)
@@ -499,6 +522,12 @@ theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/JumpButton" unique_id=1334554639]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
 [node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000030]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
@@ -513,6 +542,12 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InteractButton" unique_id=309254476]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
 
 [node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000032]
 custom_minimum_size = Vector2(160, 44)
@@ -529,6 +564,12 @@ theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
 
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InventoryButton" unique_id=718042350]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
 [node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000034]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
@@ -543,6 +584,12 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = ExtResource("3_cxufn")
 theme_override_styles/pressed = ExtResource("4_dbauv")
 theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/PauseButton" unique_id=2037251310]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
 
 [node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
 layout_mode = 0
@@ -680,14 +727,22 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="DividingLine" type="Sprite2D" parent="." unique_id=319765294]
-position = Vector2(578, 90.00001)
-scale = Vector2(3.22, 0.6666666)
-texture = ExtResource("19_3nkhw")
+[node name="DividingLine1" type="ColorRect" parent="." unique_id=1637037840]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 552.0
+offset_right = 1052.0
+offset_bottom = 556.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
-[node name="DividingLine2" type="Sprite2D" parent="." unique_id=1961890157]
-position = Vector2(578, 554)
-scale = Vector2(3.22, 0.6666666)
-texture = ExtResource("19_3nkhw")
+[node name="DividingLine2" type="ColorRect" parent="." unique_id=37877982]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 88.0
+offset_right = 1052.0
+offset_bottom = 92.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
 
 [connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]

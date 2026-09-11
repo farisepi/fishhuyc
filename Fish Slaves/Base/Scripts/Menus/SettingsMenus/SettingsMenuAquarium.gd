@@ -45,7 +45,7 @@ var config: ConfigFile = ConfigFile.new()
 const CONFIG_PATH: String = "user://settings.cfg"
 
 const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FalledFallingAquariumMenuButton/FalledFallingAquariumMenuButton.png"
-const ARROW_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallMenuArrowAquarium/Arrow.png"
+const ARROW_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallMenuArrowAquarium/FallMenuArrowAquarium.png"
 
 const SLIDER_HANDLE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
 const SLIDER_HANDLE_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png"
