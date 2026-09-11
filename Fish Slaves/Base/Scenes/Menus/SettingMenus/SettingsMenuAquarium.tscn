@@ -711,7 +711,6 @@ position = Vector2(576, 320)
 script = ExtResource("10_l8d1f")
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=799857351]
-visible = false
 z_index = -1
 material = SubResource("ShaderMaterial_8uthl")
 layout_mode = 1
