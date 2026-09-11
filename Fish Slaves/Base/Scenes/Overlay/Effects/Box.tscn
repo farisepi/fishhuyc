@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://c7dl4ohlk4lbv"]
+
+[ext_resource type="Script" uid="uid://cc20akyxlu5sg" path="res://Fish Slaves/Base/Scripts/Overlay/Effects/Box.gd" id="1_box"]
+[ext_resource type="Texture2D" uid="uid://cr1noaqbrx3ev" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png" id="2_box"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box"]
+size = Vector2(76, 68)
+
+[node name="Box" type="Area2D" unique_id=1023913302]
+position = Vector2(894, 721)
+script = ExtResource("1_box")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=403914013]
+position = Vector2(15, 12)
+scale = Vector2(4, 4)
+texture = ExtResource("2_box")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1064491685]
+position = Vector2(15, 12)
+shape = SubResource("RectangleShape2D_box")

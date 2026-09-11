@@ -18,6 +18,7 @@ var chatter_char_index: int = 0
 var camera_sensitivity: float = 0.0
 var prologue_completed: bool = false
 var bubbles_popped: int = 0
+var boxes_thrown: int = 0
 var show_fps: bool = false
 var pending_save: bool = false
 var scene_to_save: String = ""
@@ -40,7 +41,6 @@ var _pending_seaweed_apply: bool = false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	# СОЗДАЕМ SEAWEEDSTATE С ПРАВИЛЬНЫМ ПУТЕМ
 	print("=== CREATING SEAWEEDSTATE ===")
 	var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 	if FileAccess.file_exists(seaweed_path):
@@ -64,7 +64,6 @@ func _ready() -> void:
 		if _font:
 			_font.fixed_size = 10
 	
-	# ЗАГРУЖАЕМ И ПРИМЕНЯЕМ ВСЕ НАСТРОЙКИ
 	_load_effect_settings()
 	_apply_all_settings_from_config()
 	
@@ -80,14 +79,12 @@ func _apply_all_settings_from_config() -> void:
 	if config.load("user://settings.cfg") != OK:
 		return
 	
-	# === АУДИО ===
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
 	_apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
 	_apply_audio_bus("SFX", config.get_value("audio", "sfx_volume", 1.0))
 	_apply_audio_bus("Ambience", config.get_value("audio", "ambience_volume", 1.0))
 	_apply_audio_bus("UI", config.get_value("audio", "ui_volume", 1.0))
 	
-	# Динамический диапазон
 	var dyn_range = config.get_value("audio", "dynamic_range", 1)
 	var master_idx = AudioServer.get_bus_index("Master")
 	if master_idx != -1:
@@ -96,7 +93,6 @@ func _apply_all_settings_from_config() -> void:
 			1: pass
 			2: pass
 	
-	# === ГРАФИКА ===
 	var vsync_enabled = config.get_value("graphics", "vsync", true)
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED
@@ -114,24 +110,19 @@ func _apply_all_settings_from_config() -> void:
 		1: DisplayServer.window_set_size(Vector2i(1280, 720))
 		2: DisplayServer.window_set_size(Vector2i(854, 480))
 	
-	# Центрируем окно
 	var screen_center = DisplayServer.screen_get_size() / 2
 	var window_size = DisplayServer.window_get_size()
 	DisplayServer.window_set_position(screen_center - window_size / 2)
 	
-	# === ЯЗЫК ===
 	var locale = config.get_value("language", "locale", "ru")
 	TranslationServer.set_locale(locale)
 	
-	# === КАМЕРА ===
 	camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 	
-	# === ЭФФЕКТЫ ===
 	atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
 	interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
 	button_effects_enabled = interface_attributes_enabled
 	
-	# === FPS ===
 	show_fps = config.get_value("graphics", "show_fps", false)
 
 func _apply_audio_bus(bus_name: String, value: float) -> void:
@@ -451,7 +442,7 @@ func _apply_font(node: Node) -> void:
 			child.add_theme_font_size_override("font_size", 10)
 		elif child is RichTextLabel:
 			child.add_theme_font_override("normal_font", _font)
-			child.add_theme_font_size_override("normal_font_size", 10)
+			child.add_theme_font_size_override("normal_size", 10)
 		
 		_apply_font(child)
 

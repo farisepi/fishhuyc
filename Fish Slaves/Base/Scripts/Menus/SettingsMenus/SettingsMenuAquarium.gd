@@ -99,6 +99,8 @@ var resolution_arrow: TextureRect = null
 var language_arrow: TextureRect = null
 var dynamic_range_arrow: TextureRect = null
 
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+
 func _ready() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		if is_instance_valid(Fade):
@@ -131,6 +133,8 @@ func _ready() -> void:
 	_apply_brightness_deferred()
 	
 	has_unsaved_changes = false
+	
+	call_deferred("_start_background_bubbles")
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -487,6 +491,7 @@ func _on_brightness_slider_changed(_value: float) -> void:
 
 func _on_camera_sensitivity_changed(value: float) -> void:
 	_update_percent_label(camera_sensitivity_percent_label, camera_sensitivity_slider)
+	Global.camera_sensitivity = value
 	_mark_unsaved()
 
 func _on_music_slider_changed(_value: float) -> void:
@@ -576,7 +581,6 @@ func _setup_ui() -> void:
 	for control in controls:
 		if control:
 			ButtonEffects.setup(control)
-			
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))
@@ -1174,6 +1178,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		else:
 			_on_back_pressed()
+			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed:
 		if _any_dropdown_open():
 			var mouse_pos = get_global_mouse_position()
@@ -1196,3 +1201,45 @@ func _any_dropdown_open() -> bool:
 	return (resolution_dropdown and resolution_dropdown.visible) or \
 		(language_dropdown and language_dropdown.visible) or \
 		(dynamic_range_dropdown and dynamic_range_dropdown.visible)
+
+# ==================== ФОНОВЫЕ ПУЗЫРИ (БЕЗ КЛИКА) ====================
+
+func _start_background_bubbles() -> void:
+	for i in range(randi_range(3, 6)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _spawn_next_bubble() -> void:
+	if not bubble_scene:
+		return
+	if not is_inside_tree():
+		return
+	var timer = get_tree().create_timer(randf_range(0.15, 0.35))
+	timer.timeout.connect(_on_bubble_spawn_timer)
+
+func _on_bubble_spawn_timer() -> void:
+	if not is_inside_tree():
+		return
+	for i in range(randi_range(1, 2)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _make_menu_bubble() -> void:
+	if not bubble_scene:
+		return
+	var viewport = get_viewport()
+	if not viewport:
+		return
+	var viewport_size = viewport.get_visible_rect().size
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	bubble.z_index = -10
+	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
+	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
+	bubble.speed = randf_range(10.0, 25.0)
+	bubble.clickable = false
+	bubble.modulate.a = 0.0
+	var alpha_tween = create_tween()
+	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
+	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
+	bubble.start_life(randf_range(6.0, 15.0))

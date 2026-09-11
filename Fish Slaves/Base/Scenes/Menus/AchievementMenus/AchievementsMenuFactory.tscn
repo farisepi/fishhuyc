@@ -1,28 +1,15 @@
-[gd_scene format=3 uid="uid://4y425e7wgbp4"]
+[gd_scene format=3 uid="uid://f7bxf0eigi4v"]
 
-[ext_resource type="Script" uid="uid://dmou8vm5a0awv" path="res://Fish Slaves/Base/Scripts/Menus/AchievementsMenus/AchievementsMenuAquarium.gd" id="1_script"]
-[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="2_camera"]
-[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="3_bg"]
-[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="4_btnn"]
-[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="5_btnp"]
-[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="6_btnh"]
-[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="7_shader"]
-[ext_resource type="Texture2D" uid="uid://o37xtdnwekk5" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/AquariumAchievementBanner.png" id="8_banner"]
-[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_seaweed"]
-[ext_resource type="StyleBox" uid="uid://c1bbuan3bjjp4" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbar.tres" id="10_pbbg"]
-[ext_resource type="StyleBox" uid="uid://ckdv3klg5r04a" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbarFull.tres" id="11_pbfill"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
-shader = ExtResource("7_shader")
-shader_parameter/depth = 1.8
-shader_parameter/water_alpha = 0.35
-shader_parameter/wave_speed = 1.2
-shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
-shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
-shader_parameter/light_intensity = 1.0
-shader_parameter/caustic_strength = 0.8
-shader_parameter/lab_light_strength = 0.8
-shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+[ext_resource type="Script" uid="uid://cjuuh1vgkko2w" path="res://Fish Slaves/Base/Scripts/Menus/AchievementsMenus/AchievementsMenuFactory.gd" id="1_y6a2d"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="2_g0eki"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="3_bg"]
+[ext_resource type="StyleBox" uid="uid://c2x5uf6h0j5at" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbar.tres" id="4_pbbg"]
+[ext_resource type="StyleBox" uid="uid://b23fofn5sn22c" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.tres" id="5_pbfill"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_btnn"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_btnp"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_btnh"]
+[ext_resource type="Texture2D" uid="uid://d0lbi2f50p7p8" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/FactoryAchievementBanner.png" id="9_banner"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust"]
 
 [node name="AchievementsMenu" type="Control"]
 layout_mode = 3
@@ -31,15 +18,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_script")
+script = ExtResource("1_y6a2d")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = -104.0
-offset_top = -80.0
-offset_right = 1273.0
-offset_bottom = 702.0
-color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
+offset_left = -45.46
+offset_top = -120.95
+offset_right = 1479.7001
+offset_bottom = 840.01996
+mouse_filter = 2
+color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
+metadata/_edit_use_anchors_ = true
 
 [node name="BG" parent="." instance=ExtResource("3_bg")]
 
@@ -61,7 +50,7 @@ offset_left = 104.0
 offset_top = 103.0
 offset_right = 1052.0
 offset_bottom = 107.0
-color = Color(0.141176, 0.211765, 0.258824, 1)
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 layout_mode = 0
@@ -69,8 +58,8 @@ offset_left = 249.0
 offset_top = 57.0
 offset_right = 905.0
 offset_bottom = 89.0
-theme_override_styles/background = ExtResource("10_pbbg")
-theme_override_styles/fill = ExtResource("11_pbfill")
+theme_override_styles/background = ExtResource("4_pbbg")
+theme_override_styles/fill = ExtResource("5_pbfill")
 
 [node name="ProgressLabel" type="Label" parent="."]
 layout_mode = 0
@@ -103,8 +92,8 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/CoffeeAchievement"]
 position = Vector2(384, 36.5)
-scale = Vector2(2.0628932, 1.973684)
-texture = ExtResource("8_banner")
+scale = Vector2(1.77, 1.694)
+texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/CoffeeAchievement"]
 layout_mode = 0
@@ -147,8 +136,8 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FlashbackAchievement"]
 position = Vector2(384, 36.5)
-scale = Vector2(2.0628932, 1.973684)
-texture = ExtResource("8_banner")
+scale = Vector2(1.77, 1.694)
+texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FlashbackAchievement"]
 layout_mode = 0
@@ -191,8 +180,8 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/PopStarAchievement"]
 position = Vector2(384, 36.5)
-scale = Vector2(2.0628932, 1.973684)
-texture = ExtResource("8_banner")
+scale = Vector2(1.77, 1.694)
+texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/PopStarAchievement"]
 layout_mode = 0
@@ -246,8 +235,8 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/RebelAchievement"]
 position = Vector2(384, 36.5)
-scale = Vector2(2.0628932, 1.973684)
-texture = ExtResource("8_banner")
+scale = Vector2(1.77, 1.694)
+texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/RebelAchievement"]
 layout_mode = 0
@@ -301,8 +290,8 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/AcrobatAchievement"]
 position = Vector2(384, 36.5)
-scale = Vector2(2.0628932, 1.973684)
-texture = ExtResource("8_banner")
+scale = Vector2(1.77, 1.694)
+texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/AcrobatAchievement"]
 layout_mode = 0
@@ -345,7 +334,7 @@ offset_left = 104.0
 offset_top = 552.0
 offset_right = 1052.0
 offset_bottom = 556.0
-color = Color(0.141176, 0.211765, 0.258824, 1)
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [node name="ResetButton" type="Button" parent="."]
 layout_mode = 0
@@ -354,16 +343,16 @@ offset_top = 566.0
 offset_right = 566.0
 offset_bottom = 613.0
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("4_btnn")
-theme_override_styles/pressed = ExtResource("5_btnp")
-theme_override_styles/hover = ExtResource("6_btnh")
+theme_override_styles/normal = ExtResource("6_btnn")
+theme_override_styles/pressed = ExtResource("7_btnp")
+theme_override_styles/hover = ExtResource("8_btnh")
 text = "Сбросить"
 
-[node name="Seaweed" type="Sprite2D" parent="ResetButton"]
+[node name="Rust" type="Sprite2D" parent="ResetButton"]
 visible = false
 position = Vector2(116, 24)
-scale = Vector2(1.8861793, 1.7142868)
-texture = ExtResource("9_seaweed")
+scale = Vector2(2.6285717, 2.6285717)
+texture = ExtResource("10_rust")
 
 [node name="BackButton" type="Button" parent="."]
 layout_mode = 0
@@ -372,35 +361,19 @@ offset_top = 566.0
 offset_right = 818.0
 offset_bottom = 613.0
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("4_btnn")
-theme_override_styles/pressed = ExtResource("5_btnp")
-theme_override_styles/hover = ExtResource("6_btnh")
+theme_override_styles/normal = ExtResource("6_btnn")
+theme_override_styles/pressed = ExtResource("7_btnp")
+theme_override_styles/hover = ExtResource("8_btnh")
 text = "Назад"
 
-[node name="Seaweed" type="Sprite2D" parent="BackButton"]
+[node name="Rust" type="Sprite2D" parent="BackButton"]
 visible = false
 position = Vector2(116, 24)
-scale = Vector2(1.8861793, 1.7142868)
-texture = ExtResource("9_seaweed")
+scale = Vector2(2.6285717, 2.6285717)
+texture = ExtResource("10_rust")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(576, 328)
-script = ExtResource("2_camera")
-
-[node name="WaterShader" type="ColorRect" parent="."]
-z_index = -1
-material = SubResource("ShaderMaterial_water")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -385.0
-offset_top = -145.0
-offset_right = 1031.0
-offset_bottom = 723.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
+script = ExtResource("2_g0eki")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

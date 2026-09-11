@@ -1,7 +1,5 @@
 extends Node2D
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
-
 @onready var play_btn: Button = $PlayButton
 @onready var settings_btn: Button = $SettingsButton
 @onready var achiv_btn: Button = $AchivmentsButton
@@ -15,6 +13,8 @@ var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/E
 @onready var logo: AnimatedSprite2D = $LogoArea/LogoAnimation
 @onready var menu_music: AudioStreamPlayer = $MenuMusic
 
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+
 var logo_float_time: float = 0.0
 var logo_original_y: float = 0.0
 var logo_original_scale: Vector2 = Vector2.ONE
@@ -27,10 +27,7 @@ func _ready() -> void:
 	if cam:
 		cam.position = get_viewport().get_visible_rect().size / 2
 	
-	if Global.last_save_level == 1:
-		GlobalMusic.play_menu_music()
-	else:
-		GlobalMusic.play_menu_music()
+	GlobalMusic.play_menu_music()
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
@@ -265,3 +262,123 @@ func _make_menu_bubble() -> void:
 	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
+
+# ==================== АЧИВКА "ПОП-ЗВЕЗДА" ====================
+
+func _show_pop_star_achievement() -> void:
+	# Плашка достижения
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.1, 0.2, 0.35, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Поп-звезда"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	# Эффект — пузыри со всех краёв экрана
+	_spawn_pop_star_bubbles()
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
+
+func _spawn_pop_star_bubbles() -> void:
+	if not bubble_scene:
+		return
+	
+	var canvas = CanvasLayer.new()
+	canvas.layer = 199
+	add_child(canvas)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	
+	# С левого края — летят вправо
+	for i in range(8):
+		var pos = Vector2(-40, randf_range(0, view_size.y))
+		_spawn_bubble_from_edge(canvas, pos, Vector2(1.0, randf_range(-0.5, -0.1)))
+		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
+	
+	# С правого края — летят влево
+	for i in range(8):
+		var pos = Vector2(view_size.x + 40, randf_range(0, view_size.y))
+		_spawn_bubble_from_edge(canvas, pos, Vector2(-1.0, randf_range(-0.5, -0.1)))
+		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
+	
+	# С нижнего края — летят вверх
+	for i in range(8):
+		var pos = Vector2(randf_range(0, view_size.x), view_size.y + 40)
+		_spawn_bubble_from_edge(canvas, pos, Vector2(randf_range(-0.3, 0.3), -1.0))
+		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
+	
+	# Ждём, пока все пузыри на канвасе исчезнут сами
+	await get_tree().create_timer(0.5).timeout
+	while is_instance_valid(canvas) and canvas.get_child_count() > 0:
+		await get_tree().create_timer(0.3).timeout
+	
+	if is_instance_valid(canvas):
+		canvas.queue_free()
+
+func _spawn_bubble_from_edge(canvas: CanvasLayer, pos: Vector2, direction: Vector2) -> void:
+	if not bubble_scene:
+		return
+	
+	var bubble = bubble_scene.instantiate()
+	canvas.add_child(bubble)
+	
+	bubble.position = pos
+	bubble.scale = Vector2.ONE * randf_range(0.8, 2.0)
+	bubble.speed = randf_range(80.0, 180.0)
+	bubble.clickable = true
+	bubble.modulate.a = 0.0
+	bubble.set_direction(direction.normalized())
+	bubble.start_life(randf_range(0.5, 15.0))
+	
+	var alpha_tween = create_tween()
+	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.6, 1.0), 0.3)

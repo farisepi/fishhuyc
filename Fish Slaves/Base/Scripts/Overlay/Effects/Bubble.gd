@@ -97,6 +97,8 @@ func _on_area_entered(area: Area2D) -> void:
 		check_node = check_node.get_parent()
 
 func _input_event(_viewport, event, _shape_idx) -> void:
+	if not clickable:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			_pop()
@@ -109,7 +111,7 @@ func _pop() -> void:
 	clickable = false
 	
 	Global.bubbles_popped += 1
-	if Global.bubbles_popped == 100:
+	if Global.bubbles_popped >= 100:
 		Achievements.unlock_pop_star()
 		call_deferred("_notify_achievement")
 	

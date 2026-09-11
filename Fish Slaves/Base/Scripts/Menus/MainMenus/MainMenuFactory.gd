@@ -113,7 +113,8 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		click_sound.pitch_scale = randf_range(0.98, 1.02)
 		click_sound.play()
 		_logo_jelly_effect()
-		await get_tree().create_timer(0.4).timeout
+		_spawn_logo_boxes()
+		await get_tree().create_timer(2.5).timeout
 		can_click_logo = true
 
 func _logo_jelly_effect() -> void:
@@ -169,7 +170,7 @@ func _on_settings_button_pressed() -> void:
 func _on_achivments_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/AchievementMenus/AchievementMenuFactory.tscn")
+	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/AchievementMenus/AchievementsMenuFactory.tscn")
 
 func _on_save_button_pressed() -> void:
 	UISounds.play_click()
@@ -195,3 +196,245 @@ func _on_quit_button_pressed() -> void:
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
+
+# ==================== ЭФФЕКТ ОТ КЛИКА НА ЛОГО ====================
+
+func _spawn_logo_boxes() -> void:
+	var box_texture = load("res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png")
+	if not box_texture:
+		return
+	
+	var canvas = CanvasLayer.new()
+	canvas.layer = 199
+	add_child(canvas)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	
+	for i in range(3):
+		_create_falling_box(canvas, box_texture, view_size)
+	
+	await get_tree().create_timer(2.5).timeout
+	if is_instance_valid(canvas):
+		canvas.queue_free()
+
+func _create_falling_box(canvas: CanvasLayer, box_texture: Texture2D, view_size: Vector2) -> void:
+	var box = Area2D.new()
+	box.input_pickable = true
+	box.z_index = 50
+	canvas.add_child(box)
+	
+	var spr = Sprite2D.new()
+	spr.texture = box_texture
+	var s = randf_range(0.6, 1.5)
+	spr.scale = Vector2(2.0, 2.0) * s
+	box.add_child(spr)
+	
+	var col = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(spr.texture.get_width() * s, spr.texture.get_height() * s)
+	col.shape = shape
+	box.add_child(col)
+	
+	box.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 150))
+	box.rotation = randf_range(-0.6, 0.6)
+	
+	var fall_duration = randf_range(1.4, 2.0)
+	var target_y = view_size.y + 150.0
+	var sway_x = randf_range(-70.0, 70.0)
+	
+	box.input_event.connect(func(_v, event, _idx):
+		if event is InputEventMouseButton:
+			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				_on_caught_box(box, spr)
+	)
+	
+	var tween = box.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(box, "position:y", target_y, fall_duration).set_ease(Tween.EASE_IN)
+	tween.tween_property(box, "position:x", box.position.x + sway_x, fall_duration)
+	tween.tween_property(box, "rotation", box.rotation + randf_range(-3.0, 3.0), fall_duration)
+
+func _on_caught_box(box: Area2D, spr: Sprite2D) -> void:
+	if not is_instance_valid(box):
+		return
+	
+	box.set_deferred("input_pickable", false)
+	
+	var catch_tween = create_tween()
+	catch_tween.set_parallel(true)
+	catch_tween.tween_property(box, "scale", Vector2(0.3, 0.3), 0.3).set_ease(Tween.EASE_IN)
+	catch_tween.tween_property(box, "modulate:a", 0.0, 0.3)
+	catch_tween.tween_property(box, "position:y", box.position.y - 80, 0.3).set_ease(Tween.EASE_OUT)
+	
+	await catch_tween.finished
+	if is_instance_valid(box):
+		box.queue_free()
+	
+	# Запоминаем — была ли ачивка уже получена
+	var was_unlocked = Achievements.acrobat_unlocked
+	Achievements.unlock_acrobat()
+	
+	# Показываем уведомление только если ачивка только что открылась
+	if not was_unlocked:
+		_show_acrobat_achievement()
+
+# ==================== АЧИВКА "АКРОБАТ" ====================
+
+func _show_acrobat_achievement() -> void:
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.35, 0.15, 0.1, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.6, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(1, 0.7, 0.5, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Акробат"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
+
+# ==================== АЧИВКА "БУНТАРЬ" ====================
+
+func _show_rebel_achievement() -> void:
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.35, 0.15, 0.1, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.6, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(1, 0.7, 0.5, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Бунтарь"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	_spawn_falling_boxes()
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
+
+func _spawn_falling_boxes() -> void:
+	var box_texture = load("res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png")
+	if not box_texture:
+		return
+	
+	var canvas = CanvasLayer.new()
+	canvas.layer = 199
+	add_child(canvas)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	
+	for i in range(12):
+		var spr = Sprite2D.new()
+		spr.texture = box_texture
+		spr.scale = Vector2(2.0, 2.0) * randf_range(0.6, 1.5)
+		spr.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 200))
+		spr.rotation = randf_range(-0.6, 0.6)
+		canvas.add_child(spr)
+		
+		var fall_duration = randf_range(1.2, 2.5)
+		var target_y = view_size.y + 150.0
+		var sway_x = randf_range(-60.0, 60.0)
+		
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(spr, "position:y", target_y, fall_duration).set_ease(Tween.EASE_IN)
+		tween.tween_property(spr, "position:x", spr.position.x + sway_x, fall_duration)
+		tween.tween_property(spr, "rotation", spr.rotation + randf_range(-2.0, 2.0), fall_duration)
+		
+		var delay = randf_range(0.0, 1.5)
+		await get_tree().create_timer(delay).timeout
+	
+	await get_tree().create_timer(4.5).timeout
+	canvas.queue_free()

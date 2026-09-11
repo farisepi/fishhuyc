@@ -11,6 +11,8 @@ var intro_instance: CanvasLayer = null
 
 var custom_font: FontFile
 
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+
 func _ready() -> void:
 	custom_font = load("res://Fish Slaves/Textures/Font/Font.ttf")
 	if custom_font:
@@ -59,8 +61,8 @@ func _ready() -> void:
 		title.add_theme_font_override("font", custom_font)
 		title.add_theme_font_size_override("font_size", 18)
 	
-	# ПРИМЕНЯЕМ ВОДОРОСЛИ - используем call_deferred чтобы избежать ошибок
 	call_deferred("_apply_seaweed_deferred")
+	call_deferred("_start_background_bubbles")
 
 func _apply_seaweed_deferred() -> void:
 	await get_tree().process_frame
@@ -349,3 +351,45 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		else:
 			_on_back_pressed()
+
+# ==================== ФОНОВЫЕ ПУЗЫРИ (БЕЗ КЛИКА) ====================
+
+func _start_background_bubbles() -> void:
+	for i in range(randi_range(3, 6)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _spawn_next_bubble() -> void:
+	if not bubble_scene:
+		return
+	if not is_inside_tree():
+		return
+	var timer = get_tree().create_timer(randf_range(0.15, 0.35))
+	timer.timeout.connect(_on_bubble_spawn_timer)
+
+func _on_bubble_spawn_timer() -> void:
+	if not is_inside_tree():
+		return
+	for i in range(randi_range(1, 2)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _make_menu_bubble() -> void:
+	if not bubble_scene:
+		return
+	var viewport = get_viewport()
+	if not viewport:
+		return
+	var viewport_size = viewport.get_visible_rect().size
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	bubble.z_index = -10
+	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
+	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
+	bubble.speed = randf_range(10.0, 25.0)
+	bubble.clickable = false
+	bubble.modulate.a = 0.0
+	var alpha_tween = create_tween()
+	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
+	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
+	bubble.start_life(randf_range(6.0, 15.0))
