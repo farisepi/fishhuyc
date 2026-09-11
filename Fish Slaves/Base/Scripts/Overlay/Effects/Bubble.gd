@@ -17,7 +17,6 @@ const POP_SOUND_PATH = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/MainMenuAqua
 const ACT1_POP_SOUND = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/Act1Pop/Act1Pop.mp3"
 
 func _ready() -> void:
-	# ПРОВЕРЯЕМ, ВКЛЮЧЕНЫ ЛИ АТМОСФЕРНЫЕ ЭФФЕКТЫ
 	if not Global.atmospheric_effects_enabled:
 		queue_free()
 		return
@@ -62,7 +61,6 @@ func _process(delta: float) -> void:
 	if popped:
 		return
 	
-	# Если эффекты выключили во время игры - удаляем
 	if not Global.atmospheric_effects_enabled:
 		queue_free()
 		return
@@ -161,6 +159,7 @@ func _play_random_pop_sound() -> void:
 		return
 	
 	var pop_sound = AudioStreamPlayer.new()
+	pop_sound.bus = "SFX"
 	add_child(pop_sound)
 	pop_sound.stream = sound_stream
 	pop_sound.volume_db = -8.0
@@ -173,6 +172,7 @@ func _play_act1_pop_sound() -> void:
 		return
 	
 	var pop_sound = AudioStreamPlayer.new()
+	pop_sound.bus = "SFX"
 	add_child(pop_sound)
 	pop_sound.stream = sound_stream
 	pop_sound.volume_db = -8.0

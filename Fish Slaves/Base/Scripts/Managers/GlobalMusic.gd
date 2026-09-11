@@ -10,7 +10,7 @@ var fading: bool = false
 
 func _ready() -> void:
 	music_player = AudioStreamPlayer.new()
-	music_player.bus = "Master"
+	music_player.bus = "Music"
 	add_child(music_player)
 	music_player.volume_db = -15.0
 

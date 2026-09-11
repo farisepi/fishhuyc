@@ -6,7 +6,6 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://dbjnq7odkocgm" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallMenuArrowAquarium/Arrow.png" id="7_p7da6"]
 [ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonPressed.tres" id="8_4m4e8"]
 [ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonHover.tres" id="9_td0rv"]
@@ -50,6 +49,7 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -60,9 +60,8 @@ offset_bottom = 656.0
 modulate = Color(0.1764706, 0.1764706, 0.1764706, 1)
 layout_mode = 0
 offset_left = -5.0
-offset_top = 7.0
 offset_right = 1147.0
-offset_bottom = 655.0
+offset_bottom = 648.0
 color = Color(1, 1, 1, 0)
 
 [node name="ResolutionLabel" type="Label" parent="GraphicsPage" unique_id=61398240]
@@ -73,7 +72,7 @@ offset_right = 242.0
 offset_bottom = 145.0
 text = "Разрешение"
 
-[node name="ResolutionButton" type="OptionButton" parent="GraphicsPage" unique_id=391987072]
+[node name="ResolutionButton" type="Button" parent="GraphicsPage" unique_id=391987072]
 layout_mode = 0
 offset_left = 471.0
 offset_top = 107.0
@@ -83,9 +82,7 @@ theme_override_styles/normal = ExtResource("3_xchot")
 theme_override_styles/pressed = ExtResource("8_4m4e8")
 theme_override_styles/hover = ExtResource("9_td0rv")
 theme_override_styles/disabled = ExtResource("10_nmydp")
-theme_override_icons/arrow = ExtResource("7_p7da6")
-alignment = 1
-icon_alignment = 1
+text = "1920x1080"
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/ResolutionButton" unique_id=2098690276]
 visible = false
@@ -103,7 +100,7 @@ text = "Язык"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LanguageOption" type="OptionButton" parent="GraphicsPage" unique_id=1255295112]
+[node name="LanguageOption" type="Button" parent="GraphicsPage" unique_id=1255295112]
 layout_mode = 0
 offset_left = 471.0
 offset_top = 150.0
@@ -113,8 +110,7 @@ theme_override_styles/normal = ExtResource("3_xchot")
 theme_override_styles/pressed = ExtResource("8_4m4e8")
 theme_override_styles/hover = ExtResource("9_td0rv")
 theme_override_styles/disabled = ExtResource("10_nmydp")
-theme_override_icons/arrow = ExtResource("7_p7da6")
-alignment = 1
+text = "Русский"
 
 [node name="Seaweed" type="Sprite2D" parent="GraphicsPage/LanguageOption" unique_id=2066254607]
 visible = false
@@ -133,10 +129,10 @@ text = "Яркость"
 [node name="BrightnessSlider" type="HSlider" parent="GraphicsPage" unique_id=2089159620]
 layout_mode = 0
 offset_left = 472.0
-offset_top = 202.0
+offset_top = 199.0
 offset_right = 776.0
-offset_bottom = 242.0
-max_value = 2.0
+offset_bottom = 239.0
+max_value = 1.0
 step = 0.01
 value = 1.0
 
@@ -156,6 +152,8 @@ offset_left = 472.0
 offset_top = 242.0
 offset_right = 776.0
 offset_bottom = 282.0
+max_value = 1.0
+step = 0.01
 
 [node name="FullScreenLabel" type="Label" parent="GraphicsPage" unique_id=134815476]
 layout_mode = 0
@@ -168,9 +166,9 @@ text = "Полный экран"
 [node name="FullScreenCheck" type="CheckButton" parent="GraphicsPage" unique_id=134815477]
 layout_mode = 0
 offset_left = 467.0
-offset_top = 290.0
+offset_top = 283.0
 offset_right = 511.0
-offset_bottom = 318.0
+offset_bottom = 311.0
 
 [node name="V-SyncLabel" type="Label" parent="GraphicsPage" unique_id=1981078602]
 layout_mode = 0
@@ -183,9 +181,9 @@ text = "V-Sync"
 [node name="VSyncCheck" type="CheckButton" parent="GraphicsPage" unique_id=1981078603]
 layout_mode = 0
 offset_left = 467.0
-offset_top = 340.0
+offset_top = 333.0
 offset_right = 511.0
-offset_bottom = 368.0
+offset_bottom = 361.0
 button_pressed = true
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
@@ -199,9 +197,9 @@ text = "Показать FPS"
 [node name="FPSCheck" type="CheckButton" parent="GraphicsPage" unique_id=626264177]
 layout_mode = 0
 offset_left = 467.0
-offset_top = 390.0
+offset_top = 383.0
 offset_right = 511.0
-offset_bottom = 418.0
+offset_bottom = 411.0
 
 [node name="EffectsLabel" type="Label" parent="GraphicsPage" unique_id=1658047112]
 layout_mode = 0
@@ -214,9 +212,9 @@ text = "Атмосферные эффекты"
 [node name="EffectsCheck" type="CheckButton" parent="GraphicsPage" unique_id=1658047113]
 layout_mode = 0
 offset_left = 467.0
-offset_top = 440.0
+offset_top = 433.0
 offset_right = 511.0
-offset_bottom = 468.0
+offset_bottom = 461.0
 button_pressed = true
 
 [node name="IntarfaceAtributesLabel" type="Label" parent="GraphicsPage" unique_id=1503275156]
@@ -230,13 +228,12 @@ text = "Атрибуты интерфейса"
 [node name="InterfaceAttributesCheck" type="CheckButton" parent="GraphicsPage" unique_id=1503275157]
 layout_mode = 0
 offset_left = 467.0
-offset_top = 490.0
+offset_top = 483.0
 offset_right = 511.0
-offset_bottom = 518.0
+offset_bottom = 511.0
 button_pressed = true
 
 [node name="AudioPage" type="Control" parent="." unique_id=209264160]
-visible = false
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
@@ -248,59 +245,115 @@ offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.1764706, 0.1764706, 0.1764706, 0)
 
+[node name="MasterLabel" type="Label" parent="AudioPage" unique_id=1000000001]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 188.0
+offset_right = 320.0
+offset_bottom = 211.0
+text = "Общая громкость"
+
+[node name="MasterSlider" type="HSlider" parent="AudioPage" unique_id=1000000002]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 178.0
+offset_right = 796.0
+offset_bottom = 218.0
+max_value = 1.0
+step = 0.01
+value = 0.2
+
+[node name="MusicLabel" type="Label" parent="AudioPage" unique_id=1631299506]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 238.0
+offset_right = 320.0
+offset_bottom = 261.0
+text = "Музыка"
+
 [node name="MusicSlider" type="HSlider" parent="AudioPage" unique_id=516089308]
 layout_mode = 0
 offset_left = 500.0
-offset_top = 213.0
-offset_right = 795.999
-offset_bottom = 285.00006
+offset_top = 228.0
+offset_right = 796.0
+offset_bottom = 268.0
 max_value = 1.0
 step = 0.01
-value = 0.1
+value = 0.2
+
+[node name="SFXLabel" type="Label" parent="AudioPage" unique_id=11202023]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 288.0
+offset_right = 320.0
+offset_bottom = 311.0
+text = "Звуковые эффекты"
 
 [node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
 layout_mode = 0
 offset_left = 500.0
-offset_top = 274.0
-offset_right = 795.999
-offset_bottom = 330.00006
+offset_top = 278.0
+offset_right = 796.0
+offset_bottom = 318.0
 max_value = 1.0
 step = 0.01
-value = 0.1
-
-[node name="MusicLabel" type="Label" parent="AudioPage" unique_id=1631299506]
-layout_mode = 0
-offset_left = 247.0
-offset_top = 242.0
-offset_right = 330.99902
-offset_bottom = 273.0
-text = "Музыка"
+value = 0.2
 
 [node name="AmbienceLabel" type="Label" parent="AudioPage" unique_id=121444495]
 layout_mode = 0
-offset_left = 247.0
-offset_top = 346.0
-offset_right = 372.99902
-offset_bottom = 377.0
+offset_left = 140.0
+offset_top = 338.0
+offset_right = 320.0
+offset_bottom = 361.0
 text = "Окружение"
 
 [node name="AmbienceSlider" type="HSlider" parent="AudioPage" unique_id=1923459666]
 layout_mode = 0
 offset_left = 500.0
-offset_top = 334.0
-offset_right = 795.999
-offset_bottom = 374.0
+offset_top = 328.0
+offset_right = 796.0
+offset_bottom = 368.0
 max_value = 1.0
 step = 0.01
-value = 0.1
+value = 0.2
 
-[node name="SFXLabel" type="Label" parent="AudioPage" unique_id=11202023]
+[node name="UILabel" type="Label" parent="AudioPage" unique_id=1000000003]
 layout_mode = 0
-offset_left = 247.0
-offset_top = 294.0
-offset_right = 470.99902
-offset_bottom = 334.0
-text = "Звуковые эффекты"
+offset_left = 140.0
+offset_top = 388.0
+offset_right = 328.0
+offset_bottom = 411.0
+text = "Интерфейс"
+
+[node name="UISlider" type="HSlider" parent="AudioPage" unique_id=1000000004]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 378.0
+offset_right = 796.0
+offset_bottom = 418.0
+max_value = 1.0
+step = 0.01
+value = 0.2
+
+[node name="DynamicRangeLabel" type="Label" parent="AudioPage" unique_id=1000000005]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 440.0
+offset_right = 400.0
+offset_bottom = 463.0
+text = "Динамический диапазон"
+
+[node name="DynamicRangeOption" type="Button" parent="AudioPage" unique_id=1000000006]
+layout_mode = 0
+offset_left = 499.0
+offset_top = 426.0
+offset_right = 697.0
+offset_bottom = 465.0
+theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
+text = "Средний"
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
 visible = false

@@ -64,13 +64,96 @@ func _ready() -> void:
 		if _font:
 			_font.fixed_size = 10
 	
-	# ЗАГРУЖАЕМ НАСТРОЙКИ ЭФФЕКТОВ И АТРИБУТОВ
+	# ЗАГРУЖАЕМ И ПРИМЕНЯЕМ ВСЕ НАСТРОЙКИ
 	_load_effect_settings()
+	_apply_all_settings_from_config()
 	
 	reapply_theme()
 	get_tree().tree_changed.connect(_on_scene_changed)
 	
 	_detect_last_save_level()
+
+# ==================== ПРИМЕНЕНИЕ ВСЕХ НАСТРОЕК ====================
+
+func _apply_all_settings_from_config() -> void:
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") != OK:
+		return
+	
+	# === АУДИО ===
+	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
+	_apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
+	_apply_audio_bus("SFX", config.get_value("audio", "sfx_volume", 1.0))
+	_apply_audio_bus("Ambience", config.get_value("audio", "ambience_volume", 1.0))
+	_apply_audio_bus("UI", config.get_value("audio", "ui_volume", 1.0))
+	
+	# Динамический диапазон
+	var dyn_range = config.get_value("audio", "dynamic_range", 1)
+	var master_idx = AudioServer.get_bus_index("Master")
+	if master_idx != -1:
+		match dyn_range:
+			0: AudioServer.set_bus_volume_db(master_idx, -3.0)
+			1: pass
+			2: pass
+	
+	# === ГРАФИКА ===
+	var vsync_enabled = config.get_value("graphics", "vsync", true)
+	DisplayServer.window_set_vsync_mode(
+		DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED
+	)
+	
+	var fullscreen = config.get_value("graphics", "fullscreen", false)
+	if fullscreen:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	
+	var resolution = config.get_value("graphics", "resolution", 0)
+	match resolution:
+		0: DisplayServer.window_set_size(Vector2i(1920, 1080))
+		1: DisplayServer.window_set_size(Vector2i(1280, 720))
+		2: DisplayServer.window_set_size(Vector2i(854, 480))
+	
+	# Центрируем окно
+	var screen_center = DisplayServer.screen_get_size() / 2
+	var window_size = DisplayServer.window_get_size()
+	DisplayServer.window_set_position(screen_center - window_size / 2)
+	
+	# === ЯЗЫК ===
+	var locale = config.get_value("language", "locale", "ru")
+	TranslationServer.set_locale(locale)
+	
+	# === КАМЕРА ===
+	camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
+	
+	# === ЭФФЕКТЫ ===
+	atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
+	interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
+	button_effects_enabled = interface_attributes_enabled
+	
+	# === FPS ===
+	show_fps = config.get_value("graphics", "show_fps", false)
+
+func _apply_audio_bus(bus_name: String, value: float) -> void:
+	var bus_index = AudioServer.get_bus_index(bus_name)
+	if bus_index == -1:
+		return
+	
+	if value <= 0.0:
+		AudioServer.set_bus_mute(bus_index, true)
+		return
+	else:
+		AudioServer.set_bus_mute(bus_index, false)
+	
+	var db: float
+	if value < 0.01:
+		db = -60.0
+	else:
+		db = linear_to_db(value)
+	
+	AudioServer.set_bus_volume_db(bus_index, db)
+
+# ==================== ЭФФЕКТЫ ====================
 
 func _load_effect_settings() -> void:
 	var config = ConfigFile.new()
@@ -78,6 +161,8 @@ func _load_effect_settings() -> void:
 		atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
 		interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
 		button_effects_enabled = interface_attributes_enabled
+
+# ==================== ПРОЧЕЕ ====================
 
 func _detect_last_save_level() -> void:
 	last_save_level = 1
@@ -148,26 +233,21 @@ func _on_scene_changed() -> void:
 	if scene:
 		_apply_font(scene)
 		
-		# Если есть ожидающее применение - применяем
 		if _pending_seaweed_apply:
 			_pending_seaweed_apply = false
 			_force_apply_seaweed(scene)
 		else:
-			# Иначе применяем с задержкой
 			_apply_seaweed_with_delay(scene)
 		
-		# ПРИМЕНЯЕМ НАСТРОЙКИ ЭФФЕКТОВ И АТРИБУТОВ К НОВОЙ СЦЕНЕ
 		_apply_effect_settings_to_scene(scene)
 
 func _apply_effect_settings_to_scene(scene: Node) -> void:
 	if not scene or not is_instance_valid(scene):
 		return
 	
-	# Если атмосферные эффекты выключены - удаляем все пузыри
 	if not atmospheric_effects_enabled:
 		_remove_all_bubbles_recursive(scene)
 	
-	# Если атрибуты интерфейса выключены - скрываем водоросли/ржавчину
 	if not interface_attributes_enabled:
 		_hide_all_decorations_recursive(scene, true)
 
@@ -401,6 +481,7 @@ func _on_scene_loaded() -> void:
 		await get_tree().process_frame
 		_force_apply_seaweed(scene)
 		_apply_effect_settings_to_scene(scene)
+		_apply_all_settings_from_config()
 
 func _cleanup_loading() -> void:
 	if loading_instance and is_instance_valid(loading_instance):

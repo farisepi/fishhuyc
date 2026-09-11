@@ -114,6 +114,7 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 			return
 		can_click_logo = false
 		var click_sound = AudioStreamPlayer.new()
+		click_sound.bus = "UI"
 		add_child(click_sound)
 		click_sound.stream = preload("res://Fish Slaves/Sounds/SFX/MenuSFX/MainMenuAquariumLogoClick.mp3")
 		click_sound.volume_db = -18.0

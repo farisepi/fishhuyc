@@ -52,6 +52,7 @@ func _ready() -> void:
 			scientist_voice.stream = load(fallback_path)
 	scientist_voice.volume_db = -10.0
 	scientist_voice.pitch_scale = 0.9
+	scientist_voice.bus = "SFX"
 	add_child(scientist_voice)
 	
 	_stop_main_menu_music()
