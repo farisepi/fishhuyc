@@ -58,9 +58,9 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(160, 2)
 layout_mode = 0
 offset_left = 104.0
-offset_top = 99.0
+offset_top = 103.0
 offset_right = 1052.0
-offset_bottom = 103.0
+offset_bottom = 107.0
 color = Color(0.141176, 0.211765, 0.258824, 1)
 
 [node name="ProgressBar" type="ProgressBar" parent="." unique_id=982023106]
@@ -85,9 +85,9 @@ vertical_alignment = 1
 [node name="AchievementsScroll" type="ScrollContainer" parent="." unique_id=1000000001]
 layout_mode = 0
 offset_left = 192.0
-offset_top = 123.0
+offset_top = 137.0
 offset_right = 1036.0
-offset_bottom = 518.0
+offset_bottom = 521.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
@@ -243,17 +243,17 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(160, 2)
 layout_mode = 0
 offset_left = 104.0
-offset_top = 538.0
+offset_top = 552.0
 offset_right = 1052.0
-offset_bottom = 542.0
+offset_bottom = 556.0
 color = Color(0.141176, 0.211765, 0.258824, 1)
 
 [node name="ResetButton" type="Button" parent="." unique_id=606168002]
 layout_mode = 0
 offset_left = 334.0
-offset_top = 552.0
+offset_top = 566.0
 offset_right = 566.0
-offset_bottom = 599.0
+offset_bottom = 613.0
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_31va1")
 theme_override_styles/pressed = ExtResource("4_thjyk")
@@ -269,9 +269,9 @@ texture = ExtResource("5_w3s35")
 [node name="BackButton" type="Button" parent="." unique_id=153023009]
 layout_mode = 0
 offset_left = 586.0
-offset_top = 552.0
+offset_top = 566.0
 offset_right = 818.0
-offset_bottom = 599.0
+offset_bottom = 613.0
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_31va1")
 theme_override_styles/pressed = ExtResource("4_thjyk")

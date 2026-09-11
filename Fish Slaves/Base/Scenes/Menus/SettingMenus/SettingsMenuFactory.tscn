@@ -712,7 +712,7 @@ offset_left = 104.0
 offset_top = 552.0
 offset_right = 1052.0
 offset_bottom = 556.0
-color = Color(0.16078432, 0.14901961, 0.14509805, 1)
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [node name="DividingLine2" type="ColorRect" parent="." unique_id=1418597463]
 custom_minimum_size = Vector2(160, 2)
@@ -721,6 +721,6 @@ offset_left = 104.0
 offset_top = 88.0
 offset_right = 1052.0
 offset_bottom = 92.0
-color = Color(0.16078432, 0.14901961, 0.14509805, 1)
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]
