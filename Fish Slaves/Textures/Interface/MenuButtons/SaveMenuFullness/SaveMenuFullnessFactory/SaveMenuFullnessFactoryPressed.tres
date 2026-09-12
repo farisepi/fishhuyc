@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://8sv1d10yk1b1"]
+
+[ext_resource type="Texture2D" uid="uid://pvfqwxoonkmo" path="res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessFactory/SaveMenuFullnessFactory.png" id="1_73hnd"]
+
+[resource]
+texture = ExtResource("1_73hnd")
+modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)

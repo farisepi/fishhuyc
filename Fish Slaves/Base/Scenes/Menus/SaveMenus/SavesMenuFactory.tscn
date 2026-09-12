@@ -1,197 +1,179 @@
 [gd_scene format=3 uid="uid://b2g1j65ljrjwo"]
 
-[ext_resource type="Script" uid="uid://bwhafeqk5ab4s" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuFactory.gd" id="1_us2yi"]
-[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_fna08"]
-[ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="3_us2yi"]
-[ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="4_fna08"]
-[ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="5_53wng"]
-[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_8n7ws"]
-[ext_resource type="Texture2D" uid="uid://b3wyck3e7pvw1" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_53wng"]
-[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_rpfps"]
-[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_c4yi2"]
-[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_3ug42"]
-[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_8n7ws"]
+[ext_resource type="Script" uid="uid://bwhafeqk5ab4s" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuFactory.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="2_camera"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="3_bg"]
+[ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="4_slotn"]
+[ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="5_slotp"]
+[ext_resource type="Texture2D" uid="uid://cmvu6wx8pty3w" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_rust"]
+[ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="6_sloth"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="7_btnn"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="8_btnp"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="9_btnh"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust_small"]
 
-[node name="SaveMenu" type="Node2D" unique_id=2084349734]
-script = ExtResource("1_us2yi")
+[node name="SaveMenu" type="Node2D" unique_id=1965436707]
+script = ExtResource("1_script")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=680956382]
-offset_left = -45.46
-offset_top = -120.95
-offset_right = 1479.7001
-offset_bottom = 840.01996
-mouse_filter = 2
+[node name="ColorRect" type="ColorRect" parent="." unique_id=632457905]
+offset_left = -104.0
+offset_top = -80.0
+offset_right = 1273.0
+offset_bottom = 702.0
 color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
-metadata/_edit_use_anchors_ = true
 
-[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_fna08")]
+[node name="BG" parent="." unique_id=1161321912 instance=ExtResource("3_bg")]
 
-[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=486581449]
-offset_left = 150.0
-offset_top = 120.0
-offset_right = 1319.4119
-offset_bottom = 584.0
-scale = Vector2(0.85, 0.85)
+[node name="TitleLabel" type="Label" parent="." unique_id=1815699152]
+offset_left = 497.0
+offset_top = 18.0
+offset_right = 607.0
+offset_bottom = 66.0
+scale = Vector2(1.5, 1.5)
+text = "СОХРАНЕНИЯ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DividingLine1" type="ColorRect" parent="." unique_id=656357730]
+custom_minimum_size = Vector2(160, 2)
+offset_left = 104.0
+offset_top = 103.0
+offset_right = 1052.0
+offset_bottom = 107.0
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=88246658]
+offset_left = 156.0
+offset_top = 137.0
+offset_right = 1164.0
+offset_bottom = 521.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=1034263232]
+[node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=2044579446]
 custom_minimum_size = Vector2(1000, 500)
 clip_contents = true
 layout_mode = 2
 theme_override_constants/h_separation = 15
 theme_override_constants/v_separation = 15
 
-[node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1657378626]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=2052505919]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot1" unique_id=2078308856]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot1" unique_id=107649339]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420, 40.000004)
+scale = Vector2(2.3333333, 2.1052632)
+texture = ExtResource("6_rust")
 
-[node name="SaveSlot2" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1296018424]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot2" type="Button" parent="ScrollContainer/SaveGrid" unique_id=906201138]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot2" unique_id=1129198816]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot2" unique_id=954399233]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420.00003, 39.999996)
+scale = Vector2(2.3333337, 2.105263)
+texture = ExtResource("6_rust")
 
-[node name="SaveSlot3" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1668447269]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot3" type="Button" parent="ScrollContainer/SaveGrid" unique_id=86702514]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot3" unique_id=192907361]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot3" unique_id=966817865]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420.00003, 39.999996)
+scale = Vector2(2.3333337, 2.105263)
+texture = ExtResource("6_rust")
 
-[node name="SaveSlot4" type="Button" parent="ScrollContainer/SaveGrid" unique_id=613332536]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot4" type="Button" parent="ScrollContainer/SaveGrid" unique_id=917375147]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot4" unique_id=710183157]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot4" unique_id=1779985025]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420.00003, 39.999996)
+scale = Vector2(2.3333337, 2.105263)
+texture = ExtResource("6_rust")
 
-[node name="SaveSlot5" type="Button" parent="ScrollContainer/SaveGrid" unique_id=367018473]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot5" type="Button" parent="ScrollContainer/SaveGrid" unique_id=993265795]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot5" unique_id=159556559]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot5" unique_id=1100541933]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420.00003, 39.999996)
+scale = Vector2(2.3333337, 2.105263)
+texture = ExtResource("6_rust")
 
-[node name="SaveSlot6" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1879601160]
-custom_minimum_size = Vector2(1002, 100)
+[node name="SaveSlot6" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1732477036]
+custom_minimum_size = Vector2(840, 80)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = ExtResource("3_us2yi")
-theme_override_styles/pressed = ExtResource("4_fna08")
-theme_override_styles/hover = ExtResource("5_53wng")
-text = "Пусто
-"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
 
-[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot6" unique_id=260830032]
+[node name="Rust" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot6" unique_id=811427993]
 visible = false
-position = Vector2(501.1765, 50.00001)
-scale = Vector2(2.784314, 2.6315794)
-texture = ExtResource("6_53wng")
+position = Vector2(420.00003, 39.999996)
+scale = Vector2(2.3333337, 2.105263)
+texture = ExtResource("6_rust")
 
-[node name="TitleLabel" type="Label" parent="." unique_id=1579598994]
-offset_left = 415.00003
-offset_top = 24.000002
-offset_right = 543.0
-offset_bottom = 48.0
-scale = Vector2(2.5, 2.5)
+[node name="DividingLine2" type="ColorRect" parent="." unique_id=1861041097]
+custom_minimum_size = Vector2(160, 2)
+offset_left = 104.0
+offset_top = 552.0
+offset_right = 1052.0
+offset_bottom = 556.0
+color = Color(0.4117647, 0.24705882, 0.09019608, 1)
+
+[node name="BackButton" type="Button" parent="." unique_id=1748428842]
+offset_left = 460.0
+offset_top = 566.0
+offset_right = 692.0
+offset_bottom = 613.0
 theme_override_font_sizes/font_size = 12
-text = "Сохранения"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_styles/normal = ExtResource("7_btnn")
+theme_override_styles/pressed = ExtResource("8_btnp")
+theme_override_styles/hover = ExtResource("9_btnh")
+text = "Назад"
 
-[node name="BackButton" type="Button" parent="." unique_id=363767151]
-offset_left = 456.0
-offset_top = 584.0
-offset_right = 688.0
-offset_bottom = 632.0
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("6_8n7ws")
-theme_override_styles/pressed = ExtResource("7_rpfps")
-theme_override_styles/hover = ExtResource("8_c4yi2")
-text = "Закрыть
-"
-
-[node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1473415239]
+[node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1840574675]
 visible = false
-position = Vector2(116.00002, 24.00002)
-scale = Vector2(3.314286, 2.666664)
-texture = ExtResource("10_8n7ws")
+position = Vector2(116, 24)
+scale = Vector2(2.6285717, 2.6285717)
+texture = ExtResource("10_rust_small")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1257404213]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1508640523]
 position = Vector2(576, 328)
-script = ExtResource("10_3ug42")
+script = ExtResource("2_camera")
 
-[node name="SkipUI" type="CanvasLayer" parent="." unique_id=62705663]
-visible = false
-
-[node name="SkipBG" type="ColorRect" parent="SkipUI" unique_id=1943018579]
-offset_left = 908.0
-offset_top = 54.0
-offset_right = 1048.0
-offset_bottom = 84.0
-color = Color(0, 0, 0, 1)
-
-[node name="SkipFill" type="ColorRect" parent="SkipUI" unique_id=888038963]
-offset_left = 908.0
-offset_top = 55.0
-offset_right = 908.0
-offset_bottom = 85.0
-
-[node name="SkipLabel" type="Label" parent="SkipUI" unique_id=898263318]
-offset_left = 927.0
-offset_top = 78.0
-offset_right = 1023.0
-offset_bottom = 101.0
-text = "Пропустить"
-
-[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

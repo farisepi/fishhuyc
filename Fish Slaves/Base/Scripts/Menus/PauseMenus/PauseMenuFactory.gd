@@ -28,6 +28,8 @@ func _on_continue_pressed() -> void:
 func _on_save_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
+	Global.player_position = Vector2.ZERO
 	get_tree().paused = false
 	hide()
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
@@ -35,6 +37,7 @@ func _on_save_pressed() -> void:
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	get_tree().paused = false
 	hide()
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")

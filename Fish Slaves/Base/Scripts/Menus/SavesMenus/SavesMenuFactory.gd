@@ -5,11 +5,21 @@ extends Node2D
 
 const SAVE_DIR = "user://saves/"
 
+const EMPTY_NORMAL = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres"
+const EMPTY_HOVER = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres"
+const EMPTY_PRESSED = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres"
+
+const FULL_NORMAL = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessFactory/SaveMenuFullnessFactoryNormal.tres"
+const FULL_HOVER = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessFactory/SaveMenuFullnessFactoryHover.tres"
+const FULL_PRESSED = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessFactory/SaveMenuFullnessFactoryPressed.tres"
+
 var current_popup: AcceptDialog = null
 var intro_active: bool = false
 var intro_instance: CanvasLayer = null
 
 var custom_font: FontFile
+
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
 func _ready() -> void:
 	custom_font = load("res://Fish Slaves/Textures/Font/Font.ttf")
@@ -25,7 +35,8 @@ func _ready() -> void:
 		GlobalMusic.play_menu_music()
 	
 	ButtonEffects.setup(back_btn)
-	back_btn.pressed.connect(_on_back_pressed)
+	if not back_btn.pressed.is_connected(_on_back_pressed):
+		back_btn.pressed.connect(_on_back_pressed)
 	
 	if custom_font and back_btn:
 		back_btn.add_theme_font_override("font", custom_font)
@@ -58,6 +69,8 @@ func _ready() -> void:
 	if custom_font and title:
 		title.add_theme_font_override("font", custom_font)
 		title.add_theme_font_size_override("font_size", 18)
+	
+	call_deferred("_start_background_bubbles")
 
 func _update_slot_text(slot: Button, index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
@@ -76,9 +89,17 @@ func _update_slot_text(slot: Button, index: int):
 			location = scene
 		slot.text = location + "\n" + time
 		slot.add_theme_color_override("font_color", Color(0.831, 0.643, 0.09))
+		
+		slot.add_theme_stylebox_override("normal", load(FULL_NORMAL))
+		slot.add_theme_stylebox_override("hover", load(FULL_HOVER))
+		slot.add_theme_stylebox_override("pressed", load(FULL_PRESSED))
 	else:
 		slot.text = "— Пусто —"
 		slot.add_theme_color_override("font_color", Color(0.5, 0.7, 0.6))
+		
+		slot.add_theme_stylebox_override("normal", load(EMPTY_NORMAL))
+		slot.add_theme_stylebox_override("hover", load(EMPTY_HOVER))
+		slot.add_theme_stylebox_override("pressed", load(EMPTY_PRESSED))
 
 func _close_current_popup() -> void:
 	if current_popup and is_instance_valid(current_popup):
@@ -112,7 +133,7 @@ func _on_slot_pressed(index: int):
 				intro_active = true
 			else:
 				intro_instance = CanvasLayer.new()
-				var script = load("res://Fish Slaves/Base/Scripts/Levels/Intro.gd")
+				var script = load("res://Fish Slaves/Base/Scripts/Overlay/Transition/Intro.gd")
 				if script:
 					intro_instance.set_script(script)
 					add_child(intro_instance)
@@ -243,8 +264,8 @@ func _save_game(index: int, scene_path: String = ""):
 	var config = ConfigFile.new()
 	
 	var current_scene = scene_path
-	if current_scene == "":
-		current_scene = get_tree().current_scene.scene_file_path
+	if current_scene == "" or "SavesMenu" in current_scene:
+		current_scene = "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn"
 	
 	var datetime = Time.get_datetime_dict_from_system()
 	var month = "%02d" % datetime.month
@@ -257,9 +278,14 @@ func _save_game(index: int, scene_path: String = ""):
 	config.set_value("save", "scene", current_scene)
 	config.set_value("save", "time", time)
 	
-	if Global.player_position != Vector2.ZERO:
-		config.set_value("save", "player_x", Global.player_position.x)
-		config.set_value("save", "player_y", Global.player_position.y)
+	var px = Global.player_position.x
+	var py = Global.player_position.y
+	if px == 0.0 and py == 0.0:
+		config.set_value("save", "player_x", 325.0)
+		config.set_value("save", "player_y", 546.0)
+	else:
+		config.set_value("save", "player_x", px)
+		config.set_value("save", "player_y", py)
 	
 	config.set_value("save", "chatter_queue", Global.chatter_queue_state)
 	config.set_value("save", "chatter_text", Global.chatter_current_text)
@@ -293,8 +319,7 @@ func _load_game(index: int):
 		if scene != "":
 			var player_x = config.get_value("save", "player_x", 0.0)
 			var player_y = config.get_value("save", "player_y", 0.0)
-			if player_x != 0.0 or player_y != 0.0:
-				Global.player_position = Vector2(player_x, player_y)
+			Global.player_position = Vector2(player_x, player_y)
 			
 			Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
 			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
@@ -322,7 +347,10 @@ func _on_back_pressed() -> void:
 		if is_instance_valid(Fade):
 			Fade.fade_out()
 			await get_tree().create_timer(0.3).timeout
-		Global.goto_scene("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
+		var target = Global.scene_to_save
+		if target == "" or "SavesMenu" in target:
+			target = "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn"
+		Global.goto_scene(target)
 		return
 	
 	if is_instance_valid(Fade):
@@ -337,3 +365,45 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		else:
 			_on_back_pressed()
+
+# ==================== ФОНОВЫЕ ПУЗЫРИ (БЕЗ КЛИКА) ====================
+
+func _start_background_bubbles() -> void:
+	for i in range(randi_range(3, 6)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _spawn_next_bubble() -> void:
+	if not bubble_scene:
+		return
+	if not is_inside_tree():
+		return
+	var timer = get_tree().create_timer(randf_range(0.15, 0.35))
+	timer.timeout.connect(_on_bubble_spawn_timer)
+
+func _on_bubble_spawn_timer() -> void:
+	if not is_inside_tree():
+		return
+	for i in range(randi_range(1, 2)):
+		_make_menu_bubble()
+	_spawn_next_bubble()
+
+func _make_menu_bubble() -> void:
+	if not bubble_scene:
+		return
+	var viewport = get_viewport()
+	if not viewport:
+		return
+	var viewport_size = viewport.get_visible_rect().size
+	var bubble = bubble_scene.instantiate()
+	add_child(bubble)
+	bubble.z_index = -10
+	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
+	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
+	bubble.speed = randf_range(10.0, 25.0)
+	bubble.clickable = false
+	bubble.modulate.a = 0.0
+	var alpha_tween = create_tween()
+	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
+	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
+	bubble.start_life(randf_range(6.0, 15.0))

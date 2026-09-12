@@ -73,8 +73,12 @@ func _ready():
 	add_child(check_timer)
 	
 	forklift_trigger.body_entered.connect(func(body):
+		if not is_inside_tree():
+			return
 		if body == player and not forklift_activated:
 			await get_tree().create_timer(2).timeout
+			if not is_inside_tree():
+				return
 			if shift_prompt:
 				shift_prompt.visible = true
 				shift_prompt.global_position = player.global_position + Vector2(-50, -100)
@@ -111,6 +115,8 @@ func _ready():
 				col.disabled = true
 			
 			parry_trigger.body_entered.connect(func(body):
+				if not is_inside_tree():
+					return
 				if body == player and not player.parry_done:
 					print("🔔 ТРИГГЕР СРАБОТАЛ!")
 					player.start_parry(enemy, _on_parry_complete)
@@ -155,25 +161,38 @@ func _on_parry_complete():
 		player.is_crouching = false
 
 func _start_intro():
+	if not is_inside_tree():
+		return
+	
 	player.modulate = Color.RED
 	prompt.text = "ЖМИ E! 6"
 	prompt.visible = true
 	
 	var qte = 0
 	while qte < 6:
+		if not is_inside_tree():
+			return
 		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		if not is_instance_valid(player) or not is_instance_valid(prompt):
+			return
 		prompt.position = Vector2(player.global_position.x - 80, player.global_position.y - 60)
 		if Input.is_action_just_pressed("interact"):
 			qte += 1
 			if qte < 6:
 				prompt.text = "ЖМИ E! " + str(6 - qte)
 	
+	if not is_inside_tree():
+		return
 	prompt.visible = false
 	player.modulate = Color.WHITE
 	
 	exclamation.position = Vector2(player.global_position.x - 20, player.global_position.y - 50)
 	exclamation.visible = true
 	await get_tree().create_timer(1.0).timeout
+	if not is_inside_tree():
+		return
 	exclamation.visible = false
 	
 	state = State.RUNNING
@@ -201,6 +220,9 @@ func _check_enemy_collision():
 				return
 
 func _activate_forklift():
+	if not is_inside_tree():
+		return
+	
 	forklift_activated = true
 	forklift.visible = true
 	falling_shelf.visible = true
@@ -224,6 +246,9 @@ func _activate_forklift():
 	t.tween_property(forklift, "global_position:x", player.global_position.x + 250, 3.0)
 	await t.finished
 	
+	if not is_inside_tree():
+		return
+	
 	forklift.set("active", false)
 	forklift.set_physics_process(false)
 	forklift.velocity = Vector2.ZERO
@@ -231,6 +256,8 @@ func _activate_forklift():
 	forklift_ready_for_throw = true
 
 func _process(delta):
+	if not is_inside_tree():
+		return
 	if get_tree().paused or state == State.GAMEOVER:
 		return
 	
@@ -252,11 +279,15 @@ func _process(delta):
 			if forklift_col:
 				forklift_col.disabled = true
 				await get_tree().create_timer(0.3).timeout
+				if not is_inside_tree():
+					return
 				forklift_col.disabled = false
 			
 			prompt.text = "Отлично! Беги дальше!"
 			prompt.visible = true
 			await get_tree().create_timer(1.0).timeout
+			if not is_inside_tree():
+				return
 			prompt.visible = false
 			return
 		
@@ -325,12 +356,18 @@ func _process(delta):
 			var t = create_tween()
 			t.tween_property(player, "global_position:x", elevator.global_position.x + 30, 0.5)
 			await t.finished
+			if not is_inside_tree():
+				return
 			player.visible = false
 			prompt.visible = false
 			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.0)
 			await lt.finished
+			if not is_inside_tree():
+				return
 			await get_tree().create_timer(0.5).timeout
+			if not is_inside_tree():
+				return
 			_win()
 	
 	if _shelf_climbing:
@@ -374,6 +411,8 @@ func _throw_item_at_forklift():
 	var ft = create_tween()
 	ft.tween_property(flash, "modulate:a", 0.0, 0.2)
 	await ft.finished
+	if not is_inside_tree():
+		return
 	flash.queue_free()
 	
 	forklift.modulate = Color(0.4, 0.4, 0.4, 1)
@@ -388,6 +427,8 @@ func _throw_item_at_forklift():
 	prompt.text = "Погрузчик остановлен!"
 	prompt.visible = true
 	await get_tree().create_timer(2.0).timeout
+	if not is_inside_tree():
+		return
 	prompt.visible = false
 
 func _game_over():
@@ -408,6 +449,8 @@ func _game_over():
 		player.die()
 	else:
 		await get_tree().create_timer(1.0).timeout
+		if not is_inside_tree():
+			return
 		get_tree().reload_current_scene()
 
 func _win():
@@ -424,6 +467,8 @@ func _win():
 	var tween = create_tween()
 	tween.tween_property(black, "modulate:a", 1.0, 0.5)
 	await tween.finished
+	if not is_inside_tree():
+		return
 	
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 

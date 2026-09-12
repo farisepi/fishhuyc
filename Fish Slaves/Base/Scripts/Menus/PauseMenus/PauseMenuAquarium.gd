@@ -7,7 +7,7 @@ extends CanvasLayer
 @onready var restart_btn: Button = $RestartButton
 
 func _ready() -> void:
-	var buttons = [continue_btn, settings_btn, save_btn, exit_btn]
+	var buttons = [continue_btn, settings_btn, save_btn, exit_btn, restart_btn]
 	for btn in buttons:
 		ButtonEffects.setup(btn)
 	
@@ -21,6 +21,10 @@ func _ready() -> void:
 	if cr:
 		cr.modulate.a = 0.5
 
+func _is_factory_level() -> bool:
+	var scene_path = get_tree().current_scene.scene_file_path
+	return "Act2" in scene_path or "Act3" in scene_path or "Factory" in scene_path
+
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	hide()
@@ -30,22 +34,34 @@ func _on_continue_pressed() -> void:
 func _on_save_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
+	Global.player_position = Vector2.ZERO
 	get_tree().paused = false
 	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
+	if _is_factory_level():
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+	else:
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
+	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	get_tree().paused = false
 	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
+	if _is_factory_level():
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
+	else:
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
 
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
 	get_tree().paused = false
 	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	if _is_factory_level():
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+	else:
+		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
 
 func _on_restart_pressed() -> void:
 	UISounds.play_click()

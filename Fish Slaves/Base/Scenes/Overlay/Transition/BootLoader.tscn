@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b46erwc5h67a5"]
+
+[ext_resource type="Script" uid="uid://dushplijgp31x" path="res://Fish Slaves/Base/Scripts/Managers/BootLoader.gd" id="1_boot"]
+
+[node name="BootLoader" type="Node" unique_id=909588604]
+script = ExtResource("1_boot")

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="FishSlaves"
-run/main_scene="uid://dhroy06x2e74b"
+run/main_scene="uid://b46erwc5h67a5"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [audio]
