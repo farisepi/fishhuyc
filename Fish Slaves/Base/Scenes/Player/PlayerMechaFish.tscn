@@ -1098,13 +1098,13 @@ offset_right = 1157.0
 offset_bottom = 652.0
 
 [node name="SuitIcon" type="Sprite2D" parent="GUI/UI_Container" unique_id=10592403]
-position = Vector2(102.093765, 257)
-scale = Vector2(5.5240383, 5.6923056)
+position = Vector2(75, 175)
+scale = Vector2(4, 4.122)
 texture = ExtResource("13_7xaar")
 
 [node name="HP_Bar" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1711761751]
-position = Vector2(222.00002, 72)
-scale = Vector2(6.0973215, 7.347222)
+position = Vector2(174.964, 72)
+scale = Vector2(5, 6.025)
 sprite_frames = SubResource("SpriteFrames_bhunq")
 animation = &"HP_Bar"
 frame_progress = 0.23424393
@@ -1112,16 +1112,16 @@ frame_progress = 0.23424393
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GUI/UI_Container/HP_Bar" unique_id=980666416]
 
 [node name="Hearts" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1346073706]
-position = Vector2(222, 72.05)
-scale = Vector2(6.1027713, 7.333334)
+position = Vector2(174.964, 72.05)
+scale = Vector2(5, 6.025)
 sprite_frames = SubResource("SpriteFrames_riqys")
 animation = &"Hp"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GUI/UI_Container/Hearts" unique_id=1381907412]
 
 [node name="Stamina" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1544490365]
-position = Vector2(222.038, 73.857)
-scale = Vector2(6.1022406, 7.071926)
+position = Vector2(175.002, 73.857)
+scale = Vector2(5, 6.025)
 sprite_frames = SubResource("SpriteFrames_sn0t7")
 animation = &"Stamina"
 frame_progress = 0.3426
@@ -1129,8 +1129,8 @@ frame_progress = 0.3426
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GUI/UI_Container/Stamina" unique_id=1110501806]
 
 [node name="Air_Bar" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=435738828]
-position = Vector2(1066.0781, 337.99997)
-scale = Vector2(2.4869835, 2.3942306)
+position = Vector2(1116.237, 325.77322)
+scale = Vector2(3.115, 3)
 sprite_frames = SubResource("SpriteFrames_1esiv")
 animation = &"AirBalloon"
 

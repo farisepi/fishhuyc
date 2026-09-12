@@ -643,9 +643,9 @@ color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=1837279410]
 offset_left = 486.0
-offset_top = 176.0
+offset_top = 176.5
 offset_right = 666.0
-offset_bottom = 231.0
+offset_bottom = 231.5
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
@@ -661,9 +661,9 @@ texture = ExtResource("15_5vwn5")
 
 [node name="SaveButton" type="Button" parent="Pausemenu" unique_id=936196689]
 offset_left = 486.0
-offset_top = 236.0
+offset_top = 236.5
 offset_right = 666.0
-offset_bottom = 291.0
+offset_bottom = 291.5
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
@@ -678,9 +678,9 @@ texture = ExtResource("15_5vwn5")
 
 [node name="ExitButton" type="Button" parent="Pausemenu" unique_id=406837401]
 offset_left = 486.0
-offset_top = 419.0
+offset_top = 416.5
 offset_right = 666.0
-offset_bottom = 474.0
+offset_bottom = 471.5
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
@@ -696,9 +696,9 @@ texture = ExtResource("15_5vwn5")
 
 [node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=427798589]
 offset_left = 486.0
-offset_top = 358.0
+offset_top = 356.5
 offset_right = 666.0
-offset_bottom = 413.0
+offset_bottom = 411.5
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
@@ -713,9 +713,9 @@ texture = ExtResource("15_5vwn5")
 
 [node name="RestartButton" type="Button" parent="Pausemenu" unique_id=461368089]
 offset_left = 486.0
-offset_top = 297.0
+offset_top = 296.5
 offset_right = 666.0
-offset_bottom = 352.0
+offset_bottom = 351.5
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("11_2vfrf")
 theme_override_styles/pressed = ExtResource("12_x2xif")
@@ -730,6 +730,9 @@ scale = Vector2(1.4634155, 1.964286)
 texture = ExtResource("15_5vwn5")
 
 [node name="Sprite2D" type="Sprite2D" parent="Pausemenu" unique_id=1785295766]
+visible = false
+position = Vector2(576, 324)
+scale = Vector2(4, 4)
 texture = ExtResource("15_yijt6")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=177164233]
