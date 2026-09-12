@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish/PlayerMechaFishCamera.gd" id="15_wsnn3"]
+[ext_resource type="Texture2D" uid="uid://d2p5uyud5butg" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Player/DeathZone.tscn" id="17_cu5p6"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
@@ -1659,10 +1660,10 @@ visible = false
 script = ExtResource("21_ktap7")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1142893149]
-offset_left = -1464.0
-offset_top = -648.0
-offset_right = 2600.0
-offset_bottom = 1648.0
+offset_left = -1436.0
+offset_top = -639.0
+offset_right = 2628.0
+offset_bottom = 1657.0
 color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=141743644]
@@ -1752,6 +1753,11 @@ visible = false
 position = Vector2(90.00003, 28.000021)
 scale = Vector2(2.5714288, 3.1111085)
 texture = ExtResource("22_u6mdv")
+
+[node name="Sprite2D" type="Sprite2D" parent="Pausemenu" unique_id=1196644957]
+position = Vector2(575.99994, 324)
+scale = Vector2(3.9999993, 4)
+texture = ExtResource("16_wos72")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1690086491]
 layer = 10

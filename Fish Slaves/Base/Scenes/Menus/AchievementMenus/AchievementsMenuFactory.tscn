@@ -92,7 +92,7 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=1068077002]
 position = Vector2(384, 36.5)
-scale = Vector2(1.77, 1.694)
+scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=979843535]
@@ -136,7 +136,7 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=1185654276]
 position = Vector2(384, 36.5)
-scale = Vector2(1.77, 1.694)
+scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=1031159700]
@@ -180,7 +180,7 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=570716668]
 position = Vector2(384, 36.5)
-scale = Vector2(1.77, 1.694)
+scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=1234881157]
@@ -235,7 +235,7 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=690562737]
 position = Vector2(384, 36.5)
-scale = Vector2(1.77, 1.694)
+scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=1259494956]
@@ -290,7 +290,7 @@ size_flags_horizontal = 3
 
 [node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=2093037190]
 position = Vector2(384, 36.5)
-scale = Vector2(1.77, 1.694)
+scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
 [node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=405481421]
@@ -350,8 +350,8 @@ text = "Сбросить"
 
 [node name="Rust" type="Sprite2D" parent="ResetButton" unique_id=1079504260]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(116, 23.499992)
+scale = Vector2(3.314286, 2.6111124)
 texture = ExtResource("10_rust")
 
 [node name="BackButton" type="Button" parent="." unique_id=163284100]
@@ -368,8 +368,8 @@ text = "Назад"
 
 [node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1259849968]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(115.99996, 23.500006)
+scale = Vector2(3.3142846, 2.6111114)
 texture = ExtResource("10_rust")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1869397152]

@@ -16,6 +16,7 @@
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
 [ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://cqyn362hw4xpp" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
 [ext_resource type="AudioStream" uid="uid://b08yppwyfe6qi" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
@@ -631,7 +632,6 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
-visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
@@ -728,6 +728,9 @@ visible = false
 position = Vector2(90, 27.5)
 scale = Vector2(1.4634155, 1.964286)
 texture = ExtResource("15_5vwn5")
+
+[node name="Sprite2D" type="Sprite2D" parent="Pausemenu" unique_id=1785295766]
+texture = ExtResource("15_yijt6")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=177164233]
 visible = false

@@ -71,7 +71,6 @@ theme_override_styles/disabled = ExtResource("10_rden2")
 text = "1920x1080"
 
 [node name="Rust" type="Sprite2D" parent="GraphicsPage/ResolutionButton" unique_id=662778676]
-visible = false
 position = Vector2(98.5, 19.500002)
 scale = Vector2(2.8428564, 2.277778)
 texture = ExtResource("6_ncwmy")
@@ -99,7 +98,6 @@ theme_override_styles/disabled = ExtResource("10_rden2")
 text = "Русский"
 
 [node name="Rust" type="Sprite2D" parent="GraphicsPage/LanguageOption" unique_id=774002643]
-visible = false
 position = Vector2(98.00001, 18.500002)
 scale = Vector2(2.8285718, 2.1666677)
 texture = ExtResource("6_ncwmy")
@@ -599,8 +597,8 @@ text = "Применить"
 
 [node name="Rust" type="Sprite2D" parent="ApplyButton" unique_id=1818939536]
 visible = false
-position = Vector2(116, 23.5)
-scale = Vector2(3.3, 2.6)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="DefaultButton" type="Button" parent="." unique_id=2024975690]
@@ -614,10 +612,10 @@ theme_override_styles/pressed = ExtResource("4_y3cdo")
 theme_override_styles/hover = ExtResource("5_x1v54")
 text = "По умолчанию "
 
-[node name="Rust" type="Sprite2D" parent="DefaultButton" unique_id=1854672207]
+[node name="Rust" type="Sprite2D" parent="DefaultButton" unique_id=212424087]
 visible = false
-position = Vector2(116, 23.5)
-scale = Vector2(3.3, 2.6)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="GeneralTab" type="Button" parent="." unique_id=785485694]
@@ -633,10 +631,10 @@ text = "Основные
 "
 icon_alignment = 1
 
-[node name="Rust" type="Sprite2D" parent="GeneralTab" unique_id=69871974]
+[node name="Rust" type="Sprite2D" parent="GeneralTab" unique_id=1921215952]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="AudioTab" type="Button" parent="." unique_id=931140739]
@@ -651,10 +649,10 @@ theme_override_styles/hover = ExtResource("5_x1v54")
 text = "Аудио"
 icon_alignment = 1
 
-[node name="Rust" type="Sprite2D" parent="AudioTab" unique_id=2061070067]
+[node name="Rust" type="Sprite2D" parent="AudioTab" unique_id=910640386]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="ControlsTab" type="Button" parent="." unique_id=968413340]
@@ -669,10 +667,10 @@ theme_override_styles/hover = ExtResource("5_x1v54")
 text = "Управление"
 icon_alignment = 1
 
-[node name="Rust" type="Sprite2D" parent="ControlsTab" unique_id=2144620025]
+[node name="Rust" type="Sprite2D" parent="ControlsTab" unique_id=1616629488]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="BackButton" type="Button" parent="." unique_id=1884264781]
@@ -687,10 +685,10 @@ theme_override_styles/hover = ExtResource("5_x1v54")
 text = "Закрыть
 "
 
-[node name="Rust" type="Sprite2D" parent="BackButton" unique_id=2043829708]
+[node name="Rust" type="Sprite2D" parent="BackButton" unique_id=252346254]
 visible = false
-position = Vector2(116, 24)
-scale = Vector2(3.3, 2.6)
+position = Vector2(116.000015, 23.5)
+scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
 
 [node name="FPSCounter" type="Label" parent="." unique_id=645757073]

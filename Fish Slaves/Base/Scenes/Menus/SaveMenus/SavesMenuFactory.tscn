@@ -167,9 +167,8 @@ theme_override_styles/hover = ExtResource("9_btnh")
 text = "Назад"
 
 [node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1840574675]
-visible = false
-position = Vector2(116, 24)
-scale = Vector2(2.6285717, 2.6285717)
+position = Vector2(115.999985, 23.500006)
+scale = Vector2(3.314285, 2.6111114)
 texture = ExtResource("10_rust_small")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1508640523]
