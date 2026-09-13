@@ -6,13 +6,49 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
+[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonPressed.tres" id="8_4m4e8"]
 [ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonHover.tres" id="9_td0rv"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
+[ext_resource type="Texture2D" uid="uid://b74scou55pwoh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSlider.png" id="aq_full"]
+[ext_resource type="Texture2D" uid="uid://bmaedtonn51hk" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png" id="aq_handle"]
+[ext_resource type="Texture2D" uid="uid://drbex8f3lmrkh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png" id="aq_handle_h"]
+[ext_resource type="Texture2D" uid="uid://b6og4lecbo74o" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSlider.png" id="aq_slider"]
+[ext_resource type="Texture2D" uid="uid://bfneohdbxq02r" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="aq_sw_off"]
+[ext_resource type="Texture2D" uid="uid://1gvtnk6n078j" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffHover.png" id="aq_sw_off_h"]
+[ext_resource type="Texture2D" uid="uid://cqdc1os6p2qlj" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffPressed.png" id="aq_sw_off_p"]
+[ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="aq_sw_on"]
+[ext_resource type="Texture2D" uid="uid://ihod715081o1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnHover.png" id="aq_sw_on_h"]
+[ext_resource type="Texture2D" uid="uid://c6xwrtmxtvly1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnPressed.png" id="aq_sw_on_p"]
+
+[sub_resource type="AtlasTexture" id="AT_Aq_Handle"]
+atlas = ExtResource("aq_handle")
+
+[sub_resource type="StyleBoxTexture" id="SB_Aq_Slider_Normal"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("aq_slider")
+
+[sub_resource type="StyleBoxTexture" id="SB_Aq_Full_Normal"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("aq_full")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hvs4q"]
+texture = ExtResource("aq_full")
+
+[sub_resource type="AtlasTexture" id="AT_Aq_SwOn"]
+atlas = ExtResource("aq_sw_on")
+
+[sub_resource type="AtlasTexture" id="AT_Aq_SwOff"]
+atlas = ExtResource("aq_sw_off")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8uthl"]
 shader = ExtResource("13_2vibe")
@@ -53,7 +89,6 @@ color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
 [node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_cxufn")]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
-visible = false
 anchors_preset = 0
 offset_left = 8.0
 offset_top = 8.0
@@ -136,6 +171,12 @@ offset_left = 554.0
 offset_top = 199.0
 offset_right = 858.0
 offset_bottom = 239.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_hvs4q")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -156,6 +197,10 @@ offset_left = 554.0
 offset_top = 242.0
 offset_right = 858.0
 offset_bottom = 282.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 
@@ -173,6 +218,8 @@ offset_left = 549.0
 offset_top = 283.0
 offset_right = 593.0
 offset_bottom = 311.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 
 [node name="V-SyncLabel" type="Label" parent="GraphicsPage" unique_id=1981078602]
 layout_mode = 0
@@ -188,6 +235,12 @@ offset_left = 549.0
 offset_top = 333.0
 offset_right = 593.0
 offset_bottom = 361.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+theme_override_icons/checked_disabled = ExtResource("aq_sw_on_h")
+theme_override_icons/unchecked_disabled = ExtResource("aq_sw_off_h")
+theme_override_icons/checked_mirrored = ExtResource("aq_sw_off_p")
+theme_override_icons/unchecked_mirrored = ExtResource("aq_sw_on_p")
 button_pressed = true
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
@@ -204,6 +257,8 @@ offset_left = 549.0
 offset_top = 383.0
 offset_right = 593.0
 offset_bottom = 411.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 
 [node name="EffectsLabel" type="Label" parent="GraphicsPage" unique_id=1658047112]
 layout_mode = 0
@@ -219,6 +274,8 @@ offset_left = 549.0
 offset_top = 433.0
 offset_right = 593.0
 offset_bottom = 461.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 button_pressed = true
 
 [node name="IntarfaceAtributesLabel" type="Label" parent="GraphicsPage" unique_id=1503275156]
@@ -235,6 +292,8 @@ offset_left = 549.0
 offset_top = 483.0
 offset_right = 593.0
 offset_bottom = 511.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 button_pressed = true
 
 [node name="AudioPage" type="Control" parent="." unique_id=209264160]
@@ -265,6 +324,10 @@ offset_left = 582.0
 offset_top = 172.0
 offset_right = 878.0
 offset_bottom = 212.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -283,6 +346,10 @@ offset_left = 582.0
 offset_top = 222.0
 offset_right = 878.0
 offset_bottom = 262.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -301,6 +368,10 @@ offset_left = 582.0
 offset_top = 272.0
 offset_right = 878.0
 offset_bottom = 312.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -319,6 +390,10 @@ offset_left = 582.0
 offset_top = 322.0
 offset_right = 878.0
 offset_bottom = 362.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -337,6 +412,10 @@ offset_left = 582.0
 offset_top = 372.0
 offset_right = 878.0
 offset_bottom = 412.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -368,6 +447,7 @@ scale = Vector2(1.6097559, 1.3928567)
 texture = ExtResource("7_xpquy")
 
 [node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
+visible = false
 anchors_preset = 0
 offset_left = -3.0
 offset_top = -1.0
@@ -723,10 +803,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -93.0
-offset_top = -47.0
-offset_right = 1323.0
-offset_bottom = 821.0
+offset_left = -81.0
+offset_top = -36.0
+offset_right = 1335.0
+offset_bottom = 832.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

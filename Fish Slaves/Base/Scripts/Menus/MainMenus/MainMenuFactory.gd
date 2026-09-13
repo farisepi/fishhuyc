@@ -18,6 +18,8 @@ var logo_original_y: float = 0.0
 var logo_original_scale: Vector2 = Vector2.ONE
 var can_click_logo: bool = true
 
+const BOX_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png"
+
 func _ready() -> void:
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
@@ -191,10 +193,10 @@ func _on_quit_button_pressed() -> void:
 		await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
 
-# ==================== ЭФФЕКТ ОТ КЛИКА НА ЛОГО ====================
+# ==================== ОБЩИЙ СПАВН ПАДАЮЩИХ КОРОБОК ====================
 
-func _spawn_logo_boxes() -> void:
-	var box_texture = load("res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png")
+func _spawn_box_fall(box_count: int, kill_after: float) -> void:
+	var box_texture = load(BOX_TEXTURE_PATH)
 	if not box_texture:
 		return
 	
@@ -204,14 +206,16 @@ func _spawn_logo_boxes() -> void:
 	
 	var view_size = get_viewport().get_visible_rect().size
 	
-	for i in range(3):
-		_create_falling_box(canvas, box_texture, view_size)
+	for i in range(box_count):
+		_create_falling_catchable_box(canvas, box_texture, view_size)
+		var delay = randf_range(0.0, 0.15)
+		await get_tree().create_timer(delay).timeout
 	
-	await get_tree().create_timer(2.5).timeout
+	await get_tree().create_timer(kill_after).timeout
 	if is_instance_valid(canvas):
 		canvas.queue_free()
 
-func _create_falling_box(canvas: CanvasLayer, box_texture: Texture2D, view_size: Vector2) -> void:
+func _create_falling_catchable_box(canvas: CanvasLayer, box_texture: Texture2D, view_size: Vector2) -> void:
 	var box = Area2D.new()
 	box.input_pickable = true
 	box.z_index = 50
@@ -229,10 +233,10 @@ func _create_falling_box(canvas: CanvasLayer, box_texture: Texture2D, view_size:
 	col.shape = shape
 	box.add_child(col)
 	
-	box.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 150))
+	box.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 200))
 	box.rotation = randf_range(-0.6, 0.6)
 	
-	var fall_duration = randf_range(1.4, 2.0)
+	var fall_duration = randf_range(1.2, 2.5)
 	var target_y = view_size.y + 150.0
 	var sway_x = randf_range(-70.0, 70.0)
 	
@@ -269,6 +273,11 @@ func _on_caught_box(box: Area2D, spr: Sprite2D) -> void:
 	
 	if not was_unlocked:
 		_show_acrobat_achievement()
+
+# ==================== ЭФФЕКТ ОТ КЛИКА НА ЛОГО ====================
+
+func _spawn_logo_boxes() -> void:
+	_spawn_box_fall(3, 2.5)
 
 # ==================== АЧИВКА "АКРОБАТ" ====================
 
@@ -319,6 +328,8 @@ func _show_acrobat_achievement() -> void:
 	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
 	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
 	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	_spawn_box_fall(12, 4.5)
 	
 	await get_tree().create_timer(3.5).timeout
 	
@@ -382,7 +393,7 @@ func _show_rebel_achievement() -> void:
 	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
 	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
 	
-	_spawn_falling_boxes()
+	_spawn_box_fall(12, 4.5)
 	
 	await get_tree().create_timer(3.5).timeout
 	
@@ -394,39 +405,4 @@ func _show_rebel_achievement() -> void:
 	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
 	await tween2.finished
 	
-	canvas.queue_free()
-
-func _spawn_falling_boxes() -> void:
-	var box_texture = load("res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png")
-	if not box_texture:
-		return
-	
-	var canvas = CanvasLayer.new()
-	canvas.layer = 199
-	add_child(canvas)
-	
-	var view_size = get_viewport().get_visible_rect().size
-	
-	for i in range(12):
-		var spr = Sprite2D.new()
-		spr.texture = box_texture
-		spr.scale = Vector2(2.0, 2.0) * randf_range(0.6, 1.5)
-		spr.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 200))
-		spr.rotation = randf_range(-0.6, 0.6)
-		canvas.add_child(spr)
-		
-		var fall_duration = randf_range(1.2, 2.5)
-		var target_y = view_size.y + 150.0
-		var sway_x = randf_range(-60.0, 60.0)
-		
-		var tween = create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(spr, "position:y", target_y, fall_duration).set_ease(Tween.EASE_IN)
-		tween.tween_property(spr, "position:x", spr.position.x + sway_x, fall_duration)
-		tween.tween_property(spr, "rotation", spr.rotation + randf_range(-2.0, 2.0), fall_duration)
-		
-		var delay = randf_range(0.0, 1.5)
-		await get_tree().create_timer(delay).timeout
-	
-	await get_tree().create_timer(4.5).timeout
 	canvas.queue_free()

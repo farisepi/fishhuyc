@@ -114,7 +114,7 @@ func _release() -> void:
 	
 	thrown_out.emit()
 	Global.boxes_thrown += 1
-	if Global.boxes_thrown >= 50:
+	if Global.boxes_thrown == 50:
 		Achievements.unlock_rebel()
 		call_deferred("_notify_achievement")
 

@@ -47,26 +47,6 @@ const CONFIG_PATH: String = "user://settings.cfg"
 const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FalledFallingAquariumMenuButton/FalledFallingAquariumMenuButton.png"
 const ARROW_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallMenuArrowAquarium/FallMenuArrowAquarium.png"
 
-const SLIDER_HANDLE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png"
-const SLIDER_HANDLE_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png"
-const SLIDER_HANDLE_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandlePressed.png"
-
-const SLIDER_EMPTY_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSlider.png"
-const SLIDER_EMPTY_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSliderHover.png"
-const SLIDER_EMPTY_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSliderPressed.png"
-
-const SLIDER_FULL_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSlider.png"
-const SLIDER_FULL_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderHover.png"
-const SLIDER_FULL_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderPressed.png"
-
-const SWITCH_ON_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png"
-const SWITCH_ON_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnHover.png"
-const SWITCH_ON_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnPressed.png"
-
-const SWITCH_OFF_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png"
-const SWITCH_OFF_HOVER_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffHover.png"
-const SWITCH_OFF_PRESSED_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffPressed.png"
-
 var current_brightness_layer: ColorRect = null
 
 const BRIGHTNESS_MIN: float = 0.0
@@ -125,9 +105,6 @@ func _ready() -> void:
 	load_settings()
 	update_key_labels()
 	show_page(0)
-	
-	_apply_slider_textures()
-	_apply_switch_textures()
 	
 	_create_percent_labels()
 	
@@ -680,150 +657,6 @@ func setup_options() -> void:
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
 
-# ==================== ТЕКСТУРЫ ПОЛЗУНКОВ ====================
-
-func _apply_slider_textures() -> void:
-	var handle_texture = load(SLIDER_HANDLE_PATH)
-	var handle_hover = load(SLIDER_HANDLE_HOVER_PATH)
-	var handle_pressed = load(SLIDER_HANDLE_PRESSED_PATH)
-	
-	var empty_texture = load(SLIDER_EMPTY_PATH)
-	var empty_hover = load(SLIDER_EMPTY_HOVER_PATH)
-	var empty_pressed = load(SLIDER_EMPTY_PRESSED_PATH)
-	
-	var full_texture = load(SLIDER_FULL_PATH)
-	var full_hover = load(SLIDER_FULL_HOVER_PATH)
-	var full_pressed = load(SLIDER_FULL_PRESSED_PATH)
-	
-	if not handle_texture or not empty_texture or not full_texture:
-		return
-	
-	var handle_scaled = _scale_texture_pixel_art(handle_texture, 2.0)
-	var handle_hover_scaled = _scale_texture_pixel_art(handle_hover, 2.0) if handle_hover else handle_scaled
-	var handle_pressed_scaled = _scale_texture_pixel_art(handle_pressed, 2.0) if handle_pressed else handle_scaled
-	
-	var slider_style = StyleBoxTexture.new()
-	slider_style.texture = empty_texture
-	slider_style.content_margin_left = 4
-	slider_style.content_margin_right = 4
-	slider_style.content_margin_top = 4
-	slider_style.content_margin_bottom = 4
-	
-	var slider_hover_style = StyleBoxTexture.new()
-	slider_hover_style.texture = empty_hover if empty_hover else empty_texture
-	slider_hover_style.content_margin_left = 4
-	slider_hover_style.content_margin_right = 4
-	slider_hover_style.content_margin_top = 4
-	slider_hover_style.content_margin_bottom = 4
-	
-	var slider_pressed_style = StyleBoxTexture.new()
-	slider_pressed_style.texture = empty_pressed if empty_pressed else empty_texture
-	slider_pressed_style.content_margin_left = 4
-	slider_pressed_style.content_margin_right = 4
-	slider_pressed_style.content_margin_top = 4
-	slider_pressed_style.content_margin_bottom = 4
-	
-	var slider_full_style = StyleBoxTexture.new()
-	slider_full_style.texture = full_texture
-	slider_full_style.content_margin_left = 4
-	slider_full_style.content_margin_right = 4
-	slider_full_style.content_margin_top = 4
-	slider_full_style.content_margin_bottom = 4
-	
-	var slider_full_hover_style = StyleBoxTexture.new()
-	slider_full_hover_style.texture = full_hover if full_hover else full_texture
-	slider_full_hover_style.content_margin_left = 4
-	slider_full_hover_style.content_margin_right = 4
-	slider_full_hover_style.content_margin_top = 4
-	slider_full_hover_style.content_margin_bottom = 4
-	
-	var slider_full_pressed_style = StyleBoxTexture.new()
-	slider_full_pressed_style.texture = full_pressed if full_pressed else full_texture
-	slider_full_pressed_style.content_margin_left = 4
-	slider_full_pressed_style.content_margin_right = 4
-	slider_full_pressed_style.content_margin_top = 4
-	slider_full_pressed_style.content_margin_bottom = 4
-	
-	var sliders = [
-		camera_sensitivity_slider,
-		brightness_slider,
-		music_slider,
-		sfx_slider,
-		ambience_slider,
-		master_slider,
-		ui_slider
-	]
-	
-	for slider in sliders:
-		if not slider:
-			continue
-		
-		slider.add_theme_stylebox_override("slider", slider_style)
-		slider.add_theme_stylebox_override("slider_highlighted", slider_hover_style)
-		slider.add_theme_stylebox_override("slider_pressed", slider_pressed_style)
-		
-		slider.add_theme_stylebox_override("grabber_area", slider_full_style)
-		slider.add_theme_stylebox_override("grabber_area_highlighted", slider_full_hover_style)
-		slider.add_theme_stylebox_override("grabber_area_pressed", slider_full_pressed_style)
-		
-		slider.add_theme_icon_override("grabber", handle_scaled)
-		slider.add_theme_icon_override("grabber_highlighted", handle_hover_scaled)
-		slider.add_theme_icon_override("grabber_pressed", handle_pressed_scaled)
-		slider.add_theme_icon_override("grabber_disabled", handle_scaled)
-		
-		if handle_scaled:
-			slider.add_theme_constant_override("grabber_size", int(handle_scaled.get_height()))
-		else:
-			slider.add_theme_constant_override("grabber_size", 32)
-		slider.add_theme_constant_override("grabber_offset", 0)
-		
-		slider.custom_minimum_size = Vector2(slider.custom_minimum_size.x, 40)
-
-# ==================== ТЕКСТУРЫ СВИТЧЕЙ ====================
-
-func _apply_switch_textures() -> void:
-	var switch_on = load(SWITCH_ON_PATH)
-	var switch_on_hover = load(SWITCH_ON_HOVER_PATH)
-	var switch_on_pressed = load(SWITCH_ON_PRESSED_PATH)
-	
-	var switch_off = load(SWITCH_OFF_PATH)
-	var switch_off_hover = load(SWITCH_OFF_HOVER_PATH)
-	var switch_off_pressed = load(SWITCH_OFF_PRESSED_PATH)
-	
-	if not switch_on or not switch_off:
-		return
-	
-	var switch_on_scaled = _scale_texture_pixel_art(switch_on, 1.4)
-	var switch_on_hover_scaled = _scale_texture_pixel_art(switch_on_hover, 1.4) if switch_on_hover else switch_on_scaled
-	var switch_on_pressed_scaled = _scale_texture_pixel_art(switch_on_pressed, 1.4) if switch_on_pressed else switch_on_scaled
-	
-	var switch_off_scaled = _scale_texture_pixel_art(switch_off, 1.4)
-	var switch_off_hover_scaled = _scale_texture_pixel_art(switch_off_hover, 1.4) if switch_off_hover else switch_off_scaled
-	var switch_off_pressed_scaled = _scale_texture_pixel_art(switch_off_pressed, 1.4) if switch_off_pressed else switch_off_scaled
-	
-	var switches = [
-		fps_check,
-		fullscreen_check,
-		vsync_check,
-		effects_check,
-		interface_attributes_check
-	]
-	
-	for switch in switches:
-		if not switch:
-			continue
-		
-		switch.add_theme_icon_override("unchecked", switch_off_scaled if switch_off_scaled else switch_off)
-		switch.add_theme_icon_override("checked", switch_on_scaled if switch_on_scaled else switch_on)
-		
-		switch.add_theme_icon_override("unchecked_highlighted", switch_off_hover_scaled if switch_off_hover_scaled else switch_off)
-		switch.add_theme_icon_override("checked_highlighted", switch_on_hover_scaled if switch_on_hover_scaled else switch_on)
-		
-		switch.add_theme_icon_override("unchecked_pressed", switch_off_pressed_scaled if switch_off_pressed_scaled else switch_off)
-		switch.add_theme_icon_override("checked_pressed", switch_on_pressed_scaled if switch_on_pressed_scaled else switch_on)
-		
-		switch.scale = Vector2.ONE
-		switch.custom_minimum_size = Vector2(44, 44)
 # ==================== ЗАГРУЗКА / СОХРАНЕНИЕ ====================
 
 func load_settings() -> void:
@@ -1117,17 +950,6 @@ func apply_graphics_settings() -> void:
 
 func _apply_volume(bus_name: String, value: float) -> void:
 	Global._apply_audio_bus(bus_name, value)
-
-func _scale_texture_pixel_art(texture: Texture2D, scale: float) -> Texture2D:
-	if not texture:
-		return null
-	
-	var image = texture.get_image()
-	var new_width = int(image.get_width() * scale)
-	var new_height = int(image.get_height() * scale)
-	image.resize(new_width, new_height, Image.INTERPOLATE_NEAREST)
-	var new_texture = ImageTexture.create_from_image(image)
-	return new_texture
 
 func show_page(index: int) -> void:
 	if graphics_page: graphics_page.visible = (index == 0)

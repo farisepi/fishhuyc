@@ -484,11 +484,6 @@ func _win():
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		_toggle_pause()
-		get_viewport().set_input_as_handled()
-		return
-	
 	if get_tree().paused:
 		return
 	
@@ -515,6 +510,7 @@ func _input(event: InputEvent) -> void:
 			return
 
 func _toggle_pause():
+	print(">>> Act3 _toggle_pause, visible=", pause_menu.visible, " paused=", get_tree().paused)
 	if state == State.GAMEOVER or state == State.WIN:
 		return
 	

@@ -13,6 +13,9 @@ var _is_closing: bool = false
 var _transitioning: bool = false
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	print(">>> PauseMenuFactory._ready, process_mode=", process_mode)
+	
 	_bg_rect = get_node_or_null("ColorRect")
 	_framing = get_node_or_null("Framing")
 	
@@ -99,6 +102,18 @@ func hide_menu() -> void:
 	await _anim_tween.finished
 	hide()
 	_is_closing = false
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		print(">>> PauseMenuFactory._input ESC, visible=", visible, " paused=", get_tree().paused)
+		get_viewport().set_input_as_handled()
+		var level = get_tree().current_scene
+		if level and level.has_method("_toggle_pause"):
+			level._toggle_pause()
+
+func _is_factory_level() -> bool:
+	var scene_path = get_tree().current_scene.scene_file_path
+	return "Act2" in scene_path or "Act3" in scene_path or "Factory" in scene_path
 
 func _transition_to(scene_path: String) -> void:
 	if _transitioning:
