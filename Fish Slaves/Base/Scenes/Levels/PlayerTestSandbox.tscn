@@ -2,9 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_txi32"]
 [ext_resource type="PackedScene" uid="uid://du6okcvj7dvpp" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3Item.tscn" id="2_2y021"]
-[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Enemy/DeathScreen.tscn" id="3_w85fw"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="3_w85fw"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
-[ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Player/DeathZone.tscn" id="5_powlu"]
+[ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="5_powlu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)

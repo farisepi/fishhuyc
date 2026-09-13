@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cddeofwnwxg4p"]
 
-[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3Enemy.gd" id="1_14vm1"]
+[ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://Fish Slaves/Base/Scripts/Enemy/Enemy.gd" id="1_14vm1"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bhunq"]
 radius = 11.0
