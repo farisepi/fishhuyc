@@ -10,6 +10,7 @@ var _framing: Sprite2D
 var _buttons: Array[Button] = []
 var _anim_tween: Tween
 var _is_closing: bool = false
+var _transitioning: bool = false
 
 func _ready() -> void:
 	_bg_rect = get_node_or_null("ColorRect")
@@ -99,6 +100,23 @@ func hide_menu() -> void:
 	hide()
 	_is_closing = false
 
+func _transition_to(scene_path: String) -> void:
+	if _transitioning:
+		return
+	_transitioning = true
+	
+	hide()
+	get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	
+	if is_instance_valid(Fade):
+		Fade.fade_out()
+		await get_tree().create_timer(0.35).timeout
+	
+	var tree = get_tree()
+	if tree:
+		tree.change_scene_to_file(scene_path)
+
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	GlobalMusic.restore_volume()
@@ -111,20 +129,14 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
-	get_tree().paused = false
-	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+	_transition_to("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
-	get_tree().paused = false
-	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
+	_transition_to("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
 
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
-	get_tree().paused = false
-	hide()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+	_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")

@@ -36,6 +36,7 @@ var enemy_positions: Dictionary = {}
 
 var seaweed_state: Node = null
 var _pending_seaweed_apply: bool = false
+var _scene_change_pending: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -204,14 +205,23 @@ func _on_scene_changed() -> void:
 		return
 	if not is_inside_tree():
 		return
+	if _scene_change_pending:
+		return
+	
+	_scene_change_pending = true
 	
 	var tree = get_tree()
 	if not tree:
+		_scene_change_pending = false
 		return
 	
 	await tree.process_frame
 	
+	_scene_change_pending = false
+	
 	if intro_active:
+		return
+	if not is_inside_tree():
 		return
 	
 	reapply_theme()

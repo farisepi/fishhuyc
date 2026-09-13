@@ -11,6 +11,7 @@ var _framing: Sprite2D
 var _buttons: Array[Button] = []
 var _anim_tween: Tween
 var _is_closing: bool = false
+var _transitioning: bool = false
 
 func _ready() -> void:
 	_bg_rect = get_node_or_null("ColorRect")
@@ -106,11 +107,28 @@ func _is_factory_level() -> bool:
 	var scene_path = get_tree().current_scene.scene_file_path
 	return "Act2" in scene_path or "Act3" in scene_path or "Factory" in scene_path
 
+func _transition_to(scene_path: String) -> void:
+	if _transitioning:
+		return
+	_transitioning = true
+	
+	get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	hide()
+	
+	await get_tree().process_frame
+	Global.goto_scene(scene_path)
+
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	GlobalMusic.restore_volume()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
+	var level = get_tree().current_scene
+	if level and level.has_method("_resume_after_pause"):
+		level._resume_after_pause()
+	
 	hide_menu()
 
 func _on_save_pressed() -> void:
@@ -118,36 +136,29 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
-	get_tree().paused = false
-	hide()
 	if _is_factory_level():
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
 	else:
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
-	get_tree().paused = false
-	hide()
 	if _is_factory_level():
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
 	else:
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
 
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
-	get_tree().paused = false
-	hide()
 	if _is_factory_level():
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 	else:
-		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+		_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
 
 func _on_restart_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
-	get_tree().paused = false
-	hide()
-	get_tree().reload_current_scene()
+	var current = get_tree().current_scene.scene_file_path
+	_transition_to(current)

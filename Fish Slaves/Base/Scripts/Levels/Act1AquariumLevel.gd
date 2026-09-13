@@ -597,6 +597,7 @@ func _on_return_from_settings() -> void:
 		pause_menu.show_menu()
 		get_tree().paused = true
 		GlobalMusic.lower_volume()
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	
 	if not Global.chatter_queue_state.is_empty():
 		set_chatter_state({
@@ -682,7 +683,6 @@ func _update_glitch(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		print("Пауза Нажата")
 		if cutscene_active:
 			return
 		_toggle_pause()
@@ -1673,8 +1673,8 @@ func _toggle_pause() -> void:
 	var anim = player.get_node_or_null("AnimatedSprite2D")
 	
 	if pause_menu.visible:
-		pause_menu.hide_menu()
 		get_tree().paused = false
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		GlobalMusic.restore_volume()
 		if not cutscene_active:
 			player.set_physics_process(true)
@@ -1686,9 +1686,10 @@ func _toggle_pause() -> void:
 			if mechanic: mechanic.set_process(true)
 			var ma = mechanic.get_node_or_null("AnimationPlayer")
 			if ma: ma.play()
+		pause_menu.hide_menu()
 	else:
-		pause_menu.show_menu()
 		get_tree().paused = true
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		GlobalMusic.lower_volume()
 		player.set_physics_process(false)
 		player.set_process(false)
@@ -1699,6 +1700,7 @@ func _toggle_pause() -> void:
 		if mechanic: mechanic.set_process(false)
 		var ma2 = mechanic.get_node_or_null("AnimationPlayer")
 		if ma2: ma2.pause()
+		pause_menu.show_menu()
 
 func _on_dialogue_zone_body_entered(body: Node2D) -> void:
 	if body == player and not dialogue_done:

@@ -626,9 +626,12 @@ func _on_interface_attributes_toggled(pressed: bool) -> void:
 	Global.button_effects_enabled = pressed
 	
 	if not pressed:
-		_hide_all_decorations(get_tree().current_scene if get_tree() else null, true)
+		var scene = get_tree().current_scene if get_tree() else null
+		_hide_all_decorations(scene, true)
 	else:
-		Global._force_apply_seaweed(get_tree().current_scene if get_tree() else null)
+		var scene = get_tree().current_scene if get_tree() else null
+		if scene:
+			Global._force_apply_seaweed(scene)
 	_mark_unsaved()
 
 func _on_fps_toggled(pressed: bool) -> void:
@@ -1162,15 +1165,19 @@ func _on_back_pressed() -> void:
 		_exit_to_main_menu()
 
 func _input(event: InputEvent) -> void:
+	if not is_inside_tree():
+		return
 	if event.is_action_pressed("ui_cancel") and InputRebind.rebinding_action.is_empty():
+		var vp = get_viewport()
 		if current_popup:
 			_close_current_popup()
-			get_viewport().set_input_as_handled()
+			if vp: vp.set_input_as_handled()
 		elif _any_dropdown_open():
 			_close_all_dropdowns()
-			get_viewport().set_input_as_handled()
+			if vp: vp.set_input_as_handled()
 		else:
 			_on_back_pressed()
+			if vp: vp.set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed:
 		if _any_dropdown_open():
 			var mouse_pos = get_global_mouse_position()
