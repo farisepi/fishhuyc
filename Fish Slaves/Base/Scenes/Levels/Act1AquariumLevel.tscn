@@ -18,7 +18,6 @@
 [ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://cqyn362hw4xpp" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
-[ext_resource type="AudioStream" uid="uid://b08yppwyfe6qi" path="res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3" id="19_whdfm"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
 [ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="21_5vwn5"]
@@ -632,6 +631,7 @@ wait_time = 4.0
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=882379461]
 process_mode = 2
 layer = 2
+visible = false
 script = ExtResource("9_s01hn")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1674113058]
@@ -817,12 +817,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
-
-[node name="Level1Music" type="AudioStreamPlayer" parent="." unique_id=1825001319]
-stream = ExtResource("19_whdfm")
-volume_db = -15.0
-bus = &"Music"
-parameters/looping = true
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=913644353]
 z_index = 10

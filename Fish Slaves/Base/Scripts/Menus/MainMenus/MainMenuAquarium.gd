@@ -31,9 +31,6 @@ func _ready() -> void:
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
-		_apply_volume("Master", config.get_value("audio", "music_volume", 0.2))
-		_apply_volume("SFX", config.get_value("audio", "sfx_volume", 0.2))
-		_apply_volume("Ambience", config.get_value("audio", "ambience_volume", 0.2))
 		Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 		if config.has_section_key("graphics", "resolution"):
 			var res = config.get_value("graphics", "resolution", 1)
@@ -76,12 +73,6 @@ func _ready() -> void:
 		logo_area.gui_input.connect(_on_logo_gui_input)
 
 	call_deferred("_start_background_bubbles")
-
-func _apply_volume(bus_name: String, value: float) -> void:
-	var bus_index = AudioServer.get_bus_index(bus_name)
-	if bus_index == -1:
-		return
-	AudioServer.set_bus_volume_db(bus_index, lerp(-30.0, 10.0, value))
 
 func _process(delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -266,7 +257,6 @@ func _make_menu_bubble() -> void:
 # ==================== АЧИВКА "ПОП-ЗВЕЗДА" ====================
 
 func _show_pop_star_achievement() -> void:
-	# Плашка достижения
 	var canvas = CanvasLayer.new()
 	canvas.layer = 200
 	add_child(canvas)
@@ -314,7 +304,6 @@ func _show_pop_star_achievement() -> void:
 	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
 	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
 	
-	# Эффект — пузыри со всех краёв экрана
 	_spawn_pop_star_bubbles()
 	
 	await get_tree().create_timer(3.5).timeout
@@ -339,25 +328,21 @@ func _spawn_pop_star_bubbles() -> void:
 	
 	var view_size = get_viewport().get_visible_rect().size
 	
-	# С левого края — летят вправо
 	for i in range(8):
 		var pos = Vector2(-40, randf_range(0, view_size.y))
 		_spawn_bubble_from_edge(canvas, pos, Vector2(1.0, randf_range(-0.5, -0.1)))
 		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
 	
-	# С правого края — летят влево
 	for i in range(8):
 		var pos = Vector2(view_size.x + 40, randf_range(0, view_size.y))
 		_spawn_bubble_from_edge(canvas, pos, Vector2(-1.0, randf_range(-0.5, -0.1)))
 		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
 	
-	# С нижнего края — летят вверх
 	for i in range(8):
 		var pos = Vector2(randf_range(0, view_size.x), view_size.y + 40)
 		_spawn_bubble_from_edge(canvas, pos, Vector2(randf_range(-0.3, 0.3), -1.0))
 		await get_tree().create_timer(randf_range(0.02, 0.15)).timeout
 	
-	# Ждём, пока все пузыри на канвасе исчезнут сами
 	await get_tree().create_timer(0.5).timeout
 	while is_instance_valid(canvas) and canvas.get_child_count() > 0:
 		await get_tree().create_timer(0.3).timeout

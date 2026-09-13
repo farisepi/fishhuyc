@@ -21,8 +21,8 @@ buses/default_bus_layout="uid://c2ve8fhakc5bk"
 [autoload]
 
 Fade="*uid://h07cjft4m0a5"
-GlobalMusic="*uid://ce7sio206c2ce"
 Global="*uid://c8n3o3saeknn1"
+GlobalMusic="*uid://ce7sio206c2ce"
 InputRebind="*uid://d1sd1h4pl2cmi"
 UISounds="*uid://daub0wx4q03i"
 Achievements="*uid://bsns7txmyx4di"

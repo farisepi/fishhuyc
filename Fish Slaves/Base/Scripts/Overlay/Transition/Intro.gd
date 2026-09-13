@@ -33,6 +33,10 @@ var custom_font: FontFile
 func _ready() -> void:
 	Global.intro_active = true
 	
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		Global._apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
+	
 	intro_music = AudioStreamPlayer.new()
 	intro_music.stream = load("res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3")
 	intro_music.volume_db = 0.0

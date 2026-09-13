@@ -33,7 +33,6 @@ var bubble_scene: PackedScene
 @onready var interact_label: Sprite2D = $InteractLabel
 
 @onready var fade_rect: ColorRect = $FadeRect
-@onready var level_music: AudioStreamPlayer = $Level1Music
 
 var in_zone: bool = false
 var dialogue_done: bool = false
@@ -597,6 +596,7 @@ func _on_return_from_settings() -> void:
 	if pause_menu:
 		pause_menu.show()
 		get_tree().paused = true
+		GlobalMusic.lower_volume()
 	
 	if not Global.chatter_queue_state.is_empty():
 		set_chatter_state({
@@ -1548,13 +1548,10 @@ func _on_hide_finished(_blackout: CanvasLayer):
 		tween_fade.finished.connect(_change_to_act2)
 
 func _change_to_act2():
-	GlobalMusic.pause_level_music()
-	
+	GlobalMusic.stop_music()
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
 
 func _save_progress():
-	GlobalMusic.pause_level_music()
-	
 	if not has_node("/root/Global"):
 		return
 	
@@ -1678,6 +1675,7 @@ func _toggle_pause() -> void:
 	if pause_menu.visible:
 		pause_menu.hide()
 		get_tree().paused = false
+		GlobalMusic.restore_volume()
 		if not cutscene_active:
 			player.set_physics_process(true)
 			player.set_process(true)
@@ -1688,12 +1686,10 @@ func _toggle_pause() -> void:
 			if mechanic: mechanic.set_process(true)
 			var ma = mechanic.get_node_or_null("AnimationPlayer")
 			if ma: ma.play()
-		
-		if level_music:
-			level_music.volume_db = -15.0
 	else:
 		pause_menu.show()
 		get_tree().paused = true
+		GlobalMusic.lower_volume()
 		player.set_physics_process(false)
 		player.set_process(false)
 		if anim: anim.pause()
@@ -1703,9 +1699,6 @@ func _toggle_pause() -> void:
 		if mechanic: mechanic.set_process(false)
 		var ma2 = mechanic.get_node_or_null("AnimationPlayer")
 		if ma2: ma2.pause()
-		
-		if level_music:
-			level_music.volume_db = -30.0
 
 func _on_dialogue_zone_body_entered(body: Node2D) -> void:
 	if body == player and not dialogue_done:

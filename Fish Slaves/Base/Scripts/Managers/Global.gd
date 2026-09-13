@@ -23,7 +23,6 @@ var show_fps: bool = false
 var pending_save: bool = false
 var scene_to_save: String = ""
 
-# НАСТРОЙКИ ЭФФЕКТОВ
 var atmospheric_effects_enabled: bool = true
 var interface_attributes_enabled: bool = true
 var button_effects_enabled: bool = true
@@ -79,20 +78,14 @@ func _apply_all_settings_from_config() -> void:
 	if config.load("user://settings.cfg") != OK:
 		return
 	
+	# === АУДИО ===
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
 	_apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
 	_apply_audio_bus("SFX", config.get_value("audio", "sfx_volume", 1.0))
 	_apply_audio_bus("Ambience", config.get_value("audio", "ambience_volume", 1.0))
 	_apply_audio_bus("UI", config.get_value("audio", "ui_volume", 1.0))
 	
-	var dyn_range = config.get_value("audio", "dynamic_range", 1)
-	var master_idx = AudioServer.get_bus_index("Master")
-	if master_idx != -1:
-		match dyn_range:
-			0: AudioServer.set_bus_volume_db(master_idx, -3.0)
-			1: pass
-			2: pass
-	
+	# === ГРАФИКА ===
 	var vsync_enabled = config.get_value("graphics", "vsync", true)
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED
@@ -114,11 +107,14 @@ func _apply_all_settings_from_config() -> void:
 	var window_size = DisplayServer.window_get_size()
 	DisplayServer.window_set_position(screen_center - window_size / 2)
 	
+	# === ЯЗЫК ===
 	var locale = config.get_value("language", "locale", "ru")
 	TranslationServer.set_locale(locale)
 	
+	# === КАМЕРА ===
 	camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 	
+	# === ЭФФЕКТЫ ===
 	atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
 	interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
 	button_effects_enabled = interface_attributes_enabled
@@ -281,61 +277,26 @@ func _apply_seaweed_with_delay(scene: Node) -> void:
 		return
 	
 	if not scene.is_inside_tree():
-		print("Сцена не в дереве, пропускаем")
 		return
 	
 	_force_apply_seaweed(scene)
 
 func _force_apply_seaweed(scene: Node) -> void:
-	print("=== FORCE APPLY SEAWEED to: ", scene.name if scene else "null")
-	
 	if not scene or not is_instance_valid(scene):
 		return
 	
 	if not has_node("SeaweedState"):
-		print("ERROR: SeaweedState not found! Creating new one...")
 		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
 		if FileAccess.file_exists(seaweed_path):
 			seaweed_state = load(seaweed_path).new()
 			add_child(seaweed_state)
 			seaweed_state.name = "SeaweedState"
-			print("SeaweedState recreated!")
 		else:
-			print("ERROR: Cannot find SeaweedState file!")
 			return
 	
 	var seaweed_state_node = get_node("SeaweedState")
-	
-	var found_count = 0
-	_find_all_decorations(scene, found_count)
-	print("Found decorations (Seaweed/Rust): ", found_count)
-	
 	seaweed_state_node.scan_and_apply(scene)
-	
 	_force_show_decorations(scene)
-	
-	print("=== FORCE APPLY FINISHED ===")
-
-func _find_all_decorations(node: Node, found: Variant) -> void:
-	if not node or not is_instance_valid(node):
-		return
-	
-	if not node.is_inside_tree():
-		return
-	
-	for child in node.get_children():
-		if not child or not is_instance_valid(child):
-			continue
-		
-		if not child.is_inside_tree():
-			continue
-		
-		if child is Button:
-			var decoration = _find_decoration_in_node(child)
-			if decoration:
-				found += 1
-				print("Found decoration: ", child.name, " -> ", decoration.name)
-		_find_all_decorations(child, found)
 
 func _find_decoration_in_node(node: Node) -> Node:
 	if not node or not is_instance_valid(node):
@@ -442,7 +403,7 @@ func _apply_font(node: Node) -> void:
 			child.add_theme_font_size_override("font_size", 10)
 		elif child is RichTextLabel:
 			child.add_theme_font_override("normal_font", _font)
-			child.add_theme_font_size_override("normal_size", 10)
+			child.add_theme_font_size_override("normal_font_size", 10)
 		
 		_apply_font(child)
 
@@ -464,7 +425,6 @@ func goto_scene(scene_path: String) -> void:
 			loading_instance.start_loading(scene_path)
 
 func _on_scene_loaded() -> void:
-	print("=== SCENE LOADED SIGNAL ===")
 	var scene = get_tree().current_scene
 	if scene:
 		await get_tree().process_frame
@@ -485,4 +445,3 @@ func _cleanup_loading() -> void:
 func reset_seaweed() -> void:
 	if has_node("SeaweedState"):
 		get_node("SeaweedState").reset()
-		print("Seaweed states reset")

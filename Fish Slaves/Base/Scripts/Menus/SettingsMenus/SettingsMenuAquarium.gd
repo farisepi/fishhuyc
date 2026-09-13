@@ -107,8 +107,7 @@ func _ready() -> void:
 			Fade.modulate.a = 0.0
 	else:
 		Fade.fade_in()
-	
-	GlobalMusic.play_menu_music()
+		GlobalMusic.play_menu_music()
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -487,6 +486,7 @@ func _update_percent_label(label: Label, slider: HSlider) -> void:
 
 func _on_brightness_slider_changed(_value: float) -> void:
 	_update_percent_label(brightness_percent_label, brightness_slider)
+	_apply_brightness_value()
 	_mark_unsaved()
 
 func _on_camera_sensitivity_changed(value: float) -> void:
@@ -494,24 +494,29 @@ func _on_camera_sensitivity_changed(value: float) -> void:
 	Global.camera_sensitivity = value
 	_mark_unsaved()
 
-func _on_music_slider_changed(_value: float) -> void:
+func _on_music_slider_changed(value: float) -> void:
 	_update_percent_label(music_percent_label, music_slider)
+	Global._apply_audio_bus("Music", value)
 	_mark_unsaved()
 
-func _on_sfx_slider_changed(_value: float) -> void:
+func _on_sfx_slider_changed(value: float) -> void:
 	_update_percent_label(sfx_percent_label, sfx_slider)
+	Global._apply_audio_bus("SFX", value)
 	_mark_unsaved()
 
-func _on_ambience_slider_changed(_value: float) -> void:
+func _on_ambience_slider_changed(value: float) -> void:
 	_update_percent_label(ambience_percent_label, ambience_slider)
+	Global._apply_audio_bus("Ambience", value)
 	_mark_unsaved()
 
-func _on_master_slider_changed(_value: float) -> void:
+func _on_master_slider_changed(value: float) -> void:
 	_update_percent_label(master_percent_label, master_slider)
+	Global._apply_audio_bus("Master", value)
 	_mark_unsaved()
 
-func _on_ui_slider_changed(_value: float) -> void:
+func _on_ui_slider_changed(value: float) -> void:
 	_update_percent_label(ui_percent_label, ui_slider)
+	Global._apply_audio_bus("UI", value)
 	_mark_unsaved()
 
 # ==================== АТМОСФЕРНЫЕ ЭФФЕКТЫ ====================
@@ -1152,9 +1157,11 @@ func _start_rebind(action: String) -> void:
 func _exit_to_main_menu() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
-		GlobalMusic.resume_level_music()
+		var target = Global.scene_to_save
+		if target == "" or "SettingsMenu" in target:
+			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
 		var tree = get_tree()
-		if tree: tree.change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+		if tree: tree.change_scene_to_file(target)
 		return
 	
 	Fade.fade_out()
@@ -1169,6 +1176,8 @@ func _on_back_pressed() -> void:
 		_exit_to_main_menu()
 
 func _input(event: InputEvent) -> void:
+	if not is_inside_tree():
+		return
 	if event.is_action_pressed("ui_cancel") and InputRebind.rebinding_action.is_empty():
 		if current_popup:
 			_close_current_popup()

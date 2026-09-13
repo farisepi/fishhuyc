@@ -1,96 +1,117 @@
 extends Node
 
-var music_player: AudioStreamPlayer
-var menu_music: AudioStream = preload("res://Fish Slaves/Sounds/Music/MenuMusic/AquariumMenuMusic.mp3")
-var level_music: AudioStream = preload("res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3")
+const MENU_AQUARIUM = "res://Fish Slaves/Sounds/Music/MenuMusic/AquariumMenuMusic.mp3"
+const LEVEL_ACT1 = "res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3"
 
-var current_type: String = ""
-var level_playback_pos: float = 0.0
+const VOLUME_NORMAL: float = -15.0
+const VOLUME_PAUSED: float = -25.0
+const VOLUME_SILENT: float = -80.0
+
+var music_player: AudioStreamPlayer
+var current_track: String = ""
+var is_paused_for_menu: bool = false
 var fading: bool = false
 
 func _ready() -> void:
+	# GlobalMusic должен работать даже когда игра на паузе
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = "Music"
+	music_player.volume_db = VOLUME_NORMAL
+	# Плеер тоже должен играть на паузе
+	music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(music_player)
-	music_player.volume_db = -15.0
+
+# ==================== PUBLIC API ====================
 
 func play_menu_music() -> void:
-	if current_type == "menu" and music_player.playing:
-		return
-	
-	if current_type == "level" and music_player.playing:
-		level_playback_pos = music_player.get_playback_position()
-	
-	current_type = "menu"
-	
-	if not music_player.playing:
-		music_player.stream = menu_music
-		music_player.volume_db = -15.0
-		music_player.play()
-	else:
-		_crossfade_to(menu_music)
+	play_track(MENU_AQUARIUM)
 
 func play_level_music() -> void:
-	if current_type == "level" and music_player.playing:
+	play_track(LEVEL_ACT1)
+
+func play_track(path: String) -> void:
+	if path == "":
 		return
 	
-	current_type = "level"
-	music_player.stream = level_music
-	music_player.volume_db = -15.0
-	music_player.play()
-	level_playback_pos = 0.0
-
-func resume_level_music() -> void:
-	if current_type != "level":
-		current_type = "level"
-		music_player.stream = level_music
-	
-	music_player.volume_db = -15.0
-	music_player.play(level_playback_pos)
-
-func pause_level_music() -> void:
-	if current_type == "level" and music_player.playing:
-		level_playback_pos = music_player.get_playback_position()
-		music_player.stop()
-
-func crossfade_to_menu() -> void:
-	if current_type == "menu":
+	# Если уже играет тот же трек — ничего не делаем
+	if current_track == path and music_player.playing:
+		if is_paused_for_menu:
+			restore_volume()
 		return
 	
-	if current_type == "level" and music_player.playing:
-		level_playback_pos = music_player.get_playback_position()
+	current_track = path
 	
-	current_type = "menu"
-	_crossfade_to(menu_music)
+	# Загружаем поток
+	var stream = load(path)
+	if not stream:
+		push_warning("GlobalMusic: не найден трек " + path)
+		return
+	
+	# Устанавливаем loop для всего, кроме интро
+	if path != "res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3":
+		if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
+			stream.loop = true
+	
+	# Если ничего не играет — просто запускаем
+	if not music_player.playing:
+		music_player.stream = stream
+		music_player.volume_db = VOLUME_NORMAL
+		music_player.play()
+		is_paused_for_menu = false
+		return
+	
+	# Иначе — crossfade
+	_crossfade_to(stream)
 
 func stop_music() -> void:
 	if music_player and music_player.playing:
 		music_player.stop()
-	current_type = ""
+	current_track = ""
+	is_paused_for_menu = false
+
+# ==================== PAUSE MENU ====================
+
+func lower_volume() -> void:
+	# Плавно затихает до VOLUME_PAUSED, не останавливается
+	if not music_player:
+		return
+	is_paused_for_menu = true
+	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(music_player, "volume_db", VOLUME_PAUSED, 0.4)
+
+func restore_volume() -> void:
+	# Плавно возвращает громкость
+	if not music_player:
+		return
+	is_paused_for_menu = false
+	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(music_player, "volume_db", VOLUME_NORMAL, 0.4)
+
+# ==================== PRIVATE ====================
 
 func _crossfade_to(new_stream: AudioStream) -> void:
 	if fading:
 		return
-	
-	if not music_player.playing:
-		music_player.stream = new_stream
-		music_player.volume_db = -15.0
-		music_player.play()
-		return
-	
 	fading = true
 	
 	var fade_out = create_tween()
-	fade_out.tween_property(music_player, "volume_db", -80.0, 0.5)
+	fade_out.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade_out.tween_property(music_player, "volume_db", VOLUME_SILENT, 0.5)
 	await fade_out.finished
 	
 	music_player.stop()
 	music_player.stream = new_stream
-	music_player.volume_db = -80.0
+	music_player.volume_db = VOLUME_SILENT
 	music_player.play()
+	is_paused_for_menu = false
 	
 	var fade_in = create_tween()
-	fade_in.tween_property(music_player, "volume_db", -15.0, 0.5)
+	fade_in.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade_in.tween_property(music_player, "volume_db", VOLUME_NORMAL, 0.5)
 	await fade_in.finished
 	
 	fading = false

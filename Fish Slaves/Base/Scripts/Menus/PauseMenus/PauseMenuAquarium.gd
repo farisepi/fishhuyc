@@ -27,6 +27,7 @@ func _is_factory_level() -> bool:
 
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
+	GlobalMusic.restore_volume()
 	hide()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -38,6 +39,7 @@ func _on_save_pressed() -> void:
 	Global.player_position = Vector2.ZERO
 	get_tree().paused = false
 	hide()
+	# Музыка НЕ останавливается — остаётся Act1AquariumMusic
 	if _is_factory_level():
 		get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
 	else:

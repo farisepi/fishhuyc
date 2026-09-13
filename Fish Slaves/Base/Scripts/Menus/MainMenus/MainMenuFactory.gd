@@ -29,9 +29,6 @@ func _ready() -> void:
 
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
-		_apply_volume("Master", config.get_value("audio", "music_volume", 0.2))
-		_apply_volume("SFX", config.get_value("audio", "sfx_volume", 0.2))
-		_apply_volume("Ambience", config.get_value("audio", "ambience_volume", 0.2))
 		Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 		if config.has_section_key("graphics", "resolution"):
 			var res = config.get_value("graphics", "resolution", 1)
@@ -72,12 +69,6 @@ func _ready() -> void:
 		logo_area.mouse_entered.connect(_on_logo_mouse_entered)
 		logo_area.mouse_exited.connect(_on_logo_mouse_exited)
 		logo_area.gui_input.connect(_on_logo_gui_input)
-
-func _apply_volume(bus_name: String, value: float) -> void:
-	var bus_index = AudioServer.get_bus_index(bus_name)
-	if bus_index == -1:
-		return
-	AudioServer.set_bus_volume_db(bus_index, lerp(-30.0, 10.0, value))
 
 func _process(delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -270,11 +261,9 @@ func _on_caught_box(box: Area2D, spr: Sprite2D) -> void:
 	if is_instance_valid(box):
 		box.queue_free()
 	
-	# Запоминаем — была ли ачивка уже получена
 	var was_unlocked = Achievements.acrobat_unlocked
 	Achievements.unlock_acrobat()
 	
-	# Показываем уведомление только если ачивка только что открылась
 	if not was_unlocked:
 		_show_acrobat_achievement()
 

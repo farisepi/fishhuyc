@@ -30,7 +30,7 @@ func _ready() -> void:
 		Fade.fade_in()
 	
 	if Global.came_from == Global.MenuSource.GAME:
-		GlobalMusic.pause_level_music()
+		pass
 	else:
 		GlobalMusic.play_menu_music()
 	
@@ -312,11 +312,13 @@ func _save_game(index: int, scene_path: String = ""):
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
-		GlobalMusic.resume_level_music()
+		var target = Global.scene_to_save
+		if target == "" or "SavesMenu" in target:
+			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
 		if is_instance_valid(Fade):
 			Fade.fade_out()
 			await get_tree().create_timer(0.3).timeout
-		Global.goto_scene(Global.scene_to_save)
+		Global.goto_scene(target)
 		return
 
 func _load_game(index: int):
@@ -351,13 +353,12 @@ func _delete_save(index: int):
 func _on_back_pressed() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
-		GlobalMusic.resume_level_music()
-		if is_instance_valid(Fade):
-			Fade.fade_out()
-			await get_tree().create_timer(0.3).timeout
 		var target = Global.scene_to_save
 		if target == "" or "SavesMenu" in target:
 			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
+		if is_instance_valid(Fade):
+			Fade.fade_out()
+			await get_tree().create_timer(0.3).timeout
 		Global.goto_scene(target)
 		return
 	
