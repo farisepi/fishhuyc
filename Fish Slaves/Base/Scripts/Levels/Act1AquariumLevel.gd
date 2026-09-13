@@ -594,7 +594,7 @@ func _on_return_from_settings() -> void:
 		player.global_position = Global.player_position
 	
 	if pause_menu:
-		pause_menu.show()
+		pause_menu.show_menu()
 		get_tree().paused = true
 		GlobalMusic.lower_volume()
 	
@@ -1673,7 +1673,7 @@ func _toggle_pause() -> void:
 	var anim = player.get_node_or_null("AnimatedSprite2D")
 	
 	if pause_menu.visible:
-		pause_menu.hide()
+		pause_menu.hide_menu()
 		get_tree().paused = false
 		GlobalMusic.restore_volume()
 		if not cutscene_active:
@@ -1687,7 +1687,7 @@ func _toggle_pause() -> void:
 			var ma = mechanic.get_node_or_null("AnimationPlayer")
 			if ma: ma.play()
 	else:
-		pause_menu.show()
+		pause_menu.show_menu()
 		get_tree().paused = true
 		GlobalMusic.lower_volume()
 		player.set_physics_process(false)

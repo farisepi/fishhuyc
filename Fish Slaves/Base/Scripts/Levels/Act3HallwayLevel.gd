@@ -36,6 +36,8 @@ var shift_timer: float = 0.0
 var shift_duration: float = 1.5
 
 func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	shift_prompt = Label.new()
 	shift_prompt.text = "SHIFT"
 	shift_prompt.add_theme_font_size_override("font_size", 48)
@@ -141,10 +143,7 @@ func _ready():
 		)
 	
 	if pause_menu:
-		pause_menu.visible = false
-		var continue_btn = pause_menu.get_node_or_null("ContinueButton")
-		if continue_btn:
-			continue_btn.pressed.connect(_on_continue_pressed)
+		pause_menu.hide()
 	
 	_start_intro()
 
@@ -256,9 +255,11 @@ func _activate_forklift():
 	forklift_ready_for_throw = true
 
 func _process(delta):
+	if get_tree().paused:
+		return
 	if not is_inside_tree():
 		return
-	if get_tree().paused or state == State.GAMEOVER:
+	if state == State.GAMEOVER:
 		return
 	
 	if camera:
@@ -473,6 +474,15 @@ func _win():
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		print(">>> ESC _input, paused=", get_tree().paused, " visible=", pause_menu.visible if pause_menu else "null")
+		_toggle_pause()
+		get_viewport().set_input_as_handled()
+		return
+	
+	if get_tree().paused:
+		return
+	
 	if event.is_action_pressed("interact"):
 		var entrance_trigger = get_node_or_null("EntranceTrigger")
 		var passage_trigger = get_node_or_null("TightPassageTrigger")
@@ -494,9 +504,6 @@ func _input(event: InputEvent) -> void:
 			player.set_movement_blocked(false)
 			print("🔓 ИГРОК ОСВОБОЖДЁН!")
 			return
-	
-	if event.is_action_pressed("ui_cancel"):
-		_toggle_pause()
 
 func _toggle_pause():
 	if state == State.GAMEOVER or state == State.WIN:
@@ -506,16 +513,12 @@ func _toggle_pause():
 		return
 	
 	if pause_menu.visible:
-		pause_menu.visible = false
 		get_tree().paused = false
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+		GlobalMusic.restore_volume()
+		pause_menu.hide_menu()
 	else:
-		pause_menu.visible = true
 		get_tree().paused = true
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-
-func _on_continue_pressed():
-	if pause_menu:
-		pause_menu.visible = false
-		get_tree().paused = false
-		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+		GlobalMusic.lower_volume()
+		pause_menu.show_menu()

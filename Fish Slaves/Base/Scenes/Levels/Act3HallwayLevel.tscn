@@ -9,14 +9,14 @@
 [ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Enemy/Enemy.tscn" id="8_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
 [ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
+[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuFactory.gd" id="11_wos72"]
 [ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish/PlayerMechaFishCamera.gd" id="15_wsnn3"]
-[ext_resource type="Texture2D" uid="uid://d2p5uyud5butg" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
+[ext_resource type="Texture2D" uid="uid://dwm3r4yev1hrd" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
-[ext_resource type="Script" uid="uid://bs1ejqcnk8wlb" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuAquarium.gd" id="21_ktap7"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
+[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
 [ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
@@ -1656,7 +1656,7 @@ shape = SubResource("RectangleShape2D_qr0ht")
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
 process_mode = 2
 layer = 2
-script = ExtResource("21_ktap7")
+script = ExtResource("11_wos72")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1142893149]
 offset_left = -1436.0
@@ -1753,7 +1753,7 @@ position = Vector2(90.00003, 28.000021)
 scale = Vector2(2.5714288, 3.1111085)
 texture = ExtResource("22_u6mdv")
 
-[node name="Sprite2D" type="Sprite2D" parent="Pausemenu" unique_id=1196644957]
+[node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=1196644957]
 position = Vector2(575.99994, 324)
 scale = Vector2(3.9999993, 4)
 texture = ExtResource("16_wos72")

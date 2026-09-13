@@ -5,12 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="3_bg"]
 [ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="4_slotn"]
 [ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="5_slotp"]
-[ext_resource type="Texture2D" uid="uid://cmvu6wx8pty3w" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_rust"]
+[ext_resource type="Texture2D" uid="uid://b3wyck3e7pvw1" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_rust"]
 [ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="6_sloth"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="7_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="8_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="9_btnh"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust_small"]
+[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust_small"]
 
 [node name="SaveMenu" type="Node2D" unique_id=1965436707]
 script = ExtResource("1_script")
