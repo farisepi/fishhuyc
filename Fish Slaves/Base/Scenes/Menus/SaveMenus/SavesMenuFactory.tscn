@@ -16,6 +16,13 @@
 [node name="SaveMenu" type="Node2D" unique_id=1965436707]
 script = ExtResource("1_script")
 
+[node name="FPSCounter" type="Label" parent="." unique_id=373090847]
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("12_8n7ws")
+
 [node name="ColorRect" type="ColorRect" parent="." unique_id=632457905]
 offset_left = -104.0
 offset_top = -80.0
@@ -175,13 +182,5 @@ texture = ExtResource("10_rust_small")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1508640523]
 position = Vector2(576, 328)
 script = ExtResource("2_camera")
-
-[node name="FPSCounter" type="Label" parent="." unique_id=373090847]
-visible = false
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("12_8n7ws")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

@@ -114,14 +114,16 @@ func _transition_to(scene_path: String) -> void:
 	
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	UISounds.stop_everything_gameplay()
 	hide()
 	
-	await get_tree().process_frame
+	await get_tree().create_timer(0.05).timeout
 	Global.goto_scene(scene_path)
 
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	GlobalMusic.restore_volume()
+	UISounds.restore_ambience()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	

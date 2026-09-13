@@ -558,6 +558,14 @@ script = ExtResource("1_u46od")
 metadata/_edit_vertical_guides_ = [296.0, 300.0]
 metadata/_edit_horizontal_guides_ = [192.0, 1159.0]
 
+[node name="FPSCounter" type="Label" parent="." unique_id=111003711]
+visible = false
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("13_yp00i")
+
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
 position = Vector2(605, 224)
 
@@ -794,14 +802,6 @@ layout_mode = 0
 offset_right = 60.0
 offset_bottom = 60.0
 texture = ExtResource("10_udgr8")
-
-[node name="FPSCounter" type="Label" parent="." unique_id=111003711]
-visible = false
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("13_yp00i")
 
 [node name="InteractLabel" type="Sprite2D" parent="." unique_id=530248187]
 texture = ExtResource("19_x2xif")

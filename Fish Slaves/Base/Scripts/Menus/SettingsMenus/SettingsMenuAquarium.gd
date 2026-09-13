@@ -102,11 +102,14 @@ var dynamic_range_arrow: TextureRect = null
 var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
 func _ready() -> void:
-	if Global.came_from == Global.MenuSource.GAME:
-		if is_instance_valid(Fade):
-			Fade.modulate.a = 0.0
-	else:
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
+	
+	UISounds.stop_everything_gameplay()
+	
+	if Global.came_from == Global.MenuSource.GAME:
+		pass
+	else:
 		GlobalMusic.play_menu_music()
 	
 	config.load(CONFIG_PATH)
@@ -821,7 +824,6 @@ func _apply_switch_textures() -> void:
 		
 		switch.scale = Vector2.ONE
 		switch.custom_minimum_size = Vector2(44, 44)
-
 # ==================== ЗАГРУЗКА / СОХРАНЕНИЕ ====================
 
 func load_settings() -> void:
@@ -1163,14 +1165,10 @@ func _exit_to_main_menu() -> void:
 		var target = Global.scene_to_save
 		if target == "" or "SettingsMenu" in target:
 			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
-		var tree = get_tree()
-		if tree: tree.change_scene_to_file(target)
+		Global.goto_scene(target)
 		return
 	
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
-	var current_tree = get_tree()
-	if current_tree: current_tree.change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
 
 func _on_back_pressed() -> void:
 	if has_unsaved_changes:

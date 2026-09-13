@@ -19,8 +19,11 @@ var logo_original_scale: Vector2 = Vector2.ONE
 var can_click_logo: bool = true
 
 func _ready() -> void:
-	if is_instance_valid(Fade):
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
+	
+	UISounds.stop_everything_gameplay()
+	
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.position = get_viewport().get_visible_rect().size / 2

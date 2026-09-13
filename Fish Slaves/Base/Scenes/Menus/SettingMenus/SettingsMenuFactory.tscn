@@ -5,7 +5,7 @@
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="3_alx6u"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="4_y3cdo"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="5_x1v54"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="6_ncwmy"]
+[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="6_ncwmy"]
 [ext_resource type="StyleBox" uid="uid://c0ck1x27nrwfj" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonNormal.tres" id="7_hsvnn"]
 [ext_resource type="StyleBox" uid="uid://cbd42ikbtrhos" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonPressed.tres" id="8_3cj0i"]
 [ext_resource type="StyleBox" uid="uid://8w80r31dxqhk" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonHover.tres" id="9_orhu2"]
@@ -20,6 +20,14 @@ offset_right = 1152.0
 offset_bottom = 648.0
 mouse_filter = 1
 script = ExtResource("1_ly04p")
+
+[node name="FPSCounter" type="Label" parent="." unique_id=645757073]
+layout_mode = 0
+offset_left = 1016.0
+offset_top = 24.0
+offset_right = 1088.0
+offset_bottom = 56.0
+script = ExtResource("12_wqgc5")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1641238226]
 layout_mode = 0
@@ -690,14 +698,6 @@ visible = false
 position = Vector2(116.000015, 23.5)
 scale = Vector2(3.3142858, 2.6)
 texture = ExtResource("6_ncwmy")
-
-[node name="FPSCounter" type="Label" parent="." unique_id=645757073]
-layout_mode = 0
-offset_left = 1016.0
-offset_top = 24.0
-offset_right = 1088.0
-offset_bottom = 56.0
-script = ExtResource("12_wqgc5")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
 position = Vector2(576, 320)

@@ -8,10 +8,10 @@ var loading_text: String = "Загрузка"
 var color_rect: ColorRect
 var label: Label
 var is_showing: bool = false
-var is_finished: bool = false
 var target_scene: String = ""
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	color_rect = $ColorRect
 	label = $Label
 	
@@ -30,6 +30,7 @@ func _ready() -> void:
 	dot_timer = Timer.new()
 	dot_timer.wait_time = 0.4
 	dot_timer.one_shot = false
+	dot_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	dot_timer.timeout.connect(_update_dots)
 	add_child(dot_timer)
 	dot_timer.start()
@@ -49,32 +50,32 @@ func _update_dots() -> void:
 func start_loading(scene_path: String) -> void:
 	target_scene = scene_path
 	
-	await get_tree().create_timer(0.15).timeout
-	
-	var tree = get_tree()
-	if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
-		queue_free()
-		return
+	await get_tree().create_timer(0.1).timeout
 	
 	show_loading()
+	await get_tree().create_timer(0.2).timeout
 	
-	await get_tree().create_timer(0.25).timeout
+	var tree = get_tree()
+	var already_there = false
+	if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
+		already_there = true
 	
-	get_tree().change_scene_to_file(target_scene)
+	if not already_there:
+		get_tree().change_scene_to_file(target_scene)
+	else:
+		get_tree().reload_current_scene()
 	
-	while true:
-		await get_tree().process_frame
-		tree = get_tree()
-		if tree and tree.current_scene:
-			if tree.current_scene.scene_file_path == target_scene:
-				break
+	# Ждём смены через фиксированные тики, не через get_process_delta_time
+	for i in range(120):
+		await get_tree().create_timer(0.05).timeout
 		if not is_instance_valid(self):
 			return
+		tree = get_tree()
+		if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
+			break
 	
 	await get_tree().create_timer(0.15).timeout
-	
 	hide_loading()
-	
 	await get_tree().create_timer(0.05).timeout
 	
 	scene_loaded.emit()
@@ -88,6 +89,7 @@ func show_loading() -> void:
 	is_showing = true
 	
 	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.parallel().tween_property(color_rect, "modulate:a", 1.0, 0.15)
 	tween.parallel().tween_property(label, "modulate:a", 1.0, 0.15)
 	await tween.finished
@@ -100,6 +102,7 @@ func hide_loading() -> void:
 	is_showing = false
 	
 	var tween = create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.parallel().tween_property(color_rect, "modulate:a", 0.0, 0.25)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.25)
 	await tween.finished

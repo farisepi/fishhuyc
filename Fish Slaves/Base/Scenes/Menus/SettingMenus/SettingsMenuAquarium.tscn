@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonNormal.tres" id="3_xchot"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="4_dbauv"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="5_bb24s"]
-[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="7_xpquy"]
 [ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonPressed.tres" id="8_4m4e8"]
 [ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonHover.tres" id="9_td0rv"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
@@ -33,6 +33,14 @@ offset_right = 1152.0
 offset_bottom = 648.0
 mouse_filter = 1
 script = ExtResource("1_cqlcn")
+
+[node name="FPSCounter" type="Label" parent="." unique_id=645757073]
+layout_mode = 0
+offset_left = 1016.0
+offset_top = 24.0
+offset_right = 1088.0
+offset_bottom = 56.0
+script = ExtResource("9_ugdgc")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1859616107]
 layout_mode = 0
@@ -703,14 +711,6 @@ visible = false
 position = Vector2(115.99996, 24.000015)
 scale = Vector2(1.8861793, 1.7142868)
 texture = ExtResource("7_xpquy")
-
-[node name="FPSCounter" type="Label" parent="." unique_id=645757073]
-layout_mode = 0
-offset_left = 1016.0
-offset_top = 24.0
-offset_right = 1088.0
-offset_bottom = 56.0
-script = ExtResource("9_ugdgc")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
 position = Vector2(576, 320)

@@ -26,8 +26,10 @@ func _ready() -> void:
 	if custom_font:
 		custom_font.fixed_size = 10
 	
-	if is_instance_valid(Fade):
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
+	
+	UISounds.stop_everything_gameplay()
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		GlobalMusic.pause_level_music()

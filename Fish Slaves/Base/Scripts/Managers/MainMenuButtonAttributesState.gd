@@ -4,31 +4,29 @@ var states: Dictionary = {}
 var initialized: bool = false
 
 func scan_and_apply(scene: Node) -> void:
-	print("=== SeaweedState: scan_and_apply for: ", scene.name, " initialized: ", initialized)
+	if not scene or not is_instance_valid(scene):
+		return
+	if not scene.is_inside_tree():
+		return
 	
 	if initialized:
-		print("Applying existing states")
 		_apply(scene)
 		return
 	
-	print("First time - scanning for seaweed/rust")
 	states.clear()
 	_scan(scene)
 	initialized = true
 	_apply(scene)
-	print("Found ", states.size(), " seaweed/rust states")
 
 func _scan(node: Node) -> void:
 	if not node or not is_instance_valid(node):
 		return
-	
 	if not node.is_inside_tree():
 		return
 	
 	for child in node.get_children():
 		if not child or not is_instance_valid(child):
 			continue
-		
 		if not child.is_inside_tree():
 			continue
 		
@@ -40,7 +38,6 @@ func _scan(node: Node) -> void:
 					var visible = randf() < 0.25
 					var flip = randf() < 0.5
 					
-					# Сохраняем текстуру для Rust
 					var texture_data = {}
 					if decoration is Sprite2D and decoration.texture:
 						texture_data["path"] = decoration.texture.resource_path
@@ -52,20 +49,17 @@ func _scan(node: Node) -> void:
 						"type": decoration.name,
 						"scale": decoration.scale
 					}
-					print("  Created state for: ", child.name, " (", decoration.name, ") visible=", visible)
 		_scan(child)
 
 func _apply(node: Node) -> void:
 	if not node or not is_instance_valid(node):
 		return
-	
 	if not node.is_inside_tree():
 		return
 	
 	for child in node.get_children():
 		if not child or not is_instance_valid(child):
 			continue
-		
 		if not child.is_inside_tree():
 			continue
 		
@@ -77,7 +71,6 @@ func _apply(node: Node) -> void:
 					var data = states[path]
 					decoration.visible = data["visible"]
 					
-					# Применяем флип с сохранением масштаба
 					var original_scale = data.get("scale", Vector2.ONE)
 					if data.get("flip", false):
 						decoration.scale.x = -abs(original_scale.x)
@@ -86,7 +79,6 @@ func _apply(node: Node) -> void:
 						decoration.scale.x = abs(original_scale.x)
 						decoration.scale.y = abs(original_scale.y)
 					
-					# Восстанавливаем текстуру для Rust
 					if decoration.name == "Rust" and decoration is Sprite2D:
 						var tex_data = data.get("texture_data", {})
 						if tex_data.has("path") and tex_data["path"] != "":
@@ -98,22 +90,18 @@ func _apply(node: Node) -> void:
 func _find_decoration(node: Node) -> Node:
 	if not node or not is_instance_valid(node):
 		return null
-	
 	if not node.is_inside_tree():
 		return null
 	
 	for child in node.get_children():
 		if not child or not is_instance_valid(child):
 			continue
-		
 		if not child.is_inside_tree():
 			continue
-		
 		if child.name == "Seaweed" or child.name == "Rust":
 			return child
 	return null
 
 func reset() -> void:
-	print("SeaweedState: RESET")
 	states.clear()
 	initialized = false

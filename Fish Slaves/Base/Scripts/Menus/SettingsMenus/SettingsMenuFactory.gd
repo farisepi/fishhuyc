@@ -100,13 +100,15 @@ var language_arrow: TextureRect = null
 var dynamic_range_arrow: TextureRect = null
 
 func _ready() -> void:
-	if Global.came_from == Global.MenuSource.GAME:
-		if is_instance_valid(Fade):
-			Fade.modulate.a = 0.0
-	else:
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
 	
-	GlobalMusic.play_menu_music()
+	UISounds.stop_everything_gameplay()
+	
+	if Global.came_from == Global.MenuSource.GAME:
+		pass
+	else:
+		GlobalMusic.play_menu_music()
 	
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
@@ -131,6 +133,8 @@ func _ready() -> void:
 	_apply_brightness_deferred()
 	
 	has_unsaved_changes = false
+	
+	call_deferred("_start_background_bubbles")
 
 func _process(_delta: float) -> void:
 	if fps_label and fps_label.visible:
@@ -1149,14 +1153,13 @@ func _exit_to_main_menu() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		GlobalMusic.resume_level_music()
-		var tree = get_tree()
-		if tree: tree.change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
+		var target = Global.scene_to_save
+		if target == "" or "SettingsMenu" in target:
+			target = "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn"
+		Global.goto_scene(target)
 		return
 	
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
-	var current_tree = get_tree()
-	if current_tree: current_tree.change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _on_back_pressed() -> void:
 	if has_unsaved_changes:

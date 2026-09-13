@@ -19,6 +19,13 @@ size = Vector2(81.94444, 56.85179)
 scale = Vector2(1.35, 1.35)
 script = ExtResource("1_ptfog")
 
+[node name="FPSCounter" type="Label" parent="." unique_id=700850880]
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("4_br5gj")
+
 [node name="BackGround" type="ColorRect" parent="." unique_id=32490646]
 offset_left = -318.0
 offset_top = -1.0
@@ -242,11 +249,3 @@ text = "!"
 offset_right = 1722.9629
 offset_bottom = 645.9259
 color = Color(0, 0, 0, 0.003921569)
-
-[node name="FPSCounter" type="Label" parent="." unique_id=700850880]
-visible = false
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("4_br5gj")

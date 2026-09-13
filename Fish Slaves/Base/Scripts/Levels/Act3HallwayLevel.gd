@@ -13,6 +13,7 @@ extends Node2D
 @onready var death_zone2: Area2D = $DeathZone2
 @onready var camera: Camera2D = $MechaFishCamera
 @onready var pause_menu: CanvasLayer = $Pausemenu
+@onready var fps_label: Label = $FPSCounter
 
 enum State { INTRO, RUNNING, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
 var state: State = State.INTRO
@@ -36,8 +37,6 @@ var shift_timer: float = 0.0
 var shift_duration: float = 1.5
 
 func _ready():
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	
 	shift_prompt = Label.new()
 	shift_prompt.text = "SHIFT"
 	shift_prompt.add_theme_font_size_override("font_size", 48)
@@ -49,6 +48,15 @@ func _ready():
 	add_child(shift_prompt)
 	
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
+	if fps_label:
+		var cfg = ConfigFile.new()
+		cfg.load("user://settings.cfg")
+		fps_label.visible = cfg.get_value("graphics", "show_fps", false)
+		fps_label.add_theme_font_size_override("font_size", 14)
+		fps_label.add_theme_color_override("font_color", Color.WHITE)
+		fps_label.position = Vector2(10, 10)
+		fps_label.z_index = 999
 	
 	player.set_physics_process(false)
 	prompt.visible = false
@@ -146,6 +154,10 @@ func _ready():
 		pause_menu.hide()
 	
 	_start_intro()
+
+func _process(_delta: float) -> void:
+	if fps_label and fps_label.visible:
+		fps_label.text = "FPS: " + str(Engine.get_frames_per_second())
 
 func _on_parry_complete():
 	print("✅ ПАРИРОВАНИЕ ЗАВЕРШЕНО!")
@@ -254,12 +266,10 @@ func _activate_forklift():
 	
 	forklift_ready_for_throw = true
 
-func _process(delta):
-	if get_tree().paused:
-		return
+func _process_gameplay(delta):
 	if not is_inside_tree():
 		return
-	if state == State.GAMEOVER:
+	if get_tree().paused or state == State.GAMEOVER:
 		return
 	
 	if camera:
@@ -475,7 +485,6 @@ func _win():
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		print(">>> ESC _input, paused=", get_tree().paused, " visible=", pause_menu.visible if pause_menu else "null")
 		_toggle_pause()
 		get_viewport().set_input_as_handled()
 		return
@@ -516,11 +525,13 @@ func _toggle_pause():
 		get_tree().paused = false
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		GlobalMusic.restore_volume()
+		UISounds.restore_ambience()
 		pause_menu.hide_menu()
 	else:
 		get_tree().paused = true
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		GlobalMusic.lower_volume()
+		UISounds.lower_ambience()
 		pause_menu.show_menu()
 
 func _resume_after_pause() -> void:
@@ -528,3 +539,6 @@ func _resume_after_pause() -> void:
 		return
 	player.set_physics_process(true)
 	player.set_process(true)
+
+func _on_continue_pressed():
+	pass

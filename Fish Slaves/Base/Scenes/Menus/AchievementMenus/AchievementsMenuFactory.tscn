@@ -21,6 +21,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_y6a2d")
 
+[node name="FPSCounter" type="Label" parent="." unique_id=1014501047]
+layout_mode = 0
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("11_qm5k0")
+
 [node name="ColorRect" type="ColorRect" parent="." unique_id=681337533]
 layout_mode = 0
 offset_left = -45.46
@@ -376,14 +384,5 @@ texture = ExtResource("10_rust")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1869397152]
 position = Vector2(576, 328)
 script = ExtResource("2_g0eki")
-
-[node name="FPSCounter" type="Label" parent="." unique_id=1014501047]
-visible = false
-layout_mode = 0
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("11_qm5k0")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

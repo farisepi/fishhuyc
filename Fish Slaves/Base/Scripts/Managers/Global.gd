@@ -48,14 +48,6 @@ func _ready() -> void:
 		add_child(seaweed_state)
 		seaweed_state.name = "SeaweedState"
 		print("SeaweedState created from: ", seaweed_path)
-	else:
-		print("ERROR: SeaweedState not found at: ", seaweed_path)
-		var alt_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
-		if FileAccess.file_exists(alt_path):
-			seaweed_state = load(alt_path).new()
-			add_child(seaweed_state)
-			seaweed_state.name = "SeaweedState"
-			print("SeaweedState created from alt path: ", alt_path)
 	
 	var font_path = "res://Fish Slaves/Textures/Font/Font.ttf"
 	
@@ -72,21 +64,17 @@ func _ready() -> void:
 	
 	_detect_last_save_level()
 
-# ==================== ПРИМЕНЕНИЕ ВСЕХ НАСТРОЕК ====================
-
 func _apply_all_settings_from_config() -> void:
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") != OK:
 		return
 	
-	# === АУДИО ===
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
 	_apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
 	_apply_audio_bus("SFX", config.get_value("audio", "sfx_volume", 1.0))
 	_apply_audio_bus("Ambience", config.get_value("audio", "ambience_volume", 1.0))
 	_apply_audio_bus("UI", config.get_value("audio", "ui_volume", 1.0))
 	
-	# === ГРАФИКА ===
 	var vsync_enabled = config.get_value("graphics", "vsync", true)
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED
@@ -108,14 +96,11 @@ func _apply_all_settings_from_config() -> void:
 	var window_size = DisplayServer.window_get_size()
 	DisplayServer.window_set_position(screen_center - window_size / 2)
 	
-	# === ЯЗЫК ===
 	var locale = config.get_value("language", "locale", "ru")
 	TranslationServer.set_locale(locale)
 	
-	# === КАМЕРА ===
 	camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 	
-	# === ЭФФЕКТЫ ===
 	atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
 	interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
 	button_effects_enabled = interface_attributes_enabled
@@ -141,16 +126,12 @@ func _apply_audio_bus(bus_name: String, value: float) -> void:
 	
 	AudioServer.set_bus_volume_db(bus_index, db)
 
-# ==================== ЭФФЕКТЫ ====================
-
 func _load_effect_settings() -> void:
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
 		atmospheric_effects_enabled = config.get_value("graphics", "effects", true)
 		interface_attributes_enabled = config.get_value("graphics", "interface_attributes", true)
 		button_effects_enabled = interface_attributes_enabled
-
-# ==================== ПРОЧЕЕ ====================
 
 func _detect_last_save_level() -> void:
 	last_save_level = 1
@@ -294,6 +275,8 @@ func _apply_seaweed_with_delay(scene: Node) -> void:
 func _force_apply_seaweed(scene: Node) -> void:
 	if not scene or not is_instance_valid(scene):
 		return
+	if not scene.is_inside_tree():
+		return
 	
 	if not has_node("SeaweedState"):
 		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
@@ -305,6 +288,8 @@ func _force_apply_seaweed(scene: Node) -> void:
 			return
 	
 	var seaweed_state_node = get_node("SeaweedState")
+	if not is_instance_valid(seaweed_state_node):
+		return
 	seaweed_state_node.scan_and_apply(scene)
 	_force_show_decorations(scene)
 
@@ -417,32 +402,47 @@ func _apply_font(node: Node) -> void:
 		
 		_apply_font(child)
 
+# ==================== ПЕРЕХОД МЕЖДУ СЦЕНАМИ ====================
+
 func goto_scene(scene_path: String) -> void:
 	_cleanup_loading()
-	
 	_pending_seaweed_apply = true
 	
-	var loading_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/LoadingScreen.tscn")
-	if loading_scene:
-		loading_instance = loading_scene.instantiate()
-		get_tree().root.add_child(loading_instance)
-		
-		if loading_instance and loading_instance.has_method("start_loading"):
-			if loading_instance.has_signal("scene_loaded"):
-				if loading_instance.scene_loaded.is_connected(_on_scene_loaded):
-					loading_instance.scene_loaded.disconnect(_on_scene_loaded)
-				loading_instance.scene_loaded.connect(_on_scene_loaded)
-			loading_instance.start_loading(scene_path)
+	print(">>> goto_scene: ", scene_path)
+	
+	if is_instance_valid(Fade) and Fade.has_method("fade_out"):
+		Fade.fade_out()
+		await get_tree().create_timer(0.35).timeout
+	
+	get_tree().change_scene_to_file(scene_path)
+	
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	# Сносим висящие LoadingScreen'ы
+	for child in get_tree().root.get_children():
+		if child == get_tree().current_scene:
+			continue
+		if child is CanvasLayer and child.name == "Loading":
+			child.queue_free()
+	
+	print(">>> сцена сменилась")
 
 func _on_scene_loaded() -> void:
-	var scene = get_tree().current_scene
+	var tree = get_tree()
+	if not tree:
+		return
+	var scene = tree.current_scene
 	if scene:
-		await get_tree().process_frame
-		await get_tree().process_frame
-		await get_tree().process_frame
+		await tree.process_frame
+		await tree.process_frame
+		if not is_instance_valid(scene):
+			return
+		if not scene.is_inside_tree():
+			return
 		_force_apply_seaweed(scene)
 		_apply_effect_settings_to_scene(scene)
-		_apply_all_settings_from_config()
+		call_deferred("_apply_all_settings_from_config")
 
 func _cleanup_loading() -> void:
 	if loading_instance and is_instance_valid(loading_instance):

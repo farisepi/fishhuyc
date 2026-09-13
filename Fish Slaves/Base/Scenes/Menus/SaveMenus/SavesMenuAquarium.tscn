@@ -206,7 +206,6 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
 [node name="FPSCounter" type="Label" parent="." unique_id=1009038011]
-visible = false
 offset_left = 384.0
 offset_top = 152.0
 offset_right = 424.0

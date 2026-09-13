@@ -13,13 +13,11 @@ var is_paused_for_menu: bool = false
 var fading: bool = false
 
 func _ready() -> void:
-	# GlobalMusic должен работать даже когда игра на паузе
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = "Music"
 	music_player.volume_db = VOLUME_NORMAL
-	# Плеер тоже должен играть на паузе
 	music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(music_player)
 
@@ -31,11 +29,18 @@ func play_menu_music() -> void:
 func play_level_music() -> void:
 	play_track(LEVEL_ACT1)
 
+func pause_level_music() -> void:
+	if music_player and music_player.playing:
+		music_player.stream_paused = true
+
+func resume_level_music() -> void:
+	if music_player and music_player.playing:
+		music_player.stream_paused = false
+
 func play_track(path: String) -> void:
 	if path == "":
 		return
 	
-	# Если уже играет тот же трек — ничего не делаем
 	if current_track == path and music_player.playing:
 		if is_paused_for_menu:
 			restore_volume()
@@ -43,18 +48,15 @@ func play_track(path: String) -> void:
 	
 	current_track = path
 	
-	# Загружаем поток
 	var stream = load(path)
 	if not stream:
 		push_warning("GlobalMusic: не найден трек " + path)
 		return
 	
-	# Устанавливаем loop для всего, кроме интро
 	if path != "res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3":
 		if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
 			stream.loop = true
 	
-	# Если ничего не играет — просто запускаем
 	if not music_player.playing:
 		music_player.stream = stream
 		music_player.volume_db = VOLUME_NORMAL
@@ -62,7 +64,6 @@ func play_track(path: String) -> void:
 		is_paused_for_menu = false
 		return
 	
-	# Иначе — crossfade
 	_crossfade_to(stream)
 
 func stop_music() -> void:
@@ -74,7 +75,6 @@ func stop_music() -> void:
 # ==================== PAUSE MENU ====================
 
 func lower_volume() -> void:
-	# Плавно затихает до VOLUME_PAUSED, не останавливается
 	if not music_player:
 		return
 	is_paused_for_menu = true
@@ -83,7 +83,6 @@ func lower_volume() -> void:
 	tween.tween_property(music_player, "volume_db", VOLUME_PAUSED, 0.4)
 
 func restore_volume() -> void:
-	# Плавно возвращает громкость
 	if not music_player:
 		return
 	is_paused_for_menu = false

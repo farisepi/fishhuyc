@@ -34,6 +34,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
+[node name="FPSCounter" type="Label" parent="." unique_id=1777984415]
+layout_mode = 0
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("12_bldbw")
+
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1480958869]
 layout_mode = 0
 offset_left = -104.0
@@ -403,14 +411,5 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
-
-[node name="FPSCounter" type="Label" parent="." unique_id=1777984415]
-visible = false
-layout_mode = 0
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("12_bldbw")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

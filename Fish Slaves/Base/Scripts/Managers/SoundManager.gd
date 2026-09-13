@@ -139,3 +139,32 @@ func stop_earthquake():
 func play_achievement() -> void:
 	if achievement_player:
 		achievement_player.play()
+
+func lower_ambience() -> void:
+	if aquarium_player and aquarium_player.playing:
+		var tw = create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(aquarium_player, "volume_db", -60.0, 0.3)
+	if factory_ambience and factory_ambience.playing:
+		var tw = create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(factory_ambience, "volume_db", -60.0, 0.3)
+
+func restore_ambience() -> void:
+	if aquarium_player and aquarium_player.playing:
+		var tw = create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(aquarium_player, "volume_db", 0.0, 0.3)
+	if factory_ambience and factory_ambience.playing:
+		var tw = create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(factory_ambience, "volume_db", -30.0, 0.3)
+
+func stop_all_ambience() -> void:
+	stop_factory_ambience()
+	stop_aquarium()
+
+func stop_everything_gameplay() -> void:
+	stop_factory_ambience()
+	stop_aquarium()
+	stop_swim_sound()

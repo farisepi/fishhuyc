@@ -597,7 +597,13 @@ func _on_return_from_settings() -> void:
 		pause_menu.show_menu()
 		get_tree().paused = true
 		GlobalMusic.lower_volume()
+		UISounds.lower_ambience()
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	
+	if player:
+		player.set_physics_process(false)
+		player.set_process(false)
+		player.can_move = false
 	
 	if not Global.chatter_queue_state.is_empty():
 		set_chatter_state({
@@ -609,8 +615,6 @@ func _on_return_from_settings() -> void:
 		chatter_active = true
 		chatter_panel.visible = true
 		timer.start(2.5)
-	
-	player.can_move = true
 
 func get_chatter_state():
 	return {
@@ -1676,6 +1680,7 @@ func _toggle_pause() -> void:
 		get_tree().paused = false
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 		GlobalMusic.restore_volume()
+		UISounds.restore_ambience()
 		if not cutscene_active:
 			player.set_physics_process(true)
 			player.set_process(true)
@@ -1691,6 +1696,7 @@ func _toggle_pause() -> void:
 		get_tree().paused = true
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		GlobalMusic.lower_volume()
+		UISounds.lower_ambience()
 		player.set_physics_process(false)
 		player.set_process(false)
 		if anim: anim.pause()

@@ -41,7 +41,10 @@ var total_achievements: int = 5
 var unlocked_count: int = 0
 
 func _ready() -> void:
-	Fade.fade_in()
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
+		Fade.fade_in()
+	
+	UISounds.stop_everything_gameplay()
 	GlobalMusic.play_menu_music()
 	
 	ButtonEffects.setup(back_btn)

@@ -43,7 +43,10 @@ var unlocked_count: int = 0
 var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
 func _ready() -> void:
-	Fade.fade_in()
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
+		Fade.fade_in()
+	
+	UISounds.stop_everything_gameplay()
 	GlobalMusic.play_menu_music()
 	
 	ButtonEffects.setup(back_btn)

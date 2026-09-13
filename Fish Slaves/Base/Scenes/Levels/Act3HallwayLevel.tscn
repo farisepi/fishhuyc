@@ -1300,6 +1300,13 @@ script = ExtResource("1_jfe0f")
 metadata/_edit_vertical_guides_ = [93.0, 98.0]
 metadata/_edit_horizontal_guides_ = [334.0, 332.0]
 
+[node name="FPSCounter" type="Label" parent="." unique_id=31716489]
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("19_yladq")
+
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
 position = Vector2(49, 289.00003)
 offset = Vector2(0, -69)
@@ -1818,11 +1825,3 @@ position = Vector2(1083, 265.09)
 
 [node name="DeathZone2" parent="." unique_id=248427837 instance=ExtResource("17_cu5p6")]
 position = Vector2(1083, 265.09)
-
-[node name="FPSCounter" type="Label" parent="." unique_id=31716489]
-visible = false
-offset_left = 384.0
-offset_top = 152.0
-offset_right = 424.0
-offset_bottom = 175.0
-script = ExtResource("19_yladq")
