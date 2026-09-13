@@ -105,23 +105,23 @@ func _transition_to(scene_path: String) -> void:
 		return
 	_transitioning = true
 	
-	hide()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	hide()
 	
-	if is_instance_valid(Fade):
-		Fade.fade_out()
-		await get_tree().create_timer(0.35).timeout
-	
-	var tree = get_tree()
-	if tree:
-		tree.change_scene_to_file(scene_path)
+	await get_tree().process_frame
+	Global.goto_scene(scene_path)
 
 func _on_continue_pressed() -> void:
 	UISounds.play_click()
 	GlobalMusic.restore_volume()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	
+	var level = get_tree().current_scene
+	if level and level.has_method("_resume_after_pause"):
+		level._resume_after_pause()
+	
 	hide_menu()
 
 func _on_save_pressed() -> void:

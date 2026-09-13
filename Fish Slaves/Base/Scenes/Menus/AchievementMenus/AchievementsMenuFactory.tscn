@@ -8,8 +8,9 @@
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_btnh"]
-[ext_resource type="Texture2D" uid="uid://d0lbi2f50p7p8" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/FactoryAchievementBanner.png" id="9_banner"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust"]
+[ext_resource type="Texture2D" uid="uid://8qwdnwihoqf2" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/FactoryAchievementBanner.png" id="9_banner"]
+[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="11_qm5k0"]
 
 [node name="AchievementsMenu" type="Control" unique_id=569335734]
 layout_mode = 3
@@ -375,5 +376,14 @@ texture = ExtResource("10_rust")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1869397152]
 position = Vector2(576, 328)
 script = ExtResource("2_g0eki")
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1014501047]
+visible = false
+layout_mode = 0
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("11_qm5k0")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

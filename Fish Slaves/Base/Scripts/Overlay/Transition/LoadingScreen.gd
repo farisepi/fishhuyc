@@ -49,7 +49,7 @@ func _update_dots() -> void:
 func start_loading(scene_path: String) -> void:
 	target_scene = scene_path
 	
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.15).timeout
 	
 	var tree = get_tree()
 	if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
@@ -57,6 +57,8 @@ func start_loading(scene_path: String) -> void:
 		return
 	
 	show_loading()
+	
+	await get_tree().create_timer(0.25).timeout
 	
 	get_tree().change_scene_to_file(target_scene)
 	
@@ -69,13 +71,15 @@ func start_loading(scene_path: String) -> void:
 		if not is_instance_valid(self):
 			return
 	
+	await get_tree().create_timer(0.15).timeout
+	
 	hide_loading()
 	
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.05).timeout
 	
 	scene_loaded.emit()
 	
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.1).timeout
 	queue_free()
 
 func show_loading() -> void:
@@ -96,6 +100,6 @@ func hide_loading() -> void:
 	is_showing = false
 	
 	var tween = create_tween()
-	tween.parallel().tween_property(color_rect, "modulate:a", 0.0, 0.2)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.2)
+	tween.parallel().tween_property(color_rect, "modulate:a", 0.0, 0.25)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.25)
 	await tween.finished

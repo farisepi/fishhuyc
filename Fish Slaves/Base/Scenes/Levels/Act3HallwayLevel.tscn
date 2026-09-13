@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://dwm3r4yev1hrd" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
 [ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
@@ -1817,3 +1818,11 @@ position = Vector2(1083, 265.09)
 
 [node name="DeathZone2" parent="." unique_id=248427837 instance=ExtResource("17_cu5p6")]
 position = Vector2(1083, 265.09)
+
+[node name="FPSCounter" type="Label" parent="." unique_id=31716489]
+visible = false
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("19_yladq")

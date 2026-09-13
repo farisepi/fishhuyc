@@ -1826,3 +1826,28 @@ func _get_player_camera() -> Camera2D:
 	if player and player.has_node("PlayerCamera"):
 		return player.get_node("PlayerCamera") as Camera2D
 	return get_viewport().get_camera_2d()
+
+func _resume_after_pause() -> void:
+	if not player:
+		return
+	
+	var anim = player.get_node_or_null("AnimatedSprite2D")
+	if anim:
+		anim.play()
+	
+	player.set_physics_process(true)
+	player.set_process(true)
+	player.can_move = true
+	
+	if scientist:
+		scientist.set_process(true)
+		var sa = scientist.get_node_or_null("AnimationPlayer")
+		if sa: sa.play()
+	
+	if mechanic:
+		mechanic.set_process(true)
+		var ma = mechanic.get_node_or_null("AnimationPlayer")
+		if ma: ma.play()
+	
+	if chatter_active:
+		timer.start(typing_speed)

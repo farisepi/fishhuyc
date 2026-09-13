@@ -8,9 +8,10 @@
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="6_btnh"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="7_shader"]
 [ext_resource type="Texture2D" uid="uid://o37xtdnwekk5" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/AquariumAchievementBanner.png" id="8_banner"]
-[ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_seaweed"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="9_seaweed"]
 [ext_resource type="StyleBox" uid="uid://c1bbuan3bjjp4" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbar.tres" id="10_pbbg"]
 [ext_resource type="StyleBox" uid="uid://ckdv3klg5r04a" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbarFull.tres" id="11_pbfill"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="12_bldbw"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 shader = ExtResource("7_shader")
@@ -402,5 +403,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1777984415]
+visible = false
+layout_mode = 0
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("12_bldbw")
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

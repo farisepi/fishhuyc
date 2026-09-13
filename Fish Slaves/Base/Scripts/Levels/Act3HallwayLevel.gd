@@ -522,3 +522,9 @@ func _toggle_pause():
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		GlobalMusic.lower_volume()
 		pause_menu.show_menu()
+
+func _resume_after_pause() -> void:
+	if not player:
+		return
+	player.set_physics_process(true)
+	player.set_process(true)
