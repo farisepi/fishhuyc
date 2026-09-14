@@ -12,17 +12,14 @@
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="9_ugdgc"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="10_l8d1f"]
 [ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButtonDisaibled.tres" id="10_nmydp"]
+[ext_resource type="Texture2D" uid="uid://c0x18u3kl32t1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderHover.png" id="13_02ri3"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 [ext_resource type="Texture2D" uid="uid://b74scou55pwoh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSlider.png" id="aq_full"]
 [ext_resource type="Texture2D" uid="uid://bmaedtonn51hk" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png" id="aq_handle"]
 [ext_resource type="Texture2D" uid="uid://drbex8f3lmrkh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png" id="aq_handle_h"]
 [ext_resource type="Texture2D" uid="uid://b6og4lecbo74o" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSlider.png" id="aq_slider"]
 [ext_resource type="Texture2D" uid="uid://bfneohdbxq02r" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="aq_sw_off"]
-[ext_resource type="Texture2D" uid="uid://1gvtnk6n078j" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffHover.png" id="aq_sw_off_h"]
-[ext_resource type="Texture2D" uid="uid://cqdc1os6p2qlj" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOffPressed.png" id="aq_sw_off_p"]
 [ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="aq_sw_on"]
-[ext_resource type="Texture2D" uid="uid://ihod715081o1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnHover.png" id="aq_sw_on_h"]
-[ext_resource type="Texture2D" uid="uid://c6xwrtmxtvly1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOnPressed.png" id="aq_sw_on_p"]
 
 [sub_resource type="AtlasTexture" id="AT_Aq_Handle"]
 atlas = ExtResource("aq_handle")
@@ -44,11 +41,29 @@ texture = ExtResource("aq_full")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hvs4q"]
 texture = ExtResource("aq_full")
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vvur5"]
+texture = ExtResource("13_02ri3")
+
 [sub_resource type="AtlasTexture" id="AT_Aq_SwOn"]
 atlas = ExtResource("aq_sw_on")
 
 [sub_resource type="AtlasTexture" id="AT_Aq_SwOff"]
 atlas = ExtResource("aq_sw_off")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3ivvd"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o1jbc"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_j2mno"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gbfnw"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qfy0m"]
+texture = ExtResource("13_02ri3")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8uthl"]
 shader = ExtResource("13_2vibe")
@@ -198,9 +213,11 @@ offset_top = 242.0
 offset_right = 858.0
 offset_bottom = 282.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_vvur5")
 max_value = 1.0
 step = 0.01
 
@@ -237,10 +254,6 @@ offset_right = 593.0
 offset_bottom = 361.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
-theme_override_icons/checked_disabled = ExtResource("aq_sw_on_h")
-theme_override_icons/unchecked_disabled = ExtResource("aq_sw_off_h")
-theme_override_icons/checked_mirrored = ExtResource("aq_sw_off_p")
-theme_override_icons/unchecked_mirrored = ExtResource("aq_sw_on_p")
 button_pressed = true
 
 [node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
@@ -325,9 +338,11 @@ offset_top = 172.0
 offset_right = 878.0
 offset_bottom = 212.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_3ivvd")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -347,9 +362,11 @@ offset_top = 222.0
 offset_right = 878.0
 offset_bottom = 262.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_o1jbc")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -369,9 +386,11 @@ offset_top = 272.0
 offset_right = 878.0
 offset_bottom = 312.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_j2mno")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -391,9 +410,11 @@ offset_top = 322.0
 offset_right = 878.0
 offset_bottom = 362.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_gbfnw")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -413,9 +434,11 @@ offset_top = 372.0
 offset_right = 878.0
 offset_bottom = 412.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
 theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_qfy0m")
 max_value = 1.0
 step = 0.01
 value = 1.0

@@ -10,6 +10,7 @@
 [ext_resource type="StyleBox" uid="uid://cbd42ikbtrhos" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonPressed.tres" id="8_3cj0i"]
 [ext_resource type="StyleBox" uid="uid://8w80r31dxqhk" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonHover.tres" id="9_orhu2"]
 [ext_resource type="StyleBox" uid="uid://4rsmhqrh86tv" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonDisaibled.tres" id="10_rden2"]
+[ext_resource type="Texture2D" uid="uid://s2e6b85oo236" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandleHover.png" id="10_vvur5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="12_wqgc5"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="13_e8n2o"]
 [ext_resource type="Texture2D" uid="uid://d0kqvebxpatfa" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSlider.png" id="fac_full"]
@@ -39,11 +40,29 @@ texture = ExtResource("fac_full")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hvs4q"]
 texture = ExtResource("fac_full_h")
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3ivvd"]
+texture = ExtResource("fac_full_h")
+
 [sub_resource type="AtlasTexture" id="AT_Fac_SwOn"]
 atlas = ExtResource("fac_sw_on")
 
 [sub_resource type="AtlasTexture" id="AT_Fac_SwOff"]
 atlas = ExtResource("fac_sw_off")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o1jbc"]
+texture = ExtResource("fac_full_h")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_j2mno"]
+texture = ExtResource("fac_full_h")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gbfnw"]
+texture = ExtResource("fac_full_h")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qfy0m"]
+texture = ExtResource("fac_full_h")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bffu2"]
+texture = ExtResource("fac_full_h")
 
 [node name="SettingsMenu" type="Control" unique_id=146561357]
 layout_mode = 3
@@ -156,6 +175,7 @@ offset_top = 214.0
 offset_right = 820.0
 offset_bottom = 254.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
@@ -181,9 +201,11 @@ offset_top = 260.0
 offset_right = 820.0
 offset_bottom = 300.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_3ivvd")
 max_value = 1.0
 step = 0.01
 
@@ -303,9 +325,11 @@ offset_top = 172.0
 offset_right = 880.0
 offset_bottom = 212.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_o1jbc")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -325,9 +349,11 @@ offset_top = 222.0
 offset_right = 880.0
 offset_bottom = 262.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_j2mno")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -347,9 +373,11 @@ offset_top = 272.0
 offset_right = 880.0
 offset_bottom = 312.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_gbfnw")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -369,9 +397,11 @@ offset_top = 322.0
 offset_right = 880.0
 offset_bottom = 362.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_qfy0m")
 max_value = 1.0
 step = 0.01
 value = 1.0
@@ -391,9 +421,11 @@ offset_top = 372.0
 offset_right = 880.0
 offset_bottom = 412.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
+theme_override_icons/grabber_highlight = ExtResource("10_vvur5")
 theme_override_icons/grabber_disabled = SubResource("AT_Fac_Handle")
 theme_override_styles/slider = SubResource("SB_Fac_Slider_Normal")
 theme_override_styles/grabber_area = SubResource("SB_Fac_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_bffu2")
 max_value = 1.0
 step = 0.01
 value = 1.0
