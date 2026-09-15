@@ -11,6 +11,9 @@
 [ext_resource type="AudioStream" uid="uid://c27p23fymtcme" path="res://Fish Slaves/Sounds/SFX/Act1SFX/PlayerSFX/Act1SwimFish.mp3" id="10_g27ry"]
 [ext_resource type="AudioStream" uid="uid://b78pfa0pfuybf" path="res://Fish Slaves/Sounds/SFX/OverlaySFX/Achievement.mp3" id="11_ncnvx"]
 [ext_resource type="AudioStream" uid="uid://46mi3ibt3ivn" path="res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3" id="12_sci11"]
+[ext_resource type="AudioStream" uid="uid://cnf07hq1lgf25" path="res://Fish Slaves/Sounds/SFX/MenuSFX/OptionButtonOpenClick.mp3" id="13_optopen"]
+[ext_resource type="AudioStream" uid="uid://domk6304d5wwo" path="res://Fish Slaves/Sounds/SFX/MenuSFX/OptionButtonCloseClick.mp3" id="14_optclose"]
+[ext_resource type="AudioStream" uid="uid://dok6dj128lut7" path="res://Fish Slaves/Sounds/SFX/MenuSFX/SwitchButtonClick.mp3" id="15_swon"]
 
 [node name="UISounds" type="Node" unique_id=100860669]
 script = ExtResource("1_su6uh")
@@ -67,4 +70,19 @@ bus = &"SFX"
 [node name="AchievementPlayer" type="AudioStreamPlayer" parent="." unique_id=308746294]
 stream = ExtResource("11_ncnvx")
 volume_db = -10.0
+bus = &"UI"
+
+[node name="OptionOpenPlayer" type="AudioStreamPlayer" parent="." unique_id=1000000101]
+stream = ExtResource("13_optopen")
+volume_db = -15.0
+bus = &"UI"
+
+[node name="OptionClosePlayer" type="AudioStreamPlayer" parent="." unique_id=1000000102]
+stream = ExtResource("14_optclose")
+volume_db = -15.0
+bus = &"UI"
+
+[node name="SwitchPlayer" type="AudioStreamPlayer" parent="." unique_id=1000000103]
+stream = ExtResource("15_swon")
+volume_db = -15.0
 bus = &"UI"

@@ -10,12 +10,17 @@ extends Node
 @onready var aquarium_player: AudioStreamPlayer = $AquariumPlayer
 @onready var swim_player: AudioStreamPlayer = $SwimPlayer
 @onready var achievement_player: AudioStreamPlayer = $AchievementPlayer
+@onready var option_open_player: AudioStreamPlayer = $OptionOpenPlayer
+@onready var option_close_player: AudioStreamPlayer = $OptionClosePlayer
+@onready var switch_player: AudioStreamPlayer = $SwitchPlayer
 
 var pitch_variation: float = 0.1
 var scientist_queue: float = 0.0
 var mechanic_queue: float = 0.0
 var glitch_intensity: float = 0.0
 var current_noise_volume: float = -80.0
+
+const SWITCH_OFF_PITCH: float = 0.9438743
 
 func _ready() -> void:
 	if scientist_player:
@@ -59,6 +64,34 @@ func play_click() -> void:
 	click_player.volume_db = -15.0
 	click_player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
 	click_player.play()
+
+func play_option_open() -> void:
+	if not option_open_player:
+		return
+	option_open_player.volume_db = -15.0
+	option_open_player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	option_open_player.play()
+
+func play_option_close() -> void:
+	if not option_close_player:
+		return
+	option_close_player.volume_db = -15.0
+	option_close_player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	option_close_player.play()
+
+func play_switch_on() -> void:
+	if not switch_player:
+		return
+	switch_player.volume_db = -15.0
+	switch_player.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	switch_player.play()
+
+func play_switch_off() -> void:
+	if not switch_player:
+		return
+	switch_player.volume_db = -15.0
+	switch_player.pitch_scale = SWITCH_OFF_PITCH + randf_range(-pitch_variation, pitch_variation)
+	switch_player.play()
 
 func play_scientist() -> void:
 	if not scientist_player:

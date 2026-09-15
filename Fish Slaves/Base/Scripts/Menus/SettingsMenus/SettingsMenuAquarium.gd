@@ -81,6 +81,8 @@ var dynamic_range_arrow: TextureRect = null
 
 var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
+var _suppress_switch_sound: bool = false
+
 func _ready() -> void:
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
@@ -102,7 +104,11 @@ func _ready() -> void:
 	_connect_signals()
 	setup_options()
 	setup_audio_options()
+	
+	_suppress_switch_sound = true
 	load_settings()
+	_suppress_switch_sound = false
+	
 	update_key_labels()
 	show_page(0)
 	
@@ -208,6 +214,8 @@ func _open_dropdown(container: Control) -> void:
 	if not button:
 		return
 	
+	UISounds.play_option_open()
+	
 	container.position = Vector2(button.global_position.x, button.global_position.y + button.size.y)
 	container.size = Vector2(button.size.x, 0)
 	container.custom_minimum_size = Vector2(button.size.x, 0)
@@ -225,6 +233,8 @@ func _open_dropdown(container: Control) -> void:
 func _close_dropdown(container: Control) -> void:
 	if not container:
 		return
+	
+	UISounds.play_option_close()
 	
 	container.visible = false
 	
@@ -563,9 +573,18 @@ func _setup_ui() -> void:
 	if default_btn: controls.append(default_btn)
 	if back_btn: controls.append(back_btn)
 	
+	var silent_click: Callable = Callable()
+	var click_targets: Array = [
+		resolution_button, language_button, dynamic_range_button,
+		fps_check, fullscreen_check, vsync_check, effects_check, interface_attributes_check
+	]
+	
 	for control in controls:
 		if control:
-			ButtonEffects.setup(control)
+			if control in click_targets:
+				ButtonEffects.setup(control, silent_click)
+			else:
+				ButtonEffects.setup(control)
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))
@@ -599,18 +618,27 @@ func _on_fullscreen_toggled(pressed: bool) -> void:
 		get_window().mode = Window.MODE_FULLSCREEN
 	else:
 		get_window().mode = Window.MODE_WINDOWED
+	if not _suppress_switch_sound:
+		if pressed: UISounds.play_switch_on()
+		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_vsync_toggled(pressed: bool) -> void:
 	DisplayServer.window_set_vsync_mode(
 		DisplayServer.VSYNC_ENABLED if pressed else DisplayServer.VSYNC_DISABLED
 	)
+	if not _suppress_switch_sound:
+		if pressed: UISounds.play_switch_on()
+		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_effects_toggled(pressed: bool) -> void:
 	Global.atmospheric_effects_enabled = pressed
 	if not pressed:
 		_remove_all_bubbles()
+	if not _suppress_switch_sound:
+		if pressed: UISounds.play_switch_on()
+		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_interface_attributes_toggled(pressed: bool) -> void:
@@ -624,11 +652,18 @@ func _on_interface_attributes_toggled(pressed: bool) -> void:
 		var scene = get_tree().current_scene if get_tree() else null
 		if scene:
 			Global._force_apply_seaweed(scene)
+	
+	if not _suppress_switch_sound:
+		if pressed: UISounds.play_switch_on()
+		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_fps_toggled(pressed: bool) -> void:
 	if fps_label:
 		fps_label.visible = pressed
+	if not _suppress_switch_sound:
+		if pressed: UISounds.play_switch_on()
+		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_resolution_selected(index: int) -> void:
@@ -796,6 +831,7 @@ func _show_reset_confirm() -> void:
 	
 	menu.custom_action.connect(func(action):
 		if action == "yes":
+			_suppress_switch_sound = true
 			match page:
 				0:
 					resolution_selected = 0
@@ -824,6 +860,7 @@ func _show_reset_confirm() -> void:
 					_reset_controls_only()
 			save_settings()
 			load_settings()
+			_suppress_switch_sound = false
 		_close_current_popup()
 	)
 	menu.close_requested.connect(_close_current_popup)
@@ -861,7 +898,9 @@ func _show_unsaved_confirm() -> void:
 
 func _revert_to_last_saved() -> void:
 	config.load(CONFIG_PATH)
+	_suppress_switch_sound = true
 	load_settings()
+	_suppress_switch_sound = false
 
 func _get_current_page() -> int:
 	if graphics_page and graphics_page.visible: return 0

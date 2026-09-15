@@ -15,8 +15,8 @@
 [ext_resource type="Texture2D" uid="uid://c0x18u3kl32t1" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSliderHover.png" id="13_02ri3"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="13_2vibe"]
 [ext_resource type="Texture2D" uid="uid://b74scou55pwoh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuFullSlider/AquariumMenuFullSlider.png" id="aq_full"]
-[ext_resource type="Texture2D" uid="uid://bmaedtonn51hk" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png" id="aq_handle"]
-[ext_resource type="Texture2D" uid="uid://drbex8f3lmrkh" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png" id="aq_handle_h"]
+[ext_resource type="Texture2D" uid="uid://by2bo7keqtslx" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandle.png" id="aq_handle"]
+[ext_resource type="Texture2D" uid="uid://dmynav670ynr" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuHandle/AquariumMenuHandleHover.png" id="aq_handle_h"]
 [ext_resource type="Texture2D" uid="uid://b6og4lecbo74o" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/AquariumMenuSliders/AquariumMenuSliders/AquariumMenuSlider/AquariumMenuSlider.png" id="aq_slider"]
 [ext_resource type="Texture2D" uid="uid://bfneohdbxq02r" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOff/AquariumSwitchOff.png" id="aq_sw_off"]
 [ext_resource type="Texture2D" uid="uid://bacgtlliwfcxv" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/AquariumMenuSwitchs/AquariumSwitchOn/AquariumSwitchOn.png" id="aq_sw_on"]
@@ -183,9 +183,9 @@ text = "Яркость"
 [node name="BrightnessSlider" type="HSlider" parent="GraphicsPage" unique_id=2089159620]
 layout_mode = 0
 offset_left = 554.0
-offset_top = 199.0
+offset_top = 194.0
 offset_right = 858.0
-offset_bottom = 239.0
+offset_bottom = 234.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
 theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
@@ -209,9 +209,9 @@ vertical_alignment = 1
 [node name="CameraSensitivitySlider" type="HSlider" parent="GraphicsPage" unique_id=1934867960]
 layout_mode = 0
 offset_left = 554.0
-offset_top = 242.0
+offset_top = 240.0
 offset_right = 858.0
-offset_bottom = 282.0
+offset_bottom = 280.0
 theme_override_icons/grabber = SubResource("AT_Aq_Handle")
 theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
 theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
@@ -232,9 +232,9 @@ text = "Полный экран"
 [node name="FullScreenCheck" type="CheckButton" parent="GraphicsPage" unique_id=134815477]
 layout_mode = 0
 offset_left = 549.0
-offset_top = 283.0
+offset_top = 291.0
 offset_right = 593.0
-offset_bottom = 311.0
+offset_bottom = 319.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 
@@ -249,9 +249,9 @@ text = "V-Sync"
 [node name="VSyncCheck" type="CheckButton" parent="GraphicsPage" unique_id=1981078603]
 layout_mode = 0
 offset_left = 549.0
-offset_top = 333.0
+offset_top = 341.0
 offset_right = 593.0
-offset_bottom = 361.0
+offset_bottom = 369.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 button_pressed = true
@@ -267,9 +267,9 @@ text = "Показать FPS"
 [node name="FPSCheck" type="CheckButton" parent="GraphicsPage" unique_id=626264177]
 layout_mode = 0
 offset_left = 549.0
-offset_top = 383.0
+offset_top = 391.0
 offset_right = 593.0
-offset_bottom = 411.0
+offset_bottom = 419.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 
@@ -284,9 +284,9 @@ text = "Атмосферные эффекты"
 [node name="EffectsCheck" type="CheckButton" parent="GraphicsPage" unique_id=1658047113]
 layout_mode = 0
 offset_left = 549.0
-offset_top = 433.0
+offset_top = 441.0
 offset_right = 593.0
-offset_bottom = 461.0
+offset_bottom = 469.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 button_pressed = true
@@ -302,9 +302,9 @@ text = "Атрибуты интерфейса"
 [node name="InterfaceAttributesCheck" type="CheckButton" parent="GraphicsPage" unique_id=1503275157]
 layout_mode = 0
 offset_left = 549.0
-offset_top = 483.0
+offset_top = 491.0
 offset_right = 593.0
-offset_bottom = 511.0
+offset_bottom = 519.0
 theme_override_icons/checked = SubResource("AT_Aq_SwOn")
 theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
 button_pressed = true
@@ -827,9 +827,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -81.0
-offset_top = -36.0
+offset_top = -37.0
 offset_right = 1335.0
-offset_bottom = 832.0
+offset_bottom = 831.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
