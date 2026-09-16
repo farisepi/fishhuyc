@@ -1,16 +1,16 @@
 extends Node2D
 
-@onready var player: CharacterBody2D = $"../Mecha_Fish"
-@onready var cutscene_camera: Camera2D = $"../CutsceneCamera"
-@onready var fade_rect: ColorRect = $"../FadeRect"
-@onready var stamps: Node2D = $"../Stamps"
-@onready var neighbor: ColorRect = $"../Neighbors/Neighbor"
-@onready var boss: CharacterBody2D = $"../Boss"
-@onready var interaction_area: Area2D = $"../InteractionArea"
-@onready var dialogue_panel: Panel = $"../DialogCanvas/DialoguePanel"
-@onready var text_label: RichTextLabel = $"../DialogCanvas/DialoguePanel/TextLabel"
-@onready var exclamation: Label = $"../Exclamation"
-@onready var stamp_timer: Timer = $"../StampTimer"
+@onready var player: CharacterBody2D = $"Mecha_Fish"
+@onready var cutscene_camera: Camera2D = $"CutsceneCamera"
+@onready var fade_rect: ColorRect = $"FadeRect"
+@onready var stamps: Node2D = $"Stamps"
+@onready var neighbor: ColorRect = $"Neighbors/Neighbor"
+@onready var boss: CharacterBody2D = $"Boss"
+@onready var interaction_area: Area2D = $"InteractionArea"
+@onready var dialogue_panel: Panel = $"DialogCanvas/DialoguePanel"
+@onready var text_label: RichTextLabel = $"DialogCanvas/DialoguePanel/TextLabel"
+@onready var exclamation: Label = $"Exclamation"
+@onready var stamp_timer: Timer = $"StampTimer"
 
 var can_interact: bool = false
 var sequence_started: bool = false

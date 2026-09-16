@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://ce3utsq8i6fdq" path="res://Fish Slaves/Textures/Interface/In-GameInterface/AirBallon/AirBallon.png" id="25_ilx6o"]
 [ext_resource type="Texture2D" uid="uid://chj0qgvbcsnij" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Stamina/Stamina.png" id="25_tsph4"]
 [ext_resource type="Texture2D" uid="uid://ca7y2p0pga5ck" path="res://Fish Slaves/Textures/Interface/In-GameInterface/MehIndicator/MehIndicatorOff.png" id="26_yijt6"]
+[ext_resource type="Texture2D" uid="uid://dyuo73dsajuyu" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicInstrumentBox/MechanicInstrumentBox1.png" id="27_yijt6"]
 
 [sub_resource type="Animation" id="Animation_dhll7"]
 length = 0.8
@@ -553,6 +554,15 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_riqys"]
+size = Vector2(322, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6f8o3"]
+size = Vector2(20, 322)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
+size = Vector2(651.5, 20)
+
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
 metadata/_edit_vertical_guides_ = [296.0, 300.0]
@@ -933,6 +943,26 @@ animation = &"StaminaDrain"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/StaminaBar/StaminaBar" unique_id=1306058174]
 
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="." unique_id=492022912]
+position = Vector2(290, 351)
+rotation = -1.5707964
+shape = SubResource("RectangleShape2D_riqys")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="." unique_id=1019308031]
+position = Vector2(920, 353)
+shape = SubResource("RectangleShape2D_6f8o3")
+
+[node name="MechanicInstrumentBox1" type="Sprite2D" parent="." unique_id=972050804]
+position = Vector2(785.00006, 650)
+scale = Vector2(3, 3)
+texture = ExtResource("27_yijt6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1237767610]
+position = Vector2(605.25, 182)
+shape = SubResource("RectangleShape2D_sn0t7")
+
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
 [connection signal="timeout" from="DialogueTimer" to="." method="_on_dialogue_timer_timeout"]
+
+[editable path="рыбка"]
