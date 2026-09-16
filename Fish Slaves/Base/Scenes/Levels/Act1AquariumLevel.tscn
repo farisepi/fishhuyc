@@ -953,8 +953,8 @@ position = Vector2(920, 353)
 shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="MechanicInstrumentBox1" type="Sprite2D" parent="." unique_id=972050804]
-position = Vector2(785.00006, 650)
-scale = Vector2(3, 3)
+position = Vector2(767.5, 654)
+scale = Vector2(2.0625, 2.1999984)
 texture = ExtResource("27_yijt6")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1237767610]
