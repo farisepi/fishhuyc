@@ -13,7 +13,7 @@
 [ext_resource type="AudioStream" uid="uid://46mi3ibt3ivn" path="res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3" id="12_sci11"]
 [ext_resource type="AudioStream" uid="uid://cnf07hq1lgf25" path="res://Fish Slaves/Sounds/SFX/MenuSFX/OptionButtonOpenClick.mp3" id="13_optopen"]
 [ext_resource type="AudioStream" uid="uid://domk6304d5wwo" path="res://Fish Slaves/Sounds/SFX/MenuSFX/OptionButtonCloseClick.mp3" id="14_optclose"]
-[ext_resource type="AudioStream" uid="uid://dok6dj128lut7" path="res://Fish Slaves/Sounds/SFX/MenuSFX/SwitchButtonClick.mp3" id="15_swon"]
+[ext_resource type="AudioStream" uid="uid://v4046jvk3l28" path="res://Fish Slaves/Sounds/SFX/MenuSFX/SwitchButtonClick.mp3" id="15_swon"]
 
 [node name="UISounds" type="Node" unique_id=100860669]
 script = ExtResource("1_su6uh")
