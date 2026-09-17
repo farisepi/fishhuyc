@@ -9,13 +9,22 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message_thread_id: ${{ secrets.TELEGRAM_TOPIC_ID }}
+          format: html
           message: |
-            ${{ github.event_name }}
-            Коммит: ${{ github.sha }}
-            Автор: ${{ github.actor }}
+            <b>${{ github.event_name }}</b>
+            <b>Автор:</b> ${{ github.actor }}
+            
+            <b>Сообщение:</b>
+            <i>${{ github.event.head_commit.message || github.event.pull_request.title }}</i>
+            
+            📂 <a href="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}">Ссылка на коммит</a>
+
