@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
 [ext_resource type="Texture2D" uid="uid://b2wmgpjxxaku" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://dosws3hajlb57" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
+[ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://Fish Slaves/Base/TileSet/collision_tileset.tres" id="17_ccpdg"]
 [ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
 [ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
@@ -112,12 +113,6 @@ _data = {
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_vhqdt"]
 radius = 16.0
 height = 100.0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5vwn5"]
-
-[sub_resource type="TileSet" id="TileSet_10vj2"]
-occlusion_layer_0/light_mask = 1
-sources/0 = SubResource("TileSetAtlasSource_5vwn5")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ey7it"]
 shader = ExtResource("21_5vwn5")
@@ -554,15 +549,6 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_riqys"]
-size = Vector2(322, 20)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_6f8o3"]
-size = Vector2(20, 322)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sn0t7"]
-size = Vector2(651.5, 20)
-
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
 metadata/_edit_vertical_guides_ = [296.0, 300.0]
@@ -578,6 +564,12 @@ script = ExtResource("13_yp00i")
 
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
 position = Vector2(605, 224)
+
+[node name="UI_Container" parent="рыбка/GUI" parent_id_path=PackedInt32Array(294675082, 874896627) index="0" unique_id=610954526]
+offset_left = 2.0618556
+offset_top = 0.90206146
+offset_right = 1159.0619
+offset_bottom = 652.90204
 
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
 z_index = -100
@@ -755,8 +747,10 @@ texture = ExtResource("15_yijt6")
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=177164233]
 visible = false
 position = Vector2(-8, 3)
-tile_map_data = PackedByteArray("AAADACMAAAAYABYAAAAEACMAAAAZABYAAAAFACMAAAAaABYAAAAGACMAAAAbABYAAAALACMAAAAYABYAAAAMACMAAAAZABYAAAANACMAAAAaABYAAAAOACMAAAAbABYAAAATACMAAAAYABYAAAAUACMAAAAZABYAAAAVACMAAAAaABYAAAAWACMAAAAbABYAAAAaACMAAAAYABYAAAAbACMAAAAZABYAAAAcACMAAAAaABYAAAAdACMAAAAbABYAAAAiACMAAAAYABYAAAAjACMAAAAZABYAAAAkACMAAAAaABYAAAAlACMAAAAbABYAAAAqACMAAAAYABYAAAArACMAAAAZABYAAAAsACMAAAAaABYAAAAtACMAAAAbABYAAAAyACMAAAAYABYAAAAzACMAAAAZABYAAAA0ACMAAAAaABYAAAA1ACMAAAAbABYAAAA6ACMAAAAYABYAAAA7ACMAAAAZABYAAAA8ACMAAAAaABYAAAA9ACMAAAAbABYAAAA=")
-tile_set = SubResource("TileSet_10vj2")
+tile_map_data = PackedByteArray("AAADACMAAAAYABYAAAAEACMAAAAZABYAAAAFACMAAAAaABYAAAAGACMAAAAbABYAAAALACMAAAAYABYAAAAMACMAAAAZABYAAAANACMAAAAaABYAAAAOACMAAAAbABYAAAATACMAAAAYABYAAAAUACMAAAAZABYAAAAVACMAAAAaABYAAAAWACMAAAAbABYAAAAaACMAAAAYABYAAAAbACMAAAAZABYAAAAcACMAAAAaABYAAAAdACMAAAAbABYAAAAiACMAAAAYABYAAAAjACMAAAAZABYAAAAkACMAAAAaABYAAAAlACMAAAAbABYAAAAqACMAAAAYABYAAAArACMAAAAZABYAAAAsACMAAAAaABYAAAAtACMAAAAbABYAAAAyACMAAAAYABYAAAAzACMAAAAZABYAAAA0ACMAAAAaABYAAAA1ACMAAAAbABYAAAA6ACMAAAAYABYAAAA7ACMAAAAZABYAAAA8ACMAAAAaABYAAAA9ACMAAAAbABYAAAA5ACAABAAAAAAAAAA4ACAABAAAAAAAAAA3ACAABAAAAAAAAAA2ACAABAAAAAAAAAA1ACAABAAAAAAAAAA0ACAABAAAAAAAAAAzACAABAAAAAAAAAAyACAABAAAAAAAAAAxACAABAAAAAAAAAAwACAABAAAAAAAAAAvACAABAAAAAAAAAAuACAABAAAAAAAAAAtACAABAAAAAAAAAAsACAABAAAAAAAAAArACAABAAAAAAAAAAqACAABAAAAAAAAAApACAABAAAAAAAAAAoACAABAAAAAAAAAAnACAABAAAAAAAAAAmACAABAAAAAAAAAAlACAABAAAAAAAAAAkACAABAAAAAAAAAAjACAABAAAAAAAAAAiACAABAAAAAAAAAAhACAABAAAAAAAAAAgACAABAAAAAAAAAAfACAABAAAAAAAAAAeACAABAAAAAAAAAAdACAABAAAAAAAAAAcACAABAAAAAAAAAAbACAABAAAAAAAAAAaACAABAAAAAAAAAAZACAABAAAAAAAAAAYACAABAAAAAAAAAAXACAABAAAAAAAAAAWACAABAAAAAAAAAAVACAABAAAAAAAAAAUACAABAAAAAAAAAATACAABAAAAAAAAAATAB8ABAAAAAAAAAATAB4ABAAAAAAAAAATAB0ABAAAAAAAAAATABwABAAAAAAAAAATABsABAAAAAAAAAATABoABAAAAAAAAAATABkABAAAAAAAAAATABgABAAAAAAAAAATABcABAAAAAAAAAATABYABAAAAAAAAAATABUABAAAAAAAAAATABQABAAAAAAAAAATABMABAAAAAAAAAATABIABAAAAAAAAAATABEABAAAAAAAAAATABAABAAAAAAAAAATAA8ABAAAAAAAAAATAA4ABAAAAAAAAAATAA0ABAAAAAAAAAATAAwABAAAAAAAAAATAAsABAAAAAAAAAAUAAsABAAAAAAAAAAVAAsABAAAAAAAAAAWAAsABAAAAAAAAAAXAAsABAAAAAAAAAAYAAsABAAAAAAAAAAZAAsABAAAAAAAAAAaAAsABAAAAAAAAAAbAAsABAAAAAAAAAAcAAsABAAAAAAAAAAdAAsABAAAAAAAAAAeAAsABAAAAAAAAAAfAAsABAAAAAAAAAAgAAsABAAAAAAAAAAhAAsABAAAAAAAAAAiAAsABAAAAAAAAAAjAAsABAAAAAAAAAAkAAsABAAAAAAAAAAlAAsABAAAAAAAAAAmAAsABAAAAAAAAAAnAAsABAAAAAAAAAAoAAsABAAAAAAAAAApAAsABAAAAAAAAAAqAAsABAAAAAAAAAArAAsABAAAAAAAAAAsAAsABAAAAAAAAAAtAAsABAAAAAAAAAAuAAsABAAAAAAAAAAvAAsABAAAAAAAAAAwAAsABAAAAAAAAAAxAAsABAAAAAAAAAAyAAsABAAAAAAAAAAzAAsABAAAAAAAAAA0AAsABAAAAAAAAAA1AAsABAAAAAAAAAA2AAsABAAAAAAAAAA3AAsABAAAAAAAAAA4AAsABAAAAAAAAAA5AAsABAAAAAAAAAA5AAwABAAAAAAAAAA5AA0ABAAAAAAAAAA5AA4ABAAAAAAAAAA5AA8ABAAAAAAAAAA5ABAABAAAAAAAAAA5ABEABAAAAAAAAAA5ABIABAAAAAAAAAA5ABMABAAAAAAAAAA5ABQABAAAAAAAAAA5ABUABAAAAAAAAAA5ABYABAAAAAAAAAA5ABcABAAAAAAAAAA5ABgABAAAAAAAAAA5ABkABAAAAAAAAAA5ABoABAAAAAAAAAA5ABsABAAAAAAAAAA5ABwABAAAAAAAAAA5AB0ABAAAAAAAAAA5AB4ABAAAAAAAAAA5AB8ABAAAAAAAAAA=")
+tile_set = ExtResource("17_ccpdg")
+collision_visibility_mode = 1
+navigation_enabled = false
 
 [node name="ChatterCanvas" type="CanvasLayer" parent="." unique_id=918417183]
 
@@ -943,23 +937,10 @@ animation = &"StaminaDrain"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CanvasLayer/UI/StaminaBar/StaminaBar" unique_id=1306058174]
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="." unique_id=492022912]
-position = Vector2(290, 351)
-rotation = -1.5707964
-shape = SubResource("RectangleShape2D_riqys")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="." unique_id=1019308031]
-position = Vector2(920, 353)
-shape = SubResource("RectangleShape2D_6f8o3")
-
 [node name="MechanicInstrumentBox1" type="Sprite2D" parent="." unique_id=972050804]
 position = Vector2(767.5, 654)
 scale = Vector2(2.0625, 2.1999984)
 texture = ExtResource("27_yijt6")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1237767610]
-position = Vector2(605.25, 182)
-shape = SubResource("RectangleShape2D_sn0t7")
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
