@@ -57,6 +57,8 @@ var chatter_segments: Array = []
 var chatter_segment_index: int = 0
 var chatter_char_in_segment: int = 0
 var chatter_panel_height: float = 28.0
+var chatter_typed_text: String = ""
+var is_glitching: bool = false
 
 var glitch_tween: Tween
 var text_glitch_timer: float = 0.0
@@ -978,69 +980,55 @@ func stop_chatter() -> void:
 		glitch_tween.kill()
 
 func _apply_text_glitch(intensity: float) -> void:
-	if not chatter_active or cutscene_active or not chatter_label:
+	if not chatter_active or cutscene_active or not chatter_label or is_glitching:
 		return
-	
-	var original = chatter_label.text
+
+	var original = chatter_typed_text
 	if original.length() == 0:
 		return
-	
+
+	is_glitching = true
+
 	if intensity > 0.03:
 		var chars_main = []
 		for c in original:
 			chars_main.append(c)
-		
+
 		var up_count = max(1, int(intensity * chars_main.size() * 0.12))
 		for i in range(up_count):
 			var pos = randi() % chars_main.size()
 			if chars_main[pos] != " ":
 				chars_main[pos] = chars_main[pos].to_upper()
-		
+
 		var rm_count = max(1, int(intensity * chars_main.size() * 0.08))
 		for i in range(rm_count):
 			var pos = randi() % chars_main.size()
 			if chars_main[pos] != " ":
 				chars_main[pos] = ""
-		
+
 		var glitched_main = ""
 		for c in chars_main:
 			glitched_main += c
-		
+
 		chatter_label.text = glitched_main
 		chatter_label.add_theme_color_override("default_color", Color(1.0, 0.4, 0.4))
-		
+
 		if chatter_label_far:
 			chatter_label_far.text = glitched_main
 			chatter_label_far.add_theme_color_override("default_color", Color(1.0, 0.4, 0.4))
-		
+
 		await get_tree().create_timer(0.06).timeout
-		
+
 		if chatter_active and not cutscene_active and is_instance_valid(chatter_label):
-			chatter_label.text = original
+			# читаем chatter_typed_text ЗАНОВО — за эти 60мс печать могла уйти дальше
+			chatter_label.text = chatter_typed_text
 			chatter_label.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
 			if chatter_label_far:
-				chatter_label_far.text = original
+				chatter_label_far.text = chatter_typed_text
 				chatter_label_far.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
 
-func _apply_visual_glitch(intensity: float) -> void:
-	var panels_to_shake: Array[Panel] = []
-	
-	if chatter_panel_far and chatter_panel_far.visible:
-		panels_to_shake.append(chatter_panel_far)
-	if phantom_left and phantom_left.visible:
-		panels_to_shake.append(phantom_left)
-	if phantom_right and phantom_right.visible:
-		panels_to_shake.append(phantom_right)
-	
-	for panel in panels_to_shake:
-		var orig = panel.position
-		var shake_x = randf_range(-intensity * 6, intensity * 6)
-		var shake_y = randf_range(-intensity * 4, intensity * 4)
-		
-		var gt = create_tween()
-		gt.set_loops(randi() % 4 + 2)
-		gt.tween_property(panel, "position", orig + Vector2(shake_x, shake_y), 0.02)
-		gt.tween_property(panel, "position", orig, 0.04)
+	is_glitching = false
+
 
 func shake_panel() -> void:
 	if not dialogue_panel:
@@ -1062,7 +1050,9 @@ func shake_chatter_panel() -> void:
 	t.tween_property(tp, "position:x", orig.x + 5, 0.04)
 	t.tween_property(tp, "position:x", orig.x - 5, 0.04)
 	t.tween_property(tp, "position:x", orig.x, 0.04)
-
+	
+func _apply_visual_glitch(intensity: float) -> void:
+	var panels_to_shake: Array[Panel] = []
 func scientist_say(p1: String, m: String, p2: String) -> void:
 	if not text_label or not dialogue_panel or not scientist or not timer:
 		return
@@ -1189,7 +1179,8 @@ func _on_chatter_typing_timer() -> void:
 	if chatter_segment_index < chatter_segments.size():
 		var seg: Dictionary = chatter_segments[chatter_segment_index]
 		if seg["swear"]:
-			chatter_label.text += "[color=#FF3333]" + seg["text"] + "[/color]"
+			chatter_typed_text += "[color=#FF3333]" + seg["text"] + "[/color]"
+			chatter_label.text = chatter_typed_text
 			shake_chatter_panel()
 			chatter_segment_index += 1
 			chatter_char_in_segment = 0
@@ -1197,7 +1188,8 @@ func _on_chatter_typing_timer() -> void:
 		else:
 			var seg_text = seg["text"]
 			if chatter_char_in_segment < seg_text.length():
-				chatter_label.text += seg_text[chatter_char_in_segment]
+				chatter_typed_text += seg_text[chatter_char_in_segment]
+				chatter_label.text = chatter_typed_text
 				chatter_char_in_segment += 1
 				timer.start(typing_speed)
 			else:
