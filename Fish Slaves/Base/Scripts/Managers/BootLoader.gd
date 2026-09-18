@@ -19,10 +19,6 @@ func _ready() -> void:
 	_dot_timer = 0.0
 	loading_label.text = "загрузка"
 	
-	title.modulate.a = 0.0
-	name1.modulate.a = 0.0
-	separator.modulate.a = 0.0
-	name2.modulate.a = 0.0
 	loading_label.modulate.a = 0.0
 	
 	var tween = create_tween()
