@@ -18,7 +18,8 @@ var climb_sprite_offset: float = 0.0
 var is_dead: bool = false
 var original_color: Color = Color(1, 1, 1, 1)
 var block_color: Color = Color(0.5, 0.8, 1.0, 1)
-var hp: int = 100
+var hp: int = 5
+var max_hp: int = 5
 var is_blocking: bool = false
 var is_vaulting: bool = false
 var is_climbing: bool = false
@@ -50,12 +51,20 @@ var last_climbed_obstacle: Node = null
 
 func _ready():
 	add_to_group("player")
+	hp = 5
+	max_hp = 5
 	sprite.play("Idle")
 	held_icon = Sprite2D.new()
 	held_icon.visible = false
 	held_icon.scale = Vector2(0.8, 0.8)
 	held_icon.z_index = 100
 	add_child(held_icon)
+
+func get_hp() -> int:
+	return hp
+
+func get_max_hp() -> int:
+	return max_hp
 
 var was_on_floor: bool = true
 var velocity_y_before_jump: float = 0.0
