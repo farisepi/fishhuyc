@@ -8,7 +8,7 @@ var tilt_speed: float = 2.0
 var float_strength: float = 1.5
 var float_speed: float = 2.0
 var hp: int = 1
-var max_hp: int = 100
+var max_hp: int = 5
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -28,7 +28,7 @@ var can_move: bool = true
 func _ready() -> void:
 	add_to_group("player")
 	hp = 1
-	max_hp = 100
+	max_hp = 5
 	if sprite:
 		sprite.scale.x = 1.0 if facing_direction == -1 else -1.0
 	

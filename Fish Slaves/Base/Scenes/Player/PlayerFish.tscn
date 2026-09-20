@@ -647,8 +647,8 @@ position_smoothing_enabled = true
 script = ExtResource("24_cmea6")
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=874896627]
-follow_viewport_enabled = true
-follow_viewport_scale = 7.76
+follow_viewport_enabled = false
+follow_viewport_scale = 1.0
 script = ExtResource("19_btaig")
 
 [node name="UI_Container" type="Control" parent="GUI" unique_id=610954526]

@@ -54,14 +54,17 @@ func _ready():
 	add_child(glow)
 
 func _process(delta):
+	print("MechaInterface._process: paused=", get_tree().paused)
 	if get_tree().paused:
 		return
 	
 	var player = get_tree().get_first_node_in_group("player")
+	print("player=", player)
 	if not player:
 		return
 	
 	if player.has_method("get_hp"):
+		print("get_hp=", player.get_hp())
 		current_hearts = player.get_hp()
 		_update_hearts()
 	
