@@ -191,6 +191,7 @@ func _ready() -> void:
 			
 			chatter_label.text = chatter_full_text
 			chatter_label_far.text = chatter_full_text
+			chatter_typed_text = chatter_full_text
 			chatter_panel.visible = true
 			chatter_panel.modulate.a = 1.0
 			update_chatter_panel()
@@ -372,6 +373,7 @@ func start_chatter_with_fade() -> void:
 	chatter_label_far.clear()
 	chatter_label.text = ""
 	chatter_label_far.text = ""
+	chatter_typed_text = ""
 	
 	await get_tree().create_timer(0.3).timeout
 	
@@ -637,6 +639,7 @@ func set_chatter_state(state: Dictionary):
 	
 	chatter_label.text = chatter_full_text
 	chatter_label_far.text = chatter_full_text
+	chatter_typed_text = chatter_full_text
 	chatter_panel.visible = true
 	chatter_panel.modulate.a = 1.0
 	
@@ -913,6 +916,7 @@ func _show_next_chatter_line() -> void:
 	chatter_label_far.clear()
 	chatter_label.text = ""
 	chatter_label_far.text = ""
+	chatter_typed_text = ""
 	chatter_panel.visible = false
 	chatter_panel_far.visible = false
 	chatter_typing = true
@@ -960,6 +964,7 @@ func start_chatter() -> void:
 	chatter_label_far.clear()
 	chatter_label.text = ""
 	chatter_label_far.text = ""
+	chatter_typed_text = ""
 	
 	update_chatter_panel()
 	
