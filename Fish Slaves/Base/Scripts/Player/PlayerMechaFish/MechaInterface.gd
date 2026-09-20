@@ -6,7 +6,7 @@ extends CanvasLayer
 @onready var suit_icon: Sprite2D = $UI_Container/SuitIcon
 
 var max_hearts: int = 5
-var current_hearts: int = 5
+var current_hearts: int = 1
 var stamina_value: float = 100.0
 var max_stamina: float = 100.0
 var has_suit: bool = false
@@ -20,11 +20,21 @@ var hp_bar_base_pos: Vector2
 var hearts_base_pos: Vector2
 var stamina_base_pos: Vector2
 
+# Скорости анимации HPBar по количеству сердец
+const HP_BAR_SPEED_TABLE: Dictionary = {
+	5: 1.0,
+	4: 1.125,
+	3: 1.25,
+	2: 1.375,
+	1: 1.5,
+	0: 0.0,
+}
+
 func _ready():
 	hp_bar.play("HP_Bar")
+	hp_bar.frame = 0
 	_update_hearts()
 	_update_stamina()
-	
 	
 	hp_bar_base_pos = hp_bar.position
 	hearts_base_pos = hearts.position
@@ -54,23 +64,28 @@ func _ready():
 	add_child(glow)
 
 func _process(delta):
-	print("MechaInterface._process: paused=", get_tree().paused)
 	if get_tree().paused:
 		return
 	
 	var player = get_tree().get_first_node_in_group("player")
-	print("player=", player)
 	if not player:
 		return
 	
 	if player.has_method("get_hp"):
-		print("get_hp=", player.get_hp())
 		current_hearts = player.get_hp()
 		_update_hearts()
 	
 	if player.has_method("get_stamina"):
 		stamina_value = player.get_stamina()
 		_update_stamina()
+	
+	# Скорость анимации HPBar по таблице
+	if hp_bar:
+		var h = clamp(current_hearts, 0, 5)
+		var speed = HP_BAR_SPEED_TABLE.get(h, 1.0)
+		hp_bar.speed_scale = speed
+		if speed <= 0.0:
+			hp_bar.stop()
 	
 	var hp_percent = float(current_hearts) / float(max_hearts)
 	
@@ -102,9 +117,10 @@ func _update_hearts():
 	if not hearts:
 		return
 	var total_frames = hearts.sprite_frames.get_frame_count("Hp")
-	var frame = int((float(current_hearts) / float(max_hearts)) * (total_frames - 1))
-	hearts.frame = clamp(frame, 0, total_frames - 1)
+	var frame = total_frames - 1 - int(clamp(float(current_hearts) / float(max_hearts), 0.0, 1.0) * (total_frames - 1))
 	hearts.stop()
+	hearts.frame = clamp(frame, 0, total_frames - 1)
+	print("Hearts frame=", hearts.frame, " current=", current_hearts, " max=", max_hearts, " total=", total_frames)
 
 func _update_stamina():
 	if not stamina:
@@ -114,7 +130,6 @@ func _update_stamina():
 	var frame = int(percent * (total_frames - 1))
 	stamina.frame = clamp(frame, 0, total_frames - 1)
 	stamina.stop()
-
 
 func set_hearts(value: int):
 	current_hearts = clamp(value, 0, max_hearts)

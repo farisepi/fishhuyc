@@ -2,10 +2,6 @@ extends Node
 
 @onready var bg: ColorRect = $Canvas/BG
 @onready var loading_label: Label = $Canvas/LoadingLabel
-@onready var title: Label = $Canvas/Center/Title
-@onready var name1: Label = $Canvas/NamesRow/Name1
-@onready var separator: Label = $Canvas/NamesRow/Separator
-@onready var name2: Label = $Canvas/NamesRow/Name2
 
 const INTRO_DURATION: float = 3.5
 const DOT_INTERVAL: float = 0.4
@@ -20,14 +16,11 @@ func _ready() -> void:
 	loading_label.text = "загрузка"
 	
 	loading_label.modulate.a = 0.0
+	bg.modulate.a = 1.0
 	
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(loading_label, "modulate:a", 1.0, 0.4)
-	tween.tween_property(title, "modulate:a", 1.0, 0.6)
-	tween.tween_property(name1, "modulate:a", 1.0, 0.5)
-	tween.parallel().tween_property(separator, "modulate:a", 1.0, 0.5)
-	tween.parallel().tween_property(name2, "modulate:a", 1.0, 0.5)
 	
 	# Определяем целевую сцену
 	var level = Global.last_save_level
@@ -59,39 +52,23 @@ func _ready() -> void:
 	var tree = get_tree()
 	var old_scene = tree.current_scene
 	
-	# Добавляем меню в корень, но НЕ активируем (current_scene не меняем сразу)
 	tree.root.add_child(scene_instance)
 	tree.current_scene = scene_instance
 	
-	# Удаляем старую сцену (BootLoader сам — автолоад, не current_scene, но на всякий)
 	if old_scene and old_scene != scene_instance:
 		old_scene.queue_free()
 	
-	# Небольшая пауза чтобы меню прогрузилось под бутлоадером
 	await tree.process_frame
 	await tree.process_frame
 	await tree.process_frame
 	
-	# Плавно гасим бутлоадер
 	var fade = create_tween()
 	fade.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	fade.tween_property(bg, "modulate:a", 0.0, 0.8)
 	fade.parallel().tween_property(loading_label, "modulate:a", 0.0, 0.8)
-	fade.parallel().tween_property(title, "modulate:a", 0.0, 0.8)
-	fade.parallel().tween_property(name1, "modulate:a", 0.0, 0.8)
-	fade.parallel().tween_property(separator, "modulate:a", 0.0, 0.8)
-	fade.parallel().tween_property(name2, "modulate:a", 0.0, 0.8)
 	await fade.finished
 	
-	# Удаляем бутлоадер полностью
 	queue_free()
 
-func _process(delta: float) -> void:
-	_dot_timer += delta
-	if _dot_timer >= DOT_INTERVAL:
-		_dot_timer = 0.0
-		_dots = (_dots + 1) % 4
-		var dots_str = ""
-		for i in range(_dots):
-			dots_str += "."
-		loading_label.text = "загрузка" + dots_str
+func _process(_delta: float) -> void:
+	pass
