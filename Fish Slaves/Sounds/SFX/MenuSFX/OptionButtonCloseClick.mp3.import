@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://mmdl712w7t76"
+path="res://.godot/imported/OptionButtonCloseClick.mp3-33aaf8965b1303448450f0eb54f43d77.mp3str"
+
+[deps]
+
+source_file="res://Fish Slaves/Sounds/SFX/MenuSFX/OptionButtonCloseClick.mp3"
+dest_files=["res://.godot/imported/OptionButtonCloseClick.mp3-33aaf8965b1303448450f0eb54f43d77.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

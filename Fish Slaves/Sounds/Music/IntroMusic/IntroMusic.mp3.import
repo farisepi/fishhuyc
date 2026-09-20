@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cjdxe02ydfcp1"
+path="res://.godot/imported/IntroMusic.mp3-0240a65d5c957dbf6cce3f03decc979b.mp3str"
+
+[deps]
+
+source_file="res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3"
+dest_files=["res://.godot/imported/IntroMusic.mp3-0240a65d5c957dbf6cce3f03decc979b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
