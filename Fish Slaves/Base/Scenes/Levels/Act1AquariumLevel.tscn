@@ -1028,10 +1028,10 @@ animations = [{
 }]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_riqys"]
-polygon = PackedVector2Array(619, 18, 619, 21, 621, 21, 620.985, 25.565002, 627.985, 25.565002, 627.985, 21.565002, 629.985, 21.565002, 630, 19, 634, 19, 634, 21, 636, 21, 635.985, 25.565002, 642.985, 25.565002, 642.985, 21.565002, 646.985, 21.565002, 647, 18)
+polygon = PackedVector2Array(619, 15, 619, 21, 621, 21, 620.985, 25.565002, 627.985, 25.565002, 627.985, 21.565002, 629.985, 21.565002, 630, 19, 634, 19, 634, 21, 636, 21, 635.985, 25.565002, 642.985, 25.565002, 642.985, 21.565002, 646.985, 21.565002, 647, 15)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_mjdn3"]
-polygon = PackedVector2Array(8, 26, 617, 26, 618, -297, 8, -297)
+polygon = PackedVector2Array(-282, 42, -281, 42, 721, 42, 721, 42)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_pudq7"]
 polygon = PackedVector2Array(619, 26, 619, 24, 648, 24, 648, 26)
@@ -1313,6 +1313,7 @@ mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=913644353]
+visible = false
 z_index = 10
 material = SubResource("ShaderMaterial_ey7it")
 anchors_preset = 15
@@ -1469,10 +1470,12 @@ texture = ExtResource("31_pudq7")
 texture_scale = 1.51
 
 [node name="scientistshadow" type="LightOccluder2D" parent="light" unique_id=1017691646]
+z_index = -1
 position = Vector2(10, 644)
 occluder = SubResource("OccluderPolygon2D_riqys")
 
 [node name="mechanicshadow" type="LightOccluder2D" parent="light" unique_id=279163756]
+z_index = -1
 position = Vector2(92, 641)
 occluder = SubResource("OccluderPolygon2D_riqys")
 
@@ -1484,13 +1487,25 @@ occluder = SubResource("OccluderPolygon2D_mjdn3")
 position = Vector2(134, 639)
 occluder = SubResource("OccluderPolygon2D_pudq7")
 
-[node name="PointLight2D9" type="PointLight2D" parent="light" unique_id=265046959]
-position = Vector2(611, 352)
+[node name="waterlight" type="PointLight2D" parent="light" unique_id=265046959]
+position = Vector2(615, 353)
 color = Color(0.40099317, 0.5269954, 1, 1)
-energy = 2.25
+energy = 1.54
 shadow_enabled = true
 texture = ExtResource("31_pudq7")
-texture_scale = 2.77
+texture_scale = 3.19
+
+[node name="waterlight2" type="PointLight2D" parent="light" unique_id=712794636]
+position = Vector2(470, 518)
+scale = Vector2(1.930526, -0.086167924)
+color = Color(0.40099317, 0.5269954, 1, 1)
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 8.22
+
+[node name="LightOccluder2D5" type="LightOccluder2D" parent="light" unique_id=922961307]
+position = Vector2(291, 488)
+occluder = SubResource("OccluderPolygon2D_mjdn3")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=182525417]
 color = Color(0.14406255, 0.14406255, 0.14406249, 1)
