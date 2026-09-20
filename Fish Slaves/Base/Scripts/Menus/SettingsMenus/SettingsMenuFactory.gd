@@ -34,6 +34,8 @@ extends Control
 @onready var interact_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/InteractButton
 @onready var inventory_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/InventoryButton
 @onready var pause_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/PauseButton
+@onready var inspect_btn: Button = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid/InspectButton")
+@onready var journal_btn: Button = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid/JournalButton")
 
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)
@@ -111,7 +113,6 @@ func _ready() -> void:
 	show_page(0)
 	
 	_create_percent_labels()
-	
 	_create_brightness_layer_deferred()
 	_apply_brightness_deferred()
 	
@@ -124,8 +125,6 @@ func _process(_delta: float) -> void:
 func _mark_unsaved() -> void:
 	has_unsaved_changes = true
 
-# ==================== КАСТОМНЫЕ ВЫПАДАЮЩИЕ МЕНЮ ====================
-
 func _setup_dropdowns() -> void:
 	resolution_dropdown = _create_dropdown(resolution_button, "resolution")
 	language_dropdown = _create_dropdown(language_button, "language")
@@ -134,17 +133,14 @@ func _setup_dropdowns() -> void:
 func _create_dropdown(button: Button, id: String) -> Control:
 	if not button:
 		return null
-	
 	var container = Panel.new()
 	container.name = button.name + "Dropdown"
 	container.visible = false
 	container.z_index = 100
 	container.mouse_filter = Control.MOUSE_FILTER_STOP
-	
 	var bg = StyleBoxTexture.new()
 	bg.texture = load(POPUP_MENU_TEXTURE_PATH)
 	container.add_theme_stylebox_override("panel", bg)
-	
 	var vbox = VBoxContainer.new()
 	vbox.name = "VBox"
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -154,24 +150,17 @@ func _create_dropdown(button: Button, id: String) -> Control:
 	vbox.offset_right = -6
 	vbox.offset_top = 6
 	vbox.offset_bottom = -6
-	
 	container.add_child(vbox)
-	
 	add_child(container)
-	
 	_create_arrow_for_button(button)
-	
 	container.set_meta("id", id)
 	container.set_meta("button", button)
-	
 	button.pressed.connect(_on_dropdown_button_pressed.bind(container))
-	
 	return container
 
 func _create_arrow_for_button(button: Button) -> void:
 	if not button:
 		return
-	
 	var arrow = TextureRect.new()
 	arrow.name = "Arrow"
 	arrow.texture = load(ARROW_TEXTURE_PATH)
@@ -181,9 +170,7 @@ func _create_arrow_for_button(button: Button) -> void:
 	arrow.size = Vector2(24, 24)
 	arrow.pivot_offset = Vector2(12, 12)
 	arrow.position = Vector2(button.size.x - 34, button.size.y / 2.0 - 12)
-	
 	button.add_child(arrow)
-	
 	if button == resolution_button:
 		resolution_arrow = arrow
 	elif button == language_button:
@@ -194,46 +181,35 @@ func _create_arrow_for_button(button: Button) -> void:
 func _on_dropdown_button_pressed(container: Control) -> void:
 	if not container:
 		return
-	
 	if container.visible:
 		_close_dropdown(container)
 		return
-	
 	_close_all_dropdowns()
 	_open_dropdown(container)
 
 func _open_dropdown(container: Control) -> void:
 	if not container:
 		return
-	
 	var button: Button = container.get_meta("button")
 	if not button:
 		return
-	
 	UISounds.play_option_open()
-	
 	container.position = Vector2(button.global_position.x, button.global_position.y + button.size.y)
 	container.size = Vector2(button.size.x, 0)
 	container.custom_minimum_size = Vector2(button.size.x, 0)
-	
 	container.visible = true
-	
 	await get_tree().process_frame
 	var vbox = container.get_node_or_null("VBox")
 	if vbox:
 		var total_height = vbox.size.y + 12
 		container.size = Vector2(button.size.x, total_height)
-	
 	_flip_arrow(button, true)
 
 func _close_dropdown(container: Control) -> void:
 	if not container:
 		return
-	
 	UISounds.play_option_close()
-	
 	container.visible = false
-	
 	var button: Button = container.get_meta("button")
 	if button:
 		_flip_arrow(button, false)
@@ -248,30 +224,24 @@ func _close_all_dropdowns() -> void:
 
 func _flip_arrow(button: Button, flipped: bool) -> void:
 	var arrow: TextureRect = null
-	
 	if button == resolution_button:
 		arrow = resolution_arrow
 	elif button == language_button:
 		arrow = language_arrow
 	elif button == dynamic_range_button:
 		arrow = dynamic_range_arrow
-	
 	if not arrow or not is_instance_valid(arrow):
 		return
-	
 	arrow.scale.y = -1 if flipped else 1
 
 func _populate_dropdown(container: Control, items: Array[String], selected: int, id: String) -> void:
 	if not container:
 		return
-	
 	var vbox = container.get_node_or_null("VBox")
 	if not vbox:
 		return
-	
 	for child in vbox.get_children():
 		child.queue_free()
-	
 	for i in range(items.size()):
 		var btn = Button.new()
 		btn.text = items[i]
@@ -279,33 +249,26 @@ func _populate_dropdown(container: Control, items: Array[String], selected: int,
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP
-		
 		if i == selected:
 			btn.add_theme_color_override("font_color", Color.WHITE)
 			btn.add_theme_color_override("font_hover_color", Color.WHITE)
 		else:
 			btn.add_theme_color_override("font_color", Color(0.35, 0.35, 0.35))
 			btn.add_theme_color_override("font_hover_color", Color(0.7, 0.7, 0.7))
-		
 		var normal_bg = StyleBoxFlat.new()
 		normal_bg.bg_color = Color(0, 0, 0, 0.07)
 		normal_bg.content_margin_left = 6
 		normal_bg.content_margin_right = 6
-		
 		var hover_bg = StyleBoxFlat.new()
 		hover_bg.bg_color = Color(0, 0, 0, 0.35)
 		hover_bg.content_margin_left = 6
 		hover_bg.content_margin_right = 6
-		
 		btn.add_theme_stylebox_override("normal", normal_bg)
 		btn.add_theme_stylebox_override("hover", hover_bg)
 		btn.add_theme_stylebox_override("pressed", hover_bg)
 		btn.add_theme_stylebox_override("focus", normal_bg)
-		
 		btn.add_theme_font_size_override("font_size", 18)
-		
 		btn.pressed.connect(_on_dropdown_item_selected.bind(i, id, container))
-		
 		vbox.add_child(btn)
 
 func _on_dropdown_item_selected(index: int, id: String, container: Control) -> void:
@@ -325,7 +288,6 @@ func _on_dropdown_item_selected(index: int, id: String, container: Control) -> v
 			_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
 			_populate_dropdown(container, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 			_on_dynamic_range_selected(index)
-	
 	_close_dropdown(container)
 
 func _update_button_text(button: Button, items: Array[String], selected: int) -> void:
@@ -334,59 +296,43 @@ func _update_button_text(button: Button, items: Array[String], selected: int) ->
 	if selected < 0 or selected >= items.size():
 		return
 	button.text = items[selected]
-	
 	var arrow = button.get_node_or_null("Arrow")
 	if arrow:
 		arrow.position = Vector2(button.size.x - 34, button.size.y / 2.0 - 12)
 
-# ==================== ЯРКОСТЬ ====================
-
 func _create_brightness_layer_deferred() -> void:
 	if current_brightness_layer and is_instance_valid(current_brightness_layer):
 		return
-	
 	current_brightness_layer = ColorRect.new()
 	current_brightness_layer.name = "BrightnessLayer"
 	current_brightness_layer.color = Color(0, 0, 0, 0)
 	current_brightness_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	current_brightness_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	current_brightness_layer.z_index = 1000
-	
 	var canvas = CanvasLayer.new()
 	canvas.name = "BrightnessCanvas"
 	canvas.layer = 100
 	canvas.add_child(current_brightness_layer)
-	
 	get_tree().root.add_child.call_deferred(canvas)
 
 func _apply_brightness_deferred() -> void:
 	if not brightness_slider:
 		return
-	
 	if not current_brightness_layer or not is_instance_valid(current_brightness_layer):
 		await get_tree().process_frame
 		if not current_brightness_layer or not is_instance_valid(current_brightness_layer):
 			return
-	
 	_apply_brightness_value()
 
 func _apply_brightness_value() -> void:
 	if not brightness_slider or not current_brightness_layer:
 		return
-	
 	var value = brightness_slider.value
 	value = clamp(value, 0.0, 1.0)
-	
 	var overlay_alpha = lerp(0.75, 0.0, value)
-	
 	if current_brightness_layer and is_instance_valid(current_brightness_layer):
 		current_brightness_layer.color = Color(0, 0, 0, overlay_alpha)
 		current_brightness_layer.visible = overlay_alpha > 0.001
-
-func _apply_brightness() -> void:
-	_apply_brightness_value()
-
-# ==================== АУДИО ОПЦИИ ====================
 
 func setup_audio_options() -> void:
 	dynamic_range_items = ["Высокий", "Стандартный", "Низкий"]
@@ -398,8 +344,6 @@ func _on_dynamic_range_selected(index: int) -> void:
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, index, "dynamic_range")
 	_mark_unsaved()
 
-# ==================== ПРОЦЕНТЫ ДЛЯ ПОЛЗУНКОВ ====================
-
 func _create_percent_labels() -> void:
 	brightness_percent_label = _create_percent_label(brightness_slider)
 	camera_sensitivity_percent_label = _create_percent_label(camera_sensitivity_slider)
@@ -408,7 +352,6 @@ func _create_percent_labels() -> void:
 	ambience_percent_label = _create_percent_label(ambience_slider)
 	master_percent_label = _create_percent_label(master_slider)
 	ui_percent_label = _create_percent_label(ui_slider)
-	
 	if brightness_slider:
 		brightness_slider.value_changed.connect(_on_brightness_slider_changed)
 	if camera_sensitivity_slider:
@@ -423,13 +366,11 @@ func _create_percent_labels() -> void:
 		master_slider.value_changed.connect(_on_master_slider_changed)
 	if ui_slider:
 		ui_slider.value_changed.connect(_on_ui_slider_changed)
-	
 	_update_all_percent_labels()
 
 func _create_percent_label(slider: HSlider) -> Label:
 	if not slider:
 		return null
-	
 	var label = Label.new()
 	label.name = "PercentLabel"
 	label.add_theme_font_size_override("font_size", 14)
@@ -439,12 +380,9 @@ func _create_percent_label(slider: HSlider) -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.z_index = 10
 	label.custom_minimum_size = Vector2(60, 0)
-	
 	label.position = Vector2(slider.position.x + slider.size.x + 10, slider.position.y)
 	label.size = Vector2(60, slider.size.y)
-	
 	slider.get_parent().add_child(label)
-	
 	return label
 
 func _update_all_percent_labels() -> void:
@@ -459,19 +397,18 @@ func _update_all_percent_labels() -> void:
 func _update_percent_label(label: Label, slider: HSlider) -> void:
 	if not label or not slider:
 		return
-	
 	if slider == brightness_slider:
 		var percent = int(slider.value * 100)
 		label.text = str(percent) + "%"
 	else:
 		var percent = int((slider.value / slider.max_value) * 100)
 		label.text = str(percent) + "%"
-	
 	label.position = Vector2(slider.position.x + slider.size.x + 10, slider.position.y)
 	label.size = Vector2(60, slider.size.y)
 
 func _on_brightness_slider_changed(_value: float) -> void:
 	_update_percent_label(brightness_percent_label, brightness_slider)
+	_apply_brightness_value()
 	_mark_unsaved()
 
 func _on_camera_sensitivity_changed(value: float) -> void:
@@ -479,27 +416,30 @@ func _on_camera_sensitivity_changed(value: float) -> void:
 	Global.camera_sensitivity = value
 	_mark_unsaved()
 
-func _on_music_slider_changed(_value: float) -> void:
+func _on_music_slider_changed(value: float) -> void:
 	_update_percent_label(music_percent_label, music_slider)
+	Global._apply_audio_bus("Music", value)
 	_mark_unsaved()
 
-func _on_sfx_slider_changed(_value: float) -> void:
+func _on_sfx_slider_changed(value: float) -> void:
 	_update_percent_label(sfx_percent_label, sfx_slider)
+	Global._apply_audio_bus("SFX", value)
 	_mark_unsaved()
 
-func _on_ambience_slider_changed(_value: float) -> void:
+func _on_ambience_slider_changed(value: float) -> void:
 	_update_percent_label(ambience_percent_label, ambience_slider)
+	Global._apply_audio_bus("Ambience", value)
 	_mark_unsaved()
 
-func _on_master_slider_changed(_value: float) -> void:
+func _on_master_slider_changed(value: float) -> void:
 	_update_percent_label(master_percent_label, master_slider)
+	Global._apply_audio_bus("Master", value)
 	_mark_unsaved()
 
-func _on_ui_slider_changed(_value: float) -> void:
+func _on_ui_slider_changed(value: float) -> void:
 	_update_percent_label(ui_percent_label, ui_slider)
+	Global._apply_audio_bus("UI", value)
 	_mark_unsaved()
-
-# ==================== АТМОСФЕРНЫЕ ЭФФЕКТЫ ====================
 
 func _remove_all_bubbles() -> void:
 	var tree = get_tree()
@@ -510,26 +450,20 @@ func _remove_all_bubbles() -> void:
 func _remove_bubbles_recursive(node: Node) -> void:
 	if not node or not is_instance_valid(node):
 		return
-	
 	for child in node.get_children():
 		if not child or not is_instance_valid(child):
 			continue
-		
 		if child.name.to_lower().contains("bubble"):
 			child.queue_free()
 		else:
 			_remove_bubbles_recursive(child)
 
-# ==================== АТРИБУТЫ ИНТЕРФЕЙСА ====================
-
 func _hide_all_decorations(node: Node, hide: bool) -> void:
 	if not node or not is_instance_valid(node):
 		return
-	
 	for child in node.get_children():
 		if not child or not is_instance_valid(child):
 			continue
-		
 		if child is Button:
 			for btn_child in child.get_children():
 				if btn_child.name == "Seaweed" or btn_child.name == "Rust":
@@ -549,35 +483,31 @@ func _apply_fps_visibility() -> void:
 		fps_label.z_index = 200
 
 func _setup_ui() -> void:
-	var buttons: Array[Button] = [
+	var controls: Array[Control] = [
 		graphics_tab, audio_tab, controls_tab,
 		move_up_btn, move_down_btn, move_left_btn, move_right_btn,
 		jump_btn, interact_btn, inventory_btn, pause_btn,
-		resolution_button, language_button, dynamic_range_button
+		resolution_button, language_button, dynamic_range_button,
+		fps_check, fullscreen_check, vsync_check, effects_check, interface_attributes_check,
+		music_slider, sfx_slider, ambience_slider, master_slider, ui_slider,
+		camera_sensitivity_slider, brightness_slider
 	]
-	
-	if apply_btn: buttons.append(apply_btn)
-	if default_btn: buttons.append(default_btn)
-	if back_btn: buttons.append(back_btn)
-	
+	if inspect_btn: controls.append(inspect_btn)
+	if journal_btn: controls.append(journal_btn)
+	if apply_btn: controls.append(apply_btn)
+	if default_btn: controls.append(default_btn)
+	if back_btn: controls.append(back_btn)
 	var silent_click: Callable = Callable()
 	var click_targets: Array = [
 		resolution_button, language_button, dynamic_range_button,
 		fps_check, fullscreen_check, vsync_check, effects_check, interface_attributes_check
 	]
-	
-	for btn in buttons:
-		if btn:
-			if btn in click_targets:
-				ButtonEffects.setup(btn, silent_click)
+	for control in controls:
+		if control:
+			if control in click_targets:
+				ButtonEffects.setup(control, silent_click)
 			else:
-				ButtonEffects.setup(btn)
-	
-	if fps_check: ButtonEffects.setup(fps_check, silent_click)
-	if fullscreen_check: ButtonEffects.setup(fullscreen_check, silent_click)
-	if vsync_check: ButtonEffects.setup(vsync_check, silent_click)
-	if effects_check: ButtonEffects.setup(effects_check, silent_click)
-	if interface_attributes_check: ButtonEffects.setup(interface_attributes_check, silent_click)
+				ButtonEffects.setup(control)
 
 func _connect_signals() -> void:
 	if graphics_tab: graphics_tab.pressed.connect(func(): show_page(0))
@@ -586,15 +516,12 @@ func _connect_signals() -> void:
 	if back_btn: back_btn.pressed.connect(_on_back_pressed)
 	if apply_btn: apply_btn.pressed.connect(save_settings)
 	if default_btn: default_btn.pressed.connect(_show_reset_confirm)
-	
 	if fullscreen_check: fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	if vsync_check: vsync_check.toggled.connect(_on_vsync_toggled)
 	if effects_check: effects_check.toggled.connect(_on_effects_toggled)
 	if interface_attributes_check: interface_attributes_check.toggled.connect(_on_interface_attributes_toggled)
 	if fps_check: fps_check.toggled.connect(_on_fps_toggled)
-	
 	if brightness_slider: brightness_slider.value_changed.connect(_on_brightness_changed)
-	
 	if move_up_btn: move_up_btn.pressed.connect(func(): _start_rebind("ui_up"))
 	if move_down_btn: move_down_btn.pressed.connect(func(): _start_rebind("ui_down"))
 	if move_left_btn: move_left_btn.pressed.connect(func(): _start_rebind("ui_left"))
@@ -603,8 +530,8 @@ func _connect_signals() -> void:
 	if jump_btn: jump_btn.pressed.connect(func(): _start_rebind("jump"))
 	if inventory_btn: inventory_btn.pressed.connect(func(): _start_rebind("inventory"))
 	if pause_btn: pause_btn.pressed.connect(func(): _start_rebind("ui_cancel"))
-
-# ==================== ОБРАБОТЧИКИ СВИТЧЕЙ ====================
+	if inspect_btn: inspect_btn.pressed.connect(func(): _start_rebind("inspect"))
+	if journal_btn: journal_btn.pressed.connect(func(): _start_rebind("journal"))
 
 func _on_fullscreen_toggled(pressed: bool) -> void:
 	if pressed:
@@ -637,7 +564,6 @@ func _on_effects_toggled(pressed: bool) -> void:
 func _on_interface_attributes_toggled(pressed: bool) -> void:
 	Global.interface_attributes_enabled = pressed
 	Global.button_effects_enabled = pressed
-	
 	if not pressed:
 		var scene = get_tree().current_scene if get_tree() else null
 		_hide_all_decorations(scene, true)
@@ -645,7 +571,6 @@ func _on_interface_attributes_toggled(pressed: bool) -> void:
 		var scene = get_tree().current_scene if get_tree() else null
 		if scene:
 			Global._force_apply_seaweed(scene)
-	
 	if not _suppress_switch_sound:
 		if pressed: UISounds.play_switch_on()
 		else: UISounds.play_switch_off()
@@ -672,20 +597,15 @@ func _on_brightness_changed(_value: float) -> void:
 	_apply_brightness_value()
 	_mark_unsaved()
 
-# ==================== ВЫПАДАЮЩИЕ МЕНЮ ====================
-
 func setup_options() -> void:
 	resolution_items = ["1920x1080", "1280x720", "854x480"]
 	resolution_selected = 0
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
-	
 	language_items = ["Русский", "English"]
 	language_selected = 0
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
-
-# ==================== ЗАГРУЗКА / СОХРАНЕНИЕ ====================
 
 func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
@@ -693,75 +613,53 @@ func load_settings() -> void:
 		apply_defaults()
 		save_settings()
 		return
-	
 	resolution_selected = config.get_value("graphics", "resolution", 0)
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
-	
 	var locale = config.get_value("language", "locale", "ru")
 	language_selected = 0 if locale == "ru" else 1
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
-	
-	if fps_check:
-		fps_check.button_pressed = config.get_value("graphics", "show_fps", false)
-	if fullscreen_check:
-		fullscreen_check.button_pressed = config.get_value("graphics", "fullscreen", false)
-	if vsync_check:
-		vsync_check.button_pressed = config.get_value("graphics", "vsync", true)
-	if effects_check:
-		effects_check.button_pressed = config.get_value("graphics", "effects", true)
-	if interface_attributes_check:
-		interface_attributes_check.button_pressed = config.get_value("graphics", "interface_attributes", true)
-	
+	if fps_check: fps_check.button_pressed = config.get_value("graphics", "show_fps", false)
+	if fullscreen_check: fullscreen_check.button_pressed = config.get_value("graphics", "fullscreen", false)
+	if vsync_check: vsync_check.button_pressed = config.get_value("graphics", "vsync", true)
+	if effects_check: effects_check.button_pressed = config.get_value("graphics", "effects", true)
+	if interface_attributes_check: interface_attributes_check.button_pressed = config.get_value("graphics", "interface_attributes", true)
 	if camera_sensitivity_slider:
 		camera_sensitivity_slider.max_value = 1.0
 		camera_sensitivity_slider.step = 0.01
 		camera_sensitivity_slider.value = config.get_value("camera", "sensitivity", 0.0)
 		Global.camera_sensitivity = camera_sensitivity_slider.value
-	
 	if brightness_slider:
 		brightness_slider.min_value = BRIGHTNESS_MIN
 		brightness_slider.max_value = BRIGHTNESS_MAX
 		brightness_slider.step = 0.01
 		brightness_slider.value = config.get_value("graphics", "brightness", 1.0)
-	
-	if music_slider:
-		music_slider.value = config.get_value("audio", "music_volume", 1.0)
-	if sfx_slider:
-		sfx_slider.value = config.get_value("audio", "sfx_volume", 1.0)
-	if ambience_slider:
-		ambience_slider.value = config.get_value("audio", "ambience_volume", 1.0)
-	if master_slider:
-		master_slider.value = config.get_value("audio", "master_volume", 1.0)
-	if ui_slider:
-		ui_slider.value = config.get_value("audio", "ui_volume", 1.0)
-	
+	if music_slider: music_slider.value = config.get_value("audio", "music_volume", 1.0)
+	if sfx_slider: sfx_slider.value = config.get_value("audio", "sfx_volume", 1.0)
+	if ambience_slider: ambience_slider.value = config.get_value("audio", "ambience_volume", 1.0)
+	if master_slider: master_slider.value = config.get_value("audio", "master_volume", 1.0)
+	if ui_slider: ui_slider.value = config.get_value("audio", "ui_volume", 1.0)
 	dynamic_range_selected = config.get_value("audio", "dynamic_range", 1)
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 	_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
-	
 	Global.atmospheric_effects_enabled = effects_check.button_pressed if effects_check else true
 	Global.interface_attributes_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
 	Global.button_effects_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
-	
 	apply_audio_volumes()
 	apply_graphics_settings()
 	_apply_brightness_value()
 	apply_fps_visibility()
-	
 	_update_all_percent_labels()
 
 func apply_defaults() -> void:
 	resolution_selected = 0
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
-	
 	language_selected = 0
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
-	
-	if brightness_slider: 
+	if brightness_slider:
 		brightness_slider.min_value = BRIGHTNESS_MIN
 		brightness_slider.max_value = BRIGHTNESS_MAX
 		brightness_slider.value = 1.0
@@ -773,18 +671,14 @@ func apply_defaults() -> void:
 	if fps_check: fps_check.button_pressed = false
 	if effects_check: effects_check.button_pressed = true
 	if interface_attributes_check: interface_attributes_check.button_pressed = true
-	
 	if music_slider: music_slider.value = 1.0
 	if sfx_slider: sfx_slider.value = 1.0
 	if ambience_slider: ambience_slider.value = 1.0
 	if master_slider: master_slider.value = 1.0
 	if ui_slider: ui_slider.value = 1.0
-	
 	dynamic_range_selected = 1
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 	_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
-
-# ==================== ДИАЛОГИ ====================
 
 func _close_current_popup() -> void:
 	if current_popup and is_instance_valid(current_popup):
@@ -794,11 +688,9 @@ func _close_current_popup() -> void:
 
 func _show_reset_confirm() -> void:
 	_close_current_popup()
-	
 	var page = _get_current_page()
 	var title = ""
 	var text = ""
-	
 	match page:
 		0:
 			title = "Сброс графики"
@@ -809,7 +701,6 @@ func _show_reset_confirm() -> void:
 		2:
 			title = "Сброс управления"
 			text = "Сбросить управление по умолчанию?"
-	
 	var menu = AcceptDialog.new()
 	menu.title = title
 	menu.dialog_text = text
@@ -817,11 +708,9 @@ func _show_reset_confirm() -> void:
 	menu.add_cancel_button("Отмена")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
-	
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(100, 40)
-	
 	menu.custom_action.connect(func(action):
 		if action == "yes":
 			_suppress_switch_sound = true
@@ -857,14 +746,12 @@ func _show_reset_confirm() -> void:
 		_close_current_popup()
 	)
 	menu.close_requested.connect(_close_current_popup)
-	
 	current_popup = menu
 	add_child(menu)
 	menu.popup_centered()
 
 func _show_unsaved_confirm() -> void:
 	_close_current_popup()
-	
 	var menu = AcceptDialog.new()
 	menu.title = "Несохранённые изменения"
 	menu.dialog_text = "Вы действительно хотите выйти, не сохранив изменения?"
@@ -872,11 +759,9 @@ func _show_unsaved_confirm() -> void:
 	menu.add_button("Нет", true, "no")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
-	
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(100, 40)
-	
 	menu.custom_action.connect(func(action):
 		_close_current_popup()
 		if action == "yes":
@@ -884,7 +769,6 @@ func _show_unsaved_confirm() -> void:
 			_exit_to_main_menu()
 	)
 	menu.close_requested.connect(_close_current_popup)
-	
 	current_popup = menu
 	add_child(menu)
 	menu.popup_centered()
@@ -904,9 +788,12 @@ func _get_current_page() -> int:
 func _reset_controls_only() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
-		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE
+		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"inspect": KEY_I, "journal": KEY_J
 	}
 	for action in defaults.keys():
+		if not InputMap.has_action(action):
+			continue
 		for e in InputMap.action_get_events(action).duplicate():
 			InputMap.action_erase_event(action, e)
 		var event = InputEventKey.new()
@@ -925,31 +812,23 @@ func save_settings() -> void:
 	if interface_attributes_check: config.set_value("graphics", "interface_attributes", interface_attributes_check.button_pressed)
 	if camera_sensitivity_slider: config.set_value("camera", "sensitivity", camera_sensitivity_slider.value)
 	if brightness_slider: config.set_value("graphics", "brightness", brightness_slider.value)
-	
 	if music_slider: config.set_value("audio", "music_volume", music_slider.value)
 	if sfx_slider: config.set_value("audio", "sfx_volume", sfx_slider.value)
 	if ambience_slider: config.set_value("audio", "ambience_volume", ambience_slider.value)
 	if master_slider: config.set_value("audio", "master_volume", master_slider.value)
 	if ui_slider: config.set_value("audio", "ui_volume", ui_slider.value)
-	
 	config.set_value("audio", "dynamic_range", dynamic_range_selected)
-	
 	config.save(CONFIG_PATH)
 	apply_audio_volumes()
 	apply_graphics_settings()
 	_apply_brightness_value()
 	apply_fps_visibility()
-	
 	if camera_sensitivity_slider:
 		Global.camera_sensitivity = camera_sensitivity_slider.value
-	
 	Global.atmospheric_effects_enabled = effects_check.button_pressed if effects_check else true
 	Global.interface_attributes_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
 	Global.button_effects_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
-	
 	has_unsaved_changes = false
-
-# ==================== ПРИМЕНЕНИЕ НАСТРОЕК ====================
 
 func apply_fps_visibility() -> void:
 	if fps_label:
@@ -968,13 +847,11 @@ func apply_graphics_settings() -> void:
 		1: get_window().size = Vector2i(1280, 720)
 		2: get_window().size = Vector2i(854, 480)
 	get_window().move_to_center()
-	
 	if fullscreen_check:
 		if fullscreen_check.button_pressed:
 			get_window().mode = Window.MODE_FULLSCREEN
 		else:
 			get_window().mode = Window.MODE_WINDOWED
-	
 	if vsync_check:
 		DisplayServer.window_set_vsync_mode(
 			DisplayServer.VSYNC_ENABLED if vsync_check.button_pressed else DisplayServer.VSYNC_DISABLED
@@ -987,11 +864,9 @@ func show_page(index: int) -> void:
 	if graphics_page: graphics_page.visible = (index == 0)
 	if audio_page: audio_page.visible = (index == 1)
 	if controls_page: controls_page.visible = (index == 2)
-	
 	if graphics_tab: graphics_tab.modulate = Color.WHITE if index == 0 else Color.GRAY
 	if audio_tab: audio_tab.modulate = Color.WHITE if index == 1 else Color.GRAY
 	if controls_tab: controls_tab.modulate = Color.WHITE if index == 2 else Color.GRAY
-	
 	_close_all_dropdowns()
 	_update_all_percent_labels()
 
@@ -1004,6 +879,8 @@ func update_key_labels() -> void:
 	_update_button_label(jump_btn, "jump")
 	_update_button_label(inventory_btn, "inventory")
 	_update_button_label(pause_btn, "ui_cancel")
+	_update_button_label(inspect_btn, "inspect")
+	_update_button_label(journal_btn, "journal")
 
 func _update_button_label(btn: Button, action: String) -> void:
 	if not btn:
@@ -1016,13 +893,11 @@ func _start_rebind(action: String) -> void:
 func _exit_to_main_menu() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
-		GlobalMusic.resume_level_music()
 		var target = Global.scene_to_save
 		if target == "" or "SettingsMenu" in target:
 			target = "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn"
 		Global.goto_scene(target)
 		return
-	
 	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
 
 func _on_back_pressed() -> void:
@@ -1049,7 +924,6 @@ func _input(event: InputEvent) -> void:
 		if _any_dropdown_open():
 			var mouse_pos = get_global_mouse_position()
 			var clicked_inside = false
-			
 			for dd in [resolution_dropdown, language_dropdown, dynamic_range_dropdown]:
 				if dd and dd.visible:
 					if dd.get_global_rect().has_point(mouse_pos):
@@ -1059,7 +933,6 @@ func _input(event: InputEvent) -> void:
 					if btn and btn.get_global_rect().has_point(mouse_pos):
 						clicked_inside = true
 						break
-			
 			if not clicked_inside:
 				_close_all_dropdowns()
 

@@ -7,6 +7,9 @@ var flashback_unlocked: bool = false
 var pop_star_unlocked: bool = false
 var rebel_unlocked: bool = false
 var acrobat_unlocked: bool = false
+var worker_of_month_unlocked: bool = false
+var scout_unlocked: bool = false
+var freedom_unlocked: bool = false
 
 func _ready():
 	load_achievements()
@@ -22,6 +25,9 @@ func load_achievements() -> void:
 	pop_star_unlocked = config.get_value("achievements", "pop_star", false)
 	rebel_unlocked = config.get_value("achievements", "rebel", false)
 	acrobat_unlocked = config.get_value("achievements", "acrobat", false)
+	worker_of_month_unlocked = config.get_value("achievements", "worker_of_month", false)
+	scout_unlocked = config.get_value("achievements", "scout", false)
+	freedom_unlocked = config.get_value("achievements", "freedom", false)
 
 func save_achievements() -> void:
 	var config = ConfigFile.new()
@@ -30,6 +36,9 @@ func save_achievements() -> void:
 	config.set_value("achievements", "pop_star", pop_star_unlocked)
 	config.set_value("achievements", "rebel", rebel_unlocked)
 	config.set_value("achievements", "acrobat", acrobat_unlocked)
+	config.set_value("achievements", "worker_of_month", worker_of_month_unlocked)
+	config.set_value("achievements", "scout", scout_unlocked)
+	config.set_value("achievements", "freedom", freedom_unlocked)
 	config.save("user://achievements.cfg")
 
 func unlock_coffee() -> void:
@@ -37,7 +46,6 @@ func unlock_coffee() -> void:
 		return
 	coffee_unlocked = true
 	achievement_unlocked.emit("coffee")
-	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_flashback() -> void:
@@ -45,7 +53,6 @@ func unlock_flashback() -> void:
 		return
 	flashback_unlocked = true
 	achievement_unlocked.emit("flashback")
-	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_pop_star() -> void:
@@ -53,7 +60,6 @@ func unlock_pop_star() -> void:
 		return
 	pop_star_unlocked = true
 	achievement_unlocked.emit("pop_star")
-	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_rebel() -> void:
@@ -61,7 +67,6 @@ func unlock_rebel() -> void:
 		return
 	rebel_unlocked = true
 	achievement_unlocked.emit("rebel")
-	UISounds.play_achievement()
 	save_achievements()
 
 func unlock_acrobat() -> void:
@@ -69,7 +74,33 @@ func unlock_acrobat() -> void:
 		return
 	acrobat_unlocked = true
 	achievement_unlocked.emit("acrobat")
-	UISounds.play_achievement()
+	save_achievements()
+
+func unlock_worker_of_month() -> void:
+	if worker_of_month_unlocked:
+		return
+	worker_of_month_unlocked = true
+	achievement_unlocked.emit("worker_of_month")
+	if has_node("/root/UISounds"):
+		UISounds.play_achievement()
+	save_achievements()
+
+func unlock_scout() -> void:
+	if scout_unlocked:
+		return
+	scout_unlocked = true
+	achievement_unlocked.emit("scout")
+	if has_node("/root/UISounds"):
+		UISounds.play_achievement()
+	save_achievements()
+
+func unlock_freedom() -> void:
+	if freedom_unlocked:
+		return
+	freedom_unlocked = true
+	achievement_unlocked.emit("freedom")
+	if has_node("/root/UISounds"):
+		UISounds.play_achievement()
 	save_achievements()
 
 func reset_all() -> void:
@@ -78,4 +109,7 @@ func reset_all() -> void:
 	pop_star_unlocked = false
 	rebel_unlocked = false
 	acrobat_unlocked = false
+	worker_of_month_unlocked = false
+	scout_unlocked = false
+	freedom_unlocked = false
 	save_achievements()

@@ -12,6 +12,8 @@ var action_names = {
 	"inventory": "Инвентарь",
 	"ui_cancel": "Пауза",
 	"parry": "Парирование",
+	"inspect": "Осмотреться",
+	"journal": "Журнал",
 }
 
 var rebinding_action: String = ""
@@ -23,7 +25,20 @@ const TEXTURE_NORMAL_PATH = "res://Fish Slaves/Textures/Interface/KeyboardKeys/K
 const TEXTURE_PRESSED_PATH = "res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/"
 
 func _ready() -> void:
+	_ensure_default_actions()
 	load_keybinds()
+
+func _ensure_default_actions() -> void:
+	if not InputMap.has_action("inspect"):
+		InputMap.add_action("inspect")
+		var ev = InputEventKey.new()
+		ev.keycode = KEY_I
+		InputMap.action_add_event("inspect", ev)
+	if not InputMap.has_action("journal"):
+		InputMap.add_action("journal")
+		var ev2 = InputEventKey.new()
+		ev2.keycode = KEY_J
+		InputMap.action_add_event("journal", ev2)
 
 func _process(delta: float) -> void:
 	if rebind_delay > 0:
@@ -45,7 +60,6 @@ func get_key_texture(action: String) -> Texture2D:
 			var key_string = _keycode_to_string(e.keycode)
 			var tres_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.tres"
 			var png_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.png"
-			
 			if ResourceLoader.exists(tres_path):
 				return load(tres_path)
 			elif ResourceLoader.exists(png_path):
@@ -59,7 +73,6 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 			var key_string = _keycode_to_string(e.keycode)
 			var tres_path = TEXTURE_PRESSED_PATH + key_string + "KeyboardKeyPressed.tres"
 			var png_path = TEXTURE_PRESSED_PATH + key_string + "KeyboardKeyPressed.png"
-			
 			if ResourceLoader.exists(tres_path):
 				return load(tres_path)
 			elif ResourceLoader.exists(png_path):

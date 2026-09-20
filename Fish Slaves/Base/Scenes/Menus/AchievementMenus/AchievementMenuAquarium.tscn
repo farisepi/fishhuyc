@@ -87,7 +87,7 @@ offset_left = 857.0
 offset_top = 57.0
 offset_right = 905.0
 offset_bottom = 89.0
-text = "0/5"
+text = "0/8"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -344,6 +344,138 @@ offset_right = 686.0
 offset_bottom = 61.0
 theme_override_font_sizes/font_size = 12
 text = "Поймать коробку, падающую с неба"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="WorkerOfMonthAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000001]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000002]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000003]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000004]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000005]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Работник месяца"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000006]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Закончить смену идеально"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="ScoutAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000011]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000012]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000013]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000014]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000015]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Разведчик"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000016]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Записать всю информацию об окружении"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="FreedomAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000021]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000022]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000023]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000024]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000025]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Свобода"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000026]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Выбраться из рабства"
 vertical_alignment = 1
 autowrap_mode = 1
 

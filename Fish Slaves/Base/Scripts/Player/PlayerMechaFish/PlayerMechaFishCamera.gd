@@ -4,12 +4,15 @@ extends Camera2D
 @export var look_ahead: float = 20.0
 @export var look_speed: float = 2.0
 @export var max_look_offset: float = 50.0
+@export var camera_zoom: Vector2 = Vector2(1.8, 1.8)
 
 var look_offset: Vector2 = Vector2.ZERO
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	zoom = Vector2(2.3, 2.3)
+	top_level = true
+	enabled = true
+	zoom = camera_zoom
 
 func _process(delta):
 	var parent = get_parent()

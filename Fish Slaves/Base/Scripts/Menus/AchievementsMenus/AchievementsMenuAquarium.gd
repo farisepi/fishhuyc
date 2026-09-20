@@ -37,7 +37,25 @@ extends Control
 @onready var acrobat_name: Label = $AchievementsScroll/AchievementsList/AcrobatAchievement/NameLabel
 @onready var acrobat_desc: Label = $AchievementsScroll/AchievementsList/AcrobatAchievement/DescLabel
 
-var total_achievements: int = 5
+@onready var worker_achievement: Control = $AchievementsScroll/AchievementsList/WorkerOfMonthAchievement
+@onready var worker_icon: TextureRect = $AchievementsScroll/AchievementsList/WorkerOfMonthAchievement/Icon
+@onready var worker_check: TextureRect = $AchievementsScroll/AchievementsList/WorkerOfMonthAchievement/Check
+@onready var worker_name: Label = $AchievementsScroll/AchievementsList/WorkerOfMonthAchievement/NameLabel
+@onready var worker_desc: Label = $AchievementsScroll/AchievementsList/WorkerOfMonthAchievement/DescLabel
+
+@onready var scout_achievement: Control = $AchievementsScroll/AchievementsList/ScoutAchievement
+@onready var scout_icon: TextureRect = $AchievementsScroll/AchievementsList/ScoutAchievement/Icon
+@onready var scout_check: TextureRect = $AchievementsScroll/AchievementsList/ScoutAchievement/Check
+@onready var scout_name: Label = $AchievementsScroll/AchievementsList/ScoutAchievement/NameLabel
+@onready var scout_desc: Label = $AchievementsScroll/AchievementsList/ScoutAchievement/DescLabel
+
+@onready var freedom_achievement: Control = $AchievementsScroll/AchievementsList/FreedomAchievement
+@onready var freedom_icon: TextureRect = $AchievementsScroll/AchievementsList/FreedomAchievement/Icon
+@onready var freedom_check: TextureRect = $AchievementsScroll/AchievementsList/FreedomAchievement/Check
+@onready var freedom_name: Label = $AchievementsScroll/AchievementsList/FreedomAchievement/NameLabel
+@onready var freedom_desc: Label = $AchievementsScroll/AchievementsList/FreedomAchievement/DescLabel
+
+var total_achievements: int = 8
 var unlocked_count: int = 0
 
 var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
@@ -72,72 +90,113 @@ func _setup_progress_bar() -> void:
 func update_achievements() -> void:
 	unlocked_count = 0
 	
+	# COFFEE
 	if Achievements.coffee_unlocked:
 		unlocked_count += 1
-		_set_achievement_bright(coffee_achievement, coffee_icon, coffee_check, coffee_name)
+		_set_bright(coffee_achievement, coffee_icon, coffee_check, coffee_name)
 		coffee_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
-		_set_achievement_gray(coffee_achievement, coffee_icon, coffee_check, coffee_name)
+		_set_gray(coffee_achievement, coffee_icon, coffee_check, coffee_name)
 		coffee_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
+	# FLASHBACK
 	if Achievements.flashback_unlocked:
 		unlocked_count += 1
-		_set_achievement_bright(flashback_achievement, flashback_icon, flashback_check, flashback_name)
+		_set_bright(flashback_achievement, flashback_icon, flashback_check, flashback_name)
 		flashback_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
-		_set_achievement_gray(flashback_achievement, flashback_icon, flashback_check, flashback_name)
+		_set_gray(flashback_achievement, flashback_icon, flashback_check, flashback_name)
 		flashback_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
+	# POP STAR
 	if Achievements.pop_star_unlocked:
 		unlocked_count += 1
-		_set_achievement_bright(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
+		_set_bright(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
 		pop_star_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 		if pop_star_progress:
 			pop_star_progress.text = "100/100"
 			pop_star_progress.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
-		_set_achievement_gray(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
+		_set_gray(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
 		pop_star_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 		if pop_star_progress:
 			var popped = min(Global.bubbles_popped, 100)
 			pop_star_progress.text = str(popped) + "/100"
 			pop_star_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
+	# REBEL
 	if Achievements.rebel_unlocked:
 		unlocked_count += 1
-		_set_achievement_bright(rebel_achievement, rebel_icon, rebel_check, rebel_name)
+		_set_bright(rebel_achievement, rebel_icon, rebel_check, rebel_name)
 		rebel_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 		if rebel_progress:
 			rebel_progress.text = "50/50"
 			rebel_progress.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
-		_set_achievement_gray(rebel_achievement, rebel_icon, rebel_check, rebel_name)
+		_set_gray(rebel_achievement, rebel_icon, rebel_check, rebel_name)
 		rebel_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 		if rebel_progress:
 			var thrown = min(Global.boxes_thrown, 50)
 			rebel_progress.text = str(thrown) + "/50"
 			rebel_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
+	# ACROBAT
 	if Achievements.acrobat_unlocked:
 		unlocked_count += 1
-		_set_achievement_bright(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
+		_set_bright(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
 		acrobat_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	else:
-		_set_achievement_gray(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
+		_set_gray(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
 		acrobat_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+	
+	# WORKER OF MONTH
+	if worker_achievement:
+		if Achievements.worker_of_month_unlocked:
+			unlocked_count += 1
+			_set_bright(worker_achievement, worker_icon, worker_check, worker_name)
+			if worker_desc:
+				worker_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		else:
+			_set_gray(worker_achievement, worker_icon, worker_check, worker_name)
+			if worker_desc:
+				worker_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+	
+	# SCOUT
+	if scout_achievement:
+		if Achievements.scout_unlocked:
+			unlocked_count += 1
+			_set_bright(scout_achievement, scout_icon, scout_check, scout_name)
+			if scout_desc:
+				scout_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		else:
+			_set_gray(scout_achievement, scout_icon, scout_check, scout_name)
+			if scout_desc:
+				scout_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+	
+	# FREEDOM
+	if freedom_achievement:
+		if Achievements.freedom_unlocked:
+			unlocked_count += 1
+			_set_bright(freedom_achievement, freedom_icon, freedom_check, freedom_name)
+			if freedom_desc:
+				freedom_desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		else:
+			_set_gray(freedom_achievement, freedom_icon, freedom_check, freedom_name)
+			if freedom_desc:
+				freedom_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
 	if progress_bar:
 		progress_bar.value = unlocked_count
 	if progress_label:
 		progress_label.text = str(unlocked_count) + "/" + str(total_achievements)
 
-func _set_achievement_bright(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
+func _set_bright(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
 	if ach: ach.modulate = Color.WHITE
 	if icon: icon.modulate = Color.WHITE
 	if check: check.visible = true
 	if name_label: name_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 
-func _set_achievement_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
+func _set_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
 	if ach: ach.modulate = Color(0.4, 0.4, 0.4, 1.0)
 	if icon: icon.modulate = Color(0.4, 0.4, 0.4, 1.0)
 	if check: check.visible = false
@@ -146,7 +205,8 @@ func _set_achievement_gray(ach: Control, icon: TextureRect, check: TextureRect, 
 func _on_reset_pressed() -> void:
 	if not Achievements.coffee_unlocked and not Achievements.flashback_unlocked \
 		and not Achievements.pop_star_unlocked and not Achievements.rebel_unlocked \
-		and not Achievements.acrobat_unlocked:
+		and not Achievements.acrobat_unlocked and not Achievements.worker_of_month_unlocked \
+		and not Achievements.scout_unlocked and not Achievements.freedom_unlocked:
 		return
 	
 	var menu = AcceptDialog.new()
@@ -182,8 +242,6 @@ func _on_back_button_pressed() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_on_back_button_pressed()
-
-# ==================== ФОНОВЫЕ ПУЗЫРИ (БЕЗ КЛИКА) ====================
 
 func _start_background_bubbles() -> void:
 	for i in range(randi_range(3, 6)):

@@ -53,7 +53,6 @@ folder_colors={
 "res://Fish Slaves/Base/Scripts/Enemy/": "orange",
 "res://Fish Slaves/Base/Scripts/Levels/": "yellow",
 "res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/": "green",
-"res://Fish Slaves/Base/Scripts/Levels/Act2Assistant/": "teal",
 "res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/": "blue",
 "res://Fish Slaves/Base/Scripts/Managers/": "purple",
 "res://Fish Slaves/Base/Scripts/Menus/": "pink",

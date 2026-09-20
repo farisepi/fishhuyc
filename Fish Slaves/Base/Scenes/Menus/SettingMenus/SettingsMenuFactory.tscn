@@ -368,8 +368,7 @@ text = "Звуковые эффекты"
 
 [node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
 layout_mode = 0
-offset_left = 584.0
-offset_top = 272.0
+offset_left = 584.0offset_top = 272.0
 offset_right = 880.0
 offset_bottom = 312.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")
@@ -690,6 +689,48 @@ theme_override_styles/pressed = ExtResource("4_y3cdo")
 theme_override_styles/hover = ExtResource("5_x1v54")
 
 [node name="Rust" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/PauseButton" unique_id=461118441]
+visible = false
+position = Vector2(79.999985, 22.000011)
+scale = Vector2(2.2857144, 2.4444451)
+texture = ExtResource("6_ncwmy")
+
+[node name="InspectLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000036]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Осмотреться"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InspectButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000037]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_alx6u")
+theme_override_styles/pressed = ExtResource("4_y3cdo")
+theme_override_styles/hover = ExtResource("5_x1v54")
+
+[node name="Rust" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InspectButton" unique_id=1000000038]
+visible = false
+position = Vector2(79.999985, 22.000011)
+scale = Vector2(2.2857144, 2.4444451)
+texture = ExtResource("6_ncwmy")
+
+[node name="JournalLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000040]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Журнал"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JournalButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000041]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_alx6u")
+theme_override_styles/pressed = ExtResource("4_y3cdo")
+theme_override_styles/hover = ExtResource("5_x1v54")
+
+[node name="Rust" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/JournalButton" unique_id=1000000042]
 visible = false
 position = Vector2(79.999985, 22.000011)
 scale = Vector2(2.2857144, 2.4444451)
