@@ -22,9 +22,7 @@
 [ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://dfgw7jsbfbtib" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://Fish Slaves/Base/TileSet/collision_tileset.tres" id="17_ccpdg"]
-[ext_resource type="Shader" uid="uid://cs2m8xm2kgfwq" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1LaboratoryShader.gdshader" id="19_0a6ic"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
-[ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="20_b02qe"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="21_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://waseyudp2x2m" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HPBar/HPBar.png" id="23_pqwoh"]
 [ext_resource type="Texture2D" uid="uid://d22ikcheshlgi" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HP/HP.png" id="25_ccpdg"]
@@ -32,6 +30,7 @@
 [ext_resource type="Texture2D" uid="uid://8by4gln8fd8h" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Stamina/Stamina.png" id="25_tsph4"]
 [ext_resource type="Texture2D" uid="uid://crq4u6ljy5pmy" path="res://Fish Slaves/Textures/Interface/In-GameInterface/MehIndicator/MehIndicatorOff.png" id="26_yijt6"]
 [ext_resource type="Texture2D" uid="uid://h0wvh3mf3l10" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicInstrumentBox/MechanicInstrumentBox1.png" id="27_yijt6"]
+[ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://Fish Slaves/Textures/Effects/Light/LightTexture.webp" id="31_pudq7"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icw3l"]
 atlas = ExtResource("9_kiyxu")
@@ -549,7 +548,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_2s5tq")
 }],
-"loop": false,
+"loop": 0,
 "name": &"boring",
 "speed": 5.0
 }, {
@@ -610,12 +609,6 @@ shader_parameter/light_intensity = 1.0
 shader_parameter/caustic_strength = 0.8
 shader_parameter/lab_light_strength = 0.3
 shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_b02qe"]
-shader = ExtResource("20_b02qe")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_5vwn5"]
-shader = ExtResource("19_0a6ic")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_048sb"]
 atlas = ExtResource("25_ccpdg")
@@ -1034,6 +1027,15 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_riqys"]
+polygon = PackedVector2Array(619, 18, 619, 21, 621, 21, 620.985, 25.565002, 627.985, 25.565002, 627.985, 21.565002, 629.985, 21.565002, 630, 19, 634, 19, 634, 21, 636, 21, 635.985, 25.565002, 642.985, 25.565002, 642.985, 21.565002, 646.985, 21.565002, 647, 18)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_mjdn3"]
+polygon = PackedVector2Array(8, 26, 617, 26, 618, -297, 8, -297)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_pudq7"]
+polygon = PackedVector2Array(619, 26, 619, 24, 648, 24, 648, 26)
+
 [node name="levelprolog" type="Node2D" unique_id=1142134155]
 script = ExtResource("1_u46od")
 metadata/_edit_vertical_guides_ = [296.0, 300.0]
@@ -1051,10 +1053,10 @@ script = ExtResource("13_yp00i")
 position = Vector2(605, 224)
 
 [node name="UI_Container" parent="рыбка/GUI" parent_id_path=PackedInt32Array(294675082, 874896627) index="0" unique_id=610954526]
-offset_left = 2.0618556
-offset_top = 0.90206146
-offset_right = 1159.0619
-offset_bottom = 652.90204
+offset_left = 1.0
+offset_top = -53.0
+offset_right = 1158.0
+offset_bottom = 599.0
 
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
 z_index = -100
@@ -1069,9 +1071,9 @@ scale = Vector2(3.13158, 3.232599)
 texture = ExtResource("5_k3j2e")
 
 [node name="CutsceneCamera" type="Camera2D" parent="." unique_id=1959334841]
-position = Vector2(671, 553)
+position = Vector2(655, 559)
 enabled = false
-zoom = Vector2(3, 3)
+zoom = Vector2(2.7, 2.7)
 script = ExtResource("4_4y1cg")
 
 [node name="Scientist1" type="AnimatedSprite2D" parent="." unique_id=1337898816]
@@ -1325,36 +1327,6 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="GlassShader" type="ColorRect" parent="." unique_id=1293031362]
-z_index = 10
-material = SubResource("ShaderMaterial_b02qe")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 515.0
-offset_right = 1011.0
-offset_bottom = 530.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
-
-[node name="LabShader" type="ColorRect" parent="." unique_id=840803707]
-z_index = 10
-material = SubResource("ShaderMaterial_5vwn5")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 530.0
-offset_right = 1012.0
-offset_bottom = 694.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
-
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=870273218]
 visible = false
 
@@ -1430,6 +1402,100 @@ animation = &"StaminaDrain"
 position = Vector2(767.5, 654)
 scale = Vector2(2.0625, 2.1999984)
 texture = ExtResource("27_yijt6")
+
+[node name="light" type="Node2D" parent="." unique_id=669225389]
+
+[node name="PointLight2D" type="PointLight2D" parent="light" unique_id=145385007]
+position = Vector2(73, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D2" type="PointLight2D" parent="light" unique_id=1678064809]
+position = Vector2(200, 570)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D3" type="PointLight2D" parent="light" unique_id=1847952288]
+position = Vector2(325, 572)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D4" type="PointLight2D" parent="light" unique_id=517436737]
+position = Vector2(449, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D5" type="PointLight2D" parent="light" unique_id=36549018]
+position = Vector2(573, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D6" type="PointLight2D" parent="light" unique_id=1593513052]
+position = Vector2(699, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.047058824)
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D7" type="PointLight2D" parent="light" unique_id=528858747]
+position = Vector2(825, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="PointLight2D8" type="PointLight2D" parent="light" unique_id=1000314637]
+position = Vector2(949, 571)
+color = Color(0.98725766, 1, 0.6186167, 1)
+energy = 0.51
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 1.51
+
+[node name="scientistshadow" type="LightOccluder2D" parent="light" unique_id=1017691646]
+position = Vector2(10, 644)
+occluder = SubResource("OccluderPolygon2D_riqys")
+
+[node name="mechanicshadow" type="LightOccluder2D" parent="light" unique_id=279163756]
+position = Vector2(92, 641)
+occluder = SubResource("OccluderPolygon2D_riqys")
+
+[node name="LightOccluder2D4" type="LightOccluder2D" parent="light" unique_id=832694465]
+position = Vector2(291, 488)
+occluder = SubResource("OccluderPolygon2D_mjdn3")
+
+[node name="toolboxshadow" type="LightOccluder2D" parent="light" unique_id=1171706651]
+position = Vector2(134, 639)
+occluder = SubResource("OccluderPolygon2D_pudq7")
+
+[node name="PointLight2D9" type="PointLight2D" parent="light" unique_id=265046959]
+position = Vector2(611, 352)
+color = Color(0.40099317, 0.5269954, 1, 1)
+energy = 2.25
+shadow_enabled = true
+texture = ExtResource("31_pudq7")
+texture_scale = 2.77
+
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=182525417]
+color = Color(0.14406255, 0.14406255, 0.14406249, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1911250286]
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
