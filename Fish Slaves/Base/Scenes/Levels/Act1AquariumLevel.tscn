@@ -550,7 +550,7 @@ animations = [{
 }],
 "loop": 0,
 "name": &"boring",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1092,7 +1092,7 @@ position = Vector2(726.57935, 634.2341)
 rotation = 3.1415927
 scale = Vector2(2.2304344, -2.090861)
 sprite_frames = SubResource("SpriteFrames_1esiv")
-animation = &"idle"
+animation = &"boring"
 autoplay = "idle"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Mechanic" unique_id=1742594015]
