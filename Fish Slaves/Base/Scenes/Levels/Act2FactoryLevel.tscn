@@ -249,3 +249,5 @@ text = "!"
 offset_right = 1722.9629
 offset_bottom = 645.9259
 color = Color(0, 0, 0, 0.003921569)
+
+[editable path="Mecha_Fish"]

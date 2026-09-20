@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="FishSlaves"
+config/name="FishSlaves - DEMO v. 0.092026"
 run/main_scene="uid://b46erwc5h67a5"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
@@ -111,7 +111,6 @@ folder_colors={
 "res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/": "purple",
 "res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishWake/": "pink",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/": "gray",
-"res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/Idle/": "red",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/": "orange",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttackLeft/": "yellow",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttackRight/": "green",
@@ -119,6 +118,7 @@ folder_colors={
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishDeath/": "blue",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishFall/": "purple",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishHit/": "pink",
+"res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishIdle/": "red",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/": "gray",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishLanding/": "red",
 "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishSlide/": "orange",
