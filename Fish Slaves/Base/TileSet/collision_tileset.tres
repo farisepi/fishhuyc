@@ -1,6 +1,6 @@
 [gd_resource type="TileSet" format=3 uid="uid://bia86f3j05nyq"]
 
-[ext_resource type="Texture2D" uid="uid://dxadaep2gv1n6" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Shards/BlueShard.png" id="1_1ggep"]
+[ext_resource type="Texture2D" uid="uid://dqgs8skcoul7h" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Shards/BlueShard.png" id="1_1ggep"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5vwn5"]
 
