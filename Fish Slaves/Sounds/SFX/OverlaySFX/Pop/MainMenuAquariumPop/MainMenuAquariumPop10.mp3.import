@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://brj7jkgcvx5qt"
+path="res://.godot/imported/MainMenuAquariumPop10.mp3-ac05393328359254568f3d031248a6a3.mp3str"
+
+[deps]
+
+source_file="res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/MainMenuAquariumPop/MainMenuAquariumPop10.mp3"
+dest_files=["res://.godot/imported/MainMenuAquariumPop10.mp3-ac05393328359254568f3d031248a6a3.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

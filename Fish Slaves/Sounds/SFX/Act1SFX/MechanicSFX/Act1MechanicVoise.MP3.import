@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dxoxw73miyrky"
+path="res://.godot/imported/Act1MechanicVoise.MP3-a6f101b3f9e0926a9a17f25c9a258046.mp3str"
+
+[deps]
+
+source_file="res://Fish Slaves/Sounds/SFX/Act1SFX/MechanicSFX/Act1MechanicVoise.MP3"
+dest_files=["res://.godot/imported/Act1MechanicVoise.MP3-a6f101b3f9e0926a9a17f25c9a258046.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

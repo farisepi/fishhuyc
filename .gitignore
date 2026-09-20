@@ -1,6 +1,5 @@
 # Godot 4+ специфичные игнорирования
 .godot/
-*.import
 *.translation
 export/
 export_presets.cfg
