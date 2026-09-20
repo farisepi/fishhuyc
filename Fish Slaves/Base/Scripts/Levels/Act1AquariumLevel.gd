@@ -12,8 +12,8 @@ var bubble_scene: PackedScene
 @onready var timer: Timer = $DialogueTimer
 @onready var cutscene_cam: Camera2D = $CutsceneCamera
 
-@onready var scientist: Sprite2D = $Scientist1
-@onready var mechanic: Sprite2D = $Mechanic
+@onready var scientist: AnimatedSprite2D = $Scientist1
+@onready var mechanic: AnimatedSprite2D = $Mechanic
 
 @onready var chatter_panel: Panel = $DialoguePanel2
 @onready var chatter_label: RichTextLabel = $DialoguePanel2/TextLabel
@@ -69,6 +69,11 @@ var scientist_icon = preload("res://Fish Slaves/Textures/Characters/Scientist/Sc
 var mechanic_icon = preload("res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png")
 
 var interact_normal_texture: Texture2D = null
+
+const BORING_INTERVAL_MIN: float = 15.0
+const BORING_INTERVAL_MAX: float = 20.0
+var scientist_boring_timer: Timer
+var mechanic_boring_timer: Timer
 
 var chatter_phrases: Array[Dictionary] = [
 	{"speaker": "mechanic", "text": "Трещина увеличивается с каждым часом...", "height": 56},
@@ -148,6 +153,7 @@ func _ready() -> void:
 	_setup_atmosphere()
 	_generate_chatter_queue()
 	_update_interact_icon()
+	_setup_character_animations()
 	
 	chatter_panel.visible = false
 	chatter_panel_far.visible = false
@@ -222,6 +228,74 @@ func _ready() -> void:
 		$WaterShader.material = new_mat
 	
 	_start_wake_sequence()
+
+# ==================== CHARACTER ANIMATIONS ====================
+# Ученый и механик: idle по кругу, раз в 15-20 сек boring, у ученого еще angry в катсцене.
+# AnimationPlayer у них не используется: все идет через AnimatedSprite2D.
+
+func _setup_character_animations() -> void:
+	if scientist and scientist.sprite_frames:
+		scientist.animation_finished.connect(_on_scientist_animation_finished)
+		scientist_boring_timer = _make_boring_timer(_on_scientist_boring_timer)
+		scientist.play("idle")
+		_schedule_boring(scientist_boring_timer)
+	
+	if mechanic and mechanic.sprite_frames:
+		mechanic.animation_finished.connect(_on_mechanic_animation_finished)
+		mechanic_boring_timer = _make_boring_timer(_on_mechanic_boring_timer)
+		mechanic.play("idle")
+		_schedule_boring(mechanic_boring_timer)
+
+func _make_boring_timer(callback: Callable) -> Timer:
+	var t := Timer.new()
+	t.one_shot = true
+	t.timeout.connect(callback)
+	add_child(t)
+	return t
+
+func _schedule_boring(t: Timer) -> void:
+	if not t or cutscene_active:
+		return
+	t.start(randf_range(BORING_INTERVAL_MIN, BORING_INTERVAL_MAX))
+
+# ---- Ученый ----
+
+func _on_scientist_boring_timer() -> void:
+	# В катсцене ученый злится, скучать не должен
+	if cutscene_active or not scientist or scientist.animation != "idle":
+		_schedule_boring(scientist_boring_timer)
+		return
+	scientist.play("boring")
+
+func _on_scientist_animation_finished() -> void:
+	match scientist.animation:
+		"boring":
+			scientist.play("idle")
+			_schedule_boring(scientist_boring_timer)
+		"angry":
+			# После злости возвращаемся в idle
+			scientist.play("idle")
+
+func _scientist_play_angry() -> void:
+	if not scientist:
+		return
+	if scientist_boring_timer:
+		scientist_boring_timer.stop()
+	scientist.play("angry")
+
+# ---- Механик ----
+
+func _on_mechanic_boring_timer() -> void:
+	# Не перебиваем, если механик сейчас не в idle, и не скучаем в катсцене
+	if cutscene_active or not mechanic or mechanic.animation != "idle":
+		_schedule_boring(mechanic_boring_timer)
+		return
+	mechanic.play("boring")
+
+func _on_mechanic_animation_finished() -> void:
+	if mechanic.animation == "boring":
+		mechanic.play("idle")
+		_schedule_boring(mechanic_boring_timer)
 
 func _process(delta: float) -> void:
 	if get_tree().paused:
@@ -1058,6 +1132,7 @@ func shake_chatter_panel() -> void:
 	
 func _apply_visual_glitch(intensity: float) -> void:
 	var panels_to_shake: Array[Panel] = []
+
 func scientist_say(p1: String, m: String, p2: String) -> void:
 	if not text_label or not dialogue_panel or not scientist or not timer:
 		return
@@ -1289,6 +1364,7 @@ func start_cutscene() -> void:
 	player.set_process(false)
 	
 	cutscene_step = 1
+	_scientist_play_angry()
 	scientist_say("Проснулся ", "БЛЯТЬ", " наконец...")
 
 func _advance_cutscene() -> void:
@@ -1682,12 +1758,12 @@ func _toggle_pause() -> void:
 			player.set_physics_process(true)
 			player.set_process(true)
 			if anim: anim.play()
-			if scientist: scientist.set_process(true)
-			var sa = scientist.get_node_or_null("AnimationPlayer")
-			if sa: sa.play()
-			if mechanic: mechanic.set_process(true)
-			var ma = mechanic.get_node_or_null("AnimationPlayer")
-			if ma: ma.play()
+			if scientist:
+				scientist.set_process(true)
+				scientist.play()
+			if mechanic:
+				mechanic.set_process(true)
+				mechanic.play()
 		pause_menu.hide_menu()
 	else:
 		get_tree().paused = true
@@ -1697,12 +1773,12 @@ func _toggle_pause() -> void:
 		player.set_physics_process(false)
 		player.set_process(false)
 		if anim: anim.pause()
-		if scientist: scientist.set_process(false)
-		var sa2 = scientist.get_node_or_null("AnimationPlayer")
-		if sa2: sa2.pause()
-		if mechanic: mechanic.set_process(false)
-		var ma2 = mechanic.get_node_or_null("AnimationPlayer")
-		if ma2: ma2.pause()
+		if scientist:
+			scientist.set_process(false)
+			scientist.pause()
+		if mechanic:
+			mechanic.set_process(false)
+			mechanic.pause()
 		pause_menu.show_menu()
 
 func _on_dialogue_zone_body_entered(body: Node2D) -> void:
@@ -1844,13 +1920,11 @@ func _resume_after_pause() -> void:
 	
 	if scientist:
 		scientist.set_process(true)
-		var sa = scientist.get_node_or_null("AnimationPlayer")
-		if sa: sa.play()
+		scientist.play()
 	
 	if mechanic:
 		mechanic.set_process(true)
-		var ma = mechanic.get_node_or_null("AnimationPlayer")
-		if ma: ma.play()
+		mechanic.play()
 	
 	if chatter_active:
 		timer.start(typing_speed)
