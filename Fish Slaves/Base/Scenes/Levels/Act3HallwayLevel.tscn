@@ -1310,7 +1310,7 @@ script = ExtResource("19_yladq")
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
 position = Vector2(49, 289.00003)
 offset = Vector2(0, -69)
-zoom = Vector2(-0.025, -0.025)
+zoom = Vector2(2.5, 2.5)
 script = ExtResource("15_wsnn3")
 
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
