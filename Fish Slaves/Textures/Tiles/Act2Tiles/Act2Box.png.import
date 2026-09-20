@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bgjt4j7jr0ehw"
-path="res://.godot/imported/MechaFishAttackLeft.png-9722f3c3a713edd2d773a00e953d8fa6.ctex"
+uid="uid://dglkivc47abp8"
+path="res://.godot/imported/Act2Box.png-b3b3de7cb8109ad046187307b4c51d90.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttackLeft/MechaFishAttackLeft.png"
-dest_files=["res://.godot/imported/MechaFishAttackLeft.png-9722f3c3a713edd2d773a00e953d8fa6.ctex"]
+source_file="res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
+dest_files=["res://.godot/imported/Act2Box.png-b3b3de7cb8109ad046187307b4c51d90.ctex"]
 
 [params]
 

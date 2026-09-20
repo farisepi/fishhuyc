@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
-@export var speed: float = 200.0
-@export var run_speed: float = 350.0
+@export var speed: float = 240.0
+@export var run_speed: float = 240.0
 @export var jump_velocity: float = -300.0
 @export var slide_speed: float = 650.0
 @export var gravity: float = 980.0
@@ -12,7 +12,6 @@ extends CharacterBody2D
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
-
 
 var climb_sprite_offset: float = 0.0
 var is_dead: bool = false
@@ -48,12 +47,21 @@ var parry_cooldown: float = 0.0
 var parry_cooldown_time: float = 3.0
 var last_climbed_obstacle: Node = null
 
+# === Атака ===
+var is_attacking: bool = false
+const ATTACK_SPEED_MULT: float = 0.5
+
+# === Прыжок / приземление ===
+var was_on_floor_last_frame: bool = true
+var is_landing: bool = false
+const LANDING_SPEED_MULT: float = 0.15
 
 func _ready():
 	add_to_group("player")
 	hp = 5
 	max_hp = 5
-	sprite.play("Idle")
+	if sprite:
+		sprite.play("Idle")
 	held_icon = Sprite2D.new()
 	held_icon.visible = false
 	held_icon.scale = Vector2(0.8, 0.8)
@@ -94,36 +102,43 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-	if get_tree().paused:
-		return
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
-	if is_vaulting or is_climbing:
+	
+	# Если идёт vault/climb — не трогаем физику
+	if is_vaulting or is_climbing or is_climbing_animation:
+		velocity.y = 0
+		move_and_slide()
 		return
+	
 	if not is_on_floor():
 		velocity.y += gravity * delta
 
 	var direction = Input.get_axis("ui_left", "ui_right")
-	var running = Input.is_action_pressed("Run")
 
 	if direction < 0:
 		facing_direction = -1
 	elif direction > 0:
 		facing_direction = 1
 
-	sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
-	var spd = run_speed if running else speed
+	if not is_attacking and not is_landing:
+		sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 
-	if not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation:
-		if not is_on_floor() and velocity.y > 0:
-			sprite.play("Falling")
-		elif direction != 0 and running:
-			sprite.play("Run")
-		else:
-			sprite.play("Idle")
+	# === Скорость ===
+	var spd = run_speed
+	if is_attacking:
+		spd = run_speed * ATTACK_SPEED_MULT
+	if is_landing:
+		spd = spd * LANDING_SPEED_MULT
 
-	var slide_input = running and Input.is_action_pressed("crouch")
-	var slide_tap = running and Input.is_action_just_pressed("crouch")
+	var on_floor_now = is_on_floor()
+	if not was_on_floor_last_frame and on_floor_now:
+		if not is_attacking and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing:
+			_play_landing()
+	was_on_floor_last_frame = on_floor_now
+
+	var slide_input = Input.is_action_pressed("crouch")
+	var slide_tap = Input.is_action_just_pressed("crouch")
 
 	if slide_input and (abs(velocity.x) > 10 or is_sliding):
 		if not is_sliding:
@@ -137,7 +152,7 @@ func _physics_process(delta):
 			slide_timer += delta
 			var sp = min(slide_timer / 2.0, 2)
 			velocity.x = lerp(slide_speed, 0.0, sp) * direction
-	elif slide_tap and running and not is_sliding and abs(velocity.x) > 10:
+	elif slide_tap and not is_sliding and abs(velocity.x) > 10:
 		is_sliding = true
 		slide_timer = 0.0
 		sprite.play("Slide")
@@ -158,17 +173,34 @@ func _physics_process(delta):
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		if not _try_vault():
 			velocity.y = jump_velocity
+			if not is_attacking:
+				sprite.play("Jump")
 
 	if Input.is_action_just_pressed("interact") and not is_on_floor() and not has_item:
 		_try_climb()
+
+	if not is_attacking and not is_landing and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation:
+		if not is_on_floor():
+			if velocity.y < 0:
+				if sprite.animation != "Jump":
+					sprite.play("Jump")
+			else:
+				if sprite.animation != "Falling":
+					sprite.play("Falling")
+		elif direction != 0:
+			if hp <= 1 and sprite.sprite_frames.has_animation("Jogging"):
+				sprite.play("Jogging")
+			else:
+				sprite.play("Run")
+		else:
+			sprite.play("Idle")
 
 	move_and_slide()
 	
 	if is_sliding and is_on_wall():
 		global_position.y += 3
 
-	if camera:
-		camera.global_position = global_position
+	# КАМЕРУ НЕ ТРОГАЕМ — этим занимается PlayerMechaFishCamera.gd
 
 	if held_item_icon:
 		held_item_icon.global_position = global_position + Vector2(0, -60)
@@ -181,6 +213,19 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("Parry"):
 			do_parry()
 
+func _play_landing() -> void:
+	if sprite == null:
+		return
+	if not sprite.sprite_frames.has_animation("Landing"):
+		return
+	if is_landing:
+		return
+	is_landing = true
+	sprite.play("Landing")
+	velocity.x *= LANDING_SPEED_MULT
+	await sprite.animation_finished
+	is_landing = false
+
 func _end_slide():
 	is_sliding = false
 	slide_timer = 0.0
@@ -189,6 +234,10 @@ func _end_slide():
 var shift_pressed_time: float = 0.0
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if not is_attacking and not is_dead and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing:
+			_do_attack()
+	
 	if event.is_action_pressed("block"):
 		is_blocking = true
 		if sprite:
@@ -216,6 +265,26 @@ func _input(event: InputEvent) -> void:
 			is_shift_held = false
 			if shift_held_time < 0.2 and dash_cooldown <= 0 and not is_dashing and not is_sliding and not movement_blocked:
 				_dash()
+
+func _do_attack() -> void:
+	if sprite == null:
+		return
+	if not sprite.sprite_frames.has_animation("AttackLeft") or not sprite.sprite_frames.has_animation("AttackRight"):
+		return
+	
+	var use_left = (randi() % 2 == 0)
+	if use_left:
+		sprite.scale.x = -1 if facing_direction > 0 else 1
+	else:
+		sprite.scale.x = 1 if facing_direction > 0 else -1
+	
+	is_attacking = true
+	var anim = "AttackLeft" if use_left else "AttackRight"
+	sprite.play(anim)
+	await sprite.animation_finished
+	is_attacking = false
+	if sprite:
+		sprite.play("Idle")
 
 var held_item: Node2D = null
 var held_item_icon: Sprite2D = null
@@ -251,7 +320,6 @@ func _grab_item():
 func _throw_item():
 	if not has_item:
 		return
-	print("_throw_item вызван, facing_direction = ", facing_direction)
 	has_item = false
 	item_thrown = false
 
@@ -262,22 +330,16 @@ func _throw_item():
 	if held_item_texture:
 		var enemy = _find_nearest_enemy()
 		if enemy and global_position.distance_to(enemy.global_position) < 500:
-			print("бросаю во врага")
 			_throw_item_at_target(enemy, held_item_texture)
 		else:
-			print("бросаю по дуге")
 			_throw_item_physics(held_item_texture)
-	else:
-		print("нет текстуры предмета")
 
 	held_item = null
 	held_item_texture = null
 	held_icon.visible = false
 
 func _throw_item_physics(texture: Texture2D):
-	print("бросаю предмет по дуге")
 	if not item_scene:
-		print("нет сцены предмета")
 		return
 
 	var thrown = item_scene.instantiate()
@@ -304,10 +366,8 @@ func _throw_item_physics(texture: Texture2D):
 		tween.tween_property(thrown, "modulate:a", 0.0, 0.8)
 		await tween.finished
 		thrown.queue_free()
-		print("предмет разрушен")
 
 func _throw_item_at_target(enemy: Node2D, texture: Texture2D):
-	print("бросаю предмет во врага")
 	if not item_scene:
 		return
 
@@ -336,25 +396,18 @@ func _throw_item_at_target(enemy: Node2D, texture: Texture2D):
 		thrown.queue_free()
 		if enemy.has_method("stun"):
 			enemy.stun()
-		print("враг оглушен")
 
 func _find_nearest_enemy():
 	if not enemies_node:
-		print("enemies_node = null")
 		return null
 	var nearest = null
 	var min_dist = 9999
 	for enemy in enemies_node.get_children():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = global_position.distance_to(enemy.global_position)
-			print("враг: ", enemy.name, " дистанция: ", dist)
 			if dist < min_dist:
 				min_dist = dist
 				nearest = enemy
-	if nearest:
-		print("ближайший враг: ", nearest.name, " дистанция: ", min_dist)
-	else:
-		print("врагов нет")
 	return nearest
 
 func set_can_throw(value: bool):
@@ -365,11 +418,9 @@ func set_movement_blocked(blocked: bool):
 
 func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	if parry_cooldown > 0:
-		print("ПАРИРОВАНИЕ НА КД Осталось: ", parry_cooldown)
 		return
 	if parry_active or parry_done:
 		return
-	print("ПАРИРОВАНИЕ ЗАПУЩЕНО!")
 	parry_active = true
 	parry_done = false
 	parry_enemy = enemy
@@ -407,13 +458,11 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 func do_parry():
 	if parry_done or not parry_active:
 		return
-	print("ПАРИРОВАНИЕ УСПЕШНО!")
 	parry_done = true
 	parry_active = false
 	if is_instance_valid(parry_enemy):
 		parry_enemy.queue_free()
 		parry_enemy = null
-		print("Враг удалён!")
 	if is_instance_valid(parry_label):
 		parry_label.queue_free()
 		parry_label = null
@@ -430,11 +479,12 @@ func do_parry():
 	if sprite:
 		sprite.play("Idle")
 	velocity = Vector2.ZERO
-	print("ИГРОК ВКЛЮЧЁН!")
-	if parry_callback != null:
+	if parry_callback.is_valid():
 		parry_callback.call()
 
 func _try_vault() -> bool:
+	if is_climbing_animation or is_climbing or is_vaulting:
+		return false
 	if not barriers_node:
 		return false
 	for o in barriers_node.get_children():
@@ -459,8 +509,10 @@ func _jump_over(o: StaticBody2D, high: bool):
 	await get_tree().create_timer(0.3 if high else 0.15).timeout
 	is_vaulting = false
 	velocity.x = speed * d
-	
+
 func _try_climb():
+	if is_climbing_animation or is_climbing or is_vaulting:
+		return false
 	if has_item:
 		return false
 	if movement_blocked:
@@ -506,92 +558,59 @@ func _try_climb():
 			if player_top > obstacle_bottom + 5:
 				continue
 			
-			var is_left = player_center_x < obstacle_left
-			var is_right = player_center_x > obstacle_right
+			var dist_left = abs(player_center_x - obstacle_left)
+			var dist_right = abs(player_center_x - obstacle_right)
 			var is_over = player_center_x > obstacle_left - 30 and player_center_x < obstacle_right + 30
 			
-			if is_left or is_right or is_over:
-				var target_x = 0.0
-				
-				if is_left:
-					target_x = obstacle_left - 2
-				elif is_right:
-					target_x = obstacle_right + 2
-				else:
-					var d = 1 if sprite.scale.x > 0 else -1
-					target_x = obstacle.global_position.x + d * 5
-				
-				var target = Vector2(
-					target_x,
-					obstacle_top - 10
-				)
-				
-				if global_position.distance_to(target) > 150:
-					continue
-				
-				last_climbed_obstacle = obstacle
-				
-				is_climbing = true
-				is_climbing_animation = true
-				velocity = Vector2.ZERO
-				sprite.play("Climb")
-				
-				var t = create_tween()
-				t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-				t.tween_property(self, "global_position", target, 0.4)
-				await t.finished
-				
-				is_climbing = false
-				var d_dir = 1 if target_x > global_position.x else -1
-				velocity.x = speed * d_dir
-				
-				var total_frames = sprite.sprite_frames.get_frame_count("Climb")
-				while sprite.frame < total_frames - 1:
-					await get_tree().process_frame
-				
-				sprite.stop()
-				sprite.frame = total_frames - 1
-				is_climbing_animation = false
-				
-				await get_tree().create_timer(0.3).timeout
-				last_climbed_obstacle = null
-				return true
-	
-	return false
-
-func _is_touching_climbable() -> bool:
-	if not barriers_node:
-		return false
-	
-	var player_pos = global_position
-	var player_bottom = player_pos.y + 15
-	var player_center_x = player_pos.x
-	
-	for child in barriers_node.get_children():
-		var obstacle = null
-		if child is StaticBody2D:
-			obstacle = child
-		else:
-			var parent = child.get_parent()
-			if parent and parent is StaticBody2D:
-				obstacle = parent
-		
-		if not obstacle:
-			continue
-		
-		var col = obstacle.get_node_or_null("CollisionShape2D")
-		if not col:
-			continue
-		
-		var s = col.shape
-		if s is RectangleShape2D:
-			var obstacle_top = obstacle.global_position.y - s.size.y / 2
-			var obstacle_left = obstacle.global_position.x - s.size.x / 2
-			var obstacle_right = obstacle.global_position.x + s.size.x / 2
+			var side = 0
+			if dist_left < 50 and dist_left < dist_right:
+				side = -1
+			elif dist_right < 50:
+				side = 1
+			elif is_over:
+				side = 1 if facing_direction >= 0 else -1
+			else:
+				continue
 			
-			if abs(player_bottom - obstacle_top) < 15:
-				if player_center_x > obstacle_left - 10 and player_center_x < obstacle_right + 10:
-					return true
+			last_climbed_obstacle = obstacle
+			
+			is_climbing = true
+			is_climbing_animation = true
+			velocity = Vector2.ZERO
+			sprite.play("Climb")
+			
+			var target_y = obstacle_top - 5 - player_height / 2
+			var side_offset_x: float = 0.0
+			if side == -1:
+				side_offset_x = 35.0
+			elif side == 1:
+				side_offset_x = -35.0
+			else:
+				side_offset_x = 35.0 if facing_direction >= 0 else -35.0
+			
+			var target = Vector2(global_position.x + side_offset_x, target_y)
+			
+			var t = create_tween()
+			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(self, "global_position", target, 0.6)
+			await t.finished
+			
+			is_climbing = false
+			
+			var total_frames = sprite.sprite_frames.get_frame_count("Climb")
+			while sprite.frame < total_frames - 1:
+				await get_tree().process_frame
+			
+			sprite.stop()
+			sprite.frame = total_frames - 1
+			is_climbing_animation = false
+			
+			if not is_on_floor() and sprite.sprite_frames.has_animation("Falling"):
+				sprite.play("Falling")
+			
+			await get_tree().create_timer(0.3).timeout
+			last_climbed_obstacle = null
+			return true
 	
 	return false
 
@@ -635,18 +654,17 @@ func take_damage(amount: int):
 	hp -= amount
 	if hp < 0:
 		hp = 0
-	print("урон, хп: ", hp)
 	if sprite:
 		sprite.play("Hit")
 		await sprite.animation_finished
-		sprite.play("Idle")
+		if not is_attacking:
+			sprite.play("Idle")
 	if hp <= 0:
 		die()
 
 func _dash():
 	if is_dashing or dash_cooldown > 0:
 		return
-	print("рывок")
 	is_dashing = true
 	dash_cooldown = 1.5
 	var direction = -1 if facing_direction == -1 else 1

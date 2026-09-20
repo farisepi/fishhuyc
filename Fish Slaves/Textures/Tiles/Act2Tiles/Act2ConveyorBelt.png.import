@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnxmayb5se0rq"
-path="res://.godot/imported/MechaFishAttackRight.png-1b92b40e3c024c37db919b33dec20815.ctex"
+uid="uid://cxyoaebq6mwhn"
+path="res://.godot/imported/Act2ConveyorBelt.png-6ac07ac828987358b3315ceb54d392e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttackRight/MechaFishAttackRight.png"
-dest_files=["res://.godot/imported/MechaFishAttackRight.png-1b92b40e3c024c37db919b33dec20815.ctex"]
+source_file="res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2ConveyorBelt.png"
+dest_files=["res://.godot/imported/Act2ConveyorBelt.png-6ac07ac828987358b3315ceb54d392e1.ctex"]
 
 [params]
 
