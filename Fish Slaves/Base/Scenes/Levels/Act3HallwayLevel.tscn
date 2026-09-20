@@ -4,20 +4,19 @@
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="2_cu5p6"]
 [ext_resource type="Shader" uid="uid://cfsy48uvstp6g" path="res://Fish Slaves/Base/Shaders/Act3HallwayLevelShaders/Act3HallwayLevelShader.gdshader" id="2_gb2nh"]
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3GrabbableItem.gd" id="3_42m7p"]
-[ext_resource type="Texture2D" uid="uid://pwgd2air676b" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3ObjectTiles.png" id="5_ii734"]
-[ext_resource type="Texture2D" uid="uid://chd41emdlf3d2" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="7_8eynh"]
+[ext_resource type="Texture2D" uid="uid://d32duidsg8eco" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3ObjectTiles.png" id="5_ii734"]
+[ext_resource type="Texture2D" uid="uid://ckia6k0njn83" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="7_8eynh"]
 [ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Enemy/Enemy.tscn" id="8_it0yu"]
-[ext_resource type="Texture2D" uid="uid://dopqa6mhab0x8" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
-[ext_resource type="Texture2D" uid="uid://bx6bpah2olcgt" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
+[ext_resource type="Texture2D" uid="uid://blapv0n4bt8sd" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Chest.png" id="8_vcpp2"]
+[ext_resource type="Texture2D" uid="uid://dpw2e6iyxxdux" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuFactory.gd" id="11_wos72"]
-[ext_resource type="Script" uid="uid://cnn6goonj3jd2" path="res://Fish Slaves/Base/Scripts/Player/PlayerMechaFish/PlayerMechaFishCamera.gd" id="15_wsnn3"]
-[ext_resource type="Texture2D" uid="uid://d2p5uyud5butg" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
+[ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
+[ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
 [ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jfe0f"]
@@ -1309,9 +1308,8 @@ script = ExtResource("19_yladq")
 
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
 position = Vector2(49, 289.00003)
-offset = Vector2(0, -69)
+enabled = false
 zoom = Vector2(2.5, 2.5)
-script = ExtResource("15_wsnn3")
 
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
 material = SubResource("ShaderMaterial_jfe0f")

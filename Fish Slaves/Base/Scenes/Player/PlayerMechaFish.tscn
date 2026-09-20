@@ -1064,7 +1064,6 @@ script = ExtResource("1_wwsif")
 
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=1950259181]
 position = Vector2(49, 289)
-offset = Vector2(0, -69)
 zoom = Vector2(2.5, 2.5)
 script = ExtResource("9_aikcy")
 

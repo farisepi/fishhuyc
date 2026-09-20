@@ -625,7 +625,7 @@ func die():
 	if death_screen and death_screen.has_method("show_death"):
 		death_screen.show_death()
 	else:
-		var death_screen_scene = load("res://Fish Slaves/Base/Scenes/Enemy/DeathScreen.tscn")
+		var death_screen_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn")
 		if death_screen_scene:
 			var new_death_screen = death_screen_scene.instantiate()
 			get_tree().current_scene.add_child(new_death_screen)
