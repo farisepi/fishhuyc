@@ -1056,6 +1056,21 @@ offset_top = -53.0
 offset_right = 1158.0
 offset_bottom = 599.0
 
+[node name="SuitIcon" parent="рыбка/GUI/UI_Container" index="0" unique_id=1337637497]
+position = Vector2(75, 214)
+
+[node name="HP_Bar" parent="рыбка/GUI/UI_Container" index="1" unique_id=649183349]
+position = Vector2(174.964, 111)
+
+[node name="Hearts" parent="рыбка/GUI/UI_Container" index="2" unique_id=110311014]
+position = Vector2(174.964, 111.05)
+
+[node name="Stamina" parent="рыбка/GUI/UI_Container" index="3" unique_id=1479520771]
+position = Vector2(175.002, 112.857)
+
+[node name="Air_Bar" parent="рыбка/GUI/UI_Container" index="4" unique_id=802405014]
+position = Vector2(1116.237, 380.77325)
+
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
 z_index = -100
 position = Vector2(605.106, 353.75)
