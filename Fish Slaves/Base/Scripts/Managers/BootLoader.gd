@@ -22,7 +22,7 @@ func _ready() -> void:
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(loading_label, "modulate:a", 1.0, 0.4)
 	
-	# Определяем целевую сцену
+	
 	var level = Global.last_save_level
 	var target = ""
 	if level >= 2:
@@ -30,13 +30,13 @@ func _ready() -> void:
 	else:
 		target = "res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn"
 	
-	# Параллельно грузим сцену в фоне
+	
 	ResourceLoader.load_threaded_request(target)
 	
-	# Ждём интро
+	
 	await get_tree().create_timer(INTRO_DURATION).timeout
 	
-	# Ждём загрузку ресурса
+	
 	while true:
 		var status = ResourceLoader.load_threaded_get_status(target)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:

@@ -151,7 +151,7 @@ func _on_reload_finished():
 	if player and not player.is_in_group("in_tight_passage") and is_active:
 		_start_aiming()
 
-# ВЫЗЫВАЕТСЯ, КОГДА ИГРОК В МИНИ-ИГРЕ (PAUSE)
+
 func pause_sniper():
 	is_active = false
 	laser_line.visible = false
@@ -165,7 +165,7 @@ func pause_sniper():
 	if visual_rect:
 		visual_rect.color = Color(0.3, 0.3, 0.3, 1)
 
-# ВЫЗЫВАЕТСЯ, КОГДА ИГРОК ВЫШЕЛ ИЗ МИНИ-ИГРЫ
+
 func resume_sniper():
 	if is_active:
 		return
@@ -173,7 +173,7 @@ func resume_sniper():
 	if player and not player.is_in_group("in_tight_passage"):
 		_start_aiming()
 
-# ВЫЗЫВАЕТСЯ, КОГДА ПОГРУЗЧИК ВЗОРВАЛСЯ (ШИФТ)
+
 func disable_sniper():
 	print("🔴 СНАЙПЕР ОТКЛЮЧЁН!")
 	is_active = false
@@ -186,6 +186,6 @@ func disable_sniper():
 	if visual_rect:
 		visual_rect.color = Color(0.3, 0.3, 0.3, 1)
 	
-	# УДАЛЯЕМ СНАЙПЕРА ЧЕРЕЗ 2 СЕКУНДЫ
+	
 	await get_tree().create_timer(2.0).timeout
 	queue_free()

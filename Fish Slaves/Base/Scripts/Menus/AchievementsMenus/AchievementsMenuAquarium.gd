@@ -90,7 +90,7 @@ func _setup_progress_bar() -> void:
 func update_achievements() -> void:
 	unlocked_count = 0
 	
-	# COFFEE
+	
 	if Achievements.coffee_unlocked:
 		unlocked_count += 1
 		_set_bright(coffee_achievement, coffee_icon, coffee_check, coffee_name)
@@ -99,7 +99,7 @@ func update_achievements() -> void:
 		_set_gray(coffee_achievement, coffee_icon, coffee_check, coffee_name)
 		coffee_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# FLASHBACK
+	
 	if Achievements.flashback_unlocked:
 		unlocked_count += 1
 		_set_bright(flashback_achievement, flashback_icon, flashback_check, flashback_name)
@@ -108,7 +108,7 @@ func update_achievements() -> void:
 		_set_gray(flashback_achievement, flashback_icon, flashback_check, flashback_name)
 		flashback_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# POP STAR
+	
 	if Achievements.pop_star_unlocked:
 		unlocked_count += 1
 		_set_bright(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
@@ -124,7 +124,7 @@ func update_achievements() -> void:
 			pop_star_progress.text = str(popped) + "/100"
 			pop_star_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# REBEL
+	
 	if Achievements.rebel_unlocked:
 		unlocked_count += 1
 		_set_bright(rebel_achievement, rebel_icon, rebel_check, rebel_name)
@@ -140,7 +140,7 @@ func update_achievements() -> void:
 			rebel_progress.text = str(thrown) + "/50"
 			rebel_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# ACROBAT
+	
 	if Achievements.acrobat_unlocked:
 		unlocked_count += 1
 		_set_bright(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
@@ -149,7 +149,7 @@ func update_achievements() -> void:
 		_set_gray(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
 		acrobat_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# WORKER OF MONTH
+	
 	if worker_achievement:
 		if Achievements.worker_of_month_unlocked:
 			unlocked_count += 1
@@ -161,7 +161,7 @@ func update_achievements() -> void:
 			if worker_desc:
 				worker_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# SCOUT
+	
 	if scout_achievement:
 		if Achievements.scout_unlocked:
 			unlocked_count += 1
@@ -173,7 +173,7 @@ func update_achievements() -> void:
 			if scout_desc:
 				scout_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
-	# FREEDOM
+	
 	if freedom_achievement:
 		if Achievements.freedom_unlocked:
 			unlocked_count += 1

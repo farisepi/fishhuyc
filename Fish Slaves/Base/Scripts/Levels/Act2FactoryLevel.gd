@@ -1,8 +1,6 @@
 extends Node2D
 
-# ==============================
-# КОНСТАНТЫ
-# ==============================
+
 const TOTAL_OBJECTS: int = 15
 const NUM_NPC_FISHES: int = 4
 
@@ -29,9 +27,7 @@ const COLOR_YELLOW := Color(1, 0.9, 0.3)
 
 const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
 
-# ==============================
-# ССЫЛКИ НА УЗЛЫ
-# ==============================
+
 @onready var player: CharacterBody2D = $Mecha_Fish
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var player_sprite: AnimatedSprite2D = $Mecha_Fish/AnimatedSprite2D
@@ -66,23 +62,20 @@ const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.pn
 
 @onready var pausemenu: CanvasLayer = $Pausemenu
 
-# ==============================
-# СОСТОЯНИЕ
-# ==============================
 enum State { INTRO, WORKING, MINIGAME, SHIFT_END, INSPECT, DEAD }
 var state: State = State.INTRO
 
 var current_shift: int = 1
 var shift_time: float = 0.0
 
-# Текущий (активный) объект — тот, что едет к игроку
+
 var current_object: Node2D = null
 var object_x: float = 0.0
 var object_progress: int = 0
 var conveyor_paused: bool = false
 var current_object_index: int = 0
 
-# Готовые коробки, которые уже обработаны и уезжают влево
+
 var finished_boxes: Array = []
 
 var correct_count: int = 0
@@ -118,16 +111,14 @@ var sniper_changing: bool = false
 var guard_last_checked_hour: float = -1.0
 var sniper_last_checked_hour: float = -1.0
 
-# Конвейер
+
 var conveyor_sprites: Array = []
 var conveyor_tile_width: float = 0.0
 var conveyor_scroll_offset: float = 0.0
 var conveyor_base_x: float = 0.0
 var conveyor_floor_rect: ColorRect = null
 
-# ==============================
-# READY
-# ==============================
+
 func _ready() -> void:
 	randomize()
 	
@@ -154,7 +145,7 @@ func _ready() -> void:
 	fade_rect.color = Color(0, 0, 0, 0)
 	pausemenu.visible = false
 	
-	# НЕ трогаем скорость игрока — она должна быть как в PlayerMechaFish.tscn
+	
 	
 	await get_tree().process_frame
 	
@@ -200,9 +191,7 @@ func _create_conveyor_floor() -> void:
 	conveyor_floor_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(conveyor_floor_rect)
 
-# ==============================
-# PROCESS
-# ==============================
+
 func _process(delta: float) -> void:
 	if state == State.DEAD:
 		return
@@ -233,7 +222,7 @@ func _process(delta: float) -> void:
 		_process_guard_talk(delta)
 
 func _process_finished_boxes(delta: float) -> void:
-	# Готовые коробки едут влево, пока не уедут за край
+	
 	var to_remove: Array = []
 	for box in finished_boxes:
 		if not is_instance_valid(box):
@@ -429,15 +418,15 @@ func _reach_player() -> void:
 	minigame_slider.position.x = 0
 
 func _finish_current_object() -> void:
-	# Превращаем текущий объект в готовую коробку и отправляем её дальше
+	
 	if current_object == null or not is_instance_valid(current_object):
 		current_object = null
 		return
 	
-	# Меняем текстуру на коробку
+	
 	_set_object_texture(BOX_TEXTURE_PATH)
 	
-	# Добавляем в список "уезжающих"
+	
 	finished_boxes.append(current_object)
 	current_object = null
 
@@ -467,7 +456,7 @@ func _on_minigame_edge_fail() -> void:
 	wrong_count += 1
 	_mark_progress(current_object_index, false)
 	
-	# Не превращаем в коробку — просто удаляем
+	
 	if current_object and is_instance_valid(current_object):
 		current_object.queue_free()
 	current_object = null
@@ -497,11 +486,11 @@ func _press_button() -> void:
 	if is_correct:
 		correct_count += 1
 		_mark_progress(current_object_index, true)
-		_finish_current_object()  # Превращаем в коробку и отправляем дальше
+		_finish_current_object() 
 	else:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
-		# При ошибке объект удаляем
+		
 		if current_object and is_instance_valid(current_object):
 			current_object.queue_free()
 		current_object = null
@@ -525,9 +514,7 @@ func _mark_progress(index: int, correct: bool) -> void:
 	if cell:
 		cell.color = COLOR_GREEN if correct else COLOR_RED
 
-# ==============================
-# МЕХАНИКА КАРЫ
-# ==============================
+
 func _handle_strike() -> void:
 	strike_count += 1
 	if strike_count == 3:
@@ -563,9 +550,7 @@ func _kill_player() -> void:
 	if player and player.has_method("die"):
 		player.die()
 
-# ==============================
-# СМЕНА
-# ==============================
+
 func _end_shift() -> void:
 	state = State.SHIFT_END
 	conveyor_paused = true
@@ -649,9 +634,7 @@ func _update_escape_hint() -> void:
 		escape_hint.text = "МОЖНО НАЧАТЬ ПОБЕГ ЗАВТРА В %02d:00" % int(next_window)
 	escape_hint.visible = true
 
-# ==============================
-# ОСМОТР / ЖУРНАЛ
-# ==============================
+
 func _enter_inspect() -> void:
 	if current_shift < 2:
 		return
@@ -795,9 +778,7 @@ func _on_journal_record(id: String, hour: float) -> void:
 	_update_journal_options()
 	_update_escape_hint()
 
-# ==============================
-# ДИАЛОГ / ОХРАННИК
-# ==============================
+
 func _process_guard_talk(delta: float) -> void:
 	guard_talk_timer -= delta
 	if guard_talk_timer <= 0.0:
@@ -821,9 +802,7 @@ func _show_dialog(text: String, duration: float) -> void:
 	dialog_panel.visible = false
 	is_dialog_active = false
 
-# ==============================
-# ПАУЗА
-# ==============================
+
 func _toggle_pause() -> void:
 	if pausemenu == null:
 		return
@@ -837,9 +816,7 @@ func _toggle_pause() -> void:
 func _resume_after_pause() -> void:
 	pass
 
-# ==============================
-# ВВОД
-# ==============================
+
 func _input(event: InputEvent) -> void:
 	if state == State.INSPECT and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -880,9 +857,7 @@ func _input(event: InputEvent) -> void:
 				_open_journal()
 			get_viewport().set_input_as_handled()
 
-# ==============================
-# ЛИФТ / ПОБЕГ
-# ==============================
+
 func _near_elevator() -> bool:
 	if player == null or elevator_door == null:
 		return false

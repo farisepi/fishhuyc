@@ -65,7 +65,7 @@ func start_loading(scene_path: String) -> void:
 	else:
 		get_tree().reload_current_scene()
 	
-	# Ждём смены через фиксированные тики, не через get_process_delta_time
+	
 	for i in range(120):
 		await get_tree().create_timer(0.05).timeout
 		if not is_instance_valid(self):

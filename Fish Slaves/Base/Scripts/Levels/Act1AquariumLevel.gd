@@ -229,9 +229,7 @@ func _ready() -> void:
 	
 	_start_wake_sequence()
 
-# ==================== CHARACTER ANIMATIONS ====================
-# Ученый и механик: idle по кругу, раз в 15-20 сек boring, у ученого еще angry в катсцене.
-# AnimationPlayer у них не используется: все идет через AnimatedSprite2D.
+
 
 func _setup_character_animations() -> void:
 	if scientist and scientist.sprite_frames:
@@ -258,10 +256,10 @@ func _schedule_boring(t: Timer) -> void:
 		return
 	t.start(randf_range(BORING_INTERVAL_MIN, BORING_INTERVAL_MAX))
 
-# ---- Ученый ----
+
 
 func _on_scientist_boring_timer() -> void:
-	# В катсцене ученый злится, скучать не должен
+	
 	if cutscene_active or not scientist or scientist.animation != "idle":
 		_schedule_boring(scientist_boring_timer)
 		return
@@ -273,7 +271,7 @@ func _on_scientist_animation_finished() -> void:
 			scientist.play("idle")
 			_schedule_boring(scientist_boring_timer)
 		"angry":
-			# После злости возвращаемся в idle
+			
 			scientist.play("idle")
 
 func _scientist_play_angry() -> void:
@@ -283,10 +281,10 @@ func _scientist_play_angry() -> void:
 		scientist_boring_timer.stop()
 	scientist.play("angry")
 
-# ---- Механик ----
+
 
 func _on_mechanic_boring_timer() -> void:
-	# Не перебиваем, если механик сейчас не в idle, и не скучаем в катсцене
+	
 	if cutscene_active or not mechanic or mechanic.animation != "idle":
 		_schedule_boring(mechanic_boring_timer)
 		return
@@ -1099,7 +1097,7 @@ func _apply_text_glitch(intensity: float) -> void:
 		await get_tree().create_timer(0.06).timeout
 
 		if chatter_active and not cutscene_active and is_instance_valid(chatter_label):
-			# читаем chatter_typed_text ЗАНОВО — за эти 60мс печать могла уйти дальше
+			
 			chatter_label.text = chatter_typed_text
 			chatter_label.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
 			if chatter_label_far:

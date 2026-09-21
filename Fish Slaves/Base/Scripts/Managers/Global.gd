@@ -402,7 +402,7 @@ func _apply_font(node: Node) -> void:
 		
 		_apply_font(child)
 
-# ==================== ПЕРЕХОД МЕЖДУ СЦЕНАМИ ====================
+
 
 func goto_scene(scene_path: String) -> void:
 	_cleanup_loading()
@@ -419,7 +419,7 @@ func goto_scene(scene_path: String) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	
-	# Сносим висящие LoadingScreen'ы
+	
 	for child in get_tree().root.get_children():
 		if child == get_tree().current_scene:
 			continue
