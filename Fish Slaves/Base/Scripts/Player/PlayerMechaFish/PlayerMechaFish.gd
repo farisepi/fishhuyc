@@ -105,7 +105,6 @@ func _physics_process(delta):
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
 	
-	# Если идёт vault/climb — не трогаем физику
 	if is_vaulting or is_climbing or is_climbing_animation:
 		velocity.y = 0
 		move_and_slide()
@@ -124,7 +123,6 @@ func _physics_process(delta):
 	if not is_attacking and not is_landing:
 		sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 
-	# === Скорость ===
 	var spd = run_speed
 	if is_attacking:
 		spd = run_speed * ATTACK_SPEED_MULT
@@ -199,8 +197,6 @@ func _physics_process(delta):
 	
 	if is_sliding and is_on_wall():
 		global_position.y += 3
-
-	# КАМЕРУ НЕ ТРОГАЕМ — этим занимается PlayerMechaFishCamera.gd
 
 	if held_item_icon:
 		held_item_icon.global_position = global_position + Vector2(0, -60)

@@ -3,10 +3,11 @@ extends Node2D
 # ==============================
 # КОНСТАНТЫ
 # ==============================
-const TOTAL_OBJECTS: int = 15
+const TOTAL_OBJECTS: int = 10
 const NUM_NPC_FISHES: int = 4
+const AUTO_OBJECTS: int = 3
 
-const CONVEYOR_Y: float = 395.0
+const CONVEYOR_Y: float = 386.0
 const FISH_START_X: float = 285.0
 const FISH_SPACING: float = 125.0
 const PLAYER_TURN_X: float = 156.0
@@ -14,6 +15,7 @@ const OBJECT_SPAWN_X: float = 1850.0
 const OBJECT_DESPAWN_X: float = -700.0
 
 const OBJECT_SPEED: float = 150.0
+const NPC_WALK_SPEED: float = 240.0
 
 const SHIFT_START_HOUR: float = 8.0
 const SHIFT_END_HOUR: float = 18.0
@@ -26,8 +28,18 @@ const SNIPER_SHIFTS: Array = [11.0, 13.0, 15.0]
 const COLOR_GREEN := Color(0.2, 0.8, 0.3)
 const COLOR_RED := Color(0.9, 0.2, 0.2)
 const COLOR_YELLOW := Color(1, 0.9, 0.3)
+const COLOR_BLUE := Color(0.3, 0.5, 0.8)
 
 const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
+const ATTACK_ALL_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png"
+const JOGGING_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png"
+const ATTACK_FRAMES_PER_SIDE: int = 8
+const JOGGING_FRAMES: int = 12
+
+const PLAYER_ZONE_CENTER := Vector2(156.0, 351.0)
+const PLAYER_ZONE_SIZE := Vector2(200.0, 100.0)
+
+const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 
 # ==============================
 # ССЫЛКИ НА УЗЛЫ
@@ -35,11 +47,13 @@ const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.pn
 @onready var player: CharacterBody2D = $Mecha_Fish
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var player_sprite: AnimatedSprite2D = $Mecha_Fish/AnimatedSprite2D
+@onready var player_gui: CanvasLayer = $Mecha_Fish/GUI
 @onready var objects_layer: Node2D = $Objects
 @onready var npc_fishes: Array[Node] = [$NPCParent/Fish1, $NPCParent/Fish2, $NPCParent/Fish3, $NPCParent/Fish4]
 @onready var guard_rect: ColorRect = $Guard
 @onready var sniper_rect: ColorRect = $Sniper
 @onready var elevator_door: ColorRect = $Elevator
+@onready var guard_door: ColorRect = $GuardDoor
 
 @onready var clock_label: Label = $UI/ClockLabel
 @onready var dialog_panel: ColorRect = $UI/DialogPanel
@@ -74,21 +88,18 @@ var state: State = State.INTRO
 
 var current_shift: int = 1
 var shift_time: float = 0.0
-
-# Текущий (активный) объект — тот, что едет к игроку
 var current_object: Node2D = null
 var object_x: float = 0.0
 var object_progress: int = 0
 var conveyor_paused: bool = false
 var current_object_index: int = 0
 
-# Готовые коробки, которые уже обработаны и уезжают влево
 var finished_boxes: Array = []
+var broken_boxes: Array = []
 
 var correct_count: int = 0
 var wrong_count: int = 0
 var strike_count: int = 0
-var action_strike_count: int = 0
 
 var slider_pos: float = 0.0
 var slider_dir: float = 1.0
@@ -125,21 +136,55 @@ var conveyor_scroll_offset: float = 0.0
 var conveyor_base_x: float = 0.0
 var conveyor_floor_rect: ColorRect = null
 
+# Пол
+var floor_rect: ColorRect = null
+
+# Зона работы
+var work_zone_rect: ColorRect = null
+
+# Подсветки мест смены
+var zone_highlight_rects: Dictionary = {}
+
+# Уход NPC
+var shift_end_npc_timer: float = 0.0
+
+# Режим осмотра
+var inspect_camera_offset: Vector2 = Vector2.ZERO
+var inspect_vignette: ColorRect = null
+var inspect_camera_original_pos: Vector2 = Vector2.ZERO
+
+# Камера охранника
+var guard_camera: Camera2D = null
+
+# Блокировка атаки
+var attack_lock: bool = false
+
 # ==============================
 # READY
 # ==============================
 func _ready() -> void:
 	randomize()
 	
+	_disable_actions_for_act2()
+	
+	if player:
+		player.dash_cooldown = 999999.0
+	
 	for i in range(TOTAL_OBJECTS):
 		var cell = ColorRect.new()
 		cell.name = "Cell" + str(i)
 		cell.color = Color(0.2, 0.2, 0.2)
-		cell.custom_minimum_size = Vector2(20, 20)
+		cell.custom_minimum_size = Vector2(28, 20)
 		progress_bar.add_child(cell)
 	
 	_collect_conveyor_sprites()
 	_create_conveyor_floor()
+	_create_floor_rect()
+	_create_work_zone()
+	_create_shift_zone_highlights()
+	_create_vignette()
+	_setup_npc_animations()
+	_setup_guard_camera()
 	
 	bind_hint_i.visible = false
 	bind_hint_j.visible = false
@@ -154,12 +199,13 @@ func _ready() -> void:
 	fade_rect.color = Color(0, 0, 0, 0)
 	pausemenu.visible = false
 	
-	# НЕ трогаем скорость игрока — она должна быть как в PlayerMechaFish.tscn
+	if player_gui:
+		player_gui.visible = false
 	
 	await get_tree().process_frame
 	
 	if player and player.has_method("set_movement_blocked"):
-		player.set_movement_blocked(false)
+		player.set_movement_blocked(true)
 	
 	if camera:
 		camera.enabled = true
@@ -172,19 +218,42 @@ func _ready() -> void:
 	intro_timer = 0.0
 	state = State.INTRO
 
+func _disable_actions_for_act2() -> void:
+	for action in ACT2_DISABLED_ACTIONS:
+		if InputMap.has_action(action):
+			InputMap.action_erase_events(action)
+
+func _restore_actions_on_exit() -> void:
+	var defaults := {
+		"crouch": KEY_CTRL,
+		"block": KEY_Q,
+		"inventory": KEY_TAB,
+	}
+	for action in defaults.keys():
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		var ev = InputEventKey.new()
+		ev.keycode = defaults[action]
+		InputMap.action_add_event(action, ev)
+	if not InputMap.has_action("Parry"):
+		InputMap.add_action("Parry")
+	var mouse_ev = InputEventMouseButton.new()
+	mouse_ev.button_index = MOUSE_BUTTON_RIGHT
+	InputMap.action_add_event("Parry", mouse_ev)
+
+func _exit_tree() -> void:
+	_restore_actions_on_exit()
+
 func _collect_conveyor_sprites() -> void:
 	for child in get_children():
 		if child is Sprite2D and child.name.begins_with("ConveyorSprite"):
 			conveyor_sprites.append(child)
-	
 	if conveyor_sprites.is_empty():
 		return
-	
 	var s: Sprite2D = conveyor_sprites[0]
 	if s.texture == null:
 		return
 	conveyor_tile_width = s.texture.get_width() * abs(s.scale.x)
-	
 	conveyor_sprites.sort_custom(func(a, b): return a.position.x < b.position.x)
 	conveyor_base_x = conveyor_sprites[0].position.x
 
@@ -193,12 +262,154 @@ func _create_conveyor_floor() -> void:
 	conveyor_floor_rect.name = "ConveyorFloor"
 	conveyor_floor_rect.color = Color(0.15, 0.15, 0.2, 1)
 	conveyor_floor_rect.offset_left = -600.0
-	conveyor_floor_rect.offset_top = 425.0
+	conveyor_floor_rect.offset_top = 416.0
 	conveyor_floor_rect.offset_right = 2000.0
-	conveyor_floor_rect.offset_bottom = 455.0
+	conveyor_floor_rect.offset_bottom = 446.0
 	conveyor_floor_rect.z_index = -5
 	conveyor_floor_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(conveyor_floor_rect)
+
+func _create_floor_rect() -> void:
+	floor_rect = ColorRect.new()
+	floor_rect.name = "FloorRect"
+	floor_rect.color = Color(0.3, 0.18, 0.12, 1)
+	floor_rect.offset_left = -600.0
+	floor_rect.offset_top = 380.0
+	floor_rect.offset_right = 2000.0
+	floor_rect.offset_bottom = 420.0
+	floor_rect.z_index = -4
+	floor_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(floor_rect)
+
+func _create_work_zone() -> void:
+	work_zone_rect = ColorRect.new()
+	work_zone_rect.name = "WorkZone"
+	work_zone_rect.color = Color(0.2, 0.8, 0.3, 0.15)
+	work_zone_rect.offset_left = PLAYER_ZONE_CENTER.x - PLAYER_ZONE_SIZE.x / 2.0
+	work_zone_rect.offset_top = PLAYER_ZONE_CENTER.y - PLAYER_ZONE_SIZE.y / 2.0
+	work_zone_rect.offset_right = PLAYER_ZONE_CENTER.x + PLAYER_ZONE_SIZE.x / 2.0
+	work_zone_rect.offset_bottom = PLAYER_ZONE_CENTER.y + PLAYER_ZONE_SIZE.y / 2.0
+	work_zone_rect.z_index = -1
+	work_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(work_zone_rect)
+
+func _create_shift_zone_highlights() -> void:
+	_add_zone_highlight("clock", Vector2(576, 80), Vector2(120, 60))
+	_add_zone_highlight("elevator", Vector2(1230, 325), Vector2(100, 120))
+	_add_zone_highlight("guard_door", Vector2(-290, 325), Vector2(100, 120))
+	_add_zone_highlight("sniper", Vector2(1060, 60), Vector2(120, 80))
+	_add_zone_highlight("conveyor", Vector2(400, 400), Vector2(200, 60))
+
+func _add_zone_highlight(id: String, center: Vector2, size: Vector2) -> void:
+	var rect = ColorRect.new()
+	rect.name = "Highlight_" + id
+	rect.color = Color(0.3, 0.6, 1.0, 0.18)
+	rect.offset_left = center.x - size.x / 2.0
+	rect.offset_top = center.y - size.y / 2.0
+	rect.offset_right = center.x + size.x / 2.0
+	rect.offset_bottom = center.y + size.y / 2.0
+	rect.z_index = -1
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.visible = true
+	add_child(rect)
+	zone_highlight_rects[id] = rect
+
+func _create_vignette() -> void:
+	inspect_vignette = ColorRect.new()
+	inspect_vignette.name = "InspectVignette"
+	inspect_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	inspect_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inspect_vignette.z_index = 50
+	inspect_vignette.visible = false
+	
+	var shader = Shader.new()
+	shader.code = """
+shader_type canvas_item;
+void fragment() {
+	vec2 uv = UV;
+	vec2 dist = abs(uv - 0.5) * 2.0;
+	float d = max(dist.x, dist.y);
+	float v = smoothstep(0.4, 1.0, d);
+	COLOR = vec4(0.0, 0.0, 0.0, v * 0.75);
+}
+"""
+	var mat = ShaderMaterial.new()
+	mat.shader = shader
+	inspect_vignette.material = mat
+	
+	var canvas = CanvasLayer.new()
+	canvas.name = "InspectVignetteLayer"
+	canvas.layer = 5
+	canvas.add_child(inspect_vignette)
+	add_child(canvas)
+
+func _setup_npc_animations() -> void:
+	var atk_tex = load(ATTACK_ALL_PATH)
+	var jog_tex = load(JOGGING_PATH)
+	
+	for fish in npc_fishes:
+		if fish == null or not fish is AnimatedSprite2D:
+			continue
+		var frames: SpriteFrames = fish.sprite_frames
+		if frames == null:
+			continue
+		
+		if atk_tex:
+			_add_attack_frames_from_sheet(frames, "AttackLeft", atk_tex, ATTACK_FRAMES_PER_SIDE, ATTACK_FRAMES_PER_SIDE)
+			_add_attack_frames_from_sheet(frames, "AttackRight", atk_tex, 0, ATTACK_FRAMES_PER_SIDE)
+		
+		if jog_tex:
+			_add_jogging_frames(frames, "jogging", jog_tex)
+
+func _add_attack_frames_from_sheet(frames: SpriteFrames, anim_name: String, tex: Texture2D, start_index: int, count: int) -> void:
+	if frames.has_animation(anim_name):
+		return
+	frames.add_animation(anim_name)
+	frames.set_animation_loop(anim_name, false)
+	frames.set_animation_speed(anim_name, 14.0)
+	
+	var tex_h = tex.get_height()
+	var total_frames = ATTACK_FRAMES_PER_SIDE * 2
+	var frame_w = int(tex.get_width() / float(total_frames))
+	
+	for i in range(count):
+		var atlas = AtlasTexture.new()
+		atlas.atlas = tex
+		atlas.region = Rect2((start_index + i) * frame_w, 0, frame_w, tex_h)
+		frames.add_frame(anim_name, atlas)
+
+func _add_jogging_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D) -> void:
+	if frames.has_animation(anim_name):
+		return
+	frames.add_animation(anim_name)
+	frames.set_animation_loop(anim_name, true)
+	frames.set_animation_speed(anim_name, 12.0)
+	
+	var tex_h = tex.get_height()
+	var frame_w = int(tex.get_width() / float(JOGGING_FRAMES))
+	
+	for i in range(JOGGING_FRAMES):
+		var atlas = AtlasTexture.new()
+		atlas.atlas = tex
+		atlas.region = Rect2(i * frame_w, 0, frame_w, tex_h)
+		frames.add_frame(anim_name, atlas)
+
+func _setup_guard_camera() -> void:
+	guard_camera = Camera2D.new()
+	guard_camera.name = "GuardCamera"
+	guard_camera.enabled = false
+	guard_camera.zoom = Vector2(2.5, 2.5)
+	add_child(guard_camera)
+
+func _is_player_in_zone() -> bool:
+	if player == null:
+		return false
+	var pos = player.global_position
+	var left = PLAYER_ZONE_CENTER.x - PLAYER_ZONE_SIZE.x / 2.0
+	var right = PLAYER_ZONE_CENTER.x + PLAYER_ZONE_SIZE.x / 2.0
+	var top = PLAYER_ZONE_CENTER.y - PLAYER_ZONE_SIZE.y / 2.0
+	var bottom = PLAYER_ZONE_CENTER.y + PLAYER_ZONE_SIZE.y / 2.0
+	return pos.x >= left and pos.x <= right and pos.y >= top and pos.y <= bottom
 
 # ==============================
 # PROCESS
@@ -211,8 +422,16 @@ func _process(delta: float) -> void:
 	
 	_process_clock(delta)
 	_process_shift_changes()
-	_process_conveyor_scroll(delta)
+	
+	if state != State.INSPECT:
+		_process_conveyor_scroll(delta)
+	
 	_process_finished_boxes(delta)
+	_process_broken_boxes(delta)
+	_process_shift_end_npcs(delta)
+	
+	if state == State.INSPECT:
+		_process_inspect_camera(delta)
 	
 	match state:
 		State.INTRO:
@@ -229,11 +448,30 @@ func _process(delta: float) -> void:
 		State.INSPECT:
 			pass
 	
-	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD:
+	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD and state != State.INSPECT:
 		_process_guard_talk(delta)
 
+func _process_inspect_camera(delta: float) -> void:
+	if camera == null:
+		return
+	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	inspect_camera_offset += dir * 300 * delta
+	inspect_camera_offset.x = clamp(inspect_camera_offset.x, -600, 600)
+	inspect_camera_offset.y = clamp(inspect_camera_offset.y, -400, 400)
+	camera.global_position = inspect_camera_original_pos + inspect_camera_offset
+
+func _process_shift_end_npcs(delta: float) -> void:
+	if state != State.SHIFT_END:
+		return
+	shift_end_npc_timer += delta
+	for fish in npc_fishes:
+		if fish:
+			fish.position.x += NPC_WALK_SPEED * delta
+			if fish is AnimatedSprite2D and fish.sprite_frames.has_animation("jogging"):
+				if fish.animation != "jogging":
+					fish.play("jogging")
+
 func _process_finished_boxes(delta: float) -> void:
-	# Готовые коробки едут влево, пока не уедут за край
 	var to_remove: Array = []
 	for box in finished_boxes:
 		if not is_instance_valid(box):
@@ -242,9 +480,22 @@ func _process_finished_boxes(delta: float) -> void:
 		box.position.x -= OBJECT_SPEED * delta
 		if box.position.x < OBJECT_DESPAWN_X:
 			to_remove.append(box)
-	
 	for box in to_remove:
 		finished_boxes.erase(box)
+		if is_instance_valid(box):
+			box.queue_free()
+
+func _process_broken_boxes(delta: float) -> void:
+	var to_remove: Array = []
+	for box in broken_boxes:
+		if not is_instance_valid(box):
+			to_remove.append(box)
+			continue
+		box.position.x -= OBJECT_SPEED * delta
+		if box.position.x < OBJECT_DESPAWN_X:
+			to_remove.append(box)
+	for box in to_remove:
+		broken_boxes.erase(box)
 		if is_instance_valid(box):
 			box.queue_free()
 
@@ -253,17 +504,15 @@ func _process_conveyor_scroll(delta: float) -> void:
 		return
 	if conveyor_tile_width <= 0.0 or conveyor_sprites.is_empty():
 		return
-	
 	conveyor_scroll_offset += OBJECT_SPEED * delta
 	if conveyor_scroll_offset >= conveyor_tile_width:
 		conveyor_scroll_offset -= conveyor_tile_width
-	
 	for i in range(conveyor_sprites.size()):
 		var s: Sprite2D = conveyor_sprites[i]
 		s.position.x = conveyor_base_x + i * conveyor_tile_width - conveyor_scroll_offset
 
 func _process_clock(delta: float) -> void:
-	if state == State.SHIFT_END:
+	if state == State.SHIFT_END or state == State.INSPECT:
 		return
 	shift_time += delta / REAL_SHIFT_DURATION
 	shift_time = clamp(shift_time, 0.0, 1.0)
@@ -279,6 +528,8 @@ func _update_clock_label() -> void:
 		clock_label.text = "%02d:00" % h
 
 func _process_shift_changes() -> void:
+	if state == State.INSPECT:
+		return
 	var hour = _current_hour()
 	for shift_hour in GUARD_SHIFTS:
 		if guard_last_checked_hour < shift_hour and hour >= shift_hour:
@@ -380,12 +631,9 @@ func _reach_fish(fish_index: int) -> void:
 		conveyor_paused = false
 		return
 	var fish = npc_fishes[fish_index]
-	
 	_play_npc_attack(fish)
-	
 	object_progress += 1
 	_set_object_color(Color(0.7, 0.5, 0.2))
-	
 	await get_tree().create_timer(0.4).timeout
 	conveyor_paused = false
 
@@ -395,22 +643,63 @@ func _play_npc_attack(fish: Node) -> void:
 	if fish is AnimatedSprite2D:
 		if fish.sprite_frames.has_animation("AttackLeft"):
 			fish.play("AttackLeft")
-		elif fish.sprite_frames.has_animation("Attack"):
-			fish.play("Attack")
+			await fish.animation_finished
+			if fish.sprite_frames.has_animation("idle"):
+				fish.play("idle")
 
 func _play_player_attack() -> void:
 	if player_sprite == null:
 		return
-	if not player_sprite.sprite_frames.has_animation("AttackLeft"):
-		return
-	if not player_sprite.sprite_frames.has_animation("AttackRight"):
-		return
 	var use_left = (randi() % 2 == 0)
 	var anim = "AttackLeft" if use_left else "AttackRight"
-	player_sprite.play(anim)
+	if player_sprite.sprite_frames.has_animation(anim):
+		player_sprite.play(anim)
 
 func _reach_player() -> void:
 	conveyor_paused = true
+	
+	if current_object_index < AUTO_OBJECTS:
+		_play_player_attack()
+		await get_tree().create_timer(0.8).timeout
+		if player_sprite and player_sprite.sprite_frames.has_animation("Idle"):
+			player_sprite.play("Idle")
+		
+		correct_count += 1
+		_mark_progress(current_object_index, true)
+		_finish_current_object()
+		current_object_index += 1
+		await get_tree().create_timer(0.3).timeout
+		
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
+	
+	if current_object_index == AUTO_OBJECTS:
+		wrong_count += 1
+		_mark_progress(current_object_index, false)
+		_handle_strike()
+		
+		if player_sprite:
+			player_sprite.modulate = COLOR_BLUE
+			await get_tree().create_timer(2.0).timeout
+			player_sprite.modulate = Color(1, 1, 1, 1)
+		
+		if player and player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(false)
+		
+		_break_current_object()
+		current_object_index += 1
+		await get_tree().create_timer(0.5).timeout
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
+	
 	state = State.MINIGAME
 	minigame_active = true
 	minigame_panel.visible = true
@@ -429,16 +718,19 @@ func _reach_player() -> void:
 	minigame_slider.position.x = 0
 
 func _finish_current_object() -> void:
-	# Превращаем текущий объект в готовую коробку и отправляем её дальше
 	if current_object == null or not is_instance_valid(current_object):
 		current_object = null
 		return
-	
-	# Меняем текстуру на коробку
 	_set_object_texture(BOX_TEXTURE_PATH)
-	
-	# Добавляем в список "уезжающих"
 	finished_boxes.append(current_object)
+	current_object = null
+
+func _break_current_object() -> void:
+	if current_object == null or not is_instance_valid(current_object):
+		current_object = null
+		return
+	_set_object_color(COLOR_RED)
+	broken_boxes.append(current_object)
 	current_object = null
 
 func _process_minigame(delta: float) -> void:
@@ -467,11 +759,7 @@ func _on_minigame_edge_fail() -> void:
 	wrong_count += 1
 	_mark_progress(current_object_index, false)
 	
-	# Не превращаем в коробку — просто удаляем
-	if current_object and is_instance_valid(current_object):
-		current_object.queue_free()
-	current_object = null
-	
+	_break_current_object()
 	_handle_strike()
 	
 	current_object_index += 1
@@ -484,11 +772,27 @@ func _on_minigame_edge_fail() -> void:
 		_spawn_next_object()
 
 func _press_button() -> void:
+	if attack_lock:
+		return
+	
 	minigame_active = false
 	hint_label.visible = false
 	minigame_panel.visible = false
 	
 	_play_player_attack()
+	
+	if not _is_player_in_zone():
+		wrong_count += 1
+		_mark_progress(current_object_index, false)
+		_break_current_object()
+		current_object_index += 1
+		await get_tree().create_timer(0.3).timeout
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
 	
 	var z_min = zone_center - zone_width / 2
 	var z_max = zone_center + zone_width / 2
@@ -497,18 +801,15 @@ func _press_button() -> void:
 	if is_correct:
 		correct_count += 1
 		_mark_progress(current_object_index, true)
-		_finish_current_object()  # Превращаем в коробку и отправляем дальше
+		_finish_current_object()
 	else:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
-		# При ошибке объект удаляем
-		if current_object and is_instance_valid(current_object):
-			current_object.queue_free()
-		current_object = null
+		_break_current_object()
 		_handle_strike()
 	
 	current_object_index += 1
-	await get_tree().create_timer(0.25).timeout
+	await get_tree().create_timer(0.15).timeout
 	if player_sprite and player_sprite.sprite_frames.has_animation("Idle"):
 		player_sprite.play("Idle")
 	
@@ -531,7 +832,7 @@ func _mark_progress(index: int, correct: bool) -> void:
 func _handle_strike() -> void:
 	strike_count += 1
 	if strike_count == 3:
-		_show_dialog("ЭЙ, ЧТО С ТОБОЙ НЕ ТАК?!", 2.5)
+		_show_guard_dialog("ЭЙ, ЧТО С ТОБОЙ НЕ ТАК?!", 2.5)
 	elif strike_count >= 5:
 		_kill_player()
 
@@ -552,7 +853,7 @@ func _kill_player() -> void:
 	minigame_panel.visible = false
 	hint_label.visible = false
 	
-	_show_dialog("С СУБЪЕКТОМ 7-БЕТА ЧТО-ТО НЕ ТАК, ОБНАРУЖЕНО ДЕВИАНТСКОЕ ПОВЕДЕНИЕ", 3.5)
+	_show_guard_dialog("С СУБЪЕКТОМ 7-БЕТА ЧТО-ТО НЕ ТАК, ОБНАРУЖЕНО ДЕВИАНТСКОЕ ПОВЕДЕНИЕ", 3.5)
 	
 	if sniper_rect:
 		var tween = create_tween()
@@ -569,23 +870,24 @@ func _kill_player() -> void:
 func _end_shift() -> void:
 	state = State.SHIFT_END
 	conveyor_paused = true
+	shift_end_npc_timer = 0.0
 	_show_dialog("РАБОТА НА СЕГОДНЯ ВЫПОЛНЕНА, ВСЕ НА ТЕХ ОБСЛУЖИВАНИЕ И НАЗАД", 4.0)
 	if wrong_count == 0:
 		if has_node("/root/Achievements"):
 			Achievements.unlock_worker_of_month()
-			print("⭐ ИДЕАЛЬНАЯ СМЕНА! Ачивка выдана.")
 	_fade_and_new_shift()
 
 func _fade_and_new_shift() -> void:
+	await get_tree().create_timer(2.0).timeout
 	fade_rect.visible = true
 	fade_rect.color = Color(0, 0, 0, 0)
 	var tween = create_tween()
-	tween.tween_property(fade_rect, "color:a", 1.0, 1.5)
+	tween.tween_property(fade_rect, "color:a", 1.0, 3.0)
 	await tween.finished
 	await get_tree().create_timer(0.5).timeout
 	_start_new_shift()
 	var tween2 = create_tween()
-	tween2.tween_property(fade_rect, "color:a", 0.0, 1.5)
+	tween2.tween_property(fade_rect, "color:a", 0.0, 3.0)
 	await tween2.finished
 	fade_rect.visible = false
 
@@ -595,10 +897,10 @@ func _start_new_shift() -> void:
 	correct_count = 0
 	wrong_count = 0
 	strike_count = 0
-	action_strike_count = 0
 	shift_time = 0.0
 	guard_last_checked_hour = -1.0
 	sniper_last_checked_hour = -1.0
+	shift_end_npc_timer = 0.0
 	
 	for i in range(progress_bar.get_child_count()):
 		var cell = progress_bar.get_child(i) as ColorRect
@@ -615,6 +917,11 @@ func _start_new_shift() -> void:
 				f.play("idle")
 	if player:
 		player.position = Vector2(PLAYER_TURN_X, 351)
+		if player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(true)
+	
+	if player_gui:
+		player_gui.visible = false
 	
 	if current_shift >= 2:
 		bind_hint_i.visible = true
@@ -662,6 +969,14 @@ func _enter_inspect() -> void:
 	inspect_overlay.visible = true
 	conveyor_paused = true
 	selected_zone = ""
+	
+	inspect_camera_original_pos = player.global_position
+	inspect_camera_offset = Vector2.ZERO
+	if camera:
+		camera.zoom = Vector2(1.5, 1.5)
+	
+	if inspect_vignette:
+		inspect_vignette.visible = true
 
 func _exit_inspect() -> void:
 	if state != State.INSPECT:
@@ -671,6 +986,13 @@ func _exit_inspect() -> void:
 	inspect_overlay.visible = false
 	inspect_marker.visible = false
 	conveyor_paused = false
+	
+	if camera:
+		camera.zoom = Vector2(2.5, 2.5)
+		camera.global_position = player.global_position
+	
+	if inspect_vignette:
+		inspect_vignette.visible = false
 
 func _process_inspect_click(_mouse_pos: Vector2) -> void:
 	var zone_map = {
@@ -821,6 +1143,27 @@ func _show_dialog(text: String, duration: float) -> void:
 	dialog_panel.visible = false
 	is_dialog_active = false
 
+func _show_guard_dialog(text: String, duration: float) -> void:
+	if is_dialog_active:
+		return
+	is_dialog_active = true
+	dialog_panel.visible = true
+	dialog_label.text = text
+	
+	if camera and guard_camera and guard_rect:
+		camera.enabled = false
+		guard_camera.global_position = guard_rect.global_position + Vector2(150, -50)
+		guard_camera.enabled = true
+	
+	await get_tree().create_timer(duration).timeout
+	dialog_panel.visible = false
+	is_dialog_active = false
+	
+	if camera and guard_camera:
+		guard_camera.enabled = false
+		camera.enabled = true
+		camera.global_position = player.global_position
+
 # ==============================
 # ПАУЗА
 # ==============================
@@ -828,10 +1171,22 @@ func _toggle_pause() -> void:
 	if pausemenu == null:
 		return
 	if pausemenu.visible:
-		pausemenu.visible = false
+		if pausemenu.has_method("hide_menu"):
+			pausemenu.hide_menu()
+		else:
+			pausemenu.visible = false
 		get_tree().paused = false
 	else:
 		pausemenu.visible = true
+		if pausemenu.has_method("show_menu"):
+			pausemenu.show_menu()
+		else:
+			for child in pausemenu.get_children():
+				if child is Button:
+					child.modulate.a = 1.0
+					child.scale = Vector2.ONE
+				elif child is ColorRect:
+					child.modulate.a = 0.5
 		get_tree().paused = true
 
 func _resume_after_pause() -> void:
@@ -841,14 +1196,24 @@ func _resume_after_pause() -> void:
 # ВВОД
 # ==============================
 func _input(event: InputEvent) -> void:
-	if state == State.INSPECT and event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_process_inspect_click(event.position)
+	if state == State.INSPECT:
+		if event is InputEventMouseButton:
+			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				_process_inspect_click(event.position)
+				get_viewport().set_input_as_handled()
+				return
+		if event.is_action_pressed("interact"):
 			get_viewport().set_input_as_handled()
 			return
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_I or event.keycode == KEY_ESCAPE:
+				_exit_inspect()
+				get_viewport().set_input_as_handled()
+				return
+		return
 	
 	if event.is_action_pressed("interact"):
-		if state == State.MINIGAME and minigame_active:
+		if state == State.MINIGAME and minigame_active and not attack_lock:
 			_press_button()
 			get_viewport().set_input_as_handled()
 			return
@@ -866,9 +1231,7 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_I:
 			if current_shift < 2:
 				return
-			if state == State.INSPECT:
-				_exit_inspect()
-			elif state == State.WORKING:
+			if state == State.WORKING:
 				_enter_inspect()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_J:
@@ -908,4 +1271,4 @@ func _enter_elevator() -> void:
 		Achievements.unlock_freedom()
 	_show_dialog("ПОБЕГ...", 1.5)
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.gd")
+	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
