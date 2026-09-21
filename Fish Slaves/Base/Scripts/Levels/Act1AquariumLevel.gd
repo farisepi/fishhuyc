@@ -1,6 +1,9 @@
 extends Node2D
 
-var bubble_scene: PackedScene
+var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+
+# Вода аквариума в мировых координатах (внутренняя область между стенами TileMap)
+const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var pause_menu: CanvasLayer = $Pausemenu
 @onready var player: CharacterBody2D = $рыбка
@@ -169,6 +172,7 @@ func _ready() -> void:
 	player.can_move = false
 	if Global.just_returned_from_settings:
 		_on_return_from_settings()
+		_spawn_bubbles()
 		return
 	
 	if Global.player_position != Vector2.ZERO:
@@ -308,7 +312,7 @@ func _process(delta: float) -> void:
 	
 	if chatter_active and not cutscene_active:
 		update_chatter_panel()
-		_update_glitch(delta)
+		#_update_glitch(delta)
 	else:
 		UISounds.set_glitch(0.0)
 
@@ -471,52 +475,51 @@ func _make_bubble() -> void:
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
 	
-	var spawn_y = randf_range(300, 514)
-	bubble.global_position = _get_random_position_with_y_limit(spawn_y)
+	bubble.global_position = _get_random_position_with_y_limit(0.0)
 	
 	var bubble_scale = randf_range(0.35, 0.7)
 	bubble.scale = Vector2(bubble_scale, bubble_scale)
 	
-	bubble.modulate.a = randf_range(0.01, 0.5)
+	bubble.modulate.a = 0.0
 	
 	var direction_x = randf_range(-0.2, 0.2)
 	bubble.set_direction(Vector2(direction_x, -1.0))
+	
+	var appear_tween = create_tween()
+	appear_tween.tween_property(bubble, "modulate:a", randf_range(0.1, 0.5), 0.8)
 	
 	bubble.start_life(randf_range(5.0, 10.0))
 	bubble.clickable = false
 	
 	bubble.body_entered.connect(_on_bubble_body_entered.bind(bubble))
 	
-	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0))
+	# process_always = false, чтобы пузыри не копились, пока игра на паузе
+	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0), false)
 	spawn_timer.timeout.connect(_make_bubble)
 
 func _on_bubble_body_entered(body: Node2D, bubble: Area2D) -> void:
 	if body.name == "рыбка" and not bubble.popped:
 		bubble._pop()
 
-func _get_random_position_with_y_limit(max_y: float) -> Vector2:
-	var viewport = get_viewport()
-	var viewport_size = viewport.get_visible_rect().size
-	var camera = _get_player_camera()
+func _get_random_position_with_y_limit(_max_y: float) -> Vector2:
+	var area: Rect2 = _get_camera_view_rect().intersection(WATER_RECT)
+	if area.size.x <= 0.0 or area.size.y <= 0.0:
+		area = WATER_RECT
 	
-	if not camera:
-		return Vector2(randf_range(0, viewport_size.x), randf_range(viewport_size.y - 200, max_y))
-	
-	var cam_pos = camera.global_position
-	var zoom = camera.zoom
-	
-	var world_width = viewport_size.x / zoom.x
-	var world_height = viewport_size.y / zoom.y
-	
-	var cam_bottom = cam_pos.y + world_height / 2
-	
-	var spawn_y_min = cam_bottom - 300
-	var spawn_y_max = min(cam_bottom - 100, max_y)
-	
+	# Пузыри появляются в нижней части видимой воды и поднимаются вверх
+	var y_min = area.position.y + area.size.y * 0.3
+	var y_max = area.end.y - 8.0
 	return Vector2(
-		cam_pos.x - world_width / 2 + randf_range(0, world_width),
-		randf_range(spawn_y_min, spawn_y_max)
+		randf_range(area.position.x + 8.0, area.end.x - 8.0),
+		randf_range(y_min, y_max)
 	)
+
+func _get_camera_view_rect() -> Rect2:
+	var camera = _get_player_camera()
+	if not camera:
+		return WATER_RECT
+	var view_size: Vector2 = get_viewport().get_visible_rect().size / camera.zoom
+	return Rect2(camera.get_screen_center_position() - view_size / 2.0, view_size)
 
 func _update_interact_icon() -> void:
 	if not interact_icon:
@@ -731,36 +734,36 @@ func set_chatter_state(state: Dictionary):
 	update_chatter_panel()
 	timer.start(2.5)
 
-func _update_glitch(delta: float) -> void:
-	var player_pos = player.global_position
-	var safe_zone_min = Vector2(672, 488)
-	var safe_zone_max = Vector2(864, 520)
-	
-	var dist_to_safe_zone = 0.0
-	if player_pos.x < safe_zone_min.x:
-		dist_to_safe_zone += safe_zone_min.x - player_pos.x
-	if player_pos.x > safe_zone_max.x:
-		dist_to_safe_zone += player_pos.x - safe_zone_max.x
-	if player_pos.y < safe_zone_min.y:
-		dist_to_safe_zone += safe_zone_min.y - player_pos.y
-	if player_pos.y > safe_zone_max.y:
-		dist_to_safe_zone += player_pos.y - safe_zone_max.y
-	
-	var max_dist = 500.0
-	var t = clamp(dist_to_safe_zone / max_dist, 0.0, 1.0)
-	var glitch_intensity = clamp(t * t, 0.0, 0.9)
-	
-	text_glitch_timer += delta
-	var interval = clamp(randf_range(0.8, 1.8) - glitch_intensity * 1.2, 0.3, 1.8)
-	
-	if text_glitch_timer > interval and glitch_intensity > 0.02:
-		text_glitch_timer = 0.0
-		_apply_text_glitch(glitch_intensity)
-	
-	if glitch_intensity > 0.1 and randf() < glitch_intensity * 0.6:
-		_apply_visual_glitch(glitch_intensity)
-	
-	UISounds.set_glitch(glitch_intensity)
+#func _update_glitch(delta: float) -> void:
+	#var player_pos = player.global_position
+	#var safe_zone_min = Vector2(672, 488)
+	#var safe_zone_max = Vector2(864, 520)
+	#
+	#var dist_to_safe_zone = 0.0
+	#if player_pos.x < safe_zone_min.x:
+		#dist_to_safe_zone += safe_zone_min.x - player_pos.x
+	#if player_pos.x > safe_zone_max.x:
+		#dist_to_safe_zone += player_pos.x - safe_zone_max.x
+	#if player_pos.y < safe_zone_min.y:
+		#dist_to_safe_zone += safe_zone_min.y - player_pos.y
+	#if player_pos.y > safe_zone_max.y:
+		#dist_to_safe_zone += player_pos.y - safe_zone_max.y
+	#
+	#var max_dist = 500.0
+	#var t = clamp(dist_to_safe_zone / max_dist, 0.0, 1.0)
+	#var glitch_intensity = clamp(t * t, 0.0, 0.9)
+	#
+	#text_glitch_timer += delta
+	#var interval = clamp(randf_range(0.8, 1.8) - glitch_intensity * 1.2, 0.3, 1.8)
+	#
+	#if text_glitch_timer > interval and glitch_intensity > 0.02:
+		#text_glitch_timer = 0.0
+		#_apply_text_glitch(glitch_intensity)
+	#
+	#if glitch_intensity > 0.1 and randf() < glitch_intensity * 0.6:
+		#_apply_visual_glitch(glitch_intensity)
+	#
+	#UISounds.set_glitch(glitch_intensity)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

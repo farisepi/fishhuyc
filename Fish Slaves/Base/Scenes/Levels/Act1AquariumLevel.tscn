@@ -30,6 +30,7 @@
 [ext_resource type="Texture2D" uid="uid://8by4gln8fd8h" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Stamina/Stamina.png" id="25_tsph4"]
 [ext_resource type="Texture2D" uid="uid://crq4u6ljy5pmy" path="res://Fish Slaves/Textures/Interface/In-GameInterface/MehIndicator/MehIndicatorOff.png" id="26_yijt6"]
 [ext_resource type="Texture2D" uid="uid://h0wvh3mf3l10" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicInstrumentBox/MechanicInstrumentBox1.png" id="27_yijt6"]
+[ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://Fish Slaves/Textures/Effects/Light/spr_glr_light_mask_7.png" id="31_m8hiw"]
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://Fish Slaves/Textures/Effects/Light/LightTexture.webp" id="31_pudq7"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icw3l"]
@@ -1030,9 +1031,6 @@ animations = [{
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_riqys"]
 polygon = PackedVector2Array(619, 15, 619, 21, 621, 21, 620.985, 25.565002, 627.985, 25.565002, 627.985, 21.565002, 629.985, 21.565002, 630, 19, 634, 19, 634, 21, 636, 21, 635.985, 25.565002, 642.985, 25.565002, 642.985, 21.565002, 646.985, 21.565002, 647, 15)
 
-[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_mjdn3"]
-polygon = PackedVector2Array(-282, 42, -281, 42, 721, 42, 721, 42)
-
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_pudq7"]
 polygon = PackedVector2Array(619, 26, 619, 24, 648, 24, 648, 26)
 
@@ -1407,67 +1405,82 @@ texture = ExtResource("27_yijt6")
 [node name="light" type="Node2D" parent="." unique_id=669225389]
 
 [node name="PointLight2D" type="PointLight2D" parent="light" unique_id=145385007]
-position = Vector2(73, 571)
-color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+position = Vector2(71.88002, 567.065)
+rotation = 1.5707964
+energy = 0.31
 shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D2" type="PointLight2D" parent="light" unique_id=1678064809]
-position = Vector2(200, 570)
+position = Vector2(197, 567)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+energy = 0.31
 shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D3" type="PointLight2D" parent="light" unique_id=1847952288]
-position = Vector2(325, 572)
+position = Vector2(323, 569)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+energy = 0.31
 shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D4" type="PointLight2D" parent="light" unique_id=517436737]
-position = Vector2(449, 571)
+position = Vector2(447.88004, 567.065)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+energy = 0.31
 shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D5" type="PointLight2D" parent="light" unique_id=36549018]
-position = Vector2(573, 571)
+position = Vector2(573, 567)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+energy = 0.31
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D6" type="PointLight2D" parent="light" unique_id=1593513052]
-position = Vector2(699, 571)
+position = Vector2(697.88, 567.065)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+energy = 0.31
 shadow_enabled = true
 shadow_color = Color(0, 0, 0, 0.047058824)
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D7" type="PointLight2D" parent="light" unique_id=528858747]
-position = Vector2(825, 571)
+position = Vector2(823.88, 567.065)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+energy = 0.31
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="PointLight2D8" type="PointLight2D" parent="light" unique_id=1000314637]
-position = Vector2(949, 571)
+position = Vector2(947.88, 567.065)
+rotation = 1.5707964
 color = Color(0.98725766, 1, 0.6186167, 1)
-energy = 0.51
+energy = 0.31
 shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 1.51
+texture = ExtResource("31_m8hiw")
+offset = Vector2(177.815, 0)
+texture_scale = 1.46
 
 [node name="scientistshadow" type="LightOccluder2D" parent="light" unique_id=1017691646]
 z_index = -1
@@ -1479,10 +1492,6 @@ z_index = -1
 position = Vector2(92, 641)
 occluder = SubResource("OccluderPolygon2D_riqys")
 
-[node name="LightOccluder2D4" type="LightOccluder2D" parent="light" unique_id=832694465]
-position = Vector2(291, 488)
-occluder = SubResource("OccluderPolygon2D_mjdn3")
-
 [node name="toolboxshadow" type="LightOccluder2D" parent="light" unique_id=1171706651]
 position = Vector2(134, 639)
 occluder = SubResource("OccluderPolygon2D_pudq7")
@@ -1490,27 +1499,12 @@ occluder = SubResource("OccluderPolygon2D_pudq7")
 [node name="waterlight" type="PointLight2D" parent="light" unique_id=265046959]
 position = Vector2(615, 353)
 color = Color(0.40099317, 0.5269954, 1, 1)
-energy = 1.54
-shadow_enabled = true
+energy = 1.14
 texture = ExtResource("31_pudq7")
 texture_scale = 3.19
 
-[node name="waterlight2" type="PointLight2D" parent="light" unique_id=712794636]
-position = Vector2(470, 518)
-scale = Vector2(1.930526, -0.086167924)
-color = Color(0.40099317, 0.5269954, 1, 1)
-shadow_enabled = true
-texture = ExtResource("31_pudq7")
-texture_scale = 8.22
-
-[node name="LightOccluder2D5" type="LightOccluder2D" parent="light" unique_id=922961307]
-position = Vector2(291, 488)
-occluder = SubResource("OccluderPolygon2D_mjdn3")
-
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=182525417]
-color = Color(0.14406255, 0.14406255, 0.14406249, 1)
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1911250286]
+color = Color(0.27022192, 0.27022192, 0.2702219, 1)
 
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
