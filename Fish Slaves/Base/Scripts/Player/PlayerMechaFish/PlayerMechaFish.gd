@@ -10,6 +10,8 @@ extends CharacterBody2D
 @export var item_scene: PackedScene = null
 @export var deathzone_scene: PackedScene = null
 
+var block_click_attack: bool = false
+
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
 
@@ -228,6 +230,10 @@ func _end_slide():
 var shift_pressed_time: float = 0.0
 
 func _input(event: InputEvent) -> void:
+	if block_click_attack:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			return
+	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if not is_attacking and not is_dead and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing:
 			_do_attack()

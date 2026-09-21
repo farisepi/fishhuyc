@@ -9,7 +9,8 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 	
 	if btn is Button:
 		btn.pivot_offset = btn.size / 2.0
-		btn.pressed.connect(click_sound_callable)
+		if click_sound_callable.is_valid():
+			btn.pressed.connect(click_sound_callable)
 	
 	btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
 	btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))

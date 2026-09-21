@@ -38,6 +38,12 @@ const PLAYER_ZONE_SIZE := Vector2(200.0, 100.0)
 
 const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 
+const STRIKE_WARNING: int = 3
+const STRIKE_DEATH: int = 5
+const ACTION_STRIKE_WARNING: int = 1
+const ACTION_STRIKE_DEATH: int = 2
+const ACTION_STRIKE_INTERVAL: float = 1.0
+
 @onready var player: CharacterBody2D = $Mecha_Fish
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var player_sprite: AnimatedSprite2D = $Mecha_Fish/AnimatedSprite2D
@@ -47,7 +53,6 @@ const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 @onready var guard_rect: ColorRect = $Guard
 @onready var sniper_rect: ColorRect = $Sniper
 @onready var elevator_door: ColorRect = $Elevator
-@onready var guard_door: ColorRect = $GuardDoor
 
 @onready var clock_label: Label = $UI/ClockLabel
 @onready var dialog_panel: ColorRect = $UI/DialogPanel
@@ -91,6 +96,8 @@ var broken_boxes: Array = []
 var correct_count: int = 0
 var wrong_count: int = 0
 var strike_count: int = 0
+var action_strike_count: int = 0
+var action_move_timer: float = 0.0
 
 var slider_pos: float = 0.0
 var slider_dir: float = 1.0
@@ -127,9 +134,7 @@ var conveyor_base_x: float = 0.0
 var conveyor_floor_rect: ColorRect = null
 
 var floor_rect: ColorRect = null
-
 var work_zone_rect: ColorRect = null
-
 var zone_highlight_rects: Dictionary = {}
 
 var shift_end_npc_timer: float = 0.0
@@ -137,10 +142,12 @@ var shift_end_npc_timer: float = 0.0
 var inspect_camera_offset: Vector2 = Vector2.ZERO
 var inspect_vignette: ColorRect = null
 var inspect_camera_original_pos: Vector2 = Vector2.ZERO
+var inspect_camera_original_zoom: Vector2 = Vector2(2.5, 2.5)
 
 var guard_camera: Camera2D = null
 
-var attack_lock: bool = false
+var guard_shift_progress_label: Label = null
+var sniper_shift_progress_label: Label = null
 
 func _ready() -> void:
 	randomize()
@@ -163,6 +170,7 @@ func _ready() -> void:
 	_create_work_zone()
 	_create_shift_zone_highlights()
 	_create_vignette()
+	_create_shift_progress_labels()
 	_setup_npc_animations()
 	_setup_guard_camera()
 	
@@ -191,6 +199,7 @@ func _ready() -> void:
 		camera.enabled = true
 		camera.top_level = true
 		camera.global_position = player.global_position
+		inspect_camera_original_zoom = camera.zoom
 	
 	if player_sprite and player_sprite.sprite_frames.has_animation("Idle"):
 		player_sprite.play("Idle")
@@ -283,12 +292,12 @@ func _create_shift_zone_highlights() -> void:
 func _add_zone_highlight(id: String, center: Vector2, size: Vector2) -> void:
 	var rect = ColorRect.new()
 	rect.name = "Highlight_" + id
-	rect.color = Color(0.3, 0.6, 1.0, 0.18)
+	rect.color = Color(0.3, 0.6, 1.0, 0.25)
 	rect.offset_left = center.x - size.x / 2.0
 	rect.offset_top = center.y - size.y / 2.0
 	rect.offset_right = center.x + size.x / 2.0
 	rect.offset_bottom = center.y + size.y / 2.0
-	rect.z_index = -1
+	rect.z_index = 1
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rect.visible = true
 	add_child(rect)
@@ -322,6 +331,33 @@ void fragment() {
 	canvas.layer = 5
 	canvas.add_child(inspect_vignette)
 	add_child(canvas)
+
+func _create_shift_progress_labels() -> void:
+	guard_shift_progress_label = Label.new()
+	guard_shift_progress_label.name = "GuardShiftProgress"
+	guard_shift_progress_label.add_theme_font_size_override("font_size", 16)
+	guard_shift_progress_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0, 1))
+	guard_shift_progress_label.position = Vector2(376, 100)
+	guard_shift_progress_label.size = Vector2(400, 25)
+	guard_shift_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	guard_shift_progress_label.text = "Смена караула: 0/3"
+	$UI.add_child(guard_shift_progress_label)
+	
+	sniper_shift_progress_label = Label.new()
+	sniper_shift_progress_label.name = "SniperShiftProgress"
+	sniper_shift_progress_label.add_theme_font_size_override("font_size", 16)
+	sniper_shift_progress_label.add_theme_color_override("font_color", Color(0.8, 0.7, 1.0, 1))
+	sniper_shift_progress_label.position = Vector2(376, 125)
+	sniper_shift_progress_label.size = Vector2(400, 25)
+	sniper_shift_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sniper_shift_progress_label.text = "Смена снайпера: 0/3"
+	$UI.add_child(sniper_shift_progress_label)
+
+func _update_shift_progress_labels() -> void:
+	if guard_shift_progress_label:
+		guard_shift_progress_label.text = "Смена караула: " + str(guard_shifts_found.size()) + "/3"
+	if sniper_shift_progress_label:
+		sniper_shift_progress_label.text = "Смена снайпера: " + str(sniper_shifts_found.size()) + "/3"
 
 func _setup_npc_animations() -> void:
 	var atk_tex = load(ATTACK_ALL_PATH)
@@ -399,13 +435,11 @@ func _process(delta: float) -> void:
 	
 	_process_clock(delta)
 	_process_shift_changes()
-	
-	if state != State.INSPECT:
-		_process_conveyor_scroll(delta)
-	
+	_process_conveyor_scroll(delta)
 	_process_finished_boxes(delta)
 	_process_broken_boxes(delta)
 	_process_shift_end_npcs(delta)
+	_process_action_penalty(delta)
 	
 	if state == State.INSPECT:
 		_process_inspect_camera(delta)
@@ -425,8 +459,41 @@ func _process(delta: float) -> void:
 		State.INSPECT:
 			pass
 	
-	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD and state != State.INSPECT:
+	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD:
 		_process_guard_talk(delta)
+
+func _process_action_penalty(delta: float) -> void:
+	if current_shift < 2:
+		return
+	if state == State.INSPECT:
+		return
+	if state == State.MINIGAME:
+		return
+	if state == State.DEAD:
+		return
+	if state == State.SHIFT_END:
+		return
+	
+	var hour = _current_hour()
+	var no_guard = abs(hour - 13.0) < 0.5
+	if no_guard:
+		action_move_timer = 0.0
+		return
+	
+	var moving = false
+	if Input.is_action_pressed("ui_left") or Input.is_action_pressed("ui_right"):
+		moving = true
+	if Input.is_action_just_pressed("jump"):
+		moving = true
+	
+	if moving:
+		action_move_timer += delta
+		if action_move_timer >= ACTION_STRIKE_INTERVAL:
+			action_move_timer = 0.0
+			action_strike_count += 1
+			_handle_action_strike()
+	else:
+		action_move_timer = 0.0
 
 func _process_inspect_camera(delta: float) -> void:
 	if camera == null:
@@ -489,7 +556,7 @@ func _process_conveyor_scroll(delta: float) -> void:
 		s.position.x = conveyor_base_x + i * conveyor_tile_width - conveyor_scroll_offset
 
 func _process_clock(delta: float) -> void:
-	if state == State.SHIFT_END or state == State.INSPECT:
+	if state == State.SHIFT_END:
 		return
 	shift_time += delta / REAL_SHIFT_DURATION
 	shift_time = clamp(shift_time, 0.0, 1.0)
@@ -505,8 +572,6 @@ func _update_clock_label() -> void:
 		clock_label.text = "%02d:00" % h
 
 func _process_shift_changes() -> void:
-	if state == State.INSPECT:
-		return
 	var hour = _current_hour()
 	for shift_hour in GUARD_SHIFTS:
 		if guard_last_checked_hour < shift_hour and hour >= shift_hour:
@@ -635,6 +700,31 @@ func _play_player_attack() -> void:
 func _reach_player() -> void:
 	conveyor_paused = true
 	
+	if current_shift == 1 and current_object_index == AUTO_OBJECTS:
+		wrong_count += 1
+		_mark_progress(current_object_index, false)
+		
+		if player_sprite:
+			player_sprite.modulate = COLOR_BLUE
+			await get_tree().create_timer(2.0).timeout
+			player_sprite.modulate = Color(1, 1, 1, 1)
+		
+		if player and player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(false)
+		
+		if player_gui:
+			player_gui.visible = true
+		
+		_break_current_object()
+		current_object_index += 1
+		await get_tree().create_timer(0.5).timeout
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
+	
 	if current_object_index < AUTO_OBJECTS:
 		_play_player_attack()
 		await get_tree().create_timer(0.8).timeout
@@ -647,29 +737,6 @@ func _reach_player() -> void:
 		current_object_index += 1
 		await get_tree().create_timer(0.3).timeout
 		
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
-		return
-	
-	if current_object_index == AUTO_OBJECTS:
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
-		_handle_strike()
-		
-		if player_sprite:
-			player_sprite.modulate = COLOR_BLUE
-			await get_tree().create_timer(2.0).timeout
-			player_sprite.modulate = Color(1, 1, 1, 1)
-		
-		if player and player.has_method("set_movement_blocked"):
-			player.set_movement_blocked(false)
-		
-		_break_current_object()
-		current_object_index += 1
-		await get_tree().create_timer(0.5).timeout
 		if current_object_index >= TOTAL_OBJECTS:
 			_end_shift()
 		else:
@@ -749,9 +816,6 @@ func _on_minigame_edge_fail() -> void:
 		_spawn_next_object()
 
 func _press_button() -> void:
-	if attack_lock:
-		return
-	
 	minigame_active = false
 	hint_label.visible = false
 	minigame_panel.visible = false
@@ -805,9 +869,15 @@ func _mark_progress(index: int, correct: bool) -> void:
 
 func _handle_strike() -> void:
 	strike_count += 1
-	if strike_count == 3:
+	if strike_count == STRIKE_WARNING:
 		_show_guard_dialog("ЭЙ, ЧТО С ТОБОЙ НЕ ТАК?!", 2.5)
-	elif strike_count >= 5:
+	elif strike_count >= STRIKE_DEATH:
+		_kill_player()
+
+func _handle_action_strike() -> void:
+	if action_strike_count == ACTION_STRIKE_WARNING:
+		_show_guard_dialog("ЭЙ! РАБОТАЙ, А НЕ ОТВЛЕКАЙСЯ!", 2.5)
+	elif action_strike_count >= ACTION_STRIKE_DEATH:
 		_kill_player()
 
 func _can_punish() -> bool:
@@ -820,6 +890,7 @@ func _kill_player() -> void:
 		return
 	if not _can_punish():
 		strike_count = 0
+		action_strike_count = 0
 		return
 	
 	state = State.DEAD
@@ -846,6 +917,7 @@ func _end_shift() -> void:
 	if wrong_count == 0:
 		if has_node("/root/Achievements"):
 			Achievements.unlock_worker_of_month()
+			_show_worker_of_month_achievement()
 	_fade_and_new_shift()
 
 func _fade_and_new_shift() -> void:
@@ -868,6 +940,8 @@ func _start_new_shift() -> void:
 	correct_count = 0
 	wrong_count = 0
 	strike_count = 0
+	action_strike_count = 0
+	action_move_timer = 0.0
 	shift_time = 0.0
 	guard_last_checked_hour = -1.0
 	sniper_last_checked_hour = -1.0
@@ -890,9 +964,6 @@ func _start_new_shift() -> void:
 		player.position = Vector2(PLAYER_TURN_X, 351)
 		if player.has_method("set_movement_blocked"):
 			player.set_movement_blocked(true)
-	
-	if player_gui:
-		player_gui.visible = false
 	
 	if current_shift >= 2:
 		bind_hint_i.visible = true
@@ -938,10 +1009,15 @@ func _enter_inspect() -> void:
 	conveyor_paused = true
 	selected_zone = ""
 	
+	if player:
+		player.block_click_attack = true
+	
 	inspect_camera_original_pos = player.global_position
 	inspect_camera_offset = Vector2.ZERO
 	if camera:
-		camera.zoom = Vector2(1.5, 1.5)
+		var tw = create_tween()
+		tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(camera, "zoom", Vector2(1.5, 1.5), 0.5)
 	
 	if inspect_vignette:
 		inspect_vignette.visible = true
@@ -955,9 +1031,16 @@ func _exit_inspect() -> void:
 	inspect_marker.visible = false
 	conveyor_paused = false
 	
+	if player:
+		player.block_click_attack = false
+	
 	if camera:
-		camera.zoom = Vector2(2.5, 2.5)
-		camera.global_position = player.global_position
+		var tw = create_tween()
+		tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(camera, "zoom", inspect_camera_original_zoom, 0.5)
+		tw.tween_callback(func():
+			camera.global_position = player.global_position
+		)
 	
 	if inspect_vignette:
 		inspect_vignette.visible = false
@@ -1077,10 +1160,15 @@ func _on_journal_record(id: String, hour: float) -> void:
 		"elevator":
 			known_elevator = true
 	
+	_update_shift_progress_labels()
+	
 	if guard_shifts_found.size() >= 3 and sniper_shifts_found.size() >= 3 \
 		and known_worker_count and known_box_count and known_elevator:
 		if has_node("/root/Achievements"):
+			var was = Achievements.scout_unlocked
 			Achievements.unlock_scout()
+			if not was:
+				_show_scout_achievement()
 	
 	_update_journal_options()
 	_update_escape_hint()
@@ -1116,15 +1204,25 @@ func _show_guard_dialog(text: String, duration: float) -> void:
 	dialog_label.text = text
 	
 	if camera and guard_camera and guard_rect:
-		camera.enabled = false
-		guard_camera.global_position = guard_rect.global_position + Vector2(150, -50)
+		var target_pos = guard_rect.global_position + Vector2(150, -50)
+		if camera.enabled:
+			camera.enabled = false
+		guard_camera.global_position = player.global_position
 		guard_camera.enabled = true
+		
+		var tw = create_tween()
+		tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(guard_camera, "global_position", target_pos, 0.5)
 	
 	await get_tree().create_timer(duration).timeout
 	dialog_panel.visible = false
 	is_dialog_active = false
 	
 	if camera and guard_camera:
+		var tw2 = create_tween()
+		tw2.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+		tw2.tween_property(guard_camera, "global_position", player.global_position, 0.5)
+		await tw2.finished
 		guard_camera.enabled = false
 		camera.enabled = true
 		camera.global_position = player.global_position
@@ -1172,7 +1270,7 @@ func _input(event: InputEvent) -> void:
 		return
 	
 	if event.is_action_pressed("interact"):
-		if state == State.MINIGAME and minigame_active and not attack_lock:
+		if state == State.MINIGAME and minigame_active:
 			_press_button()
 			get_viewport().set_input_as_handled()
 			return
@@ -1224,7 +1322,190 @@ func _enter_elevator() -> void:
 		return
 	
 	if has_node("/root/Achievements"):
+		var was = Achievements.freedom_unlocked
 		Achievements.unlock_freedom()
+		if not was:
+			_show_freedom_achievement()
 	_show_dialog("ПОБЕГ...", 1.5)
 	await get_tree().create_timer(2.0).timeout
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
+
+func _show_worker_of_month_achievement() -> void:
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.35, 0.15, 0.1, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.6, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(1, 0.7, 0.5, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Работник месяца"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
+
+func _show_scout_achievement() -> void:
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.35, 0.15, 0.1, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.6, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(1, 0.7, 0.5, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Разведчик"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
+
+func _show_freedom_achievement() -> void:
+	var canvas = CanvasLayer.new()
+	canvas.layer = 200
+	add_child(canvas)
+	
+	var ctrl = Control.new()
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(ctrl)
+	
+	var view_size = get_viewport().get_visible_rect().size
+	var bg = ColorRect.new()
+	bg.color = Color(0.35, 0.15, 0.1, 0.85)
+	bg.size = Vector2(320, 60)
+	bg.position = Vector2(view_size.x, 10)
+	ctrl.add_child(bg)
+	
+	var icon = Label.new()
+	icon.text = "★"
+	icon.add_theme_color_override("font_color", Color(1, 0.6, 0.2))
+	icon.add_theme_font_size_override("font_size", 28)
+	icon.position = Vector2(view_size.x + 15, 20)
+	icon.size = Vector2(40, 40)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ctrl.add_child(icon)
+	
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ"
+	header.add_theme_color_override("font_color", Color(1, 0.7, 0.5, 0.9))
+	header.add_theme_font_size_override("font_size", 18)
+	header.position = Vector2(view_size.x + 65, 18)
+	ctrl.add_child(header)
+	
+	var l = Label.new()
+	l.text = "Свобода"
+	l.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	l.add_theme_font_size_override("font_size", 36)
+	l.position = Vector2(view_size.x + 65, 35)
+	ctrl.add_child(l)
+	
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(bg, "position:x", view_size.x - 330, 0.4)
+	tween.parallel().tween_property(icon, "position:x", view_size.x - 305, 0.4)
+	tween.parallel().tween_property(header, "position:x", view_size.x - 255, 0.4)
+	tween.parallel().tween_property(l, "position:x", view_size.x - 255, 0.4)
+	
+	await get_tree().create_timer(3.5).timeout
+	
+	var tween2 = create_tween()
+	tween2.set_ease(Tween.EASE_IN)
+	tween2.tween_property(bg, "position:x", view_size.x, 0.3)
+	tween2.parallel().tween_property(icon, "position:x", view_size.x + 15, 0.3)
+	tween2.parallel().tween_property(header, "position:x", view_size.x + 65, 0.3)
+	tween2.parallel().tween_property(l, "position:x", view_size.x + 65, 0.3)
+	await tween2.finished
+	
+	canvas.queue_free()
