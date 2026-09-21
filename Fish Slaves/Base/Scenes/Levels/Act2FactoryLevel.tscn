@@ -190,19 +190,19 @@ position = Vector2(1893, 386.00003)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
-[node name="GuardDoor" type="ColorRect" parent="." unique_id=1181198440]
+[node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
 offset_left = -320.0
 offset_top = 275.0
 offset_right = -260.0
 offset_bottom = 375.0
-color = Color(0.4, 0.2, 0.1, 1)
+color = Color(0.3, 0.3, 0.35, 1)
 
-[node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
+[node name="MaintenanceRoom" type="ColorRect" parent="." unique_id=1181198440]
 offset_left = 1200.0
 offset_top = 275.0
 offset_right = 1260.0
 offset_bottom = 375.0
-color = Color(0.3, 0.3, 0.35, 1)
+color = Color(0.4, 0.2, 0.1, 1)
 
 [node name="Guard" type="ColorRect" parent="." unique_id=1091249763]
 offset_left = -240.0
@@ -262,10 +262,10 @@ position = Vector2(156, 351)
 position = Vector2(576, 100)
 
 [node name="ZoneElevator" type="Area2D" parent="InspectZones" unique_id=1786966258]
-position = Vector2(1230, 330)
+position = Vector2(-290, 330)
 
 [node name="ZoneGuardDoor" type="Area2D" parent="InspectZones" unique_id=1447956639]
-position = Vector2(-290, 330)
+position = Vector2(1230, 330)
 
 [node name="ZoneSniper" type="Area2D" parent="InspectZones" unique_id=1474828046]
 position = Vector2(1060, 60)
@@ -406,12 +406,12 @@ vertical_alignment = 1
 
 [node name="EscapeHint" type="Label" parent="UI" unique_id=1568724630]
 visible = false
-offset_left = 376.0
+offset_left = 176.0
 offset_top = 105.0
-offset_right = 776.0
+offset_right = 976.0
 offset_bottom = 135.0
-theme_override_colors/font_color = Color(0.2, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
 [node name="BindHintI" type="Control" parent="UI" unique_id=1411543749]
@@ -561,6 +561,7 @@ color = Color(0.2, 0.8, 0.3, 1)
 layout_mode = 0
 offset_right = 6.0
 offset_bottom = 30.0
+color = Color(1, 1, 1, 1)
 
 [node name="JournalPanel" type="Control" parent="UI" unique_id=1394020786]
 visible = false
