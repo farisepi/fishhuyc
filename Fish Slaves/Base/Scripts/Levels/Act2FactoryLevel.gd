@@ -1,8 +1,5 @@
 extends Node2D
 
-# ==============================
-# КОНСТАНТЫ
-# ==============================
 const TOTAL_OBJECTS: int = 10
 const NUM_NPC_FISHES: int = 4
 const AUTO_OBJECTS: int = 3
@@ -41,9 +38,6 @@ const PLAYER_ZONE_SIZE := Vector2(200.0, 100.0)
 
 const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 
-# ==============================
-# ССЫЛКИ НА УЗЛЫ
-# ==============================
 @onready var player: CharacterBody2D = $Mecha_Fish
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var player_sprite: AnimatedSprite2D = $Mecha_Fish/AnimatedSprite2D
@@ -80,9 +74,6 @@ const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 
 @onready var pausemenu: CanvasLayer = $Pausemenu
 
-# ==============================
-# СОСТОЯНИЕ
-# ==============================
 enum State { INTRO, WORKING, MINIGAME, SHIFT_END, INSPECT, DEAD }
 var state: State = State.INTRO
 
@@ -129,39 +120,28 @@ var sniper_changing: bool = false
 var guard_last_checked_hour: float = -1.0
 var sniper_last_checked_hour: float = -1.0
 
-# Конвейер
 var conveyor_sprites: Array = []
 var conveyor_tile_width: float = 0.0
 var conveyor_scroll_offset: float = 0.0
 var conveyor_base_x: float = 0.0
 var conveyor_floor_rect: ColorRect = null
 
-# Пол
 var floor_rect: ColorRect = null
 
-# Зона работы
 var work_zone_rect: ColorRect = null
 
-# Подсветки мест смены
 var zone_highlight_rects: Dictionary = {}
 
-# Уход NPC
 var shift_end_npc_timer: float = 0.0
 
-# Режим осмотра
 var inspect_camera_offset: Vector2 = Vector2.ZERO
 var inspect_vignette: ColorRect = null
 var inspect_camera_original_pos: Vector2 = Vector2.ZERO
 
-# Камера охранника
 var guard_camera: Camera2D = null
 
-# Блокировка атаки
 var attack_lock: bool = false
 
-# ==============================
-# READY
-# ==============================
 func _ready() -> void:
 	randomize()
 	
@@ -411,9 +391,6 @@ func _is_player_in_zone() -> bool:
 	var bottom = PLAYER_ZONE_CENTER.y + PLAYER_ZONE_SIZE.y / 2.0
 	return pos.x >= left and pos.x <= right and pos.y >= top and pos.y <= bottom
 
-# ==============================
-# PROCESS
-# ==============================
 func _process(delta: float) -> void:
 	if state == State.DEAD:
 		return
@@ -826,9 +803,6 @@ func _mark_progress(index: int, correct: bool) -> void:
 	if cell:
 		cell.color = COLOR_GREEN if correct else COLOR_RED
 
-# ==============================
-# МЕХАНИКА КАРЫ
-# ==============================
 func _handle_strike() -> void:
 	strike_count += 1
 	if strike_count == 3:
@@ -864,9 +838,6 @@ func _kill_player() -> void:
 	if player and player.has_method("die"):
 		player.die()
 
-# ==============================
-# СМЕНА
-# ==============================
 func _end_shift() -> void:
 	state = State.SHIFT_END
 	conveyor_paused = true
@@ -956,9 +927,6 @@ func _update_escape_hint() -> void:
 		escape_hint.text = "МОЖНО НАЧАТЬ ПОБЕГ ЗАВТРА В %02d:00" % int(next_window)
 	escape_hint.visible = true
 
-# ==============================
-# ОСМОТР / ЖУРНАЛ
-# ==============================
 func _enter_inspect() -> void:
 	if current_shift < 2:
 		return
@@ -1117,9 +1085,6 @@ func _on_journal_record(id: String, hour: float) -> void:
 	_update_journal_options()
 	_update_escape_hint()
 
-# ==============================
-# ДИАЛОГ / ОХРАННИК
-# ==============================
 func _process_guard_talk(delta: float) -> void:
 	guard_talk_timer -= delta
 	if guard_talk_timer <= 0.0:
@@ -1164,9 +1129,6 @@ func _show_guard_dialog(text: String, duration: float) -> void:
 		camera.enabled = true
 		camera.global_position = player.global_position
 
-# ==============================
-# ПАУЗА
-# ==============================
 func _toggle_pause() -> void:
 	if pausemenu == null:
 		return
@@ -1192,9 +1154,6 @@ func _toggle_pause() -> void:
 func _resume_after_pause() -> void:
 	pass
 
-# ==============================
-# ВВОД
-# ==============================
 func _input(event: InputEvent) -> void:
 	if state == State.INSPECT:
 		if event is InputEventMouseButton:
@@ -1243,9 +1202,6 @@ func _input(event: InputEvent) -> void:
 				_open_journal()
 			get_viewport().set_input_as_handled()
 
-# ==============================
-# ЛИФТ / ПОБЕГ
-# ==============================
 func _near_elevator() -> bool:
 	if player == null or elevator_door == null:
 		return false

@@ -47,11 +47,9 @@ var parry_cooldown: float = 0.0
 var parry_cooldown_time: float = 3.0
 var last_climbed_obstacle: Node = null
 
-# === Атака ===
 var is_attacking: bool = false
 const ATTACK_SPEED_MULT: float = 0.5
 
-# === Прыжок / приземление ===
 var was_on_floor_last_frame: bool = true
 var is_landing: bool = false
 const LANDING_SPEED_MULT: float = 0.15
