@@ -27,15 +27,17 @@ func _ready() -> void:
 	for btn in _buttons:
 		ButtonEffects.setup(btn)
 	
-	continue_btn.pressed.connect(_on_continue_pressed)
-	settings_btn.pressed.connect(_on_settings_pressed)
-	save_btn.pressed.connect(_on_save_pressed)
-	exit_btn.pressed.connect(_on_exit_pressed)
-	if restart_btn:
-		restart_btn.pressed.connect(_on_restart_pressed)
+	# Сигналы уже подключены в .tscn — НЕ дублируем
 	
 	if _bg_rect:
+		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_bg_rect.offset_left = 0
+		_bg_rect.offset_top = 0
+		_bg_rect.offset_right = 0
+		_bg_rect.offset_bottom = 0
 		_bg_rect.modulate.a = 0.0
+		_bg_rect.visible = true
+		_bg_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _framing:
 		_framing.modulate.a = 0.0
 	
@@ -43,18 +45,21 @@ func _ready() -> void:
 		btn.modulate.a = 0.0
 		btn.scale = Vector2(0.85, 0.85)
 		btn.pivot_offset = btn.size / 2.0
+	
+	hide()
 
 func show_menu() -> void:
 	_is_closing = false
 	show()
-	_animate_in()
-
-func _animate_in() -> void:
-	if _anim_tween and _anim_tween.is_valid():
-		_anim_tween.kill()
-	
+	# Принудительно растягиваем фон при каждом показе
 	if _bg_rect:
+		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_bg_rect.offset_left = 0
+		_bg_rect.offset_top = 0
+		_bg_rect.offset_right = 0
+		_bg_rect.offset_bottom = 0
 		_bg_rect.modulate.a = 0.0
+		_bg_rect.visible = true
 	if _framing:
 		_framing.modulate.a = 0.0
 	for btn in _buttons:
@@ -62,13 +67,18 @@ func _animate_in() -> void:
 			btn.modulate.a = 0.0
 			btn.scale = Vector2(0.85, 0.85)
 			btn.pivot_offset = btn.size / 2.0
+	_animate_in()
+
+func _animate_in() -> void:
+	if _anim_tween and _anim_tween.is_valid():
+		_anim_tween.kill()
 	
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
 	if _bg_rect:
-		_anim_tween.tween_property(_bg_rect, "modulate:a", 0.5, 0.15)
+		_anim_tween.tween_property(_bg_rect, "modulate:a", 1.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 1.0, 0.2)
 	
@@ -103,6 +113,14 @@ func hide_menu() -> void:
 	
 	await _anim_tween.finished
 	hide()
+	# Жёсткий сброс
+	if _bg_rect:
+		_bg_rect.modulate.a = 0.0
+	if _framing:
+		_framing.modulate.a = 0.0
+	for btn in _buttons:
+		if is_instance_valid(btn):
+			btn.modulate.a = 0.0
 	_is_closing = false
 
 func _input(event: InputEvent) -> void:
@@ -124,6 +142,15 @@ func _transition_to(scene_path: String) -> void:
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	UISounds.stop_everything_gameplay()
+	
+	# Жёсткий сброс перед скрытием
+	if _bg_rect:
+		_bg_rect.modulate.a = 0.0
+	if _framing:
+		_framing.modulate.a = 0.0
+	for btn in _buttons:
+		if is_instance_valid(btn):
+			btn.modulate.a = 0.0
 	hide()
 	
 	await get_tree().create_timer(0.05).timeout

@@ -11,6 +11,7 @@
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="9_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="10_btnh"]
 [ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="11_rust"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="12_death"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)
@@ -272,6 +273,9 @@ position = Vector2(1060, 60)
 [node name="ZoneConveyor" type="Area2D" parent="InspectZones" unique_id=1449448932]
 position = Vector2(400, 400)
 
+[node name="DeathScreen" parent="." unique_id=445231152 instance=ExtResource("12_death")]
+visible = false
+
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=427410779]
 process_mode = 3
 layer = 2
@@ -279,10 +283,11 @@ visible = false
 script = ExtResource("6_pause")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=227305326]
-offset_left = -1436.0
-offset_top = -639.0
-offset_right = 2628.0
-offset_bottom = 1657.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=254893836]
@@ -385,7 +390,7 @@ offset_left = 326.0
 offset_top = 20.0
 offset_right = 826.0
 offset_bottom = 50.0
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 alignment = 1
 
 [node name="ClockLabel" type="Label" parent="UI" unique_id=590900519]
@@ -507,13 +512,13 @@ autowrap_mode = 2
 
 [node name="HintLabel" type="Label" parent="UI" unique_id=1984667059]
 visible = false
-offset_left = 426.0
+offset_left = 326.0
 offset_top = 200.0
-offset_right = 726.0
+offset_right = 826.0
 offset_bottom = 250.0
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 36
-text = "НАЖМИ E!"
+theme_override_font_sizes/font_size = 32
+text = "НАЖМИ E В ЗЕЛЁНОЙ ЗОНЕ!"
 horizontal_alignment = 1
 
 [node name="MinigamePanel" type="Control" parent="UI" unique_id=1147386805]
@@ -631,3 +636,10 @@ visible = false
 offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0, 0, 0, 0)
+
+[connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
+[connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]
+[connection signal="pressed" from="Pausemenu/RestartButton" to="Pausemenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="Pausemenu/SettingsButton" to="Pausemenu" method="_on_settings_pressed"]
+[connection signal="pressed" from="Pausemenu/ExitButton" to="Pausemenu" method="_on_exit_pressed"]
+[connection signal="pressed" from="UI/JournalPanel/BG/CloseButton" to="." method="_on_journal_close"]
