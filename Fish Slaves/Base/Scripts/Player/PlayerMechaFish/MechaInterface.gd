@@ -20,7 +20,7 @@ var hp_bar_base_pos: Vector2
 var hearts_base_pos: Vector2
 var stamina_base_pos: Vector2
 
-# Скорости анимации HPBar по количеству сердец
+
 const HP_BAR_SPEED_TABLE: Dictionary = {
 	5: 1.0,
 	4: 1.125,
@@ -79,7 +79,7 @@ func _process(delta):
 		stamina_value = player.get_stamina()
 		_update_stamina()
 	
-	# Скорость анимации HPBar по таблице
+	
 	if hp_bar:
 		var h = clamp(current_hearts, 0, 5)
 		var speed = HP_BAR_SPEED_TABLE.get(h, 1.0)

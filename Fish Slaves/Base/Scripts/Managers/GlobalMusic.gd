@@ -21,7 +21,7 @@ func _ready() -> void:
 	music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(music_player)
 
-# ==================== PUBLIC API ====================
+
 
 func play_menu_music() -> void:
 	play_track(MENU_AQUARIUM)
@@ -72,7 +72,7 @@ func stop_music() -> void:
 	current_track = ""
 	is_paused_for_menu = false
 
-# ==================== PAUSE MENU ====================
+
 
 func lower_volume() -> void:
 	if not music_player:
@@ -90,7 +90,7 @@ func restore_volume() -> void:
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(music_player, "volume_db", VOLUME_NORMAL, 0.4)
 
-# ==================== PRIVATE ====================
+
 
 func _crossfade_to(new_stream: AudioStream) -> void:
 	if fading:

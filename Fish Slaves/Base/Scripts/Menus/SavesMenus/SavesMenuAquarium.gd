@@ -377,7 +377,7 @@ func _input(event: InputEvent) -> void:
 		else:
 			_on_back_pressed()
 
-# ==================== ФОНОВЫЕ ПУЗЫРИ (БЕЗ КЛИКА) ====================
+
 
 func _start_background_bubbles() -> void:
 	for i in range(randi_range(3, 6)):

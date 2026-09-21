@@ -257,7 +257,7 @@ func _make_menu_bubble() -> void:
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
 
-# ==================== АЧИВКА "ПОП-ЗВЕЗДА" ====================
+
 
 func _show_pop_star_achievement() -> void:
 	var canvas = CanvasLayer.new()

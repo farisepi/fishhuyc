@@ -70,18 +70,18 @@ func _process(delta):
 		press_count += 1
 		press_cooldown = 0.15
 		
-		# ПЛАВНЫЙ СДВИГ ИГРОКА
+		
 		var target_x = player.global_position.x + move_distance
 		var tween = create_tween()
 		tween.set_ease(Tween.EASE_IN_OUT)
 		tween.set_trans(Tween.TRANS_SINE)
 		tween.tween_property(player, "global_position:x", target_x, 0.15)
 		
-		# ОБНОВЛЯЕМ ШКАЛУ
+		
 		if progress_ring:
 			progress_ring.value = press_count
 		
-		# АНИМАЦИЯ КНОПКИ
+		
 		if key_button:
 			key_button.modulate = Color(0.5, 0.8, 1.0, 1)
 			key_button.scale = Vector2(0.95, 0.95)
@@ -89,7 +89,7 @@ func _process(delta):
 			key_button.modulate = Color(1, 1, 1, 1)
 			key_button.scale = Vector2(1.0, 1.0)
 		
-		# ПРОВЕРКА ЗАВЕРШЕНИЯ
+		
 		if press_count >= required_presses:
 			_complete_passage()
 

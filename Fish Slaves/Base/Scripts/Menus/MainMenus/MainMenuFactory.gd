@@ -193,7 +193,7 @@ func _on_quit_button_pressed() -> void:
 		await get_tree().create_timer(0.3).timeout
 	get_tree().quit()
 
-# ==================== ОБЩИЙ СПАВН ПАДАЮЩИХ КОРОБОК ====================
+
 
 func _spawn_box_fall(box_count: int, kill_after: float) -> void:
 	var box_texture = load(BOX_TEXTURE_PATH)
@@ -274,12 +274,12 @@ func _on_caught_box(box: Area2D, spr: Sprite2D) -> void:
 	if not was_unlocked:
 		_show_acrobat_achievement()
 
-# ==================== ЭФФЕКТ ОТ КЛИКА НА ЛОГО ====================
+
 
 func _spawn_logo_boxes() -> void:
 	_spawn_box_fall(3, 2.5)
 
-# ==================== АЧИВКА "АКРОБАТ" ====================
+
 
 func _show_acrobat_achievement() -> void:
 	var canvas = CanvasLayer.new()
@@ -343,7 +343,7 @@ func _show_acrobat_achievement() -> void:
 	
 	canvas.queue_free()
 
-# ==================== АЧИВКА "БУНТАРЬ" ====================
+
 
 func _show_rebel_achievement() -> void:
 	var canvas = CanvasLayer.new()
