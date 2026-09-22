@@ -27,11 +27,16 @@
 [ext_resource type="Texture2D" uid="uid://waseyudp2x2m" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HPBar/HPBar.png" id="23_pqwoh"]
 [ext_resource type="Texture2D" uid="uid://d22ikcheshlgi" path="res://Fish Slaves/Textures/Interface/In-GameInterface/HP/HP.png" id="25_ccpdg"]
 [ext_resource type="Texture2D" uid="uid://fs1v1bfh4nsu" path="res://Fish Slaves/Textures/Interface/In-GameInterface/AirBallon/AirBallon.png" id="25_ilx6o"]
+[ext_resource type="Shader" uid="uid://cxwjqp7ncp54b" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1GlassShader.gdshader" id="25_m8hiw"]
 [ext_resource type="Texture2D" uid="uid://8by4gln8fd8h" path="res://Fish Slaves/Textures/Interface/In-GameInterface/Stamina/Stamina.png" id="25_tsph4"]
 [ext_resource type="Texture2D" uid="uid://crq4u6ljy5pmy" path="res://Fish Slaves/Textures/Interface/In-GameInterface/MehIndicator/MehIndicatorOff.png" id="26_yijt6"]
 [ext_resource type="Texture2D" uid="uid://h0wvh3mf3l10" path="res://Fish Slaves/Textures/Characters/Mechanic/MechanicInstrumentBox/MechanicInstrumentBox1.png" id="27_yijt6"]
 [ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://Fish Slaves/Textures/Effects/Light/spr_glr_light_mask_7.png" id="31_m8hiw"]
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://Fish Slaves/Textures/Effects/Light/LightTexture.webp" id="31_pudq7"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mjdn3"]
+radius = 16.0
+height = 46.100098
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icw3l"]
 atlas = ExtResource("9_kiyxu")
@@ -599,17 +604,22 @@ _data = {
 radius = 16.0
 height = 100.0
 
+[sub_resource type="Theme" id="Theme_mjdn3"]
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ey7it"]
 shader = ExtResource("21_5vwn5")
-shader_parameter/depth = 1.8
-shader_parameter/water_alpha = 0.35
-shader_parameter/wave_speed = 1.2
-shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/depth = 0.3210000152475
+shader_parameter/water_alpha = 0.0
+shader_parameter/wave_speed = 2.0
+shader_parameter/water_color_shallow = Color(0.109145164, 0.1973715, 0.27990574, 1)
 shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
-shader_parameter/light_intensity = 1.0
-shader_parameter/caustic_strength = 0.8
-shader_parameter/lab_light_strength = 0.3
+shader_parameter/light_intensity = 0.0
+shader_parameter/caustic_strength = 1.0
+shader_parameter/lab_light_strength = 1.0400000494
 shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bhunq"]
+shader = ExtResource("25_m8hiw")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_048sb"]
 atlas = ExtResource("25_ccpdg")
@@ -1050,6 +1060,9 @@ script = ExtResource("13_yp00i")
 [node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
 position = Vector2(605, 224)
 
+[node name="CollisionShape2D" parent="рыбка" index="0" unique_id=1551150667]
+shape = SubResource("CapsuleShape2D_mjdn3")
+
 [node name="UI_Container" parent="рыбка/GUI" parent_id_path=PackedInt32Array(294675082, 874896627) index="0" unique_id=610954526]
 offset_left = 1.0
 offset_top = -53.0
@@ -1125,6 +1138,7 @@ offset_left = -2000.0
 offset_top = -2000.0
 offset_right = -1890.0
 offset_bottom = -1966.0
+theme = SubResource("Theme_mjdn3")
 
 [node name="TextLabel" type="RichTextLabel" parent="DialoguePanel2" unique_id=389527829]
 layout_mode = 1
@@ -1326,7 +1340,6 @@ mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="WaterShader" type="ColorRect" parent="." unique_id=913644353]
-visible = false
 z_index = 10
 material = SubResource("ShaderMaterial_ey7it")
 anchors_preset = 15
@@ -1340,6 +1353,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
+
+[node name="GlassShader" type="ColorRect" parent="." unique_id=778841584]
+visible = false
+material = SubResource("ShaderMaterial_bhunq")
+use_parent_material = true
+offset_left = 9.0
+offset_top = 514.0
+offset_right = 1012.0
+offset_bottom = 531.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=870273218]
 visible = false

@@ -2,7 +2,6 @@ extends Node2D
 
 var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
 
-# Вода аквариума в мировых координатах (внутренняя область между стенами TileMap)
 const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var pause_menu: CanvasLayer = $Pausemenu
@@ -493,7 +492,6 @@ func _make_bubble() -> void:
 	
 	bubble.body_entered.connect(_on_bubble_body_entered.bind(bubble))
 	
-	# process_always = false, чтобы пузыри не копились, пока игра на паузе
 	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0), false)
 	spawn_timer.timeout.connect(_make_bubble)
 
@@ -506,7 +504,7 @@ func _get_random_position_with_y_limit(_max_y: float) -> Vector2:
 	if area.size.x <= 0.0 or area.size.y <= 0.0:
 		area = WATER_RECT
 	
-	# Пузыри появляются в нижней части видимой воды и поднимаются вверх
+
 	var y_min = area.position.y + area.size.y * 0.3
 	var y_max = area.end.y - 8.0
 	return Vector2(
@@ -630,7 +628,7 @@ func _setup_ui() -> void:
 func _setup_labels() -> void:
 	if chatter_label:
 		chatter_label.bbcode_enabled = true
-		chatter_label.add_theme_font_size_override("normal_font_size", 10)
+		chatter_label.add_theme_font_size_override("normal_font_size", 1)
 		chatter_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 		chatter_label.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
 	

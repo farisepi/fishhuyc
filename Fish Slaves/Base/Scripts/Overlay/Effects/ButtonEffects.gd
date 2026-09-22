@@ -92,24 +92,24 @@ static func _spawn_bubbles(control: Control) -> void:
 		return
 	if not control or not is_instance_valid(control):
 		return
-	
-	var container = control.get_parent()
-	if not container or not is_instance_valid(container):
+
+	var root = control.get_tree().current_scene
+	if not root or not is_instance_valid(root):
 		return
-	
-	var btn_pos = control.position
+
+	var btn_global_pos = control.global_position
 	var btn_width = control.size.x
 	var btn_height = control.size.y
-	
+
 	for _i in range(2):
 		var bubble = ColorRect.new()
 		bubble.color = Color(1.0, 1.0, 1.0, 0.4)
 		bubble.size = Vector2(4, 4)
 		bubble.z_index = 50
 		bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bubble.position = btn_pos + Vector2(randf_range(5, btn_width - 5), btn_height - 5)
-		container.add_child(bubble)
-		
+		bubble.position = btn_global_pos + Vector2(randf_range(5, btn_width - 5), btn_height - 5) #сука блять
+		root.add_child(bubble)
+
 		var start_pos = bubble.position
 		var t = bubble.create_tween()
 		t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
