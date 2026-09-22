@@ -61,7 +61,6 @@ const MINIGAME_SLIDER_SPEED: float = 1.0
 const PROGRESSBAR_BG_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbar.png"
 const PROGRESSBAR_FILL_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.png"
 
-# Уровни стресса по HP
 const STRESS_BY_HP: Dictionary = {
 	5: 0,
 	4: 20,
@@ -71,7 +70,6 @@ const STRESS_BY_HP: Dictionary = {
 	0: 100,
 }
 
-# Шанс промаха по стрессу (в процентах)
 const MISS_CHANCE_BY_STRESS: Dictionary = {
 	0: 0.0,
 	20: 1.5,
@@ -487,19 +485,20 @@ func _create_stress_bar() -> void:
 	stress_label.visible = false
 
 func _update_stress_bar() -> void:
-	if current_shift < 2:
-		if stress_bar:
-			stress_bar.visible = false
-		if stress_label:
-			stress_label.visible = false
+	if stress_bar == null or stress_label == null:
 		return
 	
-	if stress_bar:
+	# Показываем стресс только когда виден интерфейс игрока
+	var gui_visible = player_gui != null and player_gui.visible
+	
+	if gui_visible:
 		stress_bar.visible = true
 		stress_bar.value = stress_level
-	if stress_label:
 		stress_label.visible = true
 		stress_label.text = "СТРЕСС: " + str(stress_level) + "%"
+	else:
+		stress_bar.visible = false
+		stress_label.visible = false
 
 func _update_stress_from_hp() -> void:
 	if player == null:
@@ -513,7 +512,6 @@ func _update_stress_from_hp() -> void:
 	_update_stress_bar()
 
 func _get_miss_chance() -> float:
-	# Возвращает шанс промаха в процентах
 	return MISS_CHANCE_BY_STRESS.get(stress_level, 0.0)
 
 func _update_shift_bars() -> void:
@@ -1131,17 +1129,13 @@ func _reach_player() -> void:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
 		
-		if player_sprite:
-			player_sprite.modulate = COLOR_BLUE
-			await get_tree().create_timer(2.0).timeout
-			player_sprite.modulate = Color(1, 1, 1, 1)
-		
 		if player and player.has_method("set_movement_blocked"):
 			player.set_movement_blocked(false)
 		
 		_show_gui()
 		
 		_break_current_object()
+		_guard_hit_player()
 		current_object_index += 1
 		await get_tree().create_timer(0.5).timeout
 		if current_object_index >= TOTAL_OBJECTS:
@@ -1196,6 +1190,9 @@ func _show_gui() -> void:
 		container.modulate.a = 0.0
 		var tw = create_tween()
 		tw.tween_property(container, "modulate:a", 1.0, 0.5)
+	
+	# Обновляем стресс-бар сразу после показа GUI
+	_update_stress_bar()
 
 func _finish_current_object() -> void:
 	if current_object == null or not is_instance_valid(current_object):
@@ -1262,13 +1259,11 @@ func _press_button() -> void:
 	hint_label.visible = false
 	conveyor_paused = false
 	
-	# Проверка на промах из-за стресса
 	var miss_chance = _get_miss_chance()
 	var rolled = randf() * 100.0
 	var missed = rolled < miss_chance
 	
 	if missed:
-		# Промах: красный + тряска
 		_play_player_attack()
 		await _stress_miss_effect()
 		minigame_panel.visible = false
@@ -1326,7 +1321,6 @@ func _press_button() -> void:
 		_spawn_next_object()
 
 func _stress_miss_effect() -> void:
-	# Красный + тряска окна мини-игры
 	if minigame_bg:
 		minigame_bg.color = Color(0.9, 0.1, 0.1, 0.85)
 	
@@ -1349,33 +1343,26 @@ func _guard_hit_player() -> void:
 	if guard_changing:
 		return
 	
-	# Сохраняем оригинальную позицию охранника
 	var guard_orig_pos = guard_rect.global_position
 	var guard_orig_visible = guard_rect.visible
 	
-	# Телепорт к игроку
 	guard_rect.visible = true
 	guard_rect.global_position = player.global_position + Vector2(-40, -20)
 	
-	# Звук и удар
 	UISounds.play_hit()
 	if player.has_method("take_damage"):
 		player.take_damage(1)
 	
-	# Тряска экрана
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.4)
 	
-	# Возврат через 0.4 сек
 	await get_tree().create_timer(0.4).timeout
 	
 	guard_rect.global_position = guard_orig_pos
 	guard_rect.visible = guard_orig_visible
 	
-	# Обновляем стресс
 	_update_stress_from_hp()
 	
-	# Смерть
 	if player.has_method("get_hp"):
 		if player.get_hp() <= 0:
 			player.die()
@@ -1458,7 +1445,6 @@ func _start_new_shift() -> void:
 	sniper_last_checked_hour = -1.0
 	shift_end_npc_timer = 0.0
 	
-	# Восстанавливаем HP каждый новый день
 	if player and player.has_method("set_hp"):
 		player.set_hp(5)
 	elif player and "hp" in player:
