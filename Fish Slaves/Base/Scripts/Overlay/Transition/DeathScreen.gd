@@ -19,12 +19,11 @@ func _ready():
 	menu_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	quit_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	show()
+	# СРАЗУ скрываем — без show()
+	hide()
 	
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
-	# ButtonEffects.setup() НЕ вызываем — иначе Tween-ошибка
 	
 	death_label.modulate = Color(1, 1, 1, 0)
 	restart_button.modulate = Color(1, 1, 1, 0)
