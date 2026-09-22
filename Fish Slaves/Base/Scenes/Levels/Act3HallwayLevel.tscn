@@ -61,11 +61,6 @@ offset_right = 424.0
 offset_bottom = 175.0
 script = ExtResource("19_yladq")
 
-[node name="MechaFishCamera" type="Camera2D" parent="." unique_id=317300508]
-position = Vector2(49, 289.00003)
-enabled = false
-zoom = Vector2(2.5, 2.5)
-
 [node name="BackGround" type="ColorRect" parent="." unique_id=1686437380]
 material = SubResource("ShaderMaterial_jfe0f")
 offset_left = -1418.161
@@ -164,6 +159,7 @@ offset_top = -10.0
 offset_right = 21.0
 offset_bottom = 30.0
 color = Color(0.84313726, 0, 0.08627451, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="Sprite2D" type="Sprite2D" parent="ParryingScene" unique_id=424345370]
 position = Vector2(191.27002, 15)
@@ -378,5 +374,3 @@ position = Vector2(1873, 258.09)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Balcony" unique_id=517329581]
 position = Vector2(-201, 165.09)
 shape = SubResource("RectangleShape2D_bhunq")
-
-[node name="SniperCamera" type="Camera2D" parent="." unique_id=941796978]

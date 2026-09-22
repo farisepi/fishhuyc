@@ -6,6 +6,7 @@
 
 [node name="Sniper" type="CharacterBody2D" unique_id=56344115]
 script = ExtResource("1_02tg6")
+lock_follow_speed = 3.12
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1990070006]
 offset_left = -9.0

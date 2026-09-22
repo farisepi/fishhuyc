@@ -8,15 +8,14 @@ extends Node2D
 @onready var forklift_trigger: Area2D = $ForkliftTrigger
 @onready var death_zone: Area2D = $DeathZone
 @onready var death_zone2: Area2D = $DeathZone2
-@onready var camera: Camera2D = $MechaFishCamera
+@onready var camera: Camera2D = $MechaFish/MechaFishCamera
 @onready var pause_menu: CanvasLayer = $Pausemenu
 
 @export var sniper_scene: PackedScene = null
-@export var sniper_spawn_position: Vector2 = Vector2(-537.26, 134.09)
+@export var sniper_spawn_position: Vector2 = Vector2(-50.26, 320.0)
 @export var escape_sniper_x: float = 3050.0
-@export var sniper_trigger_x: float = 640.0
-@export var sniper_trigger_y: float = 575.0
-@export var sniper_trigger_size: Vector2 = Vector2(80, 400)
+@export var sniper_trigger_x: float = 517.0
+@export var sniper_trigger_y: float = 340.0
 
 const INTRO_START_X: float = -1400.0
 const INTRO_FADE_X: float = -1100.0
@@ -26,6 +25,8 @@ const INTRO_RUN_TIME: float = 6.5
 const ENEMY_MIN_GAP: float = 100.0
 const ENEMY_SPACING: float = 55.0
 const ENEMY_CATCHUP: float = 0.14
+
+const CUTSCENE_BARS_HEIGHT: float = 140.0
 
 enum State { INTRO_RUN, QTE_GRAB, RUNNING, SNIPER_CUTSCENE, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
 var state: State = State.INTRO_RUN
@@ -54,15 +55,17 @@ var _intro_enemy_y_offsets: Array = []
 var _intro_started: bool = false
 
 var sniper_trigger: Area2D = null
+var _input_locked: bool = false
+
+var _bar_top: ColorRect = null
+var _bar_bottom: ColorRect = null
+var _cutscene_canvas: CanvasLayer = null
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 	player.global_position.x = INTRO_START_X
-	player.set_physics_process(false)
-	player.set_process(false)
-	player.set_process_input(false)
-	player.set_process_unhandled_input(false)
+	_lock_player_input(true)
 	player.velocity = Vector2.ZERO
 	player.is_dead = false
 	player.movement_blocked = false
@@ -83,13 +86,14 @@ func _ready():
 	forklift.visible = false
 	falling_shelf.visible = false
 
-	camera.zoom = Vector2(2.5, 2.5)
+	camera.zoom = Vector2(2.3, 2.3)
 	camera.limit_left = -5000
 	camera.limit_right = 6000
 	camera.limit_top = -5000
 	camera.limit_bottom = 5000
 	camera.enabled = true
 	camera.global_position = player.global_position
+
 
 	_intro_enemies.clear()
 	_intro_enemy_y_offsets.clear()
@@ -129,6 +133,7 @@ func _ready():
 	)
 
 	_create_sniper_trigger()
+	_create_cutscene_bars()
 
 	_setup_parry_scene()
 	_setup_entrance_gate()
@@ -138,6 +143,110 @@ func _ready():
 
 	print("[Level] _ready завершён, старт катсцены 1")
 	_start_intro()
+
+# ===================== РАМКИ КИНО =====================
+
+func _create_cutscene_bars():
+	_cutscene_canvas = CanvasLayer.new()
+	_cutscene_canvas.layer = 90
+	add_child(_cutscene_canvas)
+
+	_bar_top = ColorRect.new()
+	_bar_top.color = Color.BLACK
+	_bar_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_top.anchor_left = 0.0
+	_bar_top.anchor_right = 1.0
+	_bar_top.anchor_top = 0.0
+	_bar_top.anchor_bottom = 0.0
+	_bar_top.offset_top = -CUTSCENE_BARS_HEIGHT
+	_bar_top.offset_bottom = 0.0
+	_cutscene_canvas.add_child(_bar_top)
+
+	_bar_bottom = ColorRect.new()
+	_bar_bottom.color = Color.BLACK
+	_bar_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar_bottom.anchor_left = 0.0
+	_bar_bottom.anchor_right = 1.0
+	_bar_bottom.anchor_top = 1.0
+	_bar_bottom.anchor_bottom = 1.0
+	_bar_bottom.offset_top = 0.0
+	_bar_bottom.offset_bottom = CUTSCENE_BARS_HEIGHT
+	_cutscene_canvas.add_child(_bar_bottom)
+
+func _show_cutscene_bars(duration: float = 0.5):
+	var t = create_tween().set_parallel(true)
+	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(_bar_top, "offset_top", 0.0, duration)
+	t.tween_property(_bar_top, "offset_bottom", CUTSCENE_BARS_HEIGHT, duration)
+	t.tween_property(_bar_bottom, "offset_top", -CUTSCENE_BARS_HEIGHT, duration)
+	t.tween_property(_bar_bottom, "offset_bottom", 0.0, duration)
+
+func _hide_cutscene_bars(duration: float = 0.5):
+	var t = create_tween().set_parallel(true)
+	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t.tween_property(_bar_top, "offset_top", -CUTSCENE_BARS_HEIGHT, duration)
+	t.tween_property(_bar_top, "offset_bottom", 0.0, duration)
+	t.tween_property(_bar_bottom, "offset_top", 0.0, duration)
+	t.tween_property(_bar_bottom, "offset_bottom", CUTSCENE_BARS_HEIGHT, duration)
+
+# ===================== БЛОКИРОВКА ВВОДА =====================
+
+func _lock_player_input(locked: bool):
+	_input_locked = locked
+	if locked:
+		player.set_physics_process(false)
+		player.set_process(false)
+		player.set_process_input(false)
+		player.set_process_unhandled_input(false)
+		if "block_click_attack" in player:
+			player.block_click_attack = true
+		player.is_dashing = false
+		player.is_sliding = false
+		player.is_blocking = false
+		player.is_attacking = false
+		player.is_vaulting = false
+		player.is_climbing = false
+		player.is_climbing_animation = false
+		player.is_landing = false
+		player.movement_blocked = true
+		player.velocity = Vector2.ZERO
+		print("[Level] 🔒 ВВОД ИГРОКА ЗАБЛОКИРОВАН")
+	else:
+		player.set_physics_process(true)
+		player.set_process(true)
+		player.set_process_input(true)
+		player.set_process_unhandled_input(true)
+		if "block_click_attack" in player:
+			player.block_click_attack = false
+		player.movement_blocked = false
+		player.is_dashing = false
+		player.is_sliding = false
+		player.is_blocking = false
+		player.is_attacking = false
+		player.is_landing = false
+		print("[Level] 🔓 ВВОД ИГРОКА РАЗБЛОКИРОВАН")
+
+func _stop_all_world():
+	for enemy in $Enemies.get_children():
+		if enemy is CharacterBody2D:
+			enemy.set_physics_process(false)
+			enemy.set_process(false)
+			enemy.velocity = Vector2.ZERO
+	if sniper and is_instance_valid(sniper):
+		sniper.set_physics_process(false)
+	forklift.set_physics_process(false)
+	forklift.velocity = Vector2.ZERO
+
+func _resume_all_world():
+	for enemy in $Enemies.get_children():
+		if enemy is CharacterBody2D:
+			enemy.set_physics_process(true)
+			enemy.set_process(true)
+	forklift.set_physics_process(true)
+	
+	
+
+
 
 func _create_sniper_trigger():
 	sniper_trigger = Area2D.new()
@@ -159,7 +268,7 @@ func _create_sniper_trigger():
 	print("[Trigger] создан на world=", sniper_trigger.global_position,
 		" local=", sniper_trigger.position,
 		" player.world_y=", player.global_position.y)
-		
+
 func _on_sniper_trigger_entered(body):
 	if body != player:
 		return
@@ -169,7 +278,13 @@ func _on_sniper_trigger_entered(body):
 		return
 	print("[Trigger] >>> сработал, запуск катсцены 2")
 	sniper_trigger.set_deferred("monitoring", false)
-	_spawn_sniper(true)
+	sniper_cutscene_played = true
+	call_deferred("_spawn_sniper_deferred", true)
+
+func _spawn_sniper_deferred(with_cutscene: bool):
+	_spawn_sniper(with_cutscene)
+
+# ===================== SETUP =====================
 
 func _setup_parry_scene():
 	var parrying_scene = get_node_or_null("ParryingScene")
@@ -230,6 +345,7 @@ func _start_intro():
 		return
 
 	if player.sprite:
+		player.sprite.stop()
 		player.sprite.play("Idle")
 
 	_start_qte_grab()
@@ -295,6 +411,7 @@ func _update_intro_enemies():
 func _start_qte_grab():
 	state = State.QTE_GRAB
 	player.modulate = Color(1, 0.5, 0.5, 1)
+	_lock_player_input(true)
 
 	var qte = 0
 	while qte < 6:
@@ -330,7 +447,6 @@ func _start_qte_grab():
 		return
 
 	player.is_dead = false
-	player.movement_blocked = false
 	player.is_vaulting = false
 	player.is_climbing = false
 	player.is_climbing_animation = false
@@ -347,15 +463,15 @@ func _start_qte_grab():
 		player.sprite.play("Idle")
 
 	state = State.RUNNING
-	player.set_physics_process(true)
-	player.set_process(true)
-	player.set_process_input(true)
-	player.set_process_unhandled_input(true)
+	_lock_player_input(false)
 
 	for enemy in _intro_enemies:
-		if is_instance_valid(enemy):
-			enemy.set_physics_process(true)
-			enemy.set_process(true)
+		await get_tree().create_timer(3).timeout
+	if not is_inside_tree():
+		return
+	if is_instance_valid(sniper):
+		sniper.visible = true
+		print("[Level] снайпер показан")
 
 	print("[Level] >>> КАТСЦЕНА 1 закончилась, управление у игрока")
 
@@ -365,17 +481,28 @@ func _spawn_sniper(with_cutscene: bool = false):
 	if sniper or sniper_active:
 		return
 	if not sniper_scene:
-		print("[Level] ❌❌❌ sniper_scene НЕ НАЗНАЧЕНА В @export! Спавн невозможен")
-		push_warning("SniperScene не назначена в @export")
+		print("[Level] ❌ sniper_scene не назначена в @export")
 		return
 
 	print("[Level] >>> СПАВН СНАЙПЕРА на ", sniper_spawn_position)
 	sniper = sniper_scene.instantiate()
-	sniper.global_position = sniper_spawn_position
 	if "start_active" in sniper:
 		sniper.start_active = false
+	if "gravity" in sniper:
+		sniper.gravity = 0.0
+
 	get_tree().current_scene.add_child(sniper)
+	sniper.global_position = sniper_spawn_position
 	sniper.visible = false
+	sniper.set_physics_process(false)
+	sniper.set_process(false)
+	sniper.velocity = Vector2.ZERO
+
+	# физику выключаем НАВСЕГДА — снайпер висит где поставили
+	sniper.set_physics_process(false)
+	sniper.set_process(false)
+
+	print("[Sniper] зафиксирован на ", sniper.global_position)
 	sniper_active = true
 
 	if with_cutscene:
@@ -385,74 +512,99 @@ func _play_sniper_cutscene():
 	state = State.SNIPER_CUTSCENE
 	print("[Level] >>> КАТСЦЕНА 2 началась")
 
-	# 1) СТОП ВСЕМУ — игрок, враги, снайпер, погрузчик
-	player.set_physics_process(false)
-	player.set_process(false)
-	player.velocity = Vector2.ZERO
+	# 1) СТОП ВСЕМУ
+	_lock_player_input(true)
+	_stop_all_world()
+
 	if player.sprite:
+		player.sprite.stop()
 		player.sprite.play("Idle")
+		player.sprite.scale.x = 1
 
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(false)
-			enemy.set_process(false)
-			enemy.velocity = Vector2.ZERO
+	_show_cutscene_bars(0.6)
 
-	if sniper and is_instance_valid(sniper):
-		sniper.set_physics_process(false)
-
-	forklift.set_physics_process(false)
-	forklift.velocity = Vector2.ZERO
-
-	# 2) камера едет к снайперу + зум
+	# 2) ГОТОВИМ КАМЕРУ
 	var cam = camera
-	var saved_zoom = cam.zoom
+	if not cam:
+		print("[Cam] ❌ camera = null")
+		return
+
+	# отключаем автофоллоу камеры за рыбой
+	if "follow_enabled" in cam:
+		cam.follow_enabled = false
+	if "look_offset" in cam:
+		cam.look_offset = Vector2.ZERO
+	cam.position_smoothing_enabled = false
+	cam.rotation_smoothing_enabled = false
+
 	var player_pos = player.global_position
 	var sniper_pos = sniper.global_position
+	var start_zoom = cam.zoom
 
+	# жёстко ставим камеру на игрока как старт
+	cam.global_position = player_pos
+
+	print("[Cam] старт pos=", cam.global_position, " zoom=", start_zoom)
+	print("[Cam] цель pos=", sniper_pos, " zoom=(1.4, 1.4)")
+
+	# 3) ЕДЕМ К СНАЙПЕРУ
 	var t1 = create_tween().set_parallel(true)
 	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t1.tween_property(cam, "global_position", sniper_pos, 1.4)
-	t1.tween_property(cam, "zoom", saved_zoom * 0.6, 1.4)
+	t1.tween_property(cam, "global_position", sniper_pos, 1.6)
+	t1.tween_property(cam, "zoom", Vector2(1.4, 1.4), 1.6)
 	await t1.finished
 	if not is_inside_tree():
 		return
 
-	# 3) снайпер появляется
+	print("[Cam] у снайпера pos=", cam.global_position)
+
+	# 4) ПОКАЗЫВАЕМ СНАЙПЕРА
 	if is_instance_valid(sniper):
 		sniper.visible = true
 		print("[Level] снайпер показан")
 
-	# 4) держим кадр 3 секунды
+	# 5) СТОИМ 3 СЕКУНДЫ У СНАЙПЕРА
 	await get_tree().create_timer(3.0).timeout
 	if not is_inside_tree():
 		return
 
-	# 5) камера обратно к игроку
+	print("[Cam] 3 сек у снайпера прошло, pos=", cam.global_position)
+
+	# 6) ЕДЕМ ОБРАТНО К ИГРОКУ
 	var t2 = create_tween().set_parallel(true)
 	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t2.tween_property(cam, "global_position", player_pos, 1.2)
-	t2.tween_property(cam, "zoom", saved_zoom, 1.2)
+	t2.tween_property(cam, "global_position", player_pos, 1.4)
+	t2.tween_property(cam, "zoom", start_zoom, 1.4)
 	await t2.finished
 	if not is_inside_tree():
 		return
 
-	# 6) возвращаем всё
-	player.set_physics_process(true)
-	player.set_process(true)
+	print("[Cam] вернулись к игроку pos=", cam.global_position)
 
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(true)
-			enemy.set_process(true)
+	# 7) УБИРАЕМ РАМКИ
+	_hide_cutscene_bars(0.6)
 
+		# 8) АКТИВИРУЕМ СНАЙПЕРА
 	if sniper and is_instance_valid(sniper):
-		sniper.set_physics_process(true)
+		sniper.set_process(true)          # ← включает стрельбу
+		sniper.set_physics_process(false) # ← гравитация остаётся ВЫКЛЮЧЕНА
+		if sniper.has_method("activate"):
+			sniper.activate()
+			print("[Level] снайпер активирован на ", sniper.global_position)
 
-	forklift.set_physics_process(true)
+	# 9) ЖЁСТКО СТАВИМ КАМЕРУ НА ИГРОКА ПЕРЕД ВОЗВРАТОМ ФОЛЛОУ
+	cam.global_position = player_pos
+	cam.zoom = start_zoom
+
+	# возвращаем автофоллоу
+	if "follow_enabled" in cam:
+		cam.follow_enabled = true
+
+	# 10) ВОЗВРАЩАЕМ ВСЁ
+	_resume_all_world()
+	_lock_player_input(false)
 
 	state = State.RUNNING
-	sniper_cutscene_played = true
 	print("[Level] >>> КАТСЦЕНА 2 закончилась, управление у игрока")
 
 func _deactivate_sniper():
@@ -478,7 +630,7 @@ func _process(delta: float) -> void:
 		return
 
 	if state == State.RUNNING and not is_game_over:
-		if sniper_active and sniper_cutscene_played and player.global_position.x >= escape_sniper_x:
+		if sniper_active and player.global_position.x >= escape_sniper_x:
 			_deactivate_sniper()
 
 	_process_gameplay(delta)
@@ -517,7 +669,7 @@ func _process_gameplay(delta):
 				can_press_button = true
 			elif Input.is_action_just_pressed("interact"):
 				can_press_button = false
-				player.set_physics_process(false)
+				_lock_player_input(true)
 				state = State.ELEVATOR_WAIT
 				elevator_timer = 3.0
 
@@ -551,7 +703,7 @@ func _process_gameplay(delta):
 		if player.global_position.y <= shelf_top:
 			player.global_position.y = shelf_top
 			_shelf_climbing = false
-			player.set_physics_process(true)
+			_lock_player_input(false)
 
 func _check_enemy_collision():
 	if state != State.RUNNING:
@@ -664,7 +816,7 @@ func _throw_item_at_forklift():
 	forklift_trigger.monitoring = false
 
 func _climb_shelf():
-	player.set_physics_process(false)
+	_lock_player_input(true)
 	_shelf_climbing = true
 
 # ===================== ПАРИРОВАНИЕ / WIN / GAMEOVER =====================
@@ -672,8 +824,7 @@ func _climb_shelf():
 func _on_parry_complete():
 	parry_done = true
 	if is_instance_valid(player):
-		player.set_physics_process(true)
-		player.set_process(true)
+		_lock_player_input(false)
 		player.is_vaulting = false
 		player.is_climbing = false
 		player.is_sliding = false
@@ -687,7 +838,7 @@ func _game_over():
 
 	_deactivate_sniper()
 
-	player.set_physics_process(false)
+	_lock_player_input(true)
 	player.velocity = Vector2.ZERO
 
 	for enemy in $Enemies.get_children():
@@ -718,6 +869,18 @@ func _win():
 
 func _input(event: InputEvent) -> void:
 	if get_tree().paused:
+		return
+
+	if _input_locked:
+		if event.is_action_pressed("interact") \
+		or event.is_action_pressed("jump") \
+		or event.is_action_pressed("Run") \
+		or event.is_action_pressed("crouch") \
+		or event.is_action_pressed("block") \
+		or event.is_action_pressed("Parry"):
+			get_viewport().set_input_as_handled()
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			get_viewport().set_input_as_handled()
 		return
 
 	if state != State.RUNNING and state != State.ELEVATOR_WAIT and state != State.ELEVATOR_GO:

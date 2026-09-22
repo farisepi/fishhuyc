@@ -620,7 +620,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_t6gfx")
 }],
-"loop": 1,
+"loop": 2,
 "name": &"Hit",
 "speed": 10.0
 }, {
@@ -1284,11 +1284,12 @@ script = ExtResource("1_wwsif")
 position = Vector2(49, 289)
 zoom = Vector2(2.5, 2.5)
 script = ExtResource("9_aikcy")
+camera_offset = Vector2(0, -72.57)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Climb"
+animation = &"Hit"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)
