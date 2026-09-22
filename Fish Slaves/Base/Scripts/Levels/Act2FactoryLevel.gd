@@ -27,7 +27,6 @@ const SHIFT_CHANGE_REAL: float = (SHIFT_CHANGE_HOURS / SHIFT_DURATION_HOURS) * R
 const GUARD_SHIFTS: Array = [9.0, 13.0, 17.0]
 const SNIPER_SHIFTS: Array = [11.0, 13.0, 15.0]
 
-# Единственное окно побега — 13:00-13:15
 const ESCAPE_WINDOW_START: float = 13.0
 const ESCAPE_WINDOW_END: float = 13.25
 
@@ -53,9 +52,6 @@ const PLAYER_ZONE_SIZE := Vector2(80.0, 120.0)
 
 const ACT2_DISABLED_ACTIONS := ["crouch", "block", "Parry", "inventory"]
 
-const STRIKE_WARNING: int = 3
-const STRIKE_DEATH: int = 5
-const STRIKE_DEATH_SHIFT1: int = 4
 const ACTION_STRIKE_WARNING: int = 1
 const ACTION_STRIKE_DEATH: int = 2
 const ACTION_STRIKE_INTERVAL: float = 1.0
@@ -64,6 +60,26 @@ const MINIGAME_SLIDER_SPEED: float = 1.0
 
 const PROGRESSBAR_BG_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbar.png"
 const PROGRESSBAR_FILL_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.png"
+
+# Уровни стресса по HP
+const STRESS_BY_HP: Dictionary = {
+	5: 0,
+	4: 20,
+	3: 40,
+	2: 60,
+	1: 80,
+	0: 100,
+}
+
+# Шанс промаха по стрессу (в процентах)
+const MISS_CHANCE_BY_STRESS: Dictionary = {
+	0: 0.0,
+	20: 1.5,
+	40: 5.0,
+	60: 10.0,
+	80: 25.0,
+	100: 50.0,
+}
 
 @onready var player: CharacterBody2D = $Mecha_Fish
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
@@ -91,6 +107,7 @@ const PROGRESSBAR_FILL_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons
 @onready var minigame_panel: Control = $UI/MinigamePanel
 @onready var minigame_slider: ColorRect = $UI/MinigamePanel/Track/Slider
 @onready var minigame_zone: ColorRect = $UI/MinigamePanel/Track/Zone
+@onready var minigame_bg: ColorRect = $UI/MinigamePanel/BG
 
 @onready var journal_panel: Control = $UI/JournalPanel
 @onready var journal_list: VBoxContainer = $UI/JournalPanel/BG/Scroll/JournalList
@@ -117,7 +134,6 @@ var broken_boxes: Array = []
 
 var correct_count: int = 0
 var wrong_count: int = 0
-var strike_count: int = 0
 var action_strike_count: int = 0
 var action_move_timer: float = 0.0
 
@@ -186,6 +202,11 @@ var journal_notes: Array = []
 var journal_notes_full: Dictionary = {}
 var elevator_inspected: bool = false
 
+# Стресс
+var stress_level: int = 0
+var stress_bar: ProgressBar = null
+var stress_label: Label = null
+
 func _ready() -> void:
 	randomize()
 	
@@ -216,6 +237,7 @@ func _ready() -> void:
 	_create_work_zone()
 	_create_vignette()
 	_create_shift_bars()
+	_create_stress_bar()
 	_create_inspect_targets()
 	_create_inspect_text_panel()
 	_setup_npc_animations()
@@ -436,6 +458,64 @@ func _create_shift_bars() -> void:
 	sniper_shift_bar.visible = false
 	sniper_shift_bar_label.visible = false
 
+func _create_stress_bar() -> void:
+	stress_bar = ProgressBar.new()
+	stress_bar.name = "StressBar"
+	stress_bar.position = Vector2(376, 152)
+	stress_bar.size = Vector2(400, 12)
+	stress_bar.show_percentage = false
+	stress_bar.max_value = 100
+	stress_bar.value = 0
+	var sb_bg = StyleBoxFlat.new()
+	sb_bg.bg_color = Color(0.15, 0.15, 0.15, 0.8)
+	stress_bar.add_theme_stylebox_override("background", sb_bg)
+	var sb_fill = StyleBoxFlat.new()
+	sb_fill.bg_color = Color(0.85, 0.2, 0.2, 0.9)
+	stress_bar.add_theme_stylebox_override("fill", sb_fill)
+	$UI.add_child(stress_bar)
+	
+	stress_label = Label.new()
+	stress_label.name = "StressLabel"
+	stress_label.position = Vector2(786, 148)
+	stress_label.size = Vector2(120, 20)
+	stress_label.add_theme_font_size_override("font_size", 16)
+	stress_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	stress_label.text = "СТРЕСС: 0%"
+	$UI.add_child(stress_label)
+	
+	stress_bar.visible = false
+	stress_label.visible = false
+
+func _update_stress_bar() -> void:
+	if current_shift < 2:
+		if stress_bar:
+			stress_bar.visible = false
+		if stress_label:
+			stress_label.visible = false
+		return
+	
+	if stress_bar:
+		stress_bar.visible = true
+		stress_bar.value = stress_level
+	if stress_label:
+		stress_label.visible = true
+		stress_label.text = "СТРЕСС: " + str(stress_level) + "%"
+
+func _update_stress_from_hp() -> void:
+	if player == null:
+		return
+	var hp = 0
+	if player.has_method("get_hp"):
+		hp = player.get_hp()
+	else:
+		hp = player.hp
+	stress_level = STRESS_BY_HP.get(hp, 0)
+	_update_stress_bar()
+
+func _get_miss_chance() -> float:
+	# Возвращает шанс промаха в процентах
+	return MISS_CHANCE_BY_STRESS.get(stress_level, 0.0)
+
 func _update_shift_bars() -> void:
 	if current_shift < 2:
 		if guard_shift_bar:
@@ -469,7 +549,6 @@ func _update_shift_bars() -> void:
 			sniper_shift_bar_label.visible = false
 
 func _create_inspect_targets() -> void:
-	# 8 синих обычных
 	_add_inspect_target("clock", Vector2(576, 80), Vector2(120, 60),
 		"Часы", "Сколько я тут?", "Смена длится 10 часов",
 		COLOR_HIGHLIGHT_BLUE, "")
@@ -501,7 +580,6 @@ func _create_inspect_targets() -> void:
 		"5 Рабочих-Рыб в меха костюмах",
 		COLOR_HIGHLIGHT_BLUE, "")
 	
-	# 3 жёлтых смены охраны
 	_add_inspect_target("guard_shift_9", Vector2(-215, 310), Vector2(80, 80),
 		"Смена охранника", "Охранник сменился.. Нужно записать",
 		"Смена охранника в 09:00",
@@ -515,7 +593,6 @@ func _create_inspect_targets() -> void:
 		"Смена охранника в 17:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 17.0)
 	
-	# 3 жёлтых смены снайпера
 	_add_inspect_target("sniper_shift_11", Vector2(1060, 60), Vector2(120, 80),
 		"Смена снайпера", "Снайпер сменился.. Нужно записать",
 		"Смена снайпера в 11:00",
@@ -574,11 +651,9 @@ func _is_inspect_target_visible(area: Area2D) -> bool:
 	var special_type = data.get("special_type", "")
 	var special_hour = data.get("special_hour", -1.0)
 	
-	# Проверка на уже записанную пометку
 	if journal_notes.has(id):
 		return false
 	
-	# Синие обычные
 	if special_type == "":
 		if id == "guard_dog":
 			return guard_is_dog
@@ -586,7 +661,6 @@ func _is_inspect_target_visible(area: Area2D) -> bool:
 			return not guard_is_dog
 		return true
 	
-	# Жёлтые смены
 	if special_type == "guard_shift" or special_type == "sniper_shift":
 		var hour = _current_hour()
 		return hour >= special_hour and hour <= special_hour + 0.25
@@ -732,6 +806,7 @@ func _process(delta: float) -> void:
 	_process_action_penalty(delta)
 	_process_follow_penalty(delta)
 	_process_inspect_notice(delta)
+	_update_stress_from_hp()
 	
 	if state == State.INSPECT:
 		_process_inspect_camera(delta)
@@ -1080,10 +1155,10 @@ func _reach_player() -> void:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
 		_break_current_object()
-		_handle_strike()
+		_guard_hit_player()
 		current_object_index += 1
 		conveyor_paused = false
-		await get_tree().create_timer(0.3).timeout
+		await get_tree().create_timer(0.5).timeout
 		if current_object_index >= TOTAL_OBJECTS:
 			_end_shift()
 		else:
@@ -1165,11 +1240,11 @@ func _on_minigame_edge_fail() -> void:
 	_mark_progress(current_object_index, false)
 	
 	_break_current_object()
-	_handle_strike()
+	_guard_hit_player()
 	
 	current_object_index += 1
 	conveyor_paused = false
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.5).timeout
 	
 	if current_object_index >= TOTAL_OBJECTS:
 		_end_shift()
@@ -1185,18 +1260,41 @@ func _press_button() -> void:
 	
 	minigame_active = false
 	hint_label.visible = false
-	minigame_panel.visible = false
 	conveyor_paused = false
 	
+	# Проверка на промах из-за стресса
+	var miss_chance = _get_miss_chance()
+	var rolled = randf() * 100.0
+	var missed = rolled < miss_chance
+	
+	if missed:
+		# Промах: красный + тряска
+		_play_player_attack()
+		await _stress_miss_effect()
+		minigame_panel.visible = false
+		wrong_count += 1
+		_mark_progress(current_object_index, false)
+		_break_current_object()
+		_guard_hit_player()
+		current_object_index += 1
+		await get_tree().create_timer(0.5).timeout
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
+	
+	minigame_panel.visible = false
 	_play_player_attack()
 	
 	if not _is_player_in_zone():
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
 		_break_current_object()
-		_handle_strike()
+		_guard_hit_player()
 		current_object_index += 1
-		await get_tree().create_timer(0.3).timeout
+		await get_tree().create_timer(0.5).timeout
 		if current_object_index >= TOTAL_OBJECTS:
 			_end_shift()
 		else:
@@ -1216,7 +1314,7 @@ func _press_button() -> void:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
 		_break_current_object()
-		_handle_strike()
+		_guard_hit_player()
 	
 	current_object_index += 1
 	await get_tree().create_timer(0.2).timeout
@@ -1227,6 +1325,61 @@ func _press_button() -> void:
 		state = State.WORKING
 		_spawn_next_object()
 
+func _stress_miss_effect() -> void:
+	# Красный + тряска окна мини-игры
+	if minigame_bg:
+		minigame_bg.color = Color(0.9, 0.1, 0.1, 0.85)
+	
+	var original_pos = minigame_panel.position
+	var tween = create_tween()
+	tween.set_loops(4)
+	tween.tween_property(minigame_panel, "position:x", original_pos.x + 8, 0.04)
+	tween.tween_property(minigame_panel, "position:x", original_pos.x - 8, 0.04)
+	tween.tween_property(minigame_panel, "position:x", original_pos.x, 0.04)
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	if minigame_bg:
+		minigame_bg.color = Color(0, 0, 0, 0.85)
+	minigame_panel.position = original_pos
+
+func _guard_hit_player() -> void:
+	if player == null or guard_rect == null:
+		return
+	if guard_changing:
+		return
+	
+	# Сохраняем оригинальную позицию охранника
+	var guard_orig_pos = guard_rect.global_position
+	var guard_orig_visible = guard_rect.visible
+	
+	# Телепорт к игроку
+	guard_rect.visible = true
+	guard_rect.global_position = player.global_position + Vector2(-40, -20)
+	
+	# Звук и удар
+	UISounds.play_hit()
+	if player.has_method("take_damage"):
+		player.take_damage(1)
+	
+	# Тряска экрана
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.4)
+	
+	# Возврат через 0.4 сек
+	await get_tree().create_timer(0.4).timeout
+	
+	guard_rect.global_position = guard_orig_pos
+	guard_rect.visible = guard_orig_visible
+	
+	# Обновляем стресс
+	_update_stress_from_hp()
+	
+	# Смерть
+	if player.has_method("get_hp"):
+		if player.get_hp() <= 0:
+			player.die()
+
 func _mark_progress(index: int, correct: bool) -> void:
 	if index < 0 or index >= progress_bar.get_child_count():
 		return
@@ -1234,33 +1387,15 @@ func _mark_progress(index: int, correct: bool) -> void:
 	if cell:
 		cell.color = COLOR_GREEN if correct else COLOR_RED
 
-func _handle_strike() -> void:
-	strike_count += 1
-	var death_threshold = STRIKE_DEATH_SHIFT1 if current_shift == 1 else STRIKE_DEATH
-	if strike_count == STRIKE_WARNING:
-		_show_guard_dialog("ЭЙ, ЧТО С ТОБОЙ НЕ ТАК?!", 2.5)
-	elif strike_count >= death_threshold:
-		_kill_player()
-
 func _handle_action_strike() -> void:
 	if action_strike_count == ACTION_STRIKE_WARNING:
 		_show_guard_dialog("ЭЙ! РАБОТАЙ, А НЕ ОТВЛЕКАЙСЯ!", 2.5)
 	elif action_strike_count >= ACTION_STRIKE_DEATH:
-		_kill_player()
+		_sniper_kill_player()
 
-func _can_punish() -> bool:
-	var guard_alive = guard_rect != null and not guard_changing
-	var sniper_alive = sniper_rect != null and not sniper_changing
-	return guard_alive or sniper_alive
-
-func _kill_player() -> void:
+func _sniper_kill_player() -> void:
 	if state == State.DEAD:
 		return
-	if not _can_punish():
-		strike_count = 0
-		action_strike_count = 0
-		return
-	
 	state = State.DEAD
 	conveyor_paused = true
 	minigame_panel.visible = false
@@ -1315,7 +1450,6 @@ func _start_new_shift() -> void:
 	current_object_index = 0
 	correct_count = 0
 	wrong_count = 0
-	strike_count = 0
 	action_strike_count = 0
 	action_move_timer = 0.0
 	follow_strike_timer = 0.0
@@ -1323,6 +1457,12 @@ func _start_new_shift() -> void:
 	guard_last_checked_hour = -1.0
 	sniper_last_checked_hour = -1.0
 	shift_end_npc_timer = 0.0
+	
+	# Восстанавливаем HP каждый новый день
+	if player and player.has_method("set_hp"):
+		player.set_hp(5)
+	elif player and "hp" in player:
+		player.hp = 5
 	
 	for i in range(progress_bar.get_child_count()):
 		var cell = progress_bar.get_child(i) as ColorRect
@@ -1354,6 +1494,7 @@ func _start_new_shift() -> void:
 		bind_hint_j.visible = false
 	
 	_update_shift_bars()
+	_update_stress_from_hp()
 	_update_escape_hint()
 	state = State.WORKING
 	_spawn_next_object()
@@ -1485,7 +1626,6 @@ func _add_journal_note(id: String, text: String) -> void:
 		_check_scout_achievement()
 
 func _check_scout_achievement() -> void:
-	# Разведчик — все 13 зон осмотра
 	if journal_notes.size() >= 13:
 		if has_node("/root/Achievements"):
 			var was = Achievements.scout_unlocked
@@ -1519,7 +1659,6 @@ func _update_journal_options() -> void:
 			_add_journal_line("   " + journal_notes_full[id], Color.DARK_GRAY, 14)
 		_add_journal_line("", Color.BLACK, 14)
 	
-	# Если собраны все 6 смен — большая надпись
 	if guard_shifts_found.size() >= 3 and sniper_shifts_found.size() >= 3:
 		_add_journal_line("", Color.BLACK, 14)
 		if elevator_inspected:
