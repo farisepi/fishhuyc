@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://bj7o3h0ohq867"]
+
+[ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://Fish Slaves/Base/Scripts/Enemy/Sniper.gd" id="1_02tg6"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_riqys"]
+
+[node name="Sniper" type="CharacterBody2D" unique_id=56344115]
+script = ExtResource("1_02tg6")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1990070006]
+offset_left = -9.0
+offset_top = -14.0
+offset_right = 9.0
+offset_bottom = 14.0
+
+[node name="AimLine" type="Line2D" parent="." unique_id=1348589366]
+points = PackedVector2Array(0, 0)
+width = 14.0
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=1365419711]
+position = Vector2(21, 0)
+gizmo_extents = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=978586304]
+shape = SubResource("CapsuleShape2D_riqys")
