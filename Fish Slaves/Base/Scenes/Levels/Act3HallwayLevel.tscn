@@ -85,7 +85,7 @@ offset_bottom = 194.88
 color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
-[node name="MechaFish" parent="." unique_id=573579909 node_paths=PackedStringArray("enemies_node") instance=ExtResource("2_cu5p6")]
+[node name="Mecha_Fish" parent="." unique_id=573579909 node_paths=PackedStringArray("enemies_node") instance=ExtResource("2_cu5p6")]
 position = Vector2(-1088, 310.09)
 enemies_node = NodePath("../Enemies")
 

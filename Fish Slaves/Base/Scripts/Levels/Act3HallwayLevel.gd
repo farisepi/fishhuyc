@@ -1,6 +1,6 @@
 extends Node2D
 
-@onready var player: CharacterBody2D = $MechaFish
+@onready var player: CharacterBody2D = $Mecha_Fish
 @onready var elevator: ColorRect = $EndAct/Elevator
 @onready var elevator_button: Area2D = $EndAct/ElevatorButton
 @onready var forklift: CharacterBody2D = $ForkliftScene/Forklift
@@ -8,7 +8,7 @@ extends Node2D
 @onready var forklift_trigger: Area2D = $ForkliftTrigger
 @onready var death_zone: Area2D = $DeathZone
 @onready var death_zone2: Area2D = $DeathZone2
-@onready var camera: Camera2D = $MechaFish/MechaFishCamera
+@onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var pause_menu: CanvasLayer = $Pausemenu
 
 @export var sniper_scene: PackedScene = null
@@ -125,11 +125,15 @@ func _ready():
 
 	death_zone.body_entered.connect(func(body):
 		if body == player and not is_game_over and state == State.RUNNING:
-			_game_over()
+			is_game_over = true
+			state = State.GAMEOVER
+			_stop_all_world()
 	)
 	death_zone2.body_entered.connect(func(body):
 		if body == player and not is_game_over and state == State.RUNNING:
-			_game_over()
+			is_game_over = true
+			state = State.GAMEOVER
+			_stop_all_world()
 	)
 
 	_create_sniper_trigger()
@@ -719,10 +723,11 @@ func _check_enemy_collision():
 		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
 			var dist = enemy.global_position.distance_to(player_pos)
 			if dist < 45:
+				is_game_over = true
+				state = State.GAMEOVER
+				_stop_all_world()
 				if player.has_method("die"):
 					player.die()
-				else:
-					_game_over()
 				return
 
 # ===================== ПОГРУЗЧИК =====================
@@ -837,13 +842,9 @@ func _game_over():
 	state = State.GAMEOVER
 
 	_deactivate_sniper()
-
+	_stop_all_world()
 	_lock_player_input(true)
 	player.velocity = Vector2.ZERO
-
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(false)
 
 	if not player.is_dead and player.has_method("die"):
 		player.die()
