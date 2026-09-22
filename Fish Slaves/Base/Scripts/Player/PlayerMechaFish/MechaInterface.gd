@@ -120,8 +120,7 @@ func _update_hearts():
 	var frame = total_frames - 1 - int(clamp(float(current_hearts) / float(max_hearts), 0.0, 1.0) * (total_frames - 1))
 	hearts.stop()
 	hearts.frame = clamp(frame, 0, total_frames - 1)
-	print("Hearts frame=", hearts.frame, " current=", current_hearts, " max=", max_hearts, " total=", total_frames)
-
+	
 func _update_stamina():
 	if not stamina:
 		return

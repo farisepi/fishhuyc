@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="3_w85fw"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="5_powlu"]
+[ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="6_rhhnv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
@@ -39,7 +40,10 @@ item_scene = ExtResource("2_2y021")
 visible = false
 
 [node name="Obstacle" parent="." unique_id=1967249374 instance=ExtResource("4_yt2i1")]
-position = Vector2(361, 514)
+position = Vector2(377, 552)
 
 [node name="DeathZone" parent="." unique_id=2095264132 instance=ExtResource("5_powlu")]
 position = Vector2(787, 519)
+
+[node name="SniperScene" parent="." unique_id=56344115 instance=ExtResource("6_rhhnv")]
+position = Vector2(57, 570)
