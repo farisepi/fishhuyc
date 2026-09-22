@@ -204,26 +204,12 @@ offset_right = 1260.0
 offset_bottom = 375.0
 color = Color(0.4, 0.2, 0.1, 1)
 
-[node name="Guard" type="ColorRect" parent="." unique_id=1091249763]
-offset_left = -240.0
-offset_top = 275.0
-offset_right = -190.0
-offset_bottom = 345.0
-color = Color(0.6, 0.2, 0.2, 1)
-
 [node name="SniperBalcony" type="ColorRect" parent="." unique_id=1067948079]
 offset_left = 900.0
 offset_top = 20.0
 offset_right = 1200.0
 offset_bottom = 100.0
 color = Color(0.2, 0.2, 0.25, 1)
-
-[node name="Sniper" type="ColorRect" parent="." unique_id=1611274375]
-offset_left = 1040.0
-offset_top = 35.0
-offset_right = 1080.0
-offset_bottom = 85.0
-color = Color(0.4, 0.4, 0.5, 1)
 
 [node name="NPCParent" type="Node2D" parent="." unique_id=1000813928]
 
@@ -633,8 +619,11 @@ horizontal_alignment = 1
 
 [node name="FadeRect" type="ColorRect" parent="UI" unique_id=234425227]
 visible = false
-offset_right = 1152.0
-offset_bottom = 648.0
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
 [connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]

@@ -37,9 +37,21 @@ const COLOR_BLUE := Color(0.3, 0.5, 0.8)
 const COLOR_HIGHLIGHT_BLUE := Color(0.3, 0.7, 1.0, 0.25)
 const COLOR_HIGHLIGHT_YELLOW := Color(1.0, 0.9, 0.3, 0.35)
 
-const GUARD_DOG_COLOR := Color(0.15, 0.35, 0.95)
-const GUARD_MONKEY_COLOR := Color(0.2, 0.85, 0.3)
-const SNIPER_NORMAL_COLOR := Color(0.4, 0.4, 0.5)
+const GUARD_DOG_COLOR := Color(0.4, 0.6, 1.0)
+const GUARD_MONKEY_COLOR := Color(0.5, 1.0, 0.5)
+const SNIPER_NORMAL_COLOR := Color(0.7, 0.85, 1.0)
+
+const GUARD_POSITION := Vector2(-215, 310)
+const GUARD_LIFT_POSITION := Vector2(-290, 325)
+const SNIPER_POSITION := Vector2(1060, 60)
+const GUARD_WALK_SPEED: float = 200.0
+
+const FISH_IDLE_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishIdle/MechaFishIdle.png"
+const FISH_JOGGING_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png"
+const FISH_ATTACK_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png"
+const FISH_IDLE_FRAMES: int = 16
+const FISH_JOGGING_FRAMES: int = 12
+const FISH_ATTACK_FRAMES_PER_SIDE: int = 8
 
 const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
 const ATTACK_ALL_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png"
@@ -85,8 +97,6 @@ const MISS_CHANCE_BY_STRESS: Dictionary = {
 @onready var player_gui: CanvasLayer = $Mecha_Fish/GUI
 @onready var objects_layer: Node2D = $Objects
 @onready var npc_fishes: Array[Node] = [$NPCParent/Fish1, $NPCParent/Fish2, $NPCParent/Fish3, $NPCParent/Fish4]
-@onready var guard_rect: ColorRect = $Guard
-@onready var sniper_rect: ColorRect = $Sniper
 @onready var elevator_door: ColorRect = $Elevator
 @onready var maintenance_door: ColorRect = $MaintenanceRoom
 
@@ -205,8 +215,15 @@ var stress_level: int = 0
 var stress_bar: ProgressBar = null
 var stress_label: Label = null
 
+# Спрайты охранника и снайпера
+var guard_sprite: AnimatedSprite2D = null
+var sniper_sprite: AnimatedSprite2D = null
+
 func _ready() -> void:
 	randomize()
+	
+	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
+		Fade.fade_in()
 	
 	_disable_actions_for_act2()
 	
@@ -214,13 +231,7 @@ func _ready() -> void:
 		player.dash_cooldown = 999999.0
 		player.block_click_attack = true
 	
-	if guard_rect:
-		guard_rect.color = GUARD_DOG_COLOR
-		guard_rect.visible = true
 	guard_is_dog = true
-	if sniper_rect:
-		sniper_rect.color = SNIPER_NORMAL_COLOR
-		sniper_rect.visible = true
 	
 	for i in range(TOTAL_OBJECTS):
 		var cell = ColorRect.new()
@@ -238,6 +249,8 @@ func _ready() -> void:
 	_create_stress_bar()
 	_create_inspect_targets()
 	_create_inspect_text_panel()
+	_create_guard_sprite()
+	_create_sniper_sprite()
 	_setup_npc_animations()
 	_setup_guard_camera()
 	_ensure_death_screen()
@@ -251,8 +264,11 @@ func _ready() -> void:
 	hint_label.visible = false
 	dialog_panel.visible = false
 	inspect_marker.visible = false
-	fade_rect.visible = false
-	fade_rect.color = Color(0, 0, 0, 0)
+	
+	if fade_rect:
+		fade_rect.visible = false
+		fade_rect.color = Color(0, 0, 0, 0)
+	
 	pausemenu.visible = false
 	
 	if player_gui:
@@ -277,6 +293,111 @@ func _ready() -> void:
 	
 	intro_timer = 0.0
 	state = State.INTRO
+
+func _build_fish_sprite_frames() -> SpriteFrames:
+	var frames = SpriteFrames.new()
+	if frames.has_animation("default"):
+		frames.remove_animation("default")
+	
+	# --- IDLE ---
+	frames.add_animation("idle")
+	frames.set_animation_loop("idle", true)
+	frames.set_animation_speed("idle", 10.0)
+	var idle_tex = load(FISH_IDLE_PATH)
+	if idle_tex:
+		var fw = idle_tex.get_width() / float(FISH_IDLE_FRAMES)
+		var fh = idle_tex.get_height()
+		for i in range(FISH_IDLE_FRAMES):
+			var atlas = AtlasTexture.new()
+			atlas.atlas = idle_tex
+			atlas.region = Rect2(i * fw, 0, fw, fh)
+			frames.add_frame("idle", atlas)
+	
+	# --- JOGGING ---
+	frames.add_animation("jogging")
+	frames.set_animation_loop("jogging", true)
+	frames.set_animation_speed("jogging", 12.0)
+	var jog_tex = load(FISH_JOGGING_PATH)
+	if jog_tex:
+		var fw2 = jog_tex.get_width() / float(FISH_JOGGING_FRAMES)
+		var fh2 = jog_tex.get_height()
+		for i in range(FISH_JOGGING_FRAMES):
+			var atlas2 = AtlasTexture.new()
+			atlas2.atlas = jog_tex
+			atlas2.region = Rect2(i * fw2, 0, fw2, fh2)
+			frames.add_frame("jogging", atlas2)
+	
+	# --- ATTACK RIGHT (0-7) ---
+	frames.add_animation("attack_right")
+	frames.set_animation_loop("attack_right", false)
+	frames.set_animation_speed("attack_right", 14.0)
+	var atk_tex = load(FISH_ATTACK_PATH)
+	if atk_tex:
+		var total = FISH_ATTACK_FRAMES_PER_SIDE * 2
+		var fw3 = atk_tex.get_width() / float(total)
+		var fh3 = atk_tex.get_height()
+		for i in range(FISH_ATTACK_FRAMES_PER_SIDE):
+			var atlas3 = AtlasTexture.new()
+			atlas3.atlas = atk_tex
+			atlas3.region = Rect2(i * fw3, 0, fw3, fh3)
+			frames.add_frame("attack_right", atlas3)
+	
+	# --- ATTACK LEFT (8-15) ---
+	frames.add_animation("attack_left")
+	frames.set_animation_loop("attack_left", false)
+	frames.set_animation_speed("attack_left", 14.0)
+	if atk_tex:
+		var total2 = FISH_ATTACK_FRAMES_PER_SIDE * 2
+		var fw4 = atk_tex.get_width() / float(total2)
+		var fh4 = atk_tex.get_height()
+		for i in range(FISH_ATTACK_FRAMES_PER_SIDE):
+			var atlas4 = AtlasTexture.new()
+			atlas4.atlas = atk_tex
+			atlas4.region = Rect2((FISH_ATTACK_FRAMES_PER_SIDE + i) * fw4, 0, fw4, fh4)
+			frames.add_frame("attack_left", atlas4)
+	
+	return frames
+
+func _create_guard_sprite() -> void:
+	guard_sprite = AnimatedSprite2D.new()
+	guard_sprite.name = "GuardSprite"
+	guard_sprite.sprite_frames = _build_fish_sprite_frames()
+	guard_sprite.animation = "idle"
+	guard_sprite.position = GUARD_POSITION
+	guard_sprite.scale = Vector2(1.2, 1.2)
+	guard_sprite.modulate = GUARD_DOG_COLOR
+	guard_sprite.z_index = 3
+	guard_sprite.play("idle")
+	add_child(guard_sprite)
+
+func _create_sniper_sprite() -> void:
+	sniper_sprite = AnimatedSprite2D.new()
+	sniper_sprite.name = "SniperSprite"
+	sniper_sprite.sprite_frames = _build_fish_sprite_frames()
+	sniper_sprite.animation = "idle"
+	sniper_sprite.position = SNIPER_POSITION
+	sniper_sprite.scale = Vector2(1.0, 1.0)
+	sniper_sprite.modulate = SNIPER_NORMAL_COLOR
+	sniper_sprite.z_index = 3
+	sniper_sprite.play("idle")
+	add_child(sniper_sprite)
+
+func _guard_walk_to(target: Vector2) -> void:
+	if guard_sprite == null:
+		return
+	if target.x < guard_sprite.position.x:
+		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
+	elif target.x > guard_sprite.position.x:
+		guard_sprite.scale.x = abs(guard_sprite.scale.x)
+	
+	guard_sprite.play("jogging")
+	var dist = guard_sprite.position.distance_to(target)
+	var duration = dist / GUARD_WALK_SPEED
+	if duration < 0.1:
+		duration = 0.1
+	var tween = create_tween()
+	tween.tween_property(guard_sprite, "position", target, duration)
+	await tween.finished
 
 func _ensure_death_screen() -> void:
 	var ds = get_node_or_null("DeathScreen")
@@ -488,7 +609,6 @@ func _update_stress_bar() -> void:
 	if stress_bar == null or stress_label == null:
 		return
 	
-	# Показываем стресс только когда виден интерфейс игрока
 	var gui_visible = player_gui != null and player_gui.visible
 	
 	if gui_visible:
@@ -982,17 +1102,34 @@ func _on_guard_shift_change(_hour: float) -> void:
 	if guard_changing:
 		return
 	guard_changing = true
+	_guard_shift_sequence()
+
+func _guard_shift_sequence() -> void:
+	if guard_sprite == null:
+		guard_changing = false
+		return
 	
-	if guard_rect:
-		guard_rect.visible = false
+	# 1. Идём к лифту
+	await _guard_walk_to(GUARD_LIFT_POSITION)
 	
-	await get_tree().create_timer(SHIFT_CHANGE_REAL).timeout
+	# 2. Исчезаем
+	guard_sprite.visible = false
+	await get_tree().create_timer(0.3).timeout
 	
+	# 3. Меняем тип
 	guard_is_dog = not guard_is_dog
-	if guard_rect:
-		guard_rect.color = GUARD_DOG_COLOR if guard_is_dog else GUARD_MONKEY_COLOR
-		guard_rect.visible = true
+	if guard_is_dog:
+		guard_sprite.modulate = GUARD_DOG_COLOR
+	else:
+		guard_sprite.modulate = GUARD_MONKEY_COLOR
+	guard_sprite.position = GUARD_LIFT_POSITION
+	guard_sprite.visible = true
 	
+	# 4. Идём на место
+	await _guard_walk_to(GUARD_POSITION)
+	
+	# 5. Idle
+	guard_sprite.play("idle")
 	guard_changing = false
 
 func _on_sniper_shift_change(_hour: float) -> void:
@@ -1000,13 +1137,13 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		return
 	sniper_changing = true
 	
-	if sniper_rect:
-		sniper_rect.visible = false
+	if sniper_sprite:
+		sniper_sprite.visible = false
 	
 	await get_tree().create_timer(SHIFT_CHANGE_REAL).timeout
 	
-	if sniper_rect:
-		sniper_rect.visible = true
+	if sniper_sprite:
+		sniper_sprite.visible = true
 	
 	sniper_changing = false
 
@@ -1191,7 +1328,6 @@ func _show_gui() -> void:
 		var tw = create_tween()
 		tw.tween_property(container, "modulate:a", 1.0, 0.5)
 	
-	# Обновляем стресс-бар сразу после показа GUI
 	_update_stress_bar()
 
 func _finish_current_object() -> void:
@@ -1338,28 +1474,39 @@ func _stress_miss_effect() -> void:
 	minigame_panel.position = original_pos
 
 func _guard_hit_player() -> void:
-	if player == null or guard_rect == null:
+	if player == null or guard_sprite == null:
 		return
 	if guard_changing:
 		return
 	
-	var guard_orig_pos = guard_rect.global_position
-	var guard_orig_visible = guard_rect.visible
+	var orig_pos = guard_sprite.position
+	var orig_flip = guard_sprite.scale.x
 	
-	guard_rect.visible = true
-	guard_rect.global_position = player.global_position + Vector2(-40, -20)
+	# Идём к игроку
+	var target = player.global_position + Vector2(-40, -20)
+	await _guard_walk_to(target)
 	
+	# Бьём
+	if player.global_position.x > guard_sprite.position.x:
+		guard_sprite.play("attack_right")
+		guard_sprite.scale.x = abs(guard_sprite.scale.x)
+	else:
+		guard_sprite.play("attack_left")
+		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
+	
+	await get_tree().create_timer(0.15).timeout
 	UISounds.play_hit()
 	if player.has_method("take_damage"):
 		player.take_damage(1)
-	
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.4)
 	
-	await get_tree().create_timer(0.4).timeout
+	await guard_sprite.animation_finished
 	
-	guard_rect.global_position = guard_orig_pos
-	guard_rect.visible = guard_orig_visible
+	# Возвращаемся
+	await _guard_walk_to(orig_pos)
+	guard_sprite.scale.x = orig_flip
+	guard_sprite.play("idle")
 	
 	_update_stress_from_hp()
 	
@@ -1390,10 +1537,10 @@ func _sniper_kill_player() -> void:
 	
 	_show_guard_dialog("С СУБЪЕКТОМ 7-БЕТА ЧТО-ТО НЕ ТАК, ОБНАРУЖЕНО ДЕВИАНТСКОЕ ПОВЕДЕНИЕ", 3.5)
 	
-	if sniper_rect:
-		var tween = create_tween()
-		tween.tween_property(sniper_rect, "color", COLOR_YELLOW, 0.1)
-		tween.tween_property(sniper_rect, "color", SNIPER_NORMAL_COLOR, 0.15)
+	if sniper_sprite:
+		sniper_sprite.modulate = COLOR_YELLOW
+		await get_tree().create_timer(0.15).timeout
+		sniper_sprite.modulate = SNIPER_NORMAL_COLOR
 	
 	await get_tree().create_timer(3.5).timeout
 	if player and player.has_method("die"):
@@ -1420,17 +1567,19 @@ func _end_shift() -> void:
 
 func _fade_and_new_shift() -> void:
 	await get_tree().create_timer(2.5).timeout
-	fade_rect.visible = true
-	fade_rect.color = Color(0, 0, 0, 0)
-	var tween = create_tween()
-	tween.tween_property(fade_rect, "color:a", 1.0, 3.0)
-	await tween.finished
+	if fade_rect:
+		fade_rect.visible = true
+		fade_rect.color = Color(0, 0, 0, 0)
+		var tween = create_tween()
+		tween.tween_property(fade_rect, "color:a", 1.0, 1.5)
+		await tween.finished
 	await get_tree().create_timer(0.5).timeout
 	_start_new_shift()
-	var tween2 = create_tween()
-	tween2.tween_property(fade_rect, "color:a", 0.0, 3.0)
-	await tween2.finished
-	fade_rect.visible = false
+	if fade_rect:
+		var tween2 = create_tween()
+		tween2.tween_property(fade_rect, "color:a", 0.0, 1.5)
+		await tween2.finished
+		fade_rect.visible = false
 
 func _start_new_shift() -> void:
 	current_shift += 1
@@ -1471,6 +1620,15 @@ func _start_new_shift() -> void:
 		else:
 			if player.has_method("set_movement_blocked"):
 				player.set_movement_blocked(true)
+	
+	if guard_sprite:
+		guard_sprite.position = GUARD_POSITION
+		guard_sprite.visible = true
+		guard_sprite.play("idle")
+	if sniper_sprite:
+		sniper_sprite.position = SNIPER_POSITION
+		sniper_sprite.visible = true
+		sniper_sprite.play("idle")
 	
 	if current_shift >= 2:
 		bind_hint_i.visible = true
@@ -1690,30 +1848,9 @@ func _show_guard_dialog(text: String, duration: float) -> void:
 	is_dialog_active = true
 	dialog_panel.visible = true
 	dialog_label.text = text
-	
-	if camera and guard_camera and guard_rect:
-		var target_pos = guard_rect.global_position + Vector2(150, -50)
-		if camera.enabled:
-			camera.enabled = false
-		guard_camera.global_position = player.global_position
-		guard_camera.enabled = true
-		
-		var tw = create_tween()
-		tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-		tw.tween_property(guard_camera, "global_position", target_pos, 0.5)
-	
 	await get_tree().create_timer(duration).timeout
 	dialog_panel.visible = false
 	is_dialog_active = false
-	
-	if camera and guard_camera:
-		var tw2 = create_tween()
-		tw2.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
-		tw2.tween_property(guard_camera, "global_position", player.global_position, 0.5)
-		await tw2.finished
-		guard_camera.enabled = false
-		camera.enabled = true
-		camera.global_position = player.global_position
 
 func _toggle_pause() -> void:
 	if pausemenu == null:
