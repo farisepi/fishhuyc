@@ -140,10 +140,10 @@ animations = [{
 script = ExtResource("2_main")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1311441245]
-offset_left = -400.0
-offset_top = -200.0
-offset_right = 1600.0
-offset_bottom = 900.0
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
 color = Color(0.08, 0.06, 0.06, 1)
 
 [node name="Floor" type="StaticBody2D" parent="." unique_id=1749517311]
@@ -154,9 +154,9 @@ position = Vector2(0, -30)
 shape = SubResource("RectangleShape2D_floor")
 
 [node name="FloorVisual" type="ColorRect" parent="." unique_id=1639859172]
-offset_left = -400.0
+offset_left = -10000.0
 offset_top = 450.0
-offset_right = 1600.0
+offset_right = 10000.0
 offset_bottom = 700.0
 color = Color(0.22, 0.14, 0.1, 1)
 
@@ -269,11 +269,10 @@ visible = false
 script = ExtResource("6_pause")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=227305326]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
 color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=254893836]
@@ -547,6 +546,7 @@ color = Color(0.2, 0.8, 0.3, 1)
 layout_mode = 0
 offset_right = 6.0
 offset_bottom = 30.0
+color = Color(1, 1, 1, 1)
 
 [node name="JournalPanel" type="Control" parent="UI" unique_id=1394020786]
 visible = false

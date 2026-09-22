@@ -210,12 +210,10 @@ var journal_notes: Array = []
 var journal_notes_full: Dictionary = {}
 var elevator_inspected: bool = false
 
-# Стресс
 var stress_level: int = 0
 var stress_bar: ProgressBar = null
 var stress_label: Label = null
 
-# Спрайты охранника и снайпера
 var guard_sprite: AnimatedSprite2D = null
 var sniper_sprite: AnimatedSprite2D = null
 
@@ -286,6 +284,7 @@ func _ready() -> void:
 		camera.enabled = true
 		camera.top_level = true
 		camera.global_position = player.global_position
+		camera.offset = Vector2.ZERO
 		inspect_camera_original_zoom = camera.zoom
 	
 	if player_sprite and player_sprite.sprite_frames.has_animation("Idle"):
@@ -299,7 +298,6 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 	if frames.has_animation("default"):
 		frames.remove_animation("default")
 	
-	# --- IDLE ---
 	frames.add_animation("idle")
 	frames.set_animation_loop("idle", true)
 	frames.set_animation_speed("idle", 10.0)
@@ -313,7 +311,6 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 			atlas.region = Rect2(i * fw, 0, fw, fh)
 			frames.add_frame("idle", atlas)
 	
-	# --- JOGGING ---
 	frames.add_animation("jogging")
 	frames.set_animation_loop("jogging", true)
 	frames.set_animation_speed("jogging", 12.0)
@@ -327,7 +324,6 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 			atlas2.region = Rect2(i * fw2, 0, fw2, fh2)
 			frames.add_frame("jogging", atlas2)
 	
-	# --- ATTACK RIGHT (0-7) ---
 	frames.add_animation("attack_right")
 	frames.set_animation_loop("attack_right", false)
 	frames.set_animation_speed("attack_right", 14.0)
@@ -342,7 +338,6 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 			atlas3.region = Rect2(i * fw3, 0, fw3, fh3)
 			frames.add_frame("attack_right", atlas3)
 	
-	# --- ATTACK LEFT (8-15) ---
 	frames.add_animation("attack_left")
 	frames.set_animation_loop("attack_left", false)
 	frames.set_animation_speed("attack_left", 14.0)
@@ -1109,14 +1104,11 @@ func _guard_shift_sequence() -> void:
 		guard_changing = false
 		return
 	
-	# 1. Идём к лифту
 	await _guard_walk_to(GUARD_LIFT_POSITION)
 	
-	# 2. Исчезаем
 	guard_sprite.visible = false
 	await get_tree().create_timer(0.3).timeout
 	
-	# 3. Меняем тип
 	guard_is_dog = not guard_is_dog
 	if guard_is_dog:
 		guard_sprite.modulate = GUARD_DOG_COLOR
@@ -1125,10 +1117,8 @@ func _guard_shift_sequence() -> void:
 	guard_sprite.position = GUARD_LIFT_POSITION
 	guard_sprite.visible = true
 	
-	# 4. Идём на место
 	await _guard_walk_to(GUARD_POSITION)
 	
-	# 5. Idle
 	guard_sprite.play("idle")
 	guard_changing = false
 
@@ -1482,11 +1472,9 @@ func _guard_hit_player() -> void:
 	var orig_pos = guard_sprite.position
 	var orig_flip = guard_sprite.scale.x
 	
-	# Идём к игроку
 	var target = player.global_position + Vector2(-40, -20)
 	await _guard_walk_to(target)
 	
-	# Бьём
 	if player.global_position.x > guard_sprite.position.x:
 		guard_sprite.play("attack_right")
 		guard_sprite.scale.x = abs(guard_sprite.scale.x)
@@ -1503,7 +1491,6 @@ func _guard_hit_player() -> void:
 	
 	await guard_sprite.animation_finished
 	
-	# Возвращаемся
 	await _guard_walk_to(orig_pos)
 	guard_sprite.scale.x = orig_flip
 	guard_sprite.play("idle")
@@ -1535,14 +1522,53 @@ func _sniper_kill_player() -> void:
 	minigame_panel.visible = false
 	hint_label.visible = false
 	
-	_show_guard_dialog("С СУБЪЕКТОМ 7-БЕТА ЧТО-ТО НЕ ТАК, ОБНАРУЖЕНО ДЕВИАНТСКОЕ ПОВЕДЕНИЕ", 3.5)
+	var sniper_pos = sniper_sprite.global_position if sniper_sprite else Vector2(1060, 60)
+	var player_pos = player.global_position + Vector2(0, -20)
 	
-	if sniper_sprite:
-		sniper_sprite.modulate = COLOR_YELLOW
-		await get_tree().create_timer(0.15).timeout
-		sniper_sprite.modulate = SNIPER_NORMAL_COLOR
+	# 1. Белая полоска-трассер от снайпера к игроку
+	var tracer = Line2D.new()
+	tracer.width = 2.0
+	tracer.default_color = Color(1, 1, 1, 1)
+	tracer.add_point(sniper_pos)
+	tracer.add_point(player_pos)
+	tracer.z_index = 100
+	add_child(tracer)
 	
-	await get_tree().create_timer(3.5).timeout
+	# 2. Жёлтая пуля
+	var bullet = ColorRect.new()
+	bullet.color = Color(1, 1, 0.2, 1)
+	bullet.size = Vector2(8, 8)
+	bullet.position = sniper_pos - bullet.size / 2.0
+	bullet.z_index = 101
+	add_child(bullet)
+	
+	# 3. Пуля летит по полоске (0.3 сек)
+	var dist = sniper_pos.distance_to(player_pos)
+	var fly_time = clamp(dist / 3000.0, 0.2, 0.5)
+	var tween = create_tween()
+	tween.tween_property(bullet, "position", player_pos - bullet.size / 2.0, fly_time)
+	await tween.finished
+	
+	# 4. Тряска камеры
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.6)
+	
+	# 5. Убираем трассер и пулю
+	if is_instance_valid(tracer):
+		var fade = create_tween()
+		fade.tween_property(tracer, "modulate:a", 0.0, 0.2)
+	if is_instance_valid(bullet):
+		var fade2 = create_tween()
+		fade2.tween_property(bullet, "modulate:a", 0.0, 0.2)
+	
+	await get_tree().create_timer(0.2).timeout
+	
+	if is_instance_valid(tracer):
+		tracer.queue_free()
+	if is_instance_valid(bullet):
+		bullet.queue_free()
+	
+	# 6. Смерть
 	if player and player.has_method("die"):
 		player.die()
 
