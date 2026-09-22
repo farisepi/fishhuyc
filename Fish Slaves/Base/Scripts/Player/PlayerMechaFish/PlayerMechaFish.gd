@@ -678,3 +678,6 @@ func _dash():
 
 func on_death_zone_entered():
 	die()
+
+func set_hp(value: int) -> void:
+	hp = clamp(value, 0, max_hp)
