@@ -6,8 +6,10 @@
 [ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Enemy/Enemy.tscn" id="8_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dpw2e6iyxxdux" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuFactory.gd" id="11_wos72"]
+[ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="16_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
+[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://ObstacleSmall.tscn" id="17_wos72"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="19_xxkr5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
@@ -21,6 +23,9 @@ shader = ExtResource("2_gb2nh")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
 size = Vector2(6721, 81.965)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
+size = Vector2(1320, 34.089996)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bhunq"]
 radius = 31.0
@@ -43,9 +48,6 @@ size = Vector2(20, 97.089966)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xvofd"]
 size = Vector2(32, 81.589966)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(1320, 34.089996)
 
 [node name="Level_3" type="Node2D" unique_id=928929783]
 position = Vector2(0, 232.91)
@@ -85,8 +87,17 @@ offset_bottom = 194.88
 color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
-[node name="Mecha_Fish" parent="." unique_id=573579909 node_paths=PackedStringArray("enemies_node") instance=ExtResource("2_cu5p6")]
+[node name="Balcony" type="StaticBody2D" parent="." unique_id=1315964761]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Balcony" unique_id=517329581]
+position = Vector2(-201, 165.09)
+shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="Mecha_Fish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
 position = Vector2(-1088, 310.09)
+collision_layer = 15
+collision_mask = 15
+barriers_node = NodePath("../Barriers")
 enemies_node = NodePath("../Enemies")
 
 [node name="Enemies" type="Node2D" parent="." unique_id=1465954750]
@@ -117,22 +128,24 @@ position = Vector2(125, 1)
 speed = 168.63
 
 [node name="ForkliftScene" type="Node2D" parent="." unique_id=756149453]
-position = Vector2(2996, 257)
+position = Vector2(4718, 250.09)
 
 [node name="Forklift" type="CharacterBody2D" parent="ForkliftScene" unique_id=781511188]
+position = Vector2(128, -6)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftScene/Forklift" unique_id=1745886087]
 position = Vector2(87, 56)
 shape = SubResource("CapsuleShape2D_bhunq")
 
 [node name="ColorRect" type="ColorRect" parent="ForkliftScene/Forklift" unique_id=978390234]
-offset_left = 123.0
-offset_top = 39.089966
-offset_right = 163.0
-offset_bottom = 79.089966
+offset_left = 67.0
+offset_top = 37.0
+offset_right = 107.0
+offset_bottom = 77.0
 color = Color(0.84402776, 0.6058836, 0.086505435, 1)
 
 [node name="FallingShelf" type="StaticBody2D" parent="ForkliftScene" unique_id=1327964272]
+position = Vector2(60, 0.08999634)
 
 [node name="Sprite2D" type="Sprite2D" parent="ForkliftScene/FallingShelf" unique_id=556734115]
 position = Vector2(90, 14)
@@ -143,7 +156,7 @@ position = Vector2(89.75, 13.862488)
 shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="ParryingScene" type="Node2D" parent="." unique_id=1169206453]
-position = Vector2(3982, 257.09)
+position = Vector2(5603, 250.09)
 
 [node name="AttackParry" type="CharacterBody2D" parent="ParryingScene" unique_id=82372217]
 position = Vector2(191.27002, 49)
@@ -200,7 +213,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(2629, 288.09)
+position = Vector2(4489, 278.09)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
@@ -325,23 +338,23 @@ offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="CanvasLayer/TightPassageUI/KeyButton" unique_id=1594602010]
 layout_mode = 0
-offset_left = 3588.0
-offset_top = 505.0
-offset_right = 3601.0
-offset_bottom = 528.0
+offset_left = 5209.0
+offset_top = 498.0
+offset_right = 5222.0
+offset_bottom = 521.0
 text = "D"
 
 [node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
 layout_mode = 0
-offset_left = 3573.0
-offset_top = 488.0
-offset_right = 3613.0
-offset_bottom = 528.0
+offset_left = 5194.0
+offset_top = 481.0
+offset_right = 5234.0
+offset_bottom = 521.0
 max_value = 10.0
 fill_mode = 4
 
 [node name="TightPassageTrigger" type="Area2D" parent="." unique_id=862275647]
-position = Vector2(3630.3, 297.09)
+position = Vector2(5251.3, 290.09)
 script = ExtResource("23_v16hl")
 move_distance = 26.0
 
@@ -350,14 +363,14 @@ position = Vector2(39.69995, -10)
 shape = SubResource("RectangleShape2D_x5kjr")
 
 [node name="EntranceGate" type="StaticBody2D" parent="." unique_id=1138146317]
-position = Vector2(3630.3, 276.09)
+position = Vector2(5251.3, 269.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceGate" unique_id=1135698694]
 position = Vector2(-85.30005, 11)
 shape = SubResource("RectangleShape2D_2r0jt")
 
 [node name="EntranceTrigger" type="Area2D" parent="." unique_id=313777073]
-position = Vector2(3510, 288.09)
+position = Vector2(5131, 281.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceTrigger" unique_id=782664805]
 position = Vector2(8, 6)
@@ -367,10 +380,51 @@ shape = SubResource("RectangleShape2D_xvofd")
 position = Vector2(1187, 262.09)
 
 [node name="DeathZone2" parent="." unique_id=248427837 instance=ExtResource("17_cu5p6")]
-position = Vector2(1873, 258.09)
+position = Vector2(2555, 262.09)
 
-[node name="Balcony" type="StaticBody2D" parent="." unique_id=1315964761]
+[node name="Barriers" type="Node2D" parent="." unique_id=1037942512]
+position = Vector2(1088, 266.09)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Balcony" unique_id=517329581]
-position = Vector2(-201, 165.09)
-shape = SubResource("RectangleShape2D_bhunq")
+[node name="Obstacle" parent="Barriers" unique_id=1967249374 instance=ExtResource("16_it0yu")]
+position = Vector2(52, 26.089996)
+collision_layer = 8
+
+[node name="Obstacle2" parent="Barriers" unique_id=1494262454 instance=ExtResource("16_it0yu")]
+position = Vector2(334, 27.00003)
+collision_layer = 8
+
+[node name="Obstacle3" parent="Barriers" unique_id=1161761604 instance=ExtResource("16_it0yu")]
+position = Vector2(889, 23.00003)
+collision_layer = 8
+
+[node name="Obstacle4" parent="Barriers" unique_id=118914819 instance=ExtResource("16_it0yu")]
+position = Vector2(948, -58)
+collision_layer = 8
+
+[node name="Obstacle5" parent="Barriers" unique_id=1791240393 instance=ExtResource("16_it0yu")]
+position = Vector2(1447, 22)
+collision_layer = 8
+
+[node name="Obstacle6" parent="Barriers" unique_id=35345097 instance=ExtResource("16_it0yu")]
+position = Vector2(1595, -58)
+collision_layer = 8
+
+[node name="Obstacle7" parent="Barriers" unique_id=1597786890 instance=ExtResource("16_it0yu")]
+position = Vector2(1599, 24)
+collision_layer = 8
+
+[node name="Obstacle8" parent="Barriers" unique_id=873501618 instance=ExtResource("16_it0yu")]
+position = Vector2(2004, 23)
+collision_layer = 8
+
+[node name="Obstacle9" parent="Barriers" unique_id=1133769285 instance=ExtResource("16_it0yu")]
+position = Vector2(2155, 24)
+collision_layer = 8
+
+[node name="Obstacle10" parent="Barriers" unique_id=1761143825 instance=ExtResource("16_it0yu")]
+position = Vector2(2297, 23)
+collision_layer = 8
+
+[node name="ObstacleSmall" parent="Barriers" unique_id=773640851 instance=ExtResource("17_wos72")]
+position = Vector2(212, 319.08997)
+collision_layer = 8

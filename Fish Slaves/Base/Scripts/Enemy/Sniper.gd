@@ -242,8 +242,7 @@ func _update_bullet(delta):
 			_bullet_stop()
 			return
 
-	if bullet_traveled >= laser_length:
-		_bullet_stop()
+
 
 func _bullet_stop():
 	bullet_active = false

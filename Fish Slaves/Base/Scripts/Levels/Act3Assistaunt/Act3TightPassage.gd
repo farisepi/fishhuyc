@@ -11,22 +11,18 @@ var player: CharacterBody2D = null
 var press_cooldown: float = 0.0
 
 func _ready():
-	print("🔍 TightPassage: _ready()")
+	
 	
 	var canvas_layer = get_parent().get_node_or_null("CanvasLayer")
 	if canvas_layer:
-		print("✅ CanvasLayer найден!")
+		
 		var ui = canvas_layer.get_node_or_null("TightPassageUI")
 		if ui:
-			print("✅ TightPassageUI найден!")
+			
 			key_button = ui.get_node_or_null("KeyButton")
 			progress_ring = ui.get_node_or_null("ProgressRing")
-			print("🔍 key_button = ", key_button)
-			print("🔍 progress_ring = ", progress_ring)
-		else:
-			print("❌ TightPassageUI НЕ НАЙДЕН!")
-	else:
-		print("❌ CanvasLayer НЕ НАЙДЕН!")
+			
+	
 	
 	if progress_ring:
 		progress_ring.max_value = required_presses
@@ -42,7 +38,7 @@ func activate(player_node: CharacterBody2D):
 	if is_active:
 		return
 	
-	print("🔴 АКТИВАЦИЯ УЗКОГО ПРОХОДА!")
+	
 	player = player_node
 	is_active = true
 	press_count = 0
@@ -94,7 +90,7 @@ func _process(delta):
 			_complete_passage()
 
 func _complete_passage():
-	print("✅ ПРОХОД ПРОЙДЕН!")
+	
 	is_active = false
 	
 	if player and player.has_method("set_movement_blocked"):

@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="3_w85fw"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="5_powlu"]
-[ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="6_rhhnv"]
+[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://ObstacleSmall.tscn" id="6_rhhnv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)
@@ -33,17 +33,22 @@ color = Color(0.4540879, 0.31730825, 0.20443648, 1)
 [node name="Mecha_Fish" parent="Player" unique_id=221706649 node_paths=PackedStringArray("barriers_node") instance=ExtResource("1_txi32")]
 position = Vector2(259, 563)
 collision_mask = 7
-barriers_node = NodePath("../../Obstacle")
+barriers_node = NodePath("../../Barriers")
 item_scene = ExtResource("2_2y021")
 
 [node name="DeathScreen" parent="." unique_id=655264103 instance=ExtResource("3_w85fw")]
 visible = false
 
-[node name="Obstacle" parent="." unique_id=1967249374 instance=ExtResource("4_yt2i1")]
-position = Vector2(377, 552)
-
 [node name="DeathZone" parent="." unique_id=2095264132 instance=ExtResource("5_powlu")]
 position = Vector2(787, 519)
 
-[node name="SniperScene" parent="." unique_id=56344115 instance=ExtResource("6_rhhnv")]
-position = Vector2(57, 570)
+[node name="Barriers" type="Node2D" parent="." unique_id=1428976408]
+
+[node name="Obstacle" parent="Barriers" unique_id=1967249374 instance=ExtResource("4_yt2i1")]
+position = Vector2(377, 552)
+
+[node name="Obstacle2" parent="Barriers" unique_id=1716257789 instance=ExtResource("4_yt2i1")]
+position = Vector2(683, 433)
+
+[node name="ObstacleSmall" parent="Barriers" unique_id=773640851 instance=ExtResource("6_rhhnv")]
+position = Vector2(473, 571)
