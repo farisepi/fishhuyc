@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dlvu7aadq7m0i"
-path="res://.godot/imported/MechaFishNPCJoggingScar.png-2380b53e7dbdb85cd8b6d777da5a0032.ctex"
+uid="uid://bul0sfak1j2t3"
+path="res://.godot/imported/Act3ElevatorCloseBack.png-a6abc7e8e2b6480c5bf8ed70edf03b9b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Fish Slaves/Textures/Characters/Mechanic/MechaFishNPCJoggingScar.png"
-dest_files=["res://.godot/imported/MechaFishNPCJoggingScar.png-2380b53e7dbdb85cd8b6d777da5a0032.ctex"]
+source_file="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Elevator/Act3ElevatorClose/Act3ElevatorCloseBack.png"
+dest_files=["res://.godot/imported/Act3ElevatorCloseBack.png-a6abc7e8e2b6480c5bf8ed70edf03b9b.ctex"]
 
 [params]
 

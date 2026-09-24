@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ch0yjxsv3qvfr"
-path="res://.godot/imported/Act3ElevatorOpen.png.png-904cf1d98bbc27db30de80f8589ed9b6.ctex"
+uid="uid://b5w0vual5ygv"
+path="res://.godot/imported/Act3ElevatorCloseFront.png-47c02d3552d6bb32bb448720f89b3f73.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Elevator/Act3ElevatorOpen.png.png"
-dest_files=["res://.godot/imported/Act3ElevatorOpen.png.png-904cf1d98bbc27db30de80f8589ed9b6.ctex"]
+source_file="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Elevator/Act3ElevatorClose/Act3ElevatorCloseFront.png"
+dest_files=["res://.godot/imported/Act3ElevatorCloseFront.png-47c02d3552d6bb32bb448720f89b3f73.ctex"]
 
 [params]
 
