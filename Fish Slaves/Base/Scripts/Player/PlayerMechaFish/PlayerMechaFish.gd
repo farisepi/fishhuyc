@@ -9,6 +9,9 @@ extends CharacterBody2D
 @export var enemies_node: Node2D = null
 @export var item_scene: PackedScene = null
 @export var deathzone_scene: PackedScene = null
+@export var climb_time: float = 0.32
+
+var block_click_attack: bool = false
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
@@ -47,10 +50,8 @@ var parry_cooldown: float = 0.0
 var parry_cooldown_time: float = 3.0
 var last_climbed_obstacle: Node = null
 
-
 var is_attacking: bool = false
 const ATTACK_SPEED_MULT: float = 0.5
-
 
 var was_on_floor_last_frame: bool = true
 var is_landing: bool = false
@@ -105,7 +106,6 @@ func _physics_process(delta):
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
 	
-	
 	if is_vaulting or is_climbing or is_climbing_animation:
 		velocity.y = 0
 		move_and_slide()
@@ -124,7 +124,6 @@ func _physics_process(delta):
 	if not is_attacking and not is_landing:
 		sprite.scale.x = 1 if direction > 0 else -1 if direction < 0 else sprite.scale.x
 
-	
 	var spd = run_speed
 	if is_attacking:
 		spd = run_speed * ATTACK_SPEED_MULT
@@ -200,8 +199,6 @@ func _physics_process(delta):
 	if is_sliding and is_on_wall():
 		global_position.y += 3
 
-	
-
 	if held_item_icon:
 		held_item_icon.global_position = global_position + Vector2(0, -60)
 
@@ -234,6 +231,10 @@ func _end_slide():
 var shift_pressed_time: float = 0.0
 
 func _input(event: InputEvent) -> void:
+	if block_click_attack:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			return
+	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if not is_attacking and not is_dead and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing:
 			_do_attack()
@@ -521,7 +522,12 @@ func _try_climb():
 		return false
 	
 	var player_pos = global_position
-	var player_height = 30
+	var col_shape = $CollisionShape2D.shape
+	var player_height: float = 60.0
+	if col_shape is CapsuleShape2D:
+		player_height = col_shape.height
+	elif col_shape is RectangleShape2D:
+		player_height = col_shape.size.y
 	var player_bottom = player_pos.y + player_height / 2
 	var player_center_x = player_pos.x
 	var player_top = player_pos.y - player_height / 2
@@ -580,20 +586,38 @@ func _try_climb():
 			sprite.play("Climb")
 			
 			var target_y = obstacle_top - 5 - player_height / 2
-			var side_offset_x: float = 0.0
-			if side == -1:
-				side_offset_x = 35.0
-			elif side == 1:
-				side_offset_x = -35.0
+			var obstacle_center_x = (obstacle_left + obstacle_right) / 2.0
+			var land_x: float
+			
+			if s.size.y <= 40.0:
+				land_x = obstacle_center_x
 			else:
-				side_offset_x = 35.0 if facing_direction >= 0 else -35.0
+				if side == -1:
+					land_x = min(player_center_x + 10.0, obstacle_center_x)
+				elif side == 1:
+					land_x = max(player_center_x - 10.0, obstacle_center_x)
+				else:
+					land_x = obstacle_center_x
 			
-			var target = Vector2(global_position.x + side_offset_x, target_y)
+			var is_small = s.size.y <= 40.0
+			if is_small:
+				print("=== CLIMB SMALL ===")
+				print("size=", s.size, " top=", obstacle_top, " bottom=", obstacle_bottom)
+				print("left=", obstacle_left, " right=", obstacle_right, " center_x=", obstacle_center_x)
+				print("player_center_x=", player_center_x, " player_top=", player_top, " player_bottom=", player_bottom)
+				print("dist_left=", dist_left, " dist_right=", dist_right, " side=", side)
+				print("land_x=", land_x, " target_y=", target_y)
+				print("START pos=", global_position)
 			
-			var t = create_tween()
-			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			t.tween_property(self, "global_position", target, 0.6)
-			await t.finished
+			var target = Vector2(land_x, target_y)
+			
+			var climb_tween = create_tween()
+			climb_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			climb_tween.tween_property(self, "global_position", target, climb_time)
+			await climb_tween.finished
+			
+			if is_small:
+				print("ПОСЛЕ tween pos=", global_position)
 			
 			is_climbing = false
 			
@@ -604,13 +628,20 @@ func _try_climb():
 			sprite.stop()
 			sprite.frame = total_frames - 1
 			is_climbing_animation = false
+			velocity = Vector2.ZERO
 			
 			if not is_on_floor() and sprite.sprite_frames.has_animation("Falling"):
 				sprite.play("Falling")
 			
 			await get_tree().create_timer(0.3).timeout
+			
+			if is_small:
+				print("ФИНАЛ pos=", global_position, " velocity=", velocity)
+			
 			last_climbed_obstacle = null
 			return true
+	
+	return false
 	
 	return false
 
@@ -678,3 +709,6 @@ func _dash():
 
 func on_death_zone_entered():
 	die()
+
+func set_hp(value: int) -> void:
+	hp = clamp(value, 0, max_hp)

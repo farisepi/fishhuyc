@@ -1,9 +1,5 @@
 extends CanvasLayer
 
-signal restart_pressed
-signal menu_pressed
-signal quit_pressed
-
 @onready var death_label: Label = $DeathLabel
 @onready var restart_button: Button = $RestartButton
 @onready var menu_button: Button = $MainMenuButton
@@ -23,14 +19,11 @@ func _ready():
 	menu_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	quit_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	show()
+	# СРАЗУ скрываем — без show()
+	hide()
 	
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
-	ButtonEffects.setup(restart_button)
-	ButtonEffects.setup(menu_button)
-	ButtonEffects.setup(quit_button)
 	
 	death_label.modulate = Color(1, 1, 1, 0)
 	restart_button.modulate = Color(1, 1, 1, 0)
@@ -50,6 +43,12 @@ func show_death():
 	fading_in = true
 	can_interact = false
 	set_process(true)
+
+func hide_death():
+	hide()
+	can_interact = false
+	fading_in = false
+	set_process(false)
 
 func _process(delta):
 	if not fading_in:

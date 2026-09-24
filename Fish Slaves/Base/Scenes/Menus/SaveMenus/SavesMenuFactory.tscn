@@ -5,18 +5,25 @@
 [ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="3_bg"]
 [ext_resource type="StyleBox" uid="uid://deuwk77ek1mu8" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonNormal.tres" id="4_slotn"]
 [ext_resource type="StyleBox" uid="uid://c7o6fa5y3u3yf" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonPressed.tres" id="5_slotp"]
-[ext_resource type="Texture2D" uid="uid://b3wyck3e7pvw1" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_rust"]
+[ext_resource type="Texture2D" uid="uid://cmvu6wx8pty3w" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/HugeButtonFactoryMenuRust/HugeButtonFactoryMenuRust.png" id="6_rust"]
 [ext_resource type="StyleBox" uid="uid://ce0u63klyvvwb" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeFactoryMenuButtons/HugeFactoryMenuButtonHover.tres" id="6_sloth"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="7_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="8_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="9_btnh"]
-[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust_small"]
+[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust_small"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="12_8n7ws"]
 
-[node name="SaveMenu" type="Node2D" unique_id=1965436707]
+[node name="SaveMenu" type="Control" unique_id=1965436707]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="FPSCounter" type="Label" parent="." unique_id=373090847]
+layout_mode = 0
 offset_left = 384.0
 offset_top = 152.0
 offset_right = 424.0
@@ -24,6 +31,7 @@ offset_bottom = 175.0
 script = ExtResource("12_8n7ws")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=632457905]
+layout_mode = 0
 offset_left = -104.0
 offset_top = -80.0
 offset_right = 1273.0
@@ -33,6 +41,7 @@ color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
 [node name="BG" parent="." unique_id=1161321912 instance=ExtResource("3_bg")]
 
 [node name="TitleLabel" type="Label" parent="." unique_id=1815699152]
+layout_mode = 0
 offset_left = 497.0
 offset_top = 18.0
 offset_right = 607.0
@@ -44,6 +53,7 @@ vertical_alignment = 1
 
 [node name="DividingLine1" type="ColorRect" parent="." unique_id=656357730]
 custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
 offset_left = 104.0
 offset_top = 103.0
 offset_right = 1052.0
@@ -51,6 +61,7 @@ offset_bottom = 107.0
 color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=88246658]
+layout_mode = 0
 offset_left = 156.0
 offset_top = 137.0
 offset_right = 1164.0
@@ -58,12 +69,10 @@ offset_bottom = 521.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=2044579446]
-custom_minimum_size = Vector2(1000, 500)
-clip_contents = true
+[node name="SaveGrid" type="VBoxContainer" parent="ScrollContainer" unique_id=2044579446]
 layout_mode = 2
-theme_override_constants/h_separation = 15
-theme_override_constants/v_separation = 15
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
 
 [node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=2052505919]
 custom_minimum_size = Vector2(840, 80)
@@ -157,6 +166,7 @@ texture = ExtResource("6_rust")
 
 [node name="DividingLine2" type="ColorRect" parent="." unique_id=1861041097]
 custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
 offset_left = 104.0
 offset_top = 552.0
 offset_right = 1052.0
@@ -164,6 +174,7 @@ offset_bottom = 556.0
 color = Color(0.4117647, 0.24705882, 0.09019608, 1)
 
 [node name="BackButton" type="Button" parent="." unique_id=1748428842]
+layout_mode = 0
 offset_left = 460.0
 offset_top = 566.0
 offset_right = 692.0
@@ -172,7 +183,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("7_btnn")
 theme_override_styles/pressed = ExtResource("8_btnp")
 theme_override_styles/hover = ExtResource("9_btnh")
-text = "Назад"
+text = "Закрыть"
 
 [node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1840574675]
 position = Vector2(115.999985, 23.500006)

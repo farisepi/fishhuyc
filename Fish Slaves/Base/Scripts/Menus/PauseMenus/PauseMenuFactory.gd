@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var settings_btn: Button = $SettingsButton
 @onready var save_btn: Button = $SaveButton
 @onready var exit_btn: Button = $ExitButton
+@onready var restart_btn: Button = get_node_or_null("RestartButton")
 
 var _bg_rect: ColorRect
 var _framing: Sprite2D
@@ -14,7 +15,6 @@ var _transitioning: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	print(">>> PauseMenuFactory._ready, process_mode=", process_mode)
 	
 	_bg_rect = get_node_or_null("ColorRect")
 	_framing = get_node_or_null("Framing")
@@ -27,13 +27,17 @@ func _ready() -> void:
 	for btn in _buttons:
 		ButtonEffects.setup(btn)
 	
-	continue_btn.pressed.connect(_on_continue_pressed)
-	settings_btn.pressed.connect(_on_settings_pressed)
-	save_btn.pressed.connect(_on_save_pressed)
-	exit_btn.pressed.connect(_on_exit_pressed)
+	# Сигналы уже подключены в .tscn — НЕ дублируем
 	
 	if _bg_rect:
+		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_bg_rect.offset_left = 0
+		_bg_rect.offset_top = 0
+		_bg_rect.offset_right = 0
+		_bg_rect.offset_bottom = 0
 		_bg_rect.modulate.a = 0.0
+		_bg_rect.visible = true
+		_bg_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _framing:
 		_framing.modulate.a = 0.0
 	
@@ -41,18 +45,21 @@ func _ready() -> void:
 		btn.modulate.a = 0.0
 		btn.scale = Vector2(0.85, 0.85)
 		btn.pivot_offset = btn.size / 2.0
+	
+	hide()
 
 func show_menu() -> void:
 	_is_closing = false
 	show()
-	_animate_in()
-
-func _animate_in() -> void:
-	if _anim_tween and _anim_tween.is_valid():
-		_anim_tween.kill()
-	
+	# Принудительно растягиваем фон при каждом показе
 	if _bg_rect:
+		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_bg_rect.offset_left = 0
+		_bg_rect.offset_top = 0
+		_bg_rect.offset_right = 0
+		_bg_rect.offset_bottom = 0
 		_bg_rect.modulate.a = 0.0
+		_bg_rect.visible = true
 	if _framing:
 		_framing.modulate.a = 0.0
 	for btn in _buttons:
@@ -60,13 +67,18 @@ func _animate_in() -> void:
 			btn.modulate.a = 0.0
 			btn.scale = Vector2(0.85, 0.85)
 			btn.pivot_offset = btn.size / 2.0
+	_animate_in()
+
+func _animate_in() -> void:
+	if _anim_tween and _anim_tween.is_valid():
+		_anim_tween.kill()
 	
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
 	if _bg_rect:
-		_anim_tween.tween_property(_bg_rect, "modulate:a", 0.5, 0.15)
+		_anim_tween.tween_property(_bg_rect, "modulate:a", 1.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 1.0, 0.2)
 	
@@ -101,11 +113,18 @@ func hide_menu() -> void:
 	
 	await _anim_tween.finished
 	hide()
+	# Жёсткий сброс
+	if _bg_rect:
+		_bg_rect.modulate.a = 0.0
+	if _framing:
+		_framing.modulate.a = 0.0
+	for btn in _buttons:
+		if is_instance_valid(btn):
+			btn.modulate.a = 0.0
 	_is_closing = false
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		print(">>> PauseMenuFactory._input ESC, visible=", visible, " paused=", get_tree().paused)
 		get_viewport().set_input_as_handled()
 		var level = get_tree().current_scene
 		if level and level.has_method("_toggle_pause"):
@@ -123,6 +142,15 @@ func _transition_to(scene_path: String) -> void:
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	UISounds.stop_everything_gameplay()
+	
+	# Жёсткий сброс перед скрытием
+	if _bg_rect:
+		_bg_rect.modulate.a = 0.0
+	if _framing:
+		_framing.modulate.a = 0.0
+	for btn in _buttons:
+		if is_instance_valid(btn):
+			btn.modulate.a = 0.0
 	hide()
 	
 	await get_tree().create_timer(0.05).timeout
@@ -157,3 +185,65 @@ func _on_settings_pressed() -> void:
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
 	_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+
+func _on_restart_pressed() -> void:
+	UISounds.play_click()
+	_load_last_save()
+
+func _load_last_save() -> void:
+	var save_dir = "user://saves/"
+	if not DirAccess.dir_exists_absolute(save_dir):
+		_restart_current_scene()
+		return
+	
+	var dir = DirAccess.open(save_dir)
+	if not dir:
+		_restart_current_scene()
+		return
+	
+	var latest_time = 0
+	var latest_path = ""
+	
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.begins_with("save_") and file_name.ends_with(".cfg"):
+			var path = save_dir + file_name
+			var t = FileAccess.get_modified_time(path)
+			if t > latest_time:
+				latest_time = t
+				latest_path = path
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	
+	if latest_path == "":
+		_restart_current_scene()
+		return
+	
+	var config = ConfigFile.new()
+	if config.load(latest_path) != OK:
+		_restart_current_scene()
+		return
+	
+	var scene = config.get_value("save", "scene", "")
+	var px = config.get_value("save", "player_x", 0.0)
+	var py = config.get_value("save", "player_y", 0.0)
+	
+	if scene == "":
+		_restart_current_scene()
+		return
+	
+	Global.player_position = Vector2(px, py)
+	Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
+	Global.chatter_current_text = config.get_value("save", "chatter_text", "")
+	Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
+	
+	get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	Global.goto_scene(scene)
+
+func _restart_current_scene() -> void:
+	get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	var current = get_tree().current_scene.scene_file_path
+	Global.goto_scene(current)

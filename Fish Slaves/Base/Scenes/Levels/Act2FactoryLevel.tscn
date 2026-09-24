@@ -11,6 +11,7 @@
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="9_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="10_btnh"]
 [ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="11_rust"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="12_death"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)
@@ -139,10 +140,10 @@ animations = [{
 script = ExtResource("2_main")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1311441245]
-offset_left = -400.0
-offset_top = -200.0
-offset_right = 1600.0
-offset_bottom = 900.0
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
 color = Color(0.08, 0.06, 0.06, 1)
 
 [node name="Floor" type="StaticBody2D" parent="." unique_id=1749517311]
@@ -153,9 +154,9 @@ position = Vector2(0, -30)
 shape = SubResource("RectangleShape2D_floor")
 
 [node name="FloorVisual" type="ColorRect" parent="." unique_id=1639859172]
-offset_left = -400.0
+offset_left = -10000.0
 offset_top = 450.0
-offset_right = 1600.0
+offset_right = 10000.0
 offset_bottom = 700.0
 color = Color(0.22, 0.14, 0.1, 1)
 
@@ -189,26 +190,19 @@ position = Vector2(1893, 386.00003)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
-[node name="GuardDoor" type="ColorRect" parent="." unique_id=1181198440]
+[node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
 offset_left = -320.0
 offset_top = 275.0
 offset_right = -260.0
 offset_bottom = 375.0
-color = Color(0.4, 0.2, 0.1, 1)
+color = Color(0.3, 0.3, 0.35, 1)
 
-[node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
+[node name="MaintenanceRoom" type="ColorRect" parent="." unique_id=1181198440]
 offset_left = 1200.0
 offset_top = 275.0
 offset_right = 1260.0
 offset_bottom = 375.0
-color = Color(0.3, 0.3, 0.35, 1)
-
-[node name="Guard" type="ColorRect" parent="." unique_id=1091249763]
-offset_left = -240.0
-offset_top = 275.0
-offset_right = -190.0
-offset_bottom = 345.0
-color = Color(0.6, 0.2, 0.2, 1)
+color = Color(0.4, 0.2, 0.1, 1)
 
 [node name="SniperBalcony" type="ColorRect" parent="." unique_id=1067948079]
 offset_left = 900.0
@@ -216,13 +210,6 @@ offset_top = 20.0
 offset_right = 1200.0
 offset_bottom = 100.0
 color = Color(0.2, 0.2, 0.25, 1)
-
-[node name="Sniper" type="ColorRect" parent="." unique_id=1611274375]
-offset_left = 1040.0
-offset_top = 35.0
-offset_right = 1080.0
-offset_bottom = 85.0
-color = Color(0.4, 0.4, 0.5, 1)
 
 [node name="NPCParent" type="Node2D" parent="." unique_id=1000813928]
 
@@ -261,16 +248,19 @@ position = Vector2(156, 351)
 position = Vector2(576, 100)
 
 [node name="ZoneElevator" type="Area2D" parent="InspectZones" unique_id=1786966258]
-position = Vector2(1230, 330)
+position = Vector2(-290, 330)
 
 [node name="ZoneGuardDoor" type="Area2D" parent="InspectZones" unique_id=1447956639]
-position = Vector2(-290, 330)
+position = Vector2(1230, 330)
 
 [node name="ZoneSniper" type="Area2D" parent="InspectZones" unique_id=1474828046]
 position = Vector2(1060, 60)
 
 [node name="ZoneConveyor" type="Area2D" parent="InspectZones" unique_id=1449448932]
 position = Vector2(400, 400)
+
+[node name="DeathScreen" parent="." unique_id=445231152 instance=ExtResource("12_death")]
+visible = false
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=427410779]
 process_mode = 3
@@ -279,10 +269,10 @@ visible = false
 script = ExtResource("6_pause")
 
 [node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=227305326]
-offset_left = -1436.0
-offset_top = -639.0
-offset_right = 2628.0
-offset_bottom = 1657.0
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
 color = Color(0, 0, 0, 0.69803923)
 
 [node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=254893836]
@@ -385,7 +375,7 @@ offset_left = 326.0
 offset_top = 20.0
 offset_right = 826.0
 offset_bottom = 50.0
-theme_override_constants/separation = 4
+theme_override_constants/separation = 2
 alignment = 1
 
 [node name="ClockLabel" type="Label" parent="UI" unique_id=590900519]
@@ -401,12 +391,12 @@ vertical_alignment = 1
 
 [node name="EscapeHint" type="Label" parent="UI" unique_id=1568724630]
 visible = false
-offset_left = 376.0
+offset_left = 176.0
 offset_top = 105.0
-offset_right = 776.0
+offset_right = 976.0
 offset_bottom = 135.0
-theme_override_colors/font_color = Color(0.2, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
 [node name="BindHintI" type="Control" parent="UI" unique_id=1411543749]
@@ -507,13 +497,13 @@ autowrap_mode = 2
 
 [node name="HintLabel" type="Label" parent="UI" unique_id=1984667059]
 visible = false
-offset_left = 426.0
+offset_left = 326.0
 offset_top = 200.0
-offset_right = 726.0
+offset_right = 826.0
 offset_bottom = 250.0
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 36
-text = "НАЖМИ E!"
+theme_override_font_sizes/font_size = 32
+text = "НАЖМИ E В ЗЕЛЁНОЙ ЗОНЕ!"
 horizontal_alignment = 1
 
 [node name="MinigamePanel" type="Control" parent="UI" unique_id=1147386805]
@@ -628,6 +618,16 @@ horizontal_alignment = 1
 
 [node name="FadeRect" type="ColorRect" parent="UI" unique_id=234425227]
 visible = false
-offset_right = 1152.0
-offset_bottom = 648.0
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+mouse_filter = 2
 color = Color(0, 0, 0, 0)
+
+[connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
+[connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]
+[connection signal="pressed" from="Pausemenu/RestartButton" to="Pausemenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="Pausemenu/SettingsButton" to="Pausemenu" method="_on_settings_pressed"]
+[connection signal="pressed" from="Pausemenu/ExitButton" to="Pausemenu" method="_on_exit_pressed"]
+[connection signal="pressed" from="UI/JournalPanel/BG/CloseButton" to="." method="_on_journal_close"]

@@ -2,19 +2,24 @@ class_name ButtonEffects
 extends Node
 
 static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_click) -> void:
-	if not btn:
+	if not btn or not is_instance_valid(btn):
 		return
 	
 	var original_alpha = btn.modulate.a
 	
 	if btn is Button:
 		btn.pivot_offset = btn.size / 2.0
-		btn.pressed.connect(click_sound_callable)
+		if click_sound_callable.is_valid() and not btn.pressed.is_connected(click_sound_callable):
+			btn.pressed.connect(click_sound_callable)
 	
-	btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
-	btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))
+	if not btn.mouse_entered.is_connected(_on_hover.bind(btn, original_alpha)):
+		btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
+	if not btn.mouse_exited.is_connected(_on_unhover.bind(btn, original_alpha)):
+		btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))
 
 static func _on_hover(control: Control, original_alpha: float) -> void:
+	if not control or not is_instance_valid(control):
+		return
 	_kill_meta(control, "color_tween")
 	_kill_meta(control, "glass_tween")
 	
@@ -28,6 +33,8 @@ static func _on_hover(control: Control, original_alpha: float) -> void:
 	_spawn_bubbles(control)
 
 static func _on_unhover(control: Control, original_alpha: float) -> void:
+	if not control or not is_instance_valid(control):
+		return
 	_kill_meta(control, "color_tween")
 	_kill_meta(control, "glass_tween")
 	
@@ -38,6 +45,8 @@ static func _on_unhover(control: Control, original_alpha: float) -> void:
 	settle.tween_property(control, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
 
 static func _apply_glass_effect(control: Control) -> void:
+	if not control or not is_instance_valid(control):
+		return
 	var glass = control.get_node_or_null("GlassOverlay")
 	if not glass:
 		glass = ColorRect.new()
@@ -46,12 +55,7 @@ static func _apply_glass_effect(control: Control) -> void:
 		glass.color = Color(1.0, 1.0, 1.0, 0.0)
 		glass.z_index = 5
 		control.add_child(glass)
-	
-	glass.set_anchors_preset(Control.PRESET_FULL_RECT)
-	glass.offset_left = 0
-	glass.offset_right = 0
-	glass.offset_top = 0
-	glass.offset_bottom = 0
+		glass.set_anchors_preset(Control.PRESET_FULL_RECT)
 	
 	var glow = control.get_node_or_null("GlassGlow")
 	if not glow:
@@ -61,12 +65,7 @@ static func _apply_glass_effect(control: Control) -> void:
 		glow.color = Color(0.6, 0.85, 1.0, 0.0)
 		glow.z_index = 4
 		control.add_child(glow)
-	
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	glow.offset_left = 0
-	glow.offset_right = 0
-	glow.offset_top = 0
-	glow.offset_bottom = 0
+		glow.set_anchors_preset(Control.PRESET_FULL_RECT)
 	
 	var glass_tween = control.create_tween()
 	glass_tween.set_parallel(true)
@@ -75,6 +74,8 @@ static func _apply_glass_effect(control: Control) -> void:
 	control.set_meta("glass_tween", glass_tween)
 
 static func _remove_glass_effect(control: Control) -> void:
+	if not control or not is_instance_valid(control):
+		return
 	var glass = control.get_node_or_null("GlassOverlay")
 	var glow = control.get_node_or_null("GlassGlow")
 	
@@ -89,24 +90,26 @@ static func _remove_glass_effect(control: Control) -> void:
 static func _spawn_bubbles(control: Control) -> void:
 	if not Global.button_effects_enabled:
 		return
-	
-	var container = control.get_parent()
-	if not container:
+	if not control or not is_instance_valid(control):
 		return
-	
-	var btn_pos = control.position
+
+	var root = control.get_tree().current_scene
+	if not root or not is_instance_valid(root):
+		return
+
+	var btn_global_pos = control.global_position
 	var btn_width = control.size.x
 	var btn_height = control.size.y
-	
+
 	for _i in range(2):
 		var bubble = ColorRect.new()
 		bubble.color = Color(1.0, 1.0, 1.0, 0.4)
 		bubble.size = Vector2(4, 4)
 		bubble.z_index = 50
 		bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bubble.position = btn_pos + Vector2(randf_range(5, btn_width - 5), btn_height - 5)
-		container.add_child(bubble)
-		
+		bubble.position = btn_global_pos + Vector2(randf_range(5, btn_width - 5), btn_height - 5) #сука блять
+		root.add_child(bubble)
+
 		var start_pos = bubble.position
 		var t = bubble.create_tween()
 		t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
@@ -118,6 +121,8 @@ static func _spawn_bubbles(control: Control) -> void:
 		t.finished.connect(bubble.queue_free)
 
 static func _kill_meta(control: Control, key: String) -> void:
+	if not control or not is_instance_valid(control):
+		return
 	if not control.has_meta(key):
 		return
 	var t: Tween = control.get_meta(key)
