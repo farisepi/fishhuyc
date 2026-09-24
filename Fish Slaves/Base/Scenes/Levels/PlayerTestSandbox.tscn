@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="3_w85fw"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="4_yt2i1"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="5_powlu"]
-[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://ObstacleSmall.tscn" id="6_rhhnv"]
+[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3ObstacleSmall.tscn" id="6_rhhnv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(2365.5, 57)

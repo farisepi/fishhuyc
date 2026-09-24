@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="16_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
-[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://ObstacleSmall.tscn" id="17_wos72"]
+[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3ObstacleSmall.tscn" id="17_wos72"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="19_xxkr5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
