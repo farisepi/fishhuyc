@@ -36,6 +36,14 @@ const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var fade_rect: ColorRect = $FadeRect
 
+#шрифт тут ваще по моему нахуй не нужен
+const FONT_SIZE_NEAR: int = 5
+const FONT_SIZE_FAR: int = 8
+const FONT_SIZE_CUTSCENE: int = 6
+const PANEL_WIDTH_NEAR: float = 120.0
+const PANEL_WIDTH_FAR: float = 400.0
+const PANEL_HEIGHT_FAR: float = 80.0
+
 var in_zone: bool = false
 var dialogue_done: bool = false
 var cutscene_active: bool = false
@@ -628,31 +636,31 @@ func _setup_ui() -> void:
 func _setup_labels() -> void:
 	if chatter_label:
 		chatter_label.bbcode_enabled = true
-		chatter_label.add_theme_font_size_override("normal_font_size", 1)
+		chatter_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_NEAR)
 		chatter_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		chatter_label.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
+		chatter_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
 	
 	if chatter_label_far:
 		chatter_label_far.bbcode_enabled = true
-		chatter_label_far.add_theme_font_size_override("normal_font_size", 18)
+		chatter_label_far.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
 		chatter_label_far.autowrap_mode = TextServer.AUTOWRAP_WORD
-		chatter_label_far.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
+		chatter_label_far.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
 	
 	if phantom_left_label:
 		phantom_left_label.bbcode_enabled = true
-		phantom_left_label.add_theme_font_size_override("normal_font_size", 18)
+		phantom_left_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
 		phantom_left_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		phantom_left_label.add_theme_color_override("default_color", Color(1.0, 1.0, 1.0, 0.4))
+		phantom_left_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
 	
 	if phantom_right_label:
 		phantom_right_label.bbcode_enabled = true
-		phantom_right_label.add_theme_font_size_override("normal_font_size", 18)
+		phantom_right_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
 		phantom_right_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		phantom_right_label.add_theme_color_override("default_color", Color(1.0, 1.0, 1.0, 0.4))
+		phantom_right_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
 	
 	if text_label:
 		text_label.bbcode_enabled = true
-		text_label.add_theme_font_size_override("normal_font_size", 10)
+		text_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_CUTSCENE)
 		text_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	
 	var config = ConfigFile.new()
@@ -848,7 +856,7 @@ func _show_chatter_near() -> void:
 	chatter_panel.z_index = 100
 	current_phantom_offset = 0.0
 	
-	chatter_panel.size = Vector2(100, chatter_panel_height)
+	chatter_panel.size = Vector2(PANEL_WIDTH_NEAR, chatter_panel_height)
 	chatter_label.position = Vector2(4, 4)
 	chatter_label.size = chatter_panel.size - Vector2(8, 8)
 	
@@ -863,8 +871,8 @@ func _show_chatter_far(fade: float, phantom_alpha: float, viewport_size: Vector2
 	chatter_panel.visible = false
 	
 	var margin = 20.0
-	var panel_width = 400.0
-	var panel_height = 80.0
+	var panel_width = PANEL_WIDTH_FAR
+	var panel_height = PANEL_HEIGHT_FAR
 	
 	var target_x = viewport_size.x / 2.0 - panel_width / 2.0
 	var target_y = viewport_size.y - margin - panel_height
@@ -1100,10 +1108,10 @@ func _apply_text_glitch(intensity: float) -> void:
 		if chatter_active and not cutscene_active and is_instance_valid(chatter_label):
 			
 			chatter_label.text = chatter_typed_text
-			chatter_label.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
+			chatter_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
 			if chatter_label_far:
 				chatter_label_far.text = chatter_typed_text
-				chatter_label_far.add_theme_color_override("default_color", Color(0.9, 0.95, 1.0))
+				chatter_label_far.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
 
 	is_glitching = false
 
