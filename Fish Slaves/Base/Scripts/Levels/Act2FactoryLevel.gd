@@ -54,10 +54,6 @@ const FISH_JOGGING_FRAMES: int = 12
 const FISH_ATTACK_FRAMES_PER_SIDE: int = 8
 
 const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
-const ATTACK_ALL_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png"
-const JOGGING_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png"
-const ATTACK_FRAMES_PER_SIDE: int = 8
-const JOGGING_FRAMES: int = 12
 
 const PLAYER_ZONE_CENTER := Vector2(156.0, 386.0)
 const PLAYER_ZONE_SIZE := Vector2(80.0, 120.0)
@@ -89,6 +85,72 @@ const MISS_CHANCE_BY_STRESS: Dictionary = {
 	60: 10.0,
 	80: 25.0,
 	100: 50.0,
+}
+
+# --- Шанс ошибки НПС и цвета этапов обработки коробки ---
+const NPC_MISTAKE_CHANCE: float = 0.015
+
+const STAGE_COLORS: Array = [
+	Color(0.75, 0.55, 0.25),
+	Color(0.80, 0.65, 0.30),
+	Color(0.85, 0.75, 0.35),
+	Color(0.90, 0.85, 0.40),
+]
+
+# --- Спрайты лифта и кнопки ---
+const ELEVATOR_BUTTON_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorButton.png"
+const ELEVATOR_CLOSE_BACK_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorClose/Act2ElevatorCloseBack.png"
+const ELEVATOR_CLOSE_FRONT_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorClose/Act2ElevatorCloseFront.png"
+const ELEVATOR_OPEN_BACK_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorOpen/Act2ElevatorOpenBack.png"
+const ELEVATOR_OPEN_FRONT_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorOpen/Act2ElevatorOpenFront.png"
+const ELEVATOR_FRAMES: int = 12
+const ELEVATOR_BUTTON_POSITION := Vector2(-250, 328)
+
+# --- Спрайты НПС-рыбок (личности) ---
+const NPC_EYE_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCIdleEye.png"
+const NPC_EYE_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCJoggingEye.png"
+const NPC_EYE_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCAttackEye.png"
+
+const NPC_HAT_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCIdleHat.png"
+const NPC_HAT_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCJoggingHat.png"
+const NPC_HAT_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCAttackHat.png"
+
+const NPC_SCAR_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCIdleScar.png"
+const NPC_SCAR_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCJoggingScar.png"
+const NPC_SCAR_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCAttackScar.png"
+
+const NPC_NOHAND_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCIdleNoHand.png"
+const NPC_NOHAND_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCJoggingNoHand.png"
+const NPC_NOHAND_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCAttackNoHand.png"
+
+const NPC_IDLE_FRAMES: int = 16
+const NPC_JOG_FRAMES: int = 12
+const NPC_ATK_FRAMES_PER_SIDE: int = 8
+const NPC_ATK_FRAMES_NOHAND: int = 8
+
+const NPC_IDENTITY_ORDER: Array = ["hat", "scar", "eye", "nohand"]
+
+const NPC_IDENTITY_DATA: Dictionary = {
+	"hat": {
+		"title": "Рабочий-Рыба (Шапка)",
+		"phrase": "Он туповат. Никогда не снимает свою шапку. Ученые зовут его Никита, интересно, почему?",
+		"journal": "Рабочий-Рыба в меха костюме. Илистый Прыгун. Носит дебильную шапку",
+	},
+	"scar": {
+		"title": "Рабочий-Рыба (Шрам)",
+		"phrase": "Интересно, как он получил свой шрам?",
+		"journal": "Рабочий-Рыба в меха костюме. Илистый Прыгун. Имеет шрам около глаза",
+	},
+	"eye": {
+		"title": "Рабочий-Рыба (Глаза)",
+		"phrase": "Он выглядит забавно",
+		"journal": "Рабочий-Рыба в меха костюме. Илистый Прыгун. Имеет большие глаза",
+	},
+	"nohand": {
+		"title": "Рабочий-Рыба (Без руки)",
+		"phrase": "Бедолага..",
+		"journal": "Рабочий-Рыба в меха костюме. Илистый Прыгун. Без руки.",
+	},
 }
 
 @onready var player: CharacterBody2D = $Mecha_Fish
@@ -181,6 +243,7 @@ var conveyor_floor_rect: ColorRect = null
 
 var floor_rect: ColorRect = null
 var work_zone_rect: ColorRect = null
+var maintenance_safe_zone_rect: ColorRect = null
 
 var shift_end_npc_timer: float = 0.0
 var npc_walk_delays: Array = []
@@ -217,6 +280,17 @@ var stress_label: Label = null
 var guard_sprite: AnimatedSprite2D = null
 var sniper_sprite: AnimatedSprite2D = null
 
+# --- Новые переменные ---
+var npc_identities: Dictionary = {}
+var escape_info_shift: int = -1
+
+var elevator_button: Sprite2D = null
+var elevator_back: AnimatedSprite2D = null
+var elevator_front: AnimatedSprite2D = null
+
+var player_zone_center: Vector2 = PLAYER_ZONE_CENTER
+var player_turn_x: float = PLAYER_TURN_X
+
 func _ready() -> void:
 	randomize()
 	
@@ -242,14 +316,16 @@ func _ready() -> void:
 	_create_conveyor_floor()
 	_create_floor_rect()
 	_create_work_zone()
+	_create_maintenance_safe_zone()
 	_create_vignette()
 	_create_shift_bars()
 	_create_stress_bar()
+	_assign_npc_identities()
 	_create_inspect_targets()
 	_create_inspect_text_panel()
 	_create_guard_sprite()
 	_create_sniper_sprite()
-	_setup_npc_animations()
+	_create_elevator_visuals()
 	_setup_guard_camera()
 	_ensure_death_screen()
 	
@@ -352,6 +428,141 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 			frames.add_frame("attack_left", atlas4)
 	
 	return frames
+
+# --- Универсальный нарезчик спрайт-листов ---
+func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D, total_in_sheet: int, start_index: int, count: int, loop: bool, speed: float) -> void:
+	if frames.has_animation(anim_name):
+		return
+	frames.add_animation(anim_name)
+	frames.set_animation_loop(anim_name, loop)
+	frames.set_animation_speed(anim_name, speed)
+	var fw = tex.get_width() / float(total_in_sheet)
+	var fh = tex.get_height()
+	for i in range(count):
+		var atlas = AtlasTexture.new()
+		atlas.atlas = tex
+		atlas.region = Rect2((start_index + i) * fw, 0, fw, fh)
+		frames.add_frame(anim_name, atlas)
+
+# --- Личности НПС-рыбок ---
+func _npc_identity_paths(identity: String) -> Dictionary:
+	match identity:
+		"eye":
+			return {"idle": NPC_EYE_IDLE_PATH, "jog": NPC_EYE_JOG_PATH, "atk": NPC_EYE_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+		"hat":
+			return {"idle": NPC_HAT_IDLE_PATH, "jog": NPC_HAT_JOG_PATH, "atk": NPC_HAT_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+		"scar":
+			return {"idle": NPC_SCAR_IDLE_PATH, "jog": NPC_SCAR_JOG_PATH, "atk": NPC_SCAR_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+		"nohand":
+			return {"idle": NPC_NOHAND_IDLE_PATH, "jog": NPC_NOHAND_JOG_PATH, "atk": NPC_NOHAND_ATK_PATH, "atk_total": NPC_ATK_FRAMES_NOHAND}
+		_:
+			return {}
+
+func _build_npc_identity_frames(identity: String) -> SpriteFrames:
+	var frames = SpriteFrames.new()
+	if frames.has_animation("default"):
+		frames.remove_animation("default")
+	
+	var paths = _npc_identity_paths(identity)
+	if paths.is_empty():
+		return frames
+	
+	var idle_tex = load(paths["idle"])
+	if idle_tex:
+		_add_sliced_frames(frames, "idle", idle_tex, NPC_IDLE_FRAMES, 0, NPC_IDLE_FRAMES, true, 10.0)
+	
+	var jog_tex = load(paths["jog"])
+	if jog_tex:
+		_add_sliced_frames(frames, "jogging", jog_tex, NPC_JOG_FRAMES, 0, NPC_JOG_FRAMES, true, 12.0)
+	
+	var atk_tex = load(paths["atk"])
+	if atk_tex:
+		var atk_total = int(paths["atk_total"])
+		if identity == "nohand":
+			_add_sliced_frames(frames, "AttackLeft", atk_tex, atk_total, 0, atk_total, false, 14.0)
+		else:
+			_add_sliced_frames(frames, "AttackRight", atk_tex, atk_total, 0, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
+			_add_sliced_frames(frames, "AttackLeft", atk_tex, atk_total, NPC_ATK_FRAMES_PER_SIDE, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
+	
+	return frames
+
+func _assign_npc_identities() -> void:
+	npc_identities.clear()
+	for i in range(npc_fishes.size()):
+		var fish = npc_fishes[i]
+		if fish == null:
+			continue
+		var identity = NPC_IDENTITY_ORDER[i % NPC_IDENTITY_ORDER.size()]
+		npc_identities[fish] = identity
+		if fish is AnimatedSprite2D:
+			var frames = _build_npc_identity_frames(identity)
+			fish.sprite_frames = frames
+			if frames.has_animation("idle"):
+				fish.play("idle")
+
+# --- Лифт и кнопка ---
+func _build_elevator_frames(is_front: bool) -> SpriteFrames:
+	var frames = SpriteFrames.new()
+	if frames.has_animation("default"):
+		frames.remove_animation("default")
+	
+	var open_tex = load(ELEVATOR_OPEN_FRONT_PATH if is_front else ELEVATOR_OPEN_BACK_PATH)
+	if open_tex:
+		_add_sliced_frames(frames, "open", open_tex, ELEVATOR_FRAMES, 0, ELEVATOR_FRAMES, false, 14.0)
+	
+	var close_tex = load(ELEVATOR_CLOSE_FRONT_PATH if is_front else ELEVATOR_CLOSE_BACK_PATH)
+	if close_tex:
+		_add_sliced_frames(frames, "close", close_tex, ELEVATOR_FRAMES, 0, ELEVATOR_FRAMES, false, 14.0)
+	
+	return frames
+
+func _create_elevator_visuals() -> void:
+	var btn_tex = load(ELEVATOR_BUTTON_PATH)
+	elevator_button = Sprite2D.new()
+	elevator_button.name = "ElevatorButton"
+	if btn_tex:
+		elevator_button.texture = btn_tex
+	elevator_button.position = ELEVATOR_BUTTON_POSITION
+	elevator_button.z_index = 3
+	add_child(elevator_button)
+	
+	elevator_back = AnimatedSprite2D.new()
+	elevator_back.name = "ElevatorBack"
+	elevator_back.sprite_frames = _build_elevator_frames(false)
+	elevator_back.position = GUARD_LIFT_POSITION
+	elevator_back.z_index = 2
+	add_child(elevator_back)
+	_set_elevator_idle_closed(elevator_back)
+	
+	elevator_front = AnimatedSprite2D.new()
+	elevator_front.name = "ElevatorFront"
+	elevator_front.sprite_frames = _build_elevator_frames(true)
+	elevator_front.position = GUARD_LIFT_POSITION
+	elevator_front.z_index = 4
+	add_child(elevator_front)
+	_set_elevator_idle_closed(elevator_front)
+	
+	if elevator_door:
+		elevator_door.visible = false
+
+func _set_elevator_idle_closed(sprite: AnimatedSprite2D) -> void:
+	if sprite.sprite_frames and sprite.sprite_frames.has_animation("close"):
+		sprite.animation = "close"
+		sprite.frame = sprite.sprite_frames.get_frame_count("close") - 1
+	sprite.stop()
+
+func _elevator_play(anim_name: String) -> void:
+	if elevator_back:
+		elevator_back.play(anim_name)
+	if elevator_front:
+		elevator_front.play(anim_name)
+
+func _await_elevator_anim(anim_name: String) -> void:
+	_elevator_play(anim_name)
+	if elevator_back and elevator_back.sprite_frames and elevator_back.sprite_frames.has_animation(anim_name):
+		await elevator_back.animation_finished
+	else:
+		await get_tree().create_timer(float(ELEVATOR_FRAMES) / 14.0).timeout
 
 func _create_guard_sprite() -> void:
 	guard_sprite = AnimatedSprite2D.new()
@@ -470,17 +681,38 @@ func _create_floor_rect() -> void:
 	floor_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(floor_rect)
 
+func _create_maintenance_safe_zone() -> void:
+	maintenance_safe_zone_rect = ColorRect.new()
+	maintenance_safe_zone_rect.name = "MaintenanceSafeZone"
+	maintenance_safe_zone_rect.color = Color(0.2, 0.8, 0.3, 0.35)
+	maintenance_safe_zone_rect.z_index = 1
+	maintenance_safe_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var center = Vector2(1230, 325)
+	var size = Vector2(160, 200)
+	maintenance_safe_zone_rect.offset_left = center.x - size.x / 2.0
+	maintenance_safe_zone_rect.offset_top = center.y - size.y / 2.0
+	maintenance_safe_zone_rect.offset_right = center.x + size.x / 2.0
+	maintenance_safe_zone_rect.offset_bottom = center.y + size.y / 2.0
+	
+	add_child(maintenance_safe_zone_rect)
+
 func _create_work_zone() -> void:
 	work_zone_rect = ColorRect.new()
 	work_zone_rect.name = "WorkZone"
 	work_zone_rect.color = Color(0.2, 0.8, 0.3, 0.35)
-	work_zone_rect.offset_left = PLAYER_ZONE_CENTER.x - PLAYER_ZONE_SIZE.x / 2.0
-	work_zone_rect.offset_top = PLAYER_ZONE_CENTER.y - PLAYER_ZONE_SIZE.y / 2.0
-	work_zone_rect.offset_right = PLAYER_ZONE_CENTER.x + PLAYER_ZONE_SIZE.x / 2.0
-	work_zone_rect.offset_bottom = PLAYER_ZONE_CENTER.y + PLAYER_ZONE_SIZE.y / 2.0
 	work_zone_rect.z_index = 1
 	work_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(work_zone_rect)
+	_update_work_zone_position()
+
+func _update_work_zone_position() -> void:
+	if work_zone_rect == null:
+		return
+	work_zone_rect.offset_left = player_zone_center.x - PLAYER_ZONE_SIZE.x / 2.0
+	work_zone_rect.offset_top = player_zone_center.y - PLAYER_ZONE_SIZE.y / 2.0
+	work_zone_rect.offset_right = player_zone_center.x + PLAYER_ZONE_SIZE.x / 2.0
+	work_zone_rect.offset_bottom = player_zone_center.y + PLAYER_ZONE_SIZE.y / 2.0
 
 func _create_vignette() -> void:
 	inspect_vignette = ColorRect.new()
@@ -684,14 +916,26 @@ func _create_inspect_targets() -> void:
 		"Охранник-Обезьяна", "Человекоподобные тоже с ними..",
 		"Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост",
 		COLOR_HIGHLIGHT_BLUE, "monkey")
-	_add_inspect_target("conveyor", Vector2(400, 400), Vector2(200, 60),
+	
+	# Пометка растянута на весь видимый конвейер (от точки спавна до деспавна коробок)
+	var conv_center_x = (OBJECT_SPAWN_X + OBJECT_DESPAWN_X) / 2.0
+	var conv_width = OBJECT_SPAWN_X - OBJECT_DESPAWN_X
+	_add_inspect_target("conveyor", Vector2(conv_center_x, 400), Vector2(conv_width, 80),
 		"Конвейер", "Сколько еще таких заводов они построили?",
 		str(TOTAL_OBJECTS) + " коробок за смену",
 		COLOR_HIGHLIGHT_BLUE, "")
-	_add_inspect_target("workers", Vector2(480, 344), Vector2(500, 80),
-		"Рабочие", "Такие же как я, делают чёртовы суши..",
-		"5 Рабочих-Рыб в меха костюмах",
-		COLOR_HIGHLIGHT_BLUE, "")
+	
+	# Индивидуальные пометки для каждого НПС (позиции обновляются при рандомизации)
+	for fish in npc_fishes:
+		if fish == null:
+			continue
+		var identity = npc_identities.get(fish, "")
+		var info = NPC_IDENTITY_DATA.get(identity, {})
+		if info.is_empty():
+			continue
+		_add_inspect_target("npc_" + identity, fish.position, Vector2(70, 90),
+			info.get("title", ""), info.get("phrase", ""), info.get("journal", ""),
+			COLOR_HIGHLIGHT_BLUE, "")
 	
 	_add_inspect_target("guard_shift_9", Vector2(-215, 310), Vector2(80, 80),
 		"Смена охранника", "Охранник сменился.. Нужно записать",
@@ -756,6 +1000,26 @@ func _add_inspect_target(id: String, pos: Vector2, size: Vector2, title: String,
 	add_child(hl)
 	inspect_highlight_rects[area] = hl
 
+func _update_npc_inspect_position(identity: String, pos: Vector2) -> void:
+	var target_id = "npc_" + identity
+	for area in inspect_targets:
+		if not is_instance_valid(area):
+			continue
+		var data = inspect_target_data.get(area, {})
+		if data.get("id", "") != target_id:
+			continue
+		area.position = pos
+		data["pos"] = pos
+		inspect_target_data[area] = data
+		var size = data.get("size", Vector2(70, 90))
+		var hl = inspect_highlight_rects.get(area, null)
+		if is_instance_valid(hl):
+			hl.offset_left = pos.x - size.x / 2.0
+			hl.offset_top = pos.y - size.y / 2.0
+			hl.offset_right = pos.x + size.x / 2.0
+			hl.offset_bottom = pos.y + size.y / 2.0
+		return
+
 func _is_inspect_target_visible(area: Area2D) -> bool:
 	var data = inspect_target_data.get(area, {})
 	if data.is_empty():
@@ -769,9 +1033,9 @@ func _is_inspect_target_visible(area: Area2D) -> bool:
 	
 	if special_type == "":
 		if id == "guard_dog":
-			return guard_is_dog
+			return guard_is_dog and not guard_changing
 		if id == "guard_monkey":
-			return not guard_is_dog
+			return not guard_is_dog and not guard_changing
 		return true
 	
 	if special_type == "guard_shift" or special_type == "sniper_shift":
@@ -836,57 +1100,6 @@ func _create_inspect_text_panel() -> void:
 	inspect_journal_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	$UI.add_child(inspect_journal_notice)
 
-func _setup_npc_animations() -> void:
-	var atk_tex = load(ATTACK_ALL_PATH)
-	var jog_tex = load(JOGGING_PATH)
-	
-	for fish in npc_fishes:
-		if fish == null or not fish is AnimatedSprite2D:
-			continue
-		var frames: SpriteFrames = fish.sprite_frames
-		if frames == null:
-			continue
-		
-		if atk_tex:
-			_add_attack_frames_from_sheet(frames, "AttackLeft", atk_tex, ATTACK_FRAMES_PER_SIDE, ATTACK_FRAMES_PER_SIDE)
-			_add_attack_frames_from_sheet(frames, "AttackRight", atk_tex, 0, ATTACK_FRAMES_PER_SIDE)
-		
-		if jog_tex:
-			_add_jogging_frames(frames, "jogging", jog_tex)
-
-func _add_attack_frames_from_sheet(frames: SpriteFrames, anim_name: String, tex: Texture2D, start_index: int, count: int) -> void:
-	if frames.has_animation(anim_name):
-		return
-	frames.add_animation(anim_name)
-	frames.set_animation_loop(anim_name, false)
-	frames.set_animation_speed(anim_name, 14.0)
-	
-	var tex_h = tex.get_height()
-	var total_frames = ATTACK_FRAMES_PER_SIDE * 2
-	var frame_w = int(tex.get_width() / float(total_frames))
-	
-	for i in range(count):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = tex
-		atlas.region = Rect2((start_index + i) * frame_w, 0, frame_w, tex_h)
-		frames.add_frame(anim_name, atlas)
-
-func _add_jogging_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D) -> void:
-	if frames.has_animation(anim_name):
-		return
-	frames.add_animation(anim_name)
-	frames.set_animation_loop(anim_name, true)
-	frames.set_animation_speed(anim_name, 12.0)
-	
-	var tex_h = tex.get_height()
-	var frame_w = int(tex.get_width() / float(JOGGING_FRAMES))
-	
-	for i in range(JOGGING_FRAMES):
-		var atlas = AtlasTexture.new()
-		atlas.atlas = tex
-		atlas.region = Rect2(i * frame_w, 0, frame_w, tex_h)
-		frames.add_frame(anim_name, atlas)
-
 func _setup_guard_camera() -> void:
 	guard_camera = Camera2D.new()
 	guard_camera.name = "GuardCamera"
@@ -898,10 +1111,10 @@ func _is_player_in_zone() -> bool:
 	if player == null:
 		return false
 	var pos = player.global_position
-	var left = PLAYER_ZONE_CENTER.x - PLAYER_ZONE_SIZE.x / 2.0
-	var right = PLAYER_ZONE_CENTER.x + PLAYER_ZONE_SIZE.x / 2.0
-	var top = PLAYER_ZONE_CENTER.y - PLAYER_ZONE_SIZE.y / 2.0
-	var bottom = PLAYER_ZONE_CENTER.y + PLAYER_ZONE_SIZE.y / 2.0
+	var left = player_zone_center.x - PLAYER_ZONE_SIZE.x / 2.0
+	var right = player_zone_center.x + PLAYER_ZONE_SIZE.x / 2.0
+	var top = player_zone_center.y - PLAYER_ZONE_SIZE.y / 2.0
+	var bottom = player_zone_center.y + PLAYER_ZONE_SIZE.y / 2.0
 	return pos.x >= left and pos.x <= right and pos.y >= top and pos.y <= bottom
 
 func _process(delta: float) -> void:
@@ -963,6 +1176,10 @@ func _process_action_penalty(delta: float) -> void:
 	var hour = _current_hour()
 	var no_guard = abs(hour - 13.0) < 0.5
 	if no_guard:
+		action_move_timer = 0.0
+		return
+	
+	if _is_player_near_maintenance():
 		action_move_timer = 0.0
 		return
 	
@@ -1104,20 +1321,40 @@ func _guard_shift_sequence() -> void:
 		guard_changing = false
 		return
 	
+	# 1. Охранник подходит к кнопке
+	await _guard_walk_to(ELEVATOR_BUTTON_POSITION)
+	await get_tree().create_timer(0.5).timeout
+	
+	# 2. Лифт открывается
+	await _await_elevator_anim("open")
+	
+	# 3. Охранник заходит в лифт (front перед юнитом, back за юнитом — за счёт z_index)
 	await _guard_walk_to(GUARD_LIFT_POSITION)
-	
 	guard_sprite.visible = false
-	await get_tree().create_timer(0.3).timeout
 	
+	# 4. Лифт закрывается
+	await _await_elevator_anim("close")
+	
+	# 5. Охраны нет 15 игровых минут
+	await get_tree().create_timer(SHIFT_CHANGE_REAL).timeout
+	
+	# 6. Меняем личность охранника
 	guard_is_dog = not guard_is_dog
 	if guard_is_dog:
 		guard_sprite.modulate = GUARD_DOG_COLOR
 	else:
 		guard_sprite.modulate = GUARD_MONKEY_COLOR
 	guard_sprite.position = GUARD_LIFT_POSITION
+	
+	# 7. Лифт открывается, новый охранник внутри
+	await _await_elevator_anim("open")
 	guard_sprite.visible = true
 	
+	# 8. Охранник выходит на свой пост
 	await _guard_walk_to(GUARD_POSITION)
+	
+	# 9. Лифт закрывается
+	await _await_elevator_anim("close")
 	
 	guard_sprite.play("idle")
 	guard_changing = false
@@ -1148,9 +1385,9 @@ func _process_working(delta: float) -> void:
 		var fish_x = FISH_START_X + npc_order * FISH_SPACING
 		if object_x <= fish_x + 25:
 			_reach_fish(npc_order)
-			return
+		return
 	
-	if object_x <= PLAYER_TURN_X + 25:
+	if object_x <= player_turn_x + 25:
 		_reach_player()
 
 func _spawn_next_object() -> void:
@@ -1206,9 +1443,28 @@ func _reach_fish(fish_index: int) -> void:
 		conveyor_paused = false
 		return
 	var fish = npc_fishes[fish_index]
+	
 	_play_npc_attack(fish)
+	
+	var mistake = randf() < NPC_MISTAKE_CHANCE
+	if mistake:
+		await get_tree().create_timer(0.3).timeout
+		# Окно в прогрессбаре просто пропускается — не помечаем ни зелёным, ни красным
+		_break_current_object()
+		await _guard_hit_npc(fish)
+		current_object_index += 1
+		conveyor_paused = false
+		await get_tree().create_timer(0.3).timeout
+		if current_object_index >= TOTAL_OBJECTS:
+			_end_shift()
+		else:
+			state = State.WORKING
+			_spawn_next_object()
+		return
+	
 	object_progress += 1
-	_set_object_color(Color(0.7, 0.5, 0.2))
+	var stage_index = clamp(object_progress - 1, 0, STAGE_COLORS.size() - 1)
+	_set_object_color(STAGE_COLORS[stage_index])
 	await get_tree().create_timer(0.4).timeout
 	conveyor_paused = false
 
@@ -1216,8 +1472,17 @@ func _play_npc_attack(fish: Node) -> void:
 	if fish == null:
 		return
 	if fish is AnimatedSprite2D:
-		if fish.sprite_frames.has_animation("AttackLeft"):
-			fish.play("AttackLeft")
+		var has_left = fish.sprite_frames.has_animation("AttackLeft")
+		var has_right = fish.sprite_frames.has_animation("AttackRight")
+		var anim = ""
+		if has_left and has_right:
+			anim = "AttackLeft" if (randi() % 2 == 0) else "AttackRight"
+		elif has_left:
+			anim = "AttackLeft"
+		elif has_right:
+			anim = "AttackRight"
+		if anim != "":
+			fish.play(anim)
 			await fish.animation_finished
 			if fish.sprite_frames.has_animation("idle"):
 				fish.play("idle")
@@ -1501,12 +1766,58 @@ func _guard_hit_player() -> void:
 		if player.get_hp() <= 0:
 			player.die()
 
+func _guard_hit_npc(fish: Node) -> void:
+	if fish == null or guard_sprite == null:
+		return
+	if guard_changing:
+		return
+	if not is_instance_valid(fish):
+		return
+	
+	var orig_pos = guard_sprite.position
+	var orig_flip = guard_sprite.scale.x
+	
+	var fish_pos = fish.global_position
+	var target = fish_pos + Vector2(-30, -10)
+	await _guard_walk_to(target)
+	
+	if fish_pos.x > guard_sprite.position.x:
+		guard_sprite.play("attack_right")
+		guard_sprite.scale.x = abs(guard_sprite.scale.x)
+	else:
+		guard_sprite.play("attack_left")
+		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
+	
+	await get_tree().create_timer(0.15).timeout
+	UISounds.play_hit()
+	
+	if fish is AnimatedSprite2D:
+		var tw = create_tween()
+		tw.tween_property(fish, "modulate", Color(1, 0.4, 0.4), 0.1)
+		tw.tween_property(fish, "modulate", Color(1, 1, 1, 1), 0.25)
+	
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.25)
+	
+	await guard_sprite.animation_finished
+	
+	await _guard_walk_to(orig_pos)
+	guard_sprite.scale.x = orig_flip
+	guard_sprite.play("idle")
+
 func _mark_progress(index: int, correct: bool) -> void:
 	if index < 0 or index >= progress_bar.get_child_count():
 		return
 	var cell = progress_bar.get_child(index) as ColorRect
 	if cell:
 		cell.color = COLOR_GREEN if correct else COLOR_RED
+
+func _is_progress_bar_perfect() -> bool:
+	for i in range(progress_bar.get_child_count()):
+		var cell = progress_bar.get_child(i) as ColorRect
+		if cell and cell.color.is_equal_approx(COLOR_RED):
+			return false
+	return true
 
 func _handle_action_strike() -> void:
 	if action_strike_count == ACTION_STRIKE_WARNING:
@@ -1582,7 +1893,7 @@ func _end_shift() -> void:
 		npc_walk_delays.append(randf_range(NPC_WALK_DELAY_MIN, NPC_WALK_DELAY_MAX))
 	_show_dialog("РАБОТА НА СЕГОДНЯ ВЫПОЛНЕНА, ВСЕ НА ТЕХ ОБСЛУЖИВАНИЕ И НАЗАД", 4.0)
 	
-	if wrong_count == 0:
+	if _is_progress_bar_perfect():
 		if has_node("/root/Achievements"):
 			var was = Achievements.worker_of_month_unlocked
 			Achievements.unlock_worker_of_month()
@@ -1607,6 +1918,33 @@ func _fade_and_new_shift() -> void:
 		await tween2.finished
 		fade_rect.visible = false
 
+# --- Рандомизация позиций НПС и игрока ---
+func _randomize_npc_positions() -> void:
+	for fish in npc_fishes:
+		if fish == null:
+			continue
+		var x = randf_range(220.0, 700.0)
+		var y = randf_range(335.0, 355.0)
+		fish.position = Vector2(x, y)
+		if fish is AnimatedSprite2D and fish.sprite_frames and fish.sprite_frames.has_animation("idle"):
+			fish.play("idle")
+		var identity = npc_identities.get(fish, "")
+		if identity != "":
+			_update_npc_inspect_position(identity, fish.position)
+
+func _get_player_shift_spawn() -> Vector2:
+	var spawn: Vector2
+	if randf() < 0.5:
+		spawn = Vector2(PLAYER_TURN_X, 351)
+	else:
+		spawn = Vector2(randf_range(PLAYER_TURN_X, 500.0), randf_range(340.0, 365.0))
+	
+	player_turn_x = spawn.x
+	player_zone_center = Vector2(spawn.x, PLAYER_ZONE_CENTER.y)
+	_update_work_zone_position()
+	
+	return spawn
+
 func _start_new_shift() -> void:
 	current_shift += 1
 	current_object_index = 0
@@ -1630,16 +1968,10 @@ func _start_new_shift() -> void:
 		if cell:
 			cell.color = Color(0.2, 0.2, 0.2)
 	
-	if npc_fishes.size() >= 4:
-		npc_fishes[0].position = Vector2(285, 344)
-		npc_fishes[1].position = Vector2(408, 344)
-		npc_fishes[2].position = Vector2(530, 344)
-		npc_fishes[3].position = Vector2(661, 344)
-		for f in npc_fishes:
-			if f is AnimatedSprite2D and f.sprite_frames.has_animation("idle"):
-				f.play("idle")
+	_randomize_npc_positions()
+	
 	if player:
-		player.position = Vector2(PLAYER_TURN_X, 351)
+		player.position = _get_player_shift_spawn()
 		if current_shift >= 2:
 			if player.has_method("set_movement_blocked"):
 				player.set_movement_blocked(false)
@@ -1656,6 +1988,11 @@ func _start_new_shift() -> void:
 		sniper_sprite.visible = true
 		sniper_sprite.play("idle")
 	
+	if elevator_back:
+		_set_elevator_idle_closed(elevator_back)
+	if elevator_front:
+		_set_elevator_idle_closed(elevator_front)
+	
 	if current_shift >= 2:
 		bind_hint_i.visible = true
 		bind_hint_j.visible = true
@@ -1669,10 +2006,20 @@ func _start_new_shift() -> void:
 	state = State.WORKING
 	_spawn_next_object()
 
+func _check_escape_info_ready() -> void:
+	if escape_info_shift == -1 and guard_shifts_found.size() >= 3 and sniper_shifts_found.size() >= 3:
+		escape_info_shift = current_shift
+
 func _update_escape_hint() -> void:
 	if guard_shifts_found.size() < 3 or sniper_shifts_found.size() < 3:
 		escape_hint.visible = false
 		return
+	
+	if escape_info_shift == current_shift:
+		escape_hint.text = "ДОЖДАТЬСЯ СМЕНЫ НА КОРОБКАХ. ПОБЕГ В ОКНО 13:00 - 13:15"
+		escape_hint.visible = true
+		return
+	
 	if elevator_inspected:
 		escape_hint.text = "13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ"
 	else:
@@ -1767,11 +2114,15 @@ func _process_inspect_click(_mouse_pos: Vector2) -> void:
 				if not guard_shifts_found.has(h):
 					guard_shifts_found.append(h)
 				_update_shift_bars()
+				_check_escape_info_ready()
+				_update_escape_hint()
 			elif special_type == "sniper_shift":
 				var h = data.get("special_hour", 0.0)
 				if not sniper_shifts_found.has(h):
 					sniper_shifts_found.append(h)
 				_update_shift_bars()
+				_check_escape_info_ready()
+				_update_escape_hint()
 			
 			var hl = inspect_highlight_rects.get(area, null)
 			if is_instance_valid(hl):
@@ -1957,12 +2308,21 @@ func _input(event: InputEvent) -> void:
 				_open_journal()
 			get_viewport().set_input_as_handled()
 
+func _is_player_near_maintenance() -> bool:
+	if player == null or maintenance_door == null:
+		return false
+	return player.global_position.distance_to(maintenance_door.global_position) < 150
+	
 func _near_elevator() -> bool:
 	if player == null or elevator_door == null:
 		return false
 	return player.global_position.distance_to(elevator_door.global_position) < 150
 
 func _enter_elevator() -> void:
+	if guard_changing:
+		_show_dialog("ЛИФТ ЗАНЯТ. ПОДОЖДИ.", 2.0)
+		return
+	
 	var hour = _current_hour()
 	var in_window = hour >= ESCAPE_WINDOW_START and hour <= ESCAPE_WINDOW_END
 	
@@ -1980,7 +2340,8 @@ func _enter_elevator() -> void:
 		if not was:
 			_show_freedom_achievement()
 	_show_dialog("ПОБЕГ...", 1.5)
-	await get_tree().create_timer(2.0).timeout
+	await _await_elevator_anim("open")
+	await get_tree().create_timer(1.0).timeout
 	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
 
 func _show_worker_of_month_achievement() -> void:

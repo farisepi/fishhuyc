@@ -11,10 +11,10 @@ extends Node2D
 @onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
 @onready var pause_menu: CanvasLayer = $Pausemenu
 @onready var shift_tutorial: CanvasLayer = $ShiftTutorial
-@onready var barrier: Node2D = $Barriers/Obstacle/ObstacleSmall
+@onready var shift_qte: CanvasLayer = $ShiftQTE
 
 @export var sniper_scene: PackedScene = null
-@export var sniper_spawn_position: Vector2 = Vector2(-50.26, 320.0)
+@export var sniper_spawn_position: Vector2 = Vector2(-800.26, 320.0)
 @export var escape_sniper_x: float = 3050.0
 @export var sniper_trigger_x: float = 517.0
 @export var sniper_trigger_y: float = 340.0
@@ -30,7 +30,7 @@ const ENEMY_CATCHUP: float = 0.14
 
 const CUTSCENE_BARS_HEIGHT: float = 140.0
 
-enum State { INTRO_RUN, QTE_GRAB, RUNNING, SNIPER_CUTSCENE, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
+enum State { INTRO_RUN, QTE_GRAB, RUNNING, SNIPER_CUTSCENE, FORKLIFT_CUTSCENE, FORKLIFT_QTE, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
 var state: State = State.INTRO_RUN
 var elevator_timer: float = 0.0
 var can_press_button: bool = false
@@ -39,8 +39,6 @@ var shelf_climbed: bool = false
 var _shelf_climbing: bool = false
 var is_game_over: bool = false
 var check_timer: Timer
-
-
 
 var forklift_ready_for_throw: bool = false
 var forklift_stopped: bool = false
@@ -89,14 +87,6 @@ func _ready():
 
 	forklift.visible = false
 	falling_shelf.visible = false
-
-	camera.zoom = Vector2(2.3, 2.3)
-	camera.limit_left = -5000
-	camera.limit_right = 6000
-	camera.limit_top = -5000
-	camera.limit_bottom = 5000
-	camera.enabled = true
-	camera.global_position = player.global_position
 
 	_intro_enemies.clear()
 	_intro_enemy_y_offsets.clear()
@@ -537,24 +527,17 @@ func _play_sniper_cutscene():
 		return
 
 	_hide_cutscene_bars(0.6)
-	_resume_all_world()
-	_lock_player_input(false)
+
 	if sniper and is_instance_valid(sniper):
 		sniper.set_process(true)
 		sniper.set_physics_process(false)
 		if sniper.has_method("activate"):
 			sniper.activate()
-	state = State.RUNNING		
 
 	cam.global_position = player_pos
 	cam.zoom = start_zoom
-
 	if "follow_enabled" in cam:
 		cam.follow_enabled = true
-
-	_resume_all_world()
-
-	
 
 	if shift_tutorial and shift_tutorial.has_method("show_tutorial"):
 		shift_tutorial.show_tutorial()
@@ -565,10 +548,6 @@ func _play_sniper_cutscene():
 
 	_resume_all_world()
 	_lock_player_input(false)
-
-	state = State.RUNNING
-	_lock_player_input(false)
-
 	state = State.RUNNING
 
 func _deactivate_sniper():
@@ -587,7 +566,7 @@ func _process(delta: float) -> void:
 			camera.global_position = player.global_position
 		return
 
-	if state == State.SNIPER_CUTSCENE:
+	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
 		return
 
 	if state == State.RUNNING and not is_game_over:
@@ -601,7 +580,7 @@ func _process_gameplay(delta):
 		return
 	if get_tree().paused or state == State.GAMEOVER:
 		return
-	if state == State.SNIPER_CUTSCENE:
+	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
 		return
 
 	if camera and (state == State.RUNNING or state == State.ELEVATOR_WAIT or state == State.ELEVATOR_GO):
@@ -696,47 +675,158 @@ func _on_forklift_trigger_entered(body):
 func _activate_forklift():
 	if not is_inside_tree():
 		return
-
+	if forklift_activated:
+		return
 	forklift_activated = true
+	_play_forklift_cutscene()
+
+func _play_forklift_cutscene():
+	state = State.FORKLIFT_CUTSCENE
+
+	_lock_player_input(true)
+	_stop_all_world()
+
+	if player.sprite:
+		player.sprite.stop()
+		player.sprite.play("Run")
+		player.sprite.scale.x = 1
+
+	_show_cutscene_bars(0.6)
+
+	var cam = camera
+	if "follow_enabled" in cam:
+		cam.follow_enabled = false
+	if "look_offset" in cam:
+		cam.look_offset = Vector2.ZERO
+	cam.position_smoothing_enabled = false
+	cam.rotation_smoothing_enabled = false
+
+	var player_pos = player.global_position
+	var forklift_pos = forklift.global_position
+
+	var t1 = create_tween()
+	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t1.tween_property(cam, "global_position", forklift_pos, 1.6)
+	await t1.finished
+	if not is_inside_tree():
+		return
+
 	forklift.visible = true
 	falling_shelf.visible = true
-	forklift_charging = true
 
-	var shelf_y = falling_shelf.global_position.y
-	var fork_y = forklift.global_position.y
+	var spawn_x = forklift_pos.x + 700.0
+	forklift.global_position.x = spawn_x
+	falling_shelf.global_position.x = spawn_x + 60.0
 
-	falling_shelf.global_position = Vector2(player.global_position.x + 900, shelf_y)
-	forklift.global_position = Vector2(player.global_position.x + 1000, fork_y)
 	forklift.set("active", true)
 
-	_forklift_charge_tween()
-
-func _forklift_charge_tween():
+	var t2 = create_tween()
+	t2.set_parallel(true)
+	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t2.tween_property(forklift, "global_position:x", forklift_pos.x, 1.2)
+	t2.tween_property(falling_shelf, "global_position:x", forklift_pos.x + 60.0, 1.2)
+	await t2.finished
 	if not is_inside_tree():
 		return
 
-	var target_x = player.global_position.x + 60
+	await get_tree().create_timer(1.5).timeout
+	if not is_inside_tree():
+		return
 
-	var t = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT).set_parallel(true)
-	t.tween_property(falling_shelf, "global_position:x", target_x + 100, 2.6)
-	t.tween_property(forklift, "global_position:x", target_x, 2.6)
-	await t.finished
+	var mid_pos = Vector2((player_pos.x + forklift.global_position.x) / 2.0, player_pos.y)
+	var t3 = create_tween()
+	t3.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t3.tween_property(cam, "global_position", mid_pos, 1.0)
+	await t3.finished
+	if not is_inside_tree():
+		return
+
+	player.visible = true
+	player.global_position.x = mid_pos.x - 260.0
+
+	if player.sprite:
+		player.sprite.play("Run")
+	var t4 = create_tween()
+	t4.set_trans(Tween.TRANS_LINEAR)
+	t4.tween_property(player, "global_position:x", player.global_position.x + 40.0, 0.5)
+	await t4.finished
+	if not is_inside_tree():
+		return
+	if player.sprite:
+		player.sprite.stop()
+		player.sprite.play("Idle")
+
+	var target_x = player.global_position.x + 60.0
+	var t5 = create_tween()
+	t5.set_parallel(true)
+	t5.set_trans(Tween.TRANS_LINEAR)
+	t5.tween_property(forklift, "global_position:x", target_x, 2.0)
+	t5.tween_property(falling_shelf, "global_position:x", target_x + 60.0, 2.0)
+	await t5.finished
+	if not is_inside_tree():
+		return
+
+	state = State.FORKLIFT_QTE
+	var success = await _run_shift_qte_cutscene()
 
 	if not is_inside_tree():
 		return
 
-	if forklift_stopped:
-		return
+	if success:
+		forklift.set("active", false)
+		forklift.velocity = Vector2.ZERO
+		forklift_stopped = true
 
-	forklift.set("active", false)
-	forklift.set_physics_process(false)
-	forklift.velocity = Vector2.ZERO
-	forklift_charging = false
-
-	if player.has_method("die"):
-		player.die()
+		var tilt = create_tween().set_parallel(true)
+		tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
+		tilt.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 40.0, 0.6)
+		await tilt.finished
 	else:
-		_game_over()
+		_hide_cutscene_bars(0.4)
+		cam.global_position = player_pos
+		if "follow_enabled" in cam:
+			cam.follow_enabled = true
+		_resume_all_world()
+		player.die()
+		return
+
+	_hide_cutscene_bars(0.6)
+
+	cam.global_position = player.global_position
+	if "follow_enabled" in cam:
+		cam.follow_enabled = true
+
+	_resume_all_world()
+	_lock_player_input(false)
+
+	state = State.RUNNING
+
+func _run_shift_qte_cutscene() -> bool:
+	if not shift_qte or not shift_qte.has_method("show_qte"):
+		await get_tree().create_timer(1.2).timeout
+		return true
+
+	shift_qte.show_qte()
+
+	var result: bool = false
+	var received: bool = false
+
+	var callback = func(success: bool):
+		result = success
+		received = true
+
+	if not shift_qte.qte_result.is_connected(callback):
+		shift_qte.qte_result.connect(callback)
+
+	while not received:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return false
+
+	if shift_qte.qte_result.is_connected(callback):
+		shift_qte.qte_result.disconnect(callback)
+
+	return result
 
 func _throw_item_at_forklift():
 	if not player.has_item or forklift_stopped:
@@ -859,7 +949,7 @@ func _input(event: InputEvent) -> void:
 			return
 
 func _toggle_pause():
-	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE:
+	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
 		return
 	if not pause_menu:
 		return

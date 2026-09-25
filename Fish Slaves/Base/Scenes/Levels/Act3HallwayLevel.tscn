@@ -9,7 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="16_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathZone.tscn" id="17_cu5p6"]
-[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://ObstacleSmall.tscn" id="17_wos72"]
+[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3ObstacleSmall.tscn" id="17_wos72"]
+[ext_resource type="PackedScene" uid="uid://cje8vvh5n76qc" path="res://ShiftQTE.tscn" id="18_wos72"]
+[ext_resource type="PackedScene" uid="uid://bnyx5if20ylcq" path="res://Fish Slaves/Base/Scenes/Levels/Act3Assistaunt/Act3ShiftAndBlockTutorial.tscn" id="19_mi470"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="19_u6mdv"]
 [ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="19_xxkr5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
@@ -213,7 +215,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(4489, 278.09)
+position = Vector2(3168, 284.09)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
@@ -402,29 +404,22 @@ position = Vector2(948, -58)
 collision_layer = 8
 
 [node name="Obstacle5" parent="Barriers" unique_id=1791240393 instance=ExtResource("16_it0yu")]
-position = Vector2(1447, 22)
-collision_layer = 8
-
-[node name="Obstacle6" parent="Barriers" unique_id=35345097 instance=ExtResource("16_it0yu")]
-position = Vector2(1595, -58)
-collision_layer = 8
-
-[node name="Obstacle7" parent="Barriers" unique_id=1597786890 instance=ExtResource("16_it0yu")]
-position = Vector2(1599, 24)
-collision_layer = 8
-
-[node name="Obstacle8" parent="Barriers" unique_id=873501618 instance=ExtResource("16_it0yu")]
-position = Vector2(2004, 23)
-collision_layer = 8
-
-[node name="Obstacle9" parent="Barriers" unique_id=1133769285 instance=ExtResource("16_it0yu")]
-position = Vector2(2155, 24)
-collision_layer = 8
-
-[node name="Obstacle10" parent="Barriers" unique_id=1761143825 instance=ExtResource("16_it0yu")]
-position = Vector2(2297, 23)
+position = Vector2(1447, 23)
 collision_layer = 8
 
 [node name="ObstacleSmall" parent="Barriers" unique_id=773640851 instance=ExtResource("17_wos72")]
 position = Vector2(212, 319.08997)
 collision_layer = 8
+
+[node name="Obstacle6" parent="Barriers" unique_id=35345097 instance=ExtResource("16_it0yu")]
+position = Vector2(1566, 23)
+collision_layer = 8
+
+[node name="Obstacle7" parent="Barriers" unique_id=1597786890 instance=ExtResource("16_it0yu")]
+position = Vector2(1669, 23)
+collision_layer = 8
+
+[node name="ShiftQTE" parent="." unique_id=514358049 instance=ExtResource("18_wos72")]
+visible = true
+
+[node name="ShiftTutorial" parent="." unique_id=932113074 instance=ExtResource("19_mi470")]
