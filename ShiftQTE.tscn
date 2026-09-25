@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://cje8vvh5n76qc"]
+
+[ext_resource type="Script" uid="uid://dscx3l616xyv" path="res://ShiftQTE.gd" id="1_fqt1p"]
+
+[node name="ShiftQTE" type="CanvasLayer" unique_id=514358049]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("1_fqt1p")
+
+[node name="QTE" type="Control" parent="." unique_id=846235590]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Backdrop" type="ColorRect" parent="QTE" unique_id=1256630328]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="OuterCircle" type="ColorRect" parent="QTE" unique_id=2103572637]
+layout_mode = 0
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+pivot_offset = Vector2(200, 200)
+mouse_filter = 2
+color = Color(1, 1, 1, 0.15)
+
+[node name="TargetCircle" type="ColorRect" parent="QTE" unique_id=542778281]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -60.0
+offset_right = 60.0
+offset_bottom = 60.0
+mouse_filter = 2
+color = Color(0.2, 0.8, 0.3, 0.35)
+
+[node name="ShiftLabel" type="Label" parent="QTE" unique_id=1570313860]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -22.0
+offset_right = 60.0
+offset_bottom = 22.0
+theme_override_font_sizes/font_size = 32
+text = "SHIFT"
+horizontal_alignment = 1
+vertical_alignment = 1

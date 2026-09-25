@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal tutorial_closed
+
 @onready var background: ColorRect = $Background
 @onready var container: Control = $Container
 @onready var shift_image: TextureRect = $Container/ShiftImage
@@ -14,24 +16,32 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 100
 	visible = false
+	hide()
 	background.color = Color(0, 0, 0, 0)
 	container.modulate = Color(1, 1, 1, 0)
 	set_process(false)
+	set_process_input(false)
 
 func show_tutorial():
 	visible = true
+	show()
 	is_active = true
 	can_dismiss = false
 	appear_timer = 0.0
 	background.color = Color(0, 0, 0, 0)
 	container.modulate = Color(1, 1, 1, 0)
+	Engine.time_scale = 0.0
 	set_process(true)
+	set_process_input(true)
 
 func hide_tutorial():
 	visible = false
+	hide()
 	is_active = false
 	can_dismiss = false
+	Engine.time_scale = 1.0
 	set_process(false)
+	set_process_input(false)
 
 func _process(delta):
 	if not is_active:
@@ -57,15 +67,26 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			pressed_confirm = true
+	if event.is_action_pressed("Run"):
+		pressed_confirm = true
 
 	if pressed_confirm:
 		get_viewport().set_input_as_handled()
-		await _fade_out_and_close()
+		_close_tutorial()
 
-func _fade_out_and_close():
+func _close_tutorial():
+	if not can_dismiss:
+		return
 	can_dismiss = false
+	set_process_input(false)
+
+	Engine.time_scale = 1.0
+
 	var t = create_tween().set_parallel(true)
+	t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	t.tween_property(background, "color:a", 0.0, 0.5)
 	t.tween_property(container, "modulate:a", 0.0, 0.5)
 	await t.finished
+
 	hide_tutorial()
+	tutorial_closed.emit()
