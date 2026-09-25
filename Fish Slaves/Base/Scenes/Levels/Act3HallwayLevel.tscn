@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="2_cu5p6"]
 [ext_resource type="Shader" uid="uid://cfsy48uvstp6g" path="res://Fish Slaves/Base/Shaders/Act3HallwayLevelShaders/Act3HallwayLevelShader.gdshader" id="2_gb2nh"]
 [ext_resource type="PackedScene" uid="uid://cddeofwnwxg4p" path="res://Fish Slaves/Base/Scenes/Enemy/Enemy.tscn" id="8_it0yu"]
-[ext_resource type="Texture2D" uid="uid://dpw2e6iyxxdux" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelf1.png" id="10_vcpp2"]
+[ext_resource type="Texture2D" uid="uid://dpw2e6iyxxdux" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Shelfs/Act3Shelf1.png" id="10_vcpp2"]
 [ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://Fish Slaves/Base/Scripts/Menus/PauseMenus/PauseMenuFactory.gd" id="11_wos72"]
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://Fish Slaves/Base/Scenes/Levels/Act2+Assistaunt/ObstacleVariant1.tscn" id="16_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/FactoryPauseMenuFraming.png" id="16_wos72"]
