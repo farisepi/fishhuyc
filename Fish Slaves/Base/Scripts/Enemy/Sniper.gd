@@ -7,7 +7,7 @@ signal shot_fired
 @export var reload_time: float = 2.0
 @export var laser_max_width: float = 14.0
 @export var laser_min_width: float = 1.5
-@export var laser_length: float = 2200.0
+@export var laser_length: float = 100000.0
 @export var damage: int = 1
 @export var aim_blink_speed: float = 14.0
 @export var start_active: bool = true
@@ -186,7 +186,7 @@ func _aim_at_player_slow(delta):
 	aim_line.global_rotation = current_aim_dir.angle()
 	var desired_dist = origin.distance_to(target) + 400
 	aim_line.points = PackedVector2Array([Vector2.ZERO, Vector2(desired_dist, 0)])
-
+	var fired_once: bool = false
 func _fire():
 	state = 2
 	timer = 0.0
@@ -197,7 +197,7 @@ func _fire():
 	print("[Sniper] >>> FIRE! slowing=", _slowing)
 
 	_compute_hit(fire_dir)
-
+	
 	if muzzle:
 		bullet_origin = muzzle.global_position
 		bullet_dir = fire_dir

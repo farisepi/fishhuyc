@@ -5,12 +5,13 @@
 [sub_resource type="Texture2DRD" id="Texture2DRD_riqys"]
 
 [node name="ShiftTutorial" type="CanvasLayer" unique_id=932113074]
+process_mode = 3
 script = ExtResource("1_1w6ht")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1633192116]
 process_mode = 3
-offset_right = 1154.0
-offset_bottom = 647.0
+offset_right = 1661.0
+offset_bottom = 1001.0
 color = Color(0.012617188, 0.012617188, 0.012617188, 0.3764706)
 
 [node name="Container" type="Control" parent="." unique_id=1729377741]
@@ -22,8 +23,8 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -575.0
 offset_top = -323.0
-offset_right = 576.0
-offset_bottom = 326.0
+offset_right = 1087.0
+offset_bottom = 680.0
 grow_horizontal = 2
 grow_vertical = 2
 

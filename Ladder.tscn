@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dcj4tnl33uxqe"]
+
+[ext_resource type="Script" uid="uid://dh7pglugp0f0" path="res://Ladder.gd" id="1_1j01k"]
+[ext_resource type="Texture2D" uid="uid://wdxxf0etcavs" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Ladder.png" id="2_t351p"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
+size = Vector2(39.17, 142.99)
+
+[node name="Ladder" type="Area2D" unique_id=1378599385]
+monitorable = false
+script = ExtResource("1_1j01k")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1682174804]
+shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=486937940]
+position = Vector2(1.1920929e-07, 1)
+scale = Vector2(1.5833333, 2.2857144)
+texture = ExtResource("2_t351p")

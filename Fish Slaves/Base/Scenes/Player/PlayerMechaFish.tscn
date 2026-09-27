@@ -786,6 +786,11 @@ animations = [{
 "loop": 1,
 "name": &"Slide",
 "speed": 12.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"new_animation",
+"speed": 5.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8emc6"]
@@ -1246,7 +1251,7 @@ collision_mask = 3
 script = ExtResource("1_wwsif")
 
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=1950259181]
-position = Vector2(49, 289)
+position = Vector2(49, 1.36)
 zoom = Vector2(2.5, 2.5)
 script = ExtResource("9_aikcy")
 camera_offset = Vector2(0, -72.57)
@@ -1254,7 +1259,7 @@ camera_offset = Vector2(0, -72.57)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Hit"
+animation = &"new_animation"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)

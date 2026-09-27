@@ -28,6 +28,7 @@ func _ready():
 
 func show_qte():
 	visible = true
+	show()
 	is_active = true
 	can_press = false
 	result_sent = false
@@ -35,29 +36,22 @@ func show_qte():
 
 	var screen_center = get_viewport().get_visible_rect().size / 2.0 + Vector2(0, 150)
 
-	backdrop.color = Color(0, 0, 0, 0)
+	backdrop.color = Color(0, 0, 0, 0.55)
 
 	outer_circle.size = Vector2(OUTER_START_SIZE, OUTER_START_SIZE)
 	outer_circle.position = screen_center - Vector2(OUTER_START_SIZE / 2.0, OUTER_START_SIZE / 2.0)
 	outer_circle.pivot_offset = Vector2(OUTER_START_SIZE / 2.0, OUTER_START_SIZE / 2.0)
-	outer_circle.modulate = Color(1, 1, 1, 0)
+	outer_circle.modulate = Color(1, 1, 1, 1)
 
 	target_circle.size = Vector2(TARGET_SIZE, TARGET_SIZE)
 	target_circle.position = screen_center - Vector2(TARGET_SIZE / 2.0, TARGET_SIZE / 2.0)
-	target_circle.modulate = Color(1, 1, 1, 0)
+	target_circle.modulate = Color(1, 1, 1, 1)
 
 	shift_label.size = Vector2(70, 30)
 	shift_label.position = screen_center - Vector2(35, 15)
-	shift_label.modulate = Color(1, 1, 1, 0)
+	shift_label.modulate = Color(1, 1, 1, 1)
 
 	Engine.time_scale = SLOWMO_SCALE
-
-	var fade = create_tween().set_parallel(true)
-	fade.tween_property(backdrop, "color:a", 0.55, 0.25)
-	fade.tween_property(outer_circle, "modulate:a", 1.0, 0.25)
-	fade.tween_property(target_circle, "modulate:a", 1.0, 0.25)
-	fade.tween_property(shift_label, "modulate:a", 1.0, 0.25)
-	await fade.finished
 
 	can_press = true
 	set_process(true)

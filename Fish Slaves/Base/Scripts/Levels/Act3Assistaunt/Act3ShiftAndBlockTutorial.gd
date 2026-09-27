@@ -30,7 +30,6 @@ func show_tutorial():
 	appear_timer = 0.0
 	background.color = Color(0, 0, 0, 0)
 	container.modulate = Color(1, 1, 1, 0)
-	Engine.time_scale = 0.0
 	set_process(true)
 	set_process_input(true)
 
@@ -39,7 +38,6 @@ func hide_tutorial():
 	hide()
 	is_active = false
 	can_dismiss = false
-	Engine.time_scale = 1.0
 	set_process(false)
 	set_process_input(false)
 
@@ -60,6 +58,7 @@ func _process(delta):
 		set_process(false)
 
 func _input(event: InputEvent) -> void:
+	print("[Tut] _input=", event, " active=", is_active, " can_dismiss=", can_dismiss)
 	if not is_active or not can_dismiss:
 		return
 

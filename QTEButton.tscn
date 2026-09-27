@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://betsuuklpeckg"]
+
+[ext_resource type="Script" uid="uid://c2tk6yo71cfw8" path="res://QTEButton.gd" id="1_q3x8l"]
+[ext_resource type="Texture2D" uid="uid://dkdq8nx2mpahc" path="res://1x1ForQTEButton.png" id="2_2fx2c"]
+
+[node name="QTEButton" type="CanvasLayer" unique_id=39132723]
+process_mode = 3
+script = ExtResource("1_q3x8l")
+
+[node name="Root" type="Control" parent="." unique_id=1750064825]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1150.0
+offset_bottom = 648.0
+mouse_filter = 2
+
+[node name="Backdrop" type="ColorRect" parent="Root" unique_id=452195447]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.015686275)
+
+[node name="ButtonBG" type="ColorRect" parent="Root" unique_id=910468569]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -60.0
+offset_right = 60.0
+offset_bottom = 60.0
+mouse_filter = 2
+color = Color(0.05882353, 0.05882353, 0.05882353, 0.33333334)
+
+[node name="ProgressRing" type="TextureProgressBar" parent="Root" unique_id=740063901]
+layout_mode = 0
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = 80.0
+max_value = 8.0
+fill_mode = 4
+texture_progress = ExtResource("2_2fx2c")
+
+[node name="ELabel" type="Label" parent="Root" unique_id=1073970272]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -30.0
+offset_right = 60.0
+offset_bottom = 30.0
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1

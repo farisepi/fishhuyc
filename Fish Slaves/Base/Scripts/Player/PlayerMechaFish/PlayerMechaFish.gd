@@ -16,6 +16,8 @@ var block_click_attack: bool = false
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
 
+var nearby_ladder: Area2D = null
+var is_on_ladder: bool = false
 var climb_sprite_offset: float = 0.0
 var is_dead: bool = false
 var original_color: Color = Color(1, 1, 1, 1)
@@ -75,10 +77,17 @@ func get_hp() -> int:
 func get_max_hp() -> int:
 	return max_hp
 
+func set_nearby_ladder(ladder: Area2D):
+	nearby_ladder = ladder
+
 var was_on_floor: bool = true
 var velocity_y_before_jump: float = 0.0
 
 func _physics_process(delta):
+	if is_on_ladder:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
 	if is_dead:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -175,8 +184,11 @@ func _physics_process(delta):
 			if not is_attacking:
 				sprite.play("Jump")
 
-	if Input.is_action_just_pressed("interact") and not is_on_floor() and not has_item:
-		_try_climb()
+	if Input.is_action_just_pressed("interact"):
+		if nearby_ladder:
+			_try_ladder_climb()
+		elif not is_on_floor() and not has_item:
+			_try_climb()
 
 	if not is_attacking and not is_landing and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation:
 		if not is_on_floor():
@@ -712,3 +724,58 @@ func on_death_zone_entered():
 
 func set_hp(value: int) -> void:
 	hp = clamp(value, 0, max_hp)
+func _try_ladder_climb():
+	if is_on_ladder:
+		return
+	if not nearby_ladder:
+		return
+	if has_item:
+		return
+	if movement_blocked:
+		return
+
+	is_on_ladder = true
+	is_climbing = true
+	velocity = Vector2.ZERO
+
+	if sprite:
+		sprite.play("Idle")
+		sprite.scale.x = 1
+
+	while is_on_ladder:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			break
+		if not is_instance_valid(nearby_ladder):
+			break
+
+		if Input.is_action_just_pressed("jump"):
+			is_on_ladder = false
+			velocity.y = jump_velocity
+			break
+
+		if Input.is_action_just_pressed("interact"):
+			is_on_ladder = false
+			break
+
+		var vertical = Input.get_axis("ui_up", "ui_down")
+		var top = nearby_ladder.get_top_y()
+		var bottom = nearby_ladder.get_bottom_y()
+
+		global_position.y += vertical * nearby_ladder.climb_speed * (1.0 / 60.0)
+		global_position.x = nearby_ladder.global_position.x
+
+		if global_position.y < top:
+			global_position.y = top
+			is_on_ladder = false
+			break
+		if global_position.y > bottom:
+			global_position.y = bottom
+			is_on_ladder = false
+			break
+
+		velocity.y = 0
+
+	is_climbing = false
+	if sprite:
+		sprite.play("Idle")

@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://bj7o3h0ohq867" path="res://Fish Slaves/Base/Scenes/Enemy/Sniper.tscn" id="19_xxkr5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="19_yladq"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="20_muljq"]
+[ext_resource type="PackedScene" uid="uid://betsuuklpeckg" path="res://QTEButton.tscn" id="20_xxkr5"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="21_80wgb"]
 [ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="22_u6mdv"]
 [ext_resource type="Script" uid="uid://dauy0dvn3thxx" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3TightPassage.gd" id="23_v16hl"]
@@ -24,7 +25,7 @@
 shader = ExtResource("2_gb2nh")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43qq6"]
-size = Vector2(6721, 81.965)
+size = Vector2(10595, 81.965)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(1320, 34.089996)
@@ -69,7 +70,7 @@ script = ExtResource("19_yladq")
 material = SubResource("ShaderMaterial_jfe0f")
 offset_left = -1418.161
 offset_top = -150.18
-offset_right = 5201.169
+offset_right = 8581.839
 offset_bottom = 345.44
 color = Color(0.7330637, 0.8145573, 0.9849141, 1)
 metadata/_edit_use_anchors_ = true
@@ -78,13 +79,13 @@ metadata/_edit_use_anchors_ = true
 position = Vector2(960, 340)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1278729066]
-position = Vector2(981.5, 37)
+position = Vector2(2918.5, 37)
 shape = SubResource("RectangleShape2D_43qq6")
 
 [node name="ColorRect" type="ColorRect" parent="Floor" unique_id=1661476068]
 offset_left = -2397.46
 offset_top = -4.0
-offset_right = 4350.97
+offset_right = 7602.54
 offset_bottom = 194.88
 color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
@@ -130,7 +131,7 @@ position = Vector2(125, 1)
 speed = 168.63
 
 [node name="ForkliftScene" type="Node2D" parent="." unique_id=756149453]
-position = Vector2(4718, 250.09)
+position = Vector2(4316, 248.09)
 
 [node name="Forklift" type="CharacterBody2D" parent="ForkliftScene" unique_id=781511188]
 position = Vector2(128, -6)
@@ -145,6 +146,7 @@ offset_top = 37.0
 offset_right = 107.0
 offset_bottom = 77.0
 color = Color(0.84402776, 0.6058836, 0.086505435, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="FallingShelf" type="StaticBody2D" parent="ForkliftScene" unique_id=1327964272]
 position = Vector2(60, 0.08999634)
@@ -158,7 +160,7 @@ position = Vector2(89.75, 13.862488)
 shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="ParryingScene" type="Node2D" parent="." unique_id=1169206453]
-position = Vector2(5603, 250.09)
+position = Vector2(8521, 200.09)
 
 [node name="AttackParry" type="CharacterBody2D" parent="ParryingScene" unique_id=82372217]
 position = Vector2(191.27002, 49)
@@ -215,7 +217,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(3168, 284.09)
+position = Vector2(4030, 266.09)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]
@@ -340,23 +342,23 @@ offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="CanvasLayer/TightPassageUI/KeyButton" unique_id=1594602010]
 layout_mode = 0
-offset_left = 5209.0
-offset_top = 498.0
-offset_right = 5222.0
-offset_bottom = 521.0
+offset_left = 8127.0
+offset_top = 448.0
+offset_right = 8140.0
+offset_bottom = 471.0
 text = "D"
 
 [node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
 layout_mode = 0
-offset_left = 5194.0
-offset_top = 481.0
-offset_right = 5234.0
-offset_bottom = 521.0
+offset_left = 8112.0
+offset_top = 431.0
+offset_right = 8152.0
+offset_bottom = 471.0
 max_value = 10.0
 fill_mode = 4
 
 [node name="TightPassageTrigger" type="Area2D" parent="." unique_id=862275647]
-position = Vector2(5251.3, 290.09)
+position = Vector2(8169.3, 240.09)
 script = ExtResource("23_v16hl")
 move_distance = 26.0
 
@@ -365,14 +367,14 @@ position = Vector2(39.69995, -10)
 shape = SubResource("RectangleShape2D_x5kjr")
 
 [node name="EntranceGate" type="StaticBody2D" parent="." unique_id=1138146317]
-position = Vector2(5251.3, 269.09)
+position = Vector2(8169.3, 219.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceGate" unique_id=1135698694]
 position = Vector2(-85.30005, 11)
 shape = SubResource("RectangleShape2D_2r0jt")
 
 [node name="EntranceTrigger" type="Area2D" parent="." unique_id=313777073]
-position = Vector2(5131, 281.09)
+position = Vector2(8049, 231.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceTrigger" unique_id=782664805]
 position = Vector2(8, 6)
@@ -420,6 +422,8 @@ position = Vector2(1669, 23)
 collision_layer = 8
 
 [node name="ShiftQTE" parent="." unique_id=514358049 instance=ExtResource("18_wos72")]
-visible = true
 
 [node name="ShiftTutorial" parent="." unique_id=932113074 instance=ExtResource("19_mi470")]
+visible = false
+
+[node name="QTEButton" parent="." unique_id=39132723 instance=ExtResource("20_xxkr5")]

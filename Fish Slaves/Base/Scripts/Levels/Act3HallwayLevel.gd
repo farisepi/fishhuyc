@@ -12,6 +12,7 @@ extends Node2D
 @onready var pause_menu: CanvasLayer = $Pausemenu
 @onready var shift_tutorial: CanvasLayer = $ShiftTutorial
 @onready var shift_qte: CanvasLayer = $ShiftQTE
+@onready var qte_button: CanvasLayer = $QTEButton
 
 @export var sniper_scene: PackedScene = null
 @export var sniper_spawn_position: Vector2 = Vector2(-800.26, 320.0)
@@ -27,6 +28,8 @@ const INTRO_RUN_TIME: float = 6.5
 const ENEMY_MIN_GAP: float = 100.0
 const ENEMY_SPACING: float = 55.0
 const ENEMY_CATCHUP: float = 0.14
+const FORKLIFT_PLAYER_TARGET_X: float = 4000.0
+const FORKLIFT_TARGET_X: float = 7500.0
 
 const CUTSCENE_BARS_HEIGHT: float = 140.0
 
@@ -389,61 +392,64 @@ func _start_qte_grab():
 	player.modulate = Color(1, 0.5, 0.5, 1)
 	_lock_player_input(true)
 
-	var qte = 0
-	while qte < 6:
-		if not is_inside_tree():
-			return
-		await get_tree().process_frame
-		if not is_inside_tree():
-			return
-		if not is_instance_valid(player):
-			return
-		if Input.is_action_just_pressed("interact"):
-			qte += 1
+	print("[Level] _start_qte_grab: перед await")
+	var success = await _run_e_button_qte_at(player.global_position + Vector2(0, -120))
+	print("[Level] _start_qte_grab: после await, success=", success)
 
 	if not is_inside_tree():
 		return
+
+	print("[QTE] success=", success)
+
 	player.modulate = Color.WHITE
 
-	await get_tree().create_timer(0.8).timeout
-	if not is_inside_tree():
-		return
+	if success:
+		print("[QTE] вход в success-ветку")
+		await get_tree().create_timer(0.8).timeout
+		if not is_inside_tree():
+			return
 
-	for enemy in _intro_enemies:
-		if not is_instance_valid(enemy):
-			continue
-		var target = enemy.global_position + Vector2(-250.0, 0)
-		var t = create_tween()
-		t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		t.tween_property(enemy, "global_position:x", target.x, 0.35)
+		for enemy in _intro_enemies:
+			if not is_instance_valid(enemy):
+				continue
+			var target = enemy.global_position + Vector2(-250.0, 0)
+			var t = create_tween()
+			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			t.tween_property(enemy, "global_position:x", target.x, 0.35)
 
-	await get_tree().create_timer(0.35).timeout
-	if not is_inside_tree():
-		return
+		await get_tree().create_timer(0.35).timeout
+		if not is_inside_tree():
+			return
 
-	player.is_dead = false
-	player.is_vaulting = false
-	player.is_climbing = false
-	player.is_climbing_animation = false
-	player.is_sliding = false
-	player.is_dashing = false
-	player.is_blocking = false
-	player.is_attacking = false
-	player.is_landing = false
-	player.velocity = Vector2.ZERO
-	player.modulate = Color.WHITE
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.modulate = Color.WHITE
-		player.sprite.play("Idle")
+		player.is_dead = false
+		player.is_vaulting = false
+		player.is_climbing = false
+		player.is_climbing_animation = false
+		player.is_sliding = false
+		player.is_dashing = false
+		player.is_blocking = false
+		player.is_attacking = false
+		player.is_landing = false
+		player.velocity = Vector2.ZERO
+		player.movement_blocked = false
+		player.modulate = Color.WHITE
+		if player.sprite:
+			player.sprite.stop()
+			player.sprite.modulate = Color.WHITE
+			player.sprite.play("Idle")
 
-	state = State.RUNNING
-	_lock_player_input(false)
+		print("[QTE] до lock: movement_blocked=", player.movement_blocked, " state=", state)
+		state = State.RUNNING
+		_lock_player_input(false)
+		print("[QTE] после lock: movement_blocked=", player.movement_blocked, " state=", state, " physics=", player.is_physics_processing())
+		print("[QTE] input_locked=", _input_locked)
 
-	for enemy in _intro_enemies:
-		if is_instance_valid(enemy):
-			enemy.set_physics_process(true)
-			enemy.set_process(true)
+		for enemy in _intro_enemies:
+			if is_instance_valid(enemy):
+				enemy.set_physics_process(true)
+				enemy.set_process(true)
+	else:
+		player.die()
 
 func _spawn_sniper(with_cutscene: bool = false):
 	if sniper or sniper_active:
@@ -528,12 +534,6 @@ func _play_sniper_cutscene():
 
 	_hide_cutscene_bars(0.6)
 
-	if sniper and is_instance_valid(sniper):
-		sniper.set_process(true)
-		sniper.set_physics_process(false)
-		if sniper.has_method("activate"):
-			sniper.activate()
-
 	cam.global_position = player_pos
 	cam.zoom = start_zoom
 	if "follow_enabled" in cam:
@@ -545,6 +545,12 @@ func _play_sniper_cutscene():
 			await get_tree().process_frame
 			if not is_inside_tree():
 				return
+
+	if sniper and is_instance_valid(sniper):
+		sniper.set_process(true)
+		sniper.set_physics_process(false)
+		if sniper.has_method("activate"):
+			sniper.activate()
 
 	_resume_all_world()
 	_lock_player_input(false)
@@ -688,12 +694,15 @@ func _play_forklift_cutscene():
 
 	if player.sprite:
 		player.sprite.stop()
-		player.sprite.play("Run")
+		player.sprite.play("Idle")
 		player.sprite.scale.x = 1
 
 	_show_cutscene_bars(0.6)
 
 	var cam = camera
+	if not cam:
+		return
+
 	if "follow_enabled" in cam:
 		cam.follow_enabled = false
 	if "look_offset" in cam:
@@ -703,69 +712,92 @@ func _play_forklift_cutscene():
 
 	var player_pos = player.global_position
 	var forklift_pos = forklift.global_position
+	var start_zoom = cam.zoom
 
+	# 1) камера уезжает на 8000 с ускорением
+	var cam_target = Vector2(8000.0, player_pos.y)
 	var t1 = create_tween()
-	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t1.tween_property(cam, "global_position", forklift_pos, 1.6)
+	t1.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t1.tween_property(cam, "global_position", cam_target, 2.4)
 	await t1.finished
+	if not is_inside_tree():
+		return
+
+	# 2) через 1 сек выезжает погрузчик
+	await get_tree().create_timer(1.0).timeout
 	if not is_inside_tree():
 		return
 
 	forklift.visible = true
 	falling_shelf.visible = true
 
-	var spawn_x = forklift_pos.x + 700.0
-	forklift.global_position.x = spawn_x
-	falling_shelf.global_position.x = spawn_x + 60.0
-
+	var spawn_x = cam_target.x + 800.0
+	forklift.global_position = Vector2(spawn_x, forklift_pos.y)
+	falling_shelf.global_position = Vector2(spawn_x + 60.0, forklift_pos.y)
 	forklift.set("active", true)
 
 	var t2 = create_tween()
 	t2.set_parallel(true)
 	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t2.tween_property(forklift, "global_position:x", forklift_pos.x, 1.2)
-	t2.tween_property(falling_shelf, "global_position:x", forklift_pos.x + 60.0, 1.2)
+	t2.tween_property(forklift, "global_position:x", 7000.0, 2.0)
+	t2.tween_property(falling_shelf, "global_position:x", 7060.0, 2.0)
 	await t2.finished
 	if not is_inside_tree():
 		return
 
-	await get_tree().create_timer(1.5).timeout
-	if not is_inside_tree():
-		return
-
-	var mid_pos = Vector2((player_pos.x + forklift.global_position.x) / 2.0, player_pos.y)
+	# 3) камера в центр между рыбой и погрузчиком (БЕЗ зума)
+	var mid_pos = Vector2((player_pos.x + 7000.0) / 2.0, player_pos.y)
 	var t3 = create_tween()
 	t3.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t3.tween_property(cam, "global_position", mid_pos, 1.0)
+	t3.tween_property(cam, "global_position", mid_pos, 1.2)
 	await t3.finished
 	if not is_inside_tree():
 		return
 
+	# 4) рыба бежит до 5000, погрузчик остаётся на 7000
 	player.visible = true
-	player.global_position.x = mid_pos.x - 260.0
-
 	if player.sprite:
 		player.sprite.play("Run")
+
+	var player_dist = 5000.0 - player.global_position.x
+	var duration = abs(player_dist) / 400.0
+
 	var t4 = create_tween()
 	t4.set_trans(Tween.TRANS_LINEAR)
-	t4.tween_property(player, "global_position:x", player.global_position.x + 40.0, 0.5)
+	t4.tween_property(player, "global_position:x", 5000.0, duration)
 	await t4.finished
 	if not is_inside_tree():
 		return
+
 	if player.sprite:
 		player.sprite.stop()
 		player.sprite.play("Idle")
 
-	var target_x = player.global_position.x + 60.0
-	var t5 = create_tween()
-	t5.set_parallel(true)
-	t5.set_trans(Tween.TRANS_LINEAR)
-	t5.tween_property(forklift, "global_position:x", target_x, 2.0)
-	t5.tween_property(falling_shelf, "global_position:x", target_x + 60.0, 2.0)
+	# 5) теперь ОБА на месте — отдаляем камеру
+	var final_mid = Vector2((player.global_position.x + forklift.global_position.x) / 2.0, player.global_position.y)
+	var t5 = create_tween().set_parallel(true)
+	t5.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t5.tween_property(cam, "global_position", final_mid, 0.8)
+	t5.tween_property(cam, "zoom", start_zoom * 0.55, 0.8)
 	await t5.finished
 	if not is_inside_tree():
 		return
 
+	# 6) снайпер появляется
+	if not sniper or not is_instance_valid(sniper):
+		_spawn_sniper(false)
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+
+	if sniper and is_instance_valid(sniper):
+		sniper.visible = true
+		sniper.set_physics_process(false)
+		sniper.set_process(true)
+		if sniper.has_method("activate"):
+			sniper.activate()
+
+	# 7) QTE Shift
 	state = State.FORKLIFT_QTE
 	var success = await _run_shift_qte_cutscene()
 
@@ -773,9 +805,16 @@ func _play_forklift_cutscene():
 		return
 
 	if success:
+		if player.has_method("_dash"):
+			player._dash()
+
 		forklift.set("active", false)
 		forklift.velocity = Vector2.ZERO
 		forklift_stopped = true
+
+		if sniper and is_instance_valid(sniper):
+			if sniper.has_method("deactivate"):
+				sniper.deactivate()
 
 		var tilt = create_tween().set_parallel(true)
 		tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
@@ -786,13 +825,22 @@ func _play_forklift_cutscene():
 		cam.global_position = player_pos
 		if "follow_enabled" in cam:
 			cam.follow_enabled = true
+		cam.zoom = start_zoom
 		_resume_all_world()
 		player.die()
 		return
 
+	# 8) камера возвращается
 	_hide_cutscene_bars(0.6)
 
-	cam.global_position = player.global_position
+	var t6 = create_tween().set_parallel(true)
+	t6.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t6.tween_property(cam, "global_position", player.global_position, 1.2)
+	t6.tween_property(cam, "zoom", start_zoom, 1.2)
+	await t6.finished
+	if not is_inside_tree():
+		return
+
 	if "follow_enabled" in cam:
 		cam.follow_enabled = true
 
@@ -949,7 +997,7 @@ func _input(event: InputEvent) -> void:
 			return
 
 func _toggle_pause():
-	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
+	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE:
 		return
 	if not pause_menu:
 		return
@@ -974,3 +1022,34 @@ func _resume_after_pause() -> void:
 
 func _on_continue_pressed():
 	pass
+	
+	
+func _run_e_button_qte_at(world_pos: Vector2) -> bool:
+	print("[Level] _run_e_button_qte_at вызван, pos=", world_pos)
+	if not qte_button or not qte_button.has_method("show_qte_at"):
+		await get_tree().create_timer(8.0).timeout
+		return true
+
+	qte_button.show_qte_at(world_pos)
+
+	var state_dict = {"result": false, "received": false}
+
+	var callback = func(success: bool):
+		print("[Level] >>> сигнал qte_result получен, success=", success)
+		state_dict["result"] = success
+		state_dict["received"] = true
+
+	if not qte_button.qte_result.is_connected(callback):
+		qte_button.qte_result.connect(callback)
+
+	while not state_dict["received"]:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return false
+
+	print("[Level] вышли из цикла, result=", state_dict["result"])
+
+	if qte_button.qte_result.is_connected(callback):
+		qte_button.qte_result.disconnect(callback)
+
+	return state_dict["result"]
