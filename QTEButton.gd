@@ -11,13 +11,21 @@ const REQUIRED_PRESSES: int = 8
 const TIME_LIMIT: float = 8.0
 const SLOWMO_SCALE: float = 0.4
 const RING_SIZE: float = 90.0
-const ABOVE_PLAYER_OFFSET: Vector2 = Vector2(0, -120)
+const SHAKE_OFFSET: float = 6.0
+const SHAKE_STEP_TIME: float = 0.025
 
 var is_active: bool = false
 var can_press: bool = false
 var press_count: int = 0
 var qte_timer: float = 0.0
 var result_sent: bool = false
+
+var pressed_callback: Callable = Callable()
+
+var _center: Vector2 = Vector2.ZERO
+var _ring_size: float = 0.0
+var _bg_size: float = 0.0
+var _label_size: float = 0.0
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -26,8 +34,10 @@ func _ready():
 	set_process(false)
 	set_process_input(false)
 
+func set_pressed_callback(cb: Callable):
+	pressed_callback = cb
+
 func show_qte_at(world_pos: Vector2):
-	print("[QTEButton] show_qte_at вызван, pos=", world_pos)
 	visible = true
 	show()
 	is_active = true
@@ -46,34 +56,41 @@ func show_qte_at(world_pos: Vector2):
 	if cam:
 		screen_pos = (world_pos - cam.global_position) * cam.zoom + get_viewport().get_visible_rect().size / 2.0
 
-	var center = screen_pos
+	_center = screen_pos
+	_ring_size = RING_SIZE
+	_bg_size = RING_SIZE * 0.65
+	_label_size = RING_SIZE * 0.5
 
-	var bg_size = RING_SIZE * 0.65
-	button_bg.size = Vector2(bg_size, bg_size)
-	button_bg.position = center - Vector2(bg_size / 2.0, bg_size / 2.0)
-	button_bg.modulate = Color(1, 1, 1, 0)
+	_update_positions(Vector2.ZERO)
 
-	progress_ring.size = Vector2(RING_SIZE, RING_SIZE)
-	progress_ring.position = center - Vector2(RING_SIZE / 2.0, RING_SIZE / 2.0)
-	progress_ring.modulate = Color(1, 1, 1, 0)
-
-	var label_size = RING_SIZE * 0.5
-	e_label.size = Vector2(label_size, label_size)
-	e_label.position = center - Vector2(label_size / 2.0, label_size / 2.0)
-	e_label.modulate = Color(1, 1, 1, 0)
+	button_bg.modulate = Color(1, 1, 1, 1)
+	progress_ring.modulate = Color(1, 1, 1, 1)
+	e_label.modulate = Color(1, 1, 1, 1)
 
 	Engine.time_scale = SLOWMO_SCALE
-
-	var fade = create_tween().set_parallel(true)
-	fade.tween_property(backdrop, "color:a", 0.4, 0.2)
-	fade.tween_property(button_bg, "modulate:a", 1.0, 0.2)
-	fade.tween_property(progress_ring, "modulate:a", 1.0, 0.2)
-	fade.tween_property(e_label, "modulate:a", 1.0, 0.2)
-	await fade.finished
 
 	can_press = true
 	set_process(true)
 	set_process_input(true)
+
+func _update_positions(offset: Vector2):
+	var center = _center + offset
+	button_bg.size = Vector2(_bg_size, _bg_size)
+	button_bg.position = center - Vector2(_bg_size / 2.0, _bg_size / 2.0)
+	progress_ring.size = Vector2(_ring_size, _ring_size)
+	progress_ring.position = center - Vector2(_ring_size / 2.0, _ring_size / 2.0)
+	e_label.size = Vector2(_label_size, _label_size)
+	e_label.position = center - Vector2(_label_size / 2.0, _label_size / 2.0)
+
+func hide_qte():
+	visible = false
+	hide()
+	is_active = false
+	can_press = false
+	result_sent = false
+	Engine.time_scale = 1.0
+	set_process(false)
+	set_process_input(false)
 
 func _process(delta):
 	if not is_active or result_sent:
@@ -85,12 +102,6 @@ func _process(delta):
 		_finish(false)
 
 func _input(event):
-	print("[QTEButton] _input, active=", is_active, " can_press=", can_press, " result_sent=", result_sent, " event=", event)
-	if not is_active or not can_press or result_sent:
-		return
-
-	if event.is_action_pressed("interact"):
-		print("[QTEButton] E нажата, count=", press_count + 1)
 	if not is_active or not can_press or result_sent:
 		return
 
@@ -99,15 +110,32 @@ func _input(event):
 		press_count += 1
 		progress_ring.value = press_count
 
-		var pulse = create_tween()
-		pulse.tween_property(button_bg, "modulate", Color(1.4, 1.4, 1.4, 1), 0.05)
-		pulse.tween_property(button_bg, "modulate", Color(1, 1, 1, 1), 0.1)
+		_shake_button()
+		_shake_ring()
+
+		if pressed_callback.is_valid():
+			pressed_callback.call()
 
 		if press_count >= REQUIRED_PRESSES:
 			_finish(true)
 
+func _shake_button():
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_LINEAR)
+	var dirs = [SHAKE_OFFSET, -SHAKE_OFFSET, SHAKE_OFFSET * 0.6, -SHAKE_OFFSET * 0.6, 0.0]
+	for d in dirs:
+		t.tween_callback(_update_positions.bind(Vector2(d, 0)))
+		t.tween_interval(SHAKE_STEP_TIME)
+
+func _shake_ring():
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_LINEAR)
+	var dirs = [-SHAKE_OFFSET, SHAKE_OFFSET, -SHAKE_OFFSET * 0.6, SHAKE_OFFSET * 0.6, 0.0]
+	for d in dirs:
+		t.tween_callback(_update_positions.bind(Vector2(d, 0)))
+		t.tween_interval(SHAKE_STEP_TIME)
+
 func _finish(success: bool):
-	print("[QTEButton] _finish success=", success)
 	if result_sent:
 		return
 	result_sent = true
@@ -122,6 +150,9 @@ func _finish(success: bool):
 
 	Engine.time_scale = 1.0
 
+	is_active = false
+	qte_result.emit(success)
+
 	var fade = create_tween().set_parallel(true)
 	fade.tween_property(backdrop, "color:a", 0.0, 0.35)
 	fade.tween_property(button_bg, "modulate:a", 0.0, 0.35)
@@ -131,15 +162,3 @@ func _finish(success: bool):
 
 	visible = false
 	hide()
-	is_active = false
-	qte_result.emit(success)
-
-func hide_qte():
-	visible = false
-	hide()
-	is_active = false
-	can_press = false
-	result_sent = false
-	Engine.time_scale = 1.0
-	set_process(false)
-	set_process_input(false)

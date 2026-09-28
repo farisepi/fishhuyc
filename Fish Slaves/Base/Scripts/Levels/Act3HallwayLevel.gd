@@ -15,7 +15,7 @@ extends Node2D
 @onready var qte_button: CanvasLayer = $QTEButton
 
 @export var sniper_scene: PackedScene = null
-@export var sniper_spawn_position: Vector2 = Vector2(-800.26, 320.0)
+@export var sniper_spawn_position: Vector2 = Vector2(-1410, 462)
 @export var escape_sniper_x: float = 3050.0
 @export var sniper_trigger_x: float = 517.0
 @export var sniper_trigger_y: float = 340.0
@@ -686,6 +686,9 @@ func _activate_forklift():
 	forklift_activated = true
 	_play_forklift_cutscene()
 
+var _forklift_player_tween: Tween = null
+var _forklift_tween: Tween = null
+
 func _play_forklift_cutscene():
 	state = State.FORKLIFT_CUTSCENE
 
@@ -694,7 +697,7 @@ func _play_forklift_cutscene():
 
 	if player.sprite:
 		player.sprite.stop()
-		player.sprite.play("Idle")
+		player.sprite.play("Run")
 		player.sprite.scale.x = 1
 
 	_show_cutscene_bars(0.6)
@@ -711,79 +714,69 @@ func _play_forklift_cutscene():
 	cam.rotation_smoothing_enabled = false
 
 	var player_pos = player.global_position
-	var forklift_pos = forklift.global_position
 	var start_zoom = cam.zoom
 
-	# 1) камера уезжает на 8000 с ускорением
-	var cam_target = Vector2(8000.0, player_pos.y)
-	var t1 = create_tween()
-	t1.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	t1.tween_property(cam, "global_position", cam_target, 2.4)
-	await t1.finished
-	if not is_inside_tree():
-		return
+	if player.sprite:
+		player.sprite.play("Run")
 
-	# 2) через 1 сек выезжает погрузчик
-	await get_tree().create_timer(1.0).timeout
+	var start_x = player.global_position.x
+	var dist1 = 4000.0 - start_x
+	var dur1 = abs(dist1) / 400.0
+
+	var t1 = create_tween().set_parallel(true)
+	t1.set_trans(Tween.TRANS_LINEAR)
+	t1.tween_property(player, "global_position:x", 4000.0, dur1)
+	t1.tween_property(cam, "global_position", Vector2((start_x + 4000.0) / 2.0, player_pos.y), dur1)
+	await t1.finished
 	if not is_inside_tree():
 		return
 
 	forklift.visible = true
 	falling_shelf.visible = true
 
-	var spawn_x = cam_target.x + 800.0
-	forklift.global_position = Vector2(spawn_x, forklift_pos.y)
-	falling_shelf.global_position = Vector2(spawn_x + 60.0, forklift_pos.y)
+	var forklift_y = forklift.global_position.y
+	forklift.global_position = Vector2(8300.0, forklift_y)
+	falling_shelf.global_position = Vector2(8360.0, forklift_y)
 	forklift.set("active", true)
 
-	var t2 = create_tween()
-	t2.set_parallel(true)
-	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t2.tween_property(forklift, "global_position:x", 7000.0, 2.0)
-	t2.tween_property(falling_shelf, "global_position:x", 7060.0, 2.0)
+	var t2 = create_tween().set_parallel(true)
+	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t2.tween_property(cam, "global_position", Vector2(7500.0, player_pos.y), 1.4)
+	t2.tween_property(cam, "zoom", Vector2(1.4, 1.4), 1.4)
 	await t2.finished
 	if not is_inside_tree():
 		return
 
-	# 3) камера в центр между рыбой и погрузчиком (БЕЗ зума)
-	var mid_pos = Vector2((player_pos.x + 7000.0) / 2.0, player_pos.y)
-	var t3 = create_tween()
+	var cam_x = (4700.0 + 6380.0) / 2.0
+	var t3 = create_tween().set_parallel(true)
 	t3.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t3.tween_property(cam, "global_position", mid_pos, 1.2)
+	t3.tween_property(cam, "global_position", Vector2(cam_x, player_pos.y), 1.2)
+	t3.tween_property(cam, "zoom", Vector2(0.55, 0.55), 1.2)
 	await t3.finished
 	if not is_inside_tree():
 		return
 
-	# 4) рыба бежит до 5000, погрузчик остаётся на 7000
-	player.visible = true
 	if player.sprite:
 		player.sprite.play("Run")
 
-	var player_dist = 5000.0 - player.global_position.x
-	var duration = abs(player_dist) / 400.0
+	var player_dist = 4700.0 - player.global_position.x
+	var forklift_dist = 6380.0 - forklift.global_position.x
+	var travel_time = max(abs(player_dist), abs(forklift_dist)) / 500.0
 
-	var t4 = create_tween()
-	t4.set_trans(Tween.TRANS_LINEAR)
-	t4.tween_property(player, "global_position:x", 5000.0, duration)
-	await t4.finished
+	_forklift_player_tween = create_tween()
+	_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
+	_forklift_player_tween.tween_property(player, "global_position:x", 4700.0, travel_time)
+
+	_forklift_tween = create_tween()
+	_forklift_tween.set_trans(Tween.TRANS_LINEAR)
+	_forklift_tween.tween_property(forklift, "global_position:x", 6380.0, travel_time)
+
+	await _forklift_player_tween.finished
+	await _forklift_tween.finished
 	if not is_inside_tree():
 		return
 
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Idle")
-
-	# 5) теперь ОБА на месте — отдаляем камеру
-	var final_mid = Vector2((player.global_position.x + forklift.global_position.x) / 2.0, player.global_position.y)
-	var t5 = create_tween().set_parallel(true)
-	t5.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t5.tween_property(cam, "global_position", final_mid, 0.8)
-	t5.tween_property(cam, "zoom", start_zoom * 0.55, 0.8)
-	await t5.finished
-	if not is_inside_tree():
-		return
-
-	# 6) снайпер появляется
+	# снайпер
 	if not sniper or not is_instance_valid(sniper):
 		_spawn_sniper(false)
 		await get_tree().process_frame
@@ -797,20 +790,40 @@ func _play_forklift_cutscene():
 		if sniper.has_method("activate"):
 			sniper.activate()
 
-	# 7) QTE Shift
+	# ЗАПУСКАЕМ QTE, БЕГ ПРОДОЛЖАЕТСЯ В SLOW-MO
 	state = State.FORKLIFT_QTE
+
+	if player.sprite:
+		player.sprite.play("Run")
+
+	# новые tween'ы для движения в slow-mo — рыба вправо, погрузчик влево
+	_forklift_player_tween = create_tween()
+	_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
+	_forklift_player_tween.tween_property(player, "global_position:x", 5000.0, 1.5)
+
+	_forklift_tween = create_tween()
+	_forklift_tween.set_trans(Tween.TRANS_LINEAR)
+	_forklift_tween.tween_property(forklift, "global_position:x", 6000.0, 1.5)
+
 	var success = await _run_shift_qte_cutscene()
 
 	if not is_inside_tree():
 		return
 
-	if success:
-		if player.has_method("_dash"):
-			player._dash()
+	# ОСТАНАВЛИВАЕМ tween'ы в любом случае
+	if _forklift_player_tween and _forklift_player_tween.is_valid():
+		_forklift_player_tween.kill()
+	if _forklift_tween and _forklift_tween.is_valid():
+		_forklift_tween.kill()
 
-		forklift.set("active", false)
+	if success:
+		# рывок — вызываем публичный метод
+		_force_dash()
+
+		# мгновенно останавливаем погрузчик и шкаф
 		forklift.velocity = Vector2.ZERO
 		forklift_stopped = true
+		forklift.set("active", false)
 
 		if sniper and is_instance_valid(sniper):
 			if sniper.has_method("deactivate"):
@@ -830,8 +843,11 @@ func _play_forklift_cutscene():
 		player.die()
 		return
 
-	# 8) камера возвращается
 	_hide_cutscene_bars(0.6)
+
+	if player.sprite:
+		player.sprite.stop()
+		player.sprite.play("Idle")
 
 	var t6 = create_tween().set_parallel(true)
 	t6.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -848,6 +864,35 @@ func _play_forklift_cutscene():
 	_lock_player_input(false)
 
 	state = State.RUNNING
+
+func _force_dash():
+	if not player:
+		return
+	player.is_dashing = false
+	player.dash_cooldown = 0.0
+	if player.has_method("_dash"):
+		player._dash()
+
+func _start_forklift_qte_motion():
+	var ts = Engine.time_scale
+	if ts <= 0.0:
+		ts = 1.0
+
+	# в slow-mo они продолжают идти навстречу
+	# рыба вправо (до 5000), погрузчик влево (до 6000)
+	var dur = 1.5
+
+	var player_t = create_tween()
+	player_t.set_trans(Tween.TRANS_LINEAR)
+	player_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	player_t.tween_property(player, "global_position:x", 5000.0, dur * ts)
+
+	var forklift_t = create_tween()
+	forklift_t.set_trans(Tween.TRANS_LINEAR)
+	forklift_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	forklift_t.tween_property(forklift, "global_position:x", 6000.0, dur * ts)
+
+
 
 func _run_shift_qte_cutscene() -> bool:
 	if not shift_qte or not shift_qte.has_method("show_qte"):
@@ -1053,3 +1098,20 @@ func _run_e_button_qte_at(world_pos: Vector2) -> bool:
 		qte_button.qte_result.disconnect(callback)
 
 	return state_dict["result"]
+func _run_forklift_qte_motion():
+	var ts = Engine.time_scale
+	if ts <= 0.0:
+		ts = 1.0
+
+	# длительности в реальных секундах (не зависят от time_scale)
+	var dur = 1.5
+
+	var player_t = create_tween()
+	player_t.set_trans(Tween.TRANS_LINEAR)
+	player_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	player_t.tween_property(player, "global_position:x", 4700.0, dur * ts)
+
+	var forklift_t = create_tween()
+	forklift_t.set_trans(Tween.TRANS_LINEAR)
+	forklift_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	forklift_t.tween_property(forklift, "global_position:x", 6380.0, dur * ts)

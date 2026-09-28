@@ -28,7 +28,7 @@ shader = ExtResource("2_gb2nh")
 size = Vector2(10595, 81.965)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(1320, 34.089996)
+size = Vector2(35.25, 10.044998)
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bhunq"]
 radius = 31.0
@@ -93,7 +93,7 @@ metadata/_edit_use_anchors_ = true
 [node name="Balcony" type="StaticBody2D" parent="." unique_id=1315964761]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Balcony" unique_id=517329581]
-position = Vector2(-201, 165.09)
+position = Vector2(-1399.625, 235.0675)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Mecha_Fish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
@@ -131,7 +131,7 @@ position = Vector2(125, 1)
 speed = 168.63
 
 [node name="ForkliftScene" type="Node2D" parent="." unique_id=756149453]
-position = Vector2(4316, 248.09)
+position = Vector2(3625, 263.09)
 
 [node name="Forklift" type="CharacterBody2D" parent="ForkliftScene" unique_id=781511188]
 position = Vector2(128, -6)
@@ -217,7 +217,7 @@ color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
-position = Vector2(4030, 266.09)
+position = Vector2(3339, 281.09)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1309266168]

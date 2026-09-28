@@ -3,7 +3,7 @@ extends CharacterBody2D
 signal shot_fired
 
 @export var gravity: float = 980.0
-@export var charge_time: float = 1.8
+@export var charge_time: float = 1.2
 @export var reload_time: float = 2.0
 @export var laser_max_width: float = 14.0
 @export var laser_min_width: float = 1.5
@@ -11,7 +11,7 @@ signal shot_fired
 @export var damage: int = 1
 @export var aim_blink_speed: float = 14.0
 @export var start_active: bool = true
-@export var bullet_speed: float = 2400.0
+@export var bullet_speed: float = 3000.0
 @export var bullet_length: float = 26.0
 @export var bullet_width: float = 4.0
 @export var lock_duration: float = 0.6
@@ -43,7 +43,6 @@ var bullet_hit_player: bool = false
 
 func _ready():
 	add_to_group("snipers")
-	print("[Sniper] _ready, pos=", global_position, " start_active=", start_active)
 	if aim_line:
 		aim_line.visible = false
 		aim_line.width = laser_max_width
@@ -65,7 +64,6 @@ func _ready():
 func activate():
 	active = true
 	set_process(true)
-	print("[Sniper] ACTIVATE")
 
 func deactivate():
 	active = false
@@ -77,7 +75,6 @@ func deactivate():
 		aim_line.visible = false
 	if bullet:
 		bullet.visible = false
-	print("[Sniper] DEACTIVATE")
 
 func _physics_process(delta):
 	if _dead:
@@ -121,7 +118,6 @@ func _process(delta):
 			var slow_start = max(0.0, charge_time - lock_duration)
 
 			if timer < slow_start:
-				# нормальное быстрое слежение
 				_slowing = false
 				_aim_at_player_instant()
 				_blink_phase += delta * aim_blink_speed
@@ -131,10 +127,8 @@ func _process(delta):
 					var alpha = lerp(0.45, 1.0, t) * blink
 					aim_line.default_color = Color(1, 0.15, 0.15, alpha)
 			else:
-				# замедленное слежение — прицел ползёт к рыбе
 				if not _slowing:
 					_slowing = true
-					print("[Sniper] 🐢 AIM SLOWING")
 				_aim_at_player_slow(delta)
 				_blink_phase += delta * lock_blink_speed
 				var blink2 = 0.35 + 0.65 * sin(_blink_phase * TAU)
@@ -168,8 +162,7 @@ func _aim_at_player_instant():
 	current_aim_dir = dir
 	aim_line.global_position = origin
 	aim_line.global_rotation = dir.angle()
-	var desired_dist = origin.distance_to(target) + 400
-	aim_line.points = PackedVector2Array([Vector2.ZERO, Vector2(desired_dist, 0)])
+	aim_line.points = PackedVector2Array([Vector2.ZERO, Vector2(laser_length, 0)])
 
 func _aim_at_player_slow(delta):
 	if not player or not muzzle or not aim_line:
@@ -178,26 +171,21 @@ func _aim_at_player_slow(delta):
 	var target = player.global_position
 	var target_dir = (target - origin).normalized()
 
-	# плавно поворачиваем текущее направление к цели
 	current_aim_dir = current_aim_dir.lerp(target_dir, lock_follow_speed * delta).normalized()
 	current_aim_origin = origin
 
 	aim_line.global_position = origin
 	aim_line.global_rotation = current_aim_dir.angle()
-	var desired_dist = origin.distance_to(target) + 400
-	aim_line.points = PackedVector2Array([Vector2.ZERO, Vector2(desired_dist, 0)])
-	var fired_once: bool = false
+	aim_line.points = PackedVector2Array([Vector2.ZERO, Vector2(laser_length, 0)])
+
 func _fire():
 	state = 2
 	timer = 0.0
 	shot_fired.emit()
 
-	# стреляем по ТЕКУЩЕМУ направлению прицела, а не по позиции игрока
 	var fire_dir = current_aim_dir
-	print("[Sniper] >>> FIRE! slowing=", _slowing)
-
 	_compute_hit(fire_dir)
-	
+
 	if muzzle:
 		bullet_origin = muzzle.global_position
 		bullet_dir = fire_dir
@@ -220,29 +208,31 @@ func _compute_hit(fire_dir: Vector2):
 
 	var origin = muzzle.global_position
 	var to_player = player.global_position - origin
-	var dist = to_player.length()
 
 	var projected = to_player.dot(fire_dir)
 	if projected < 0.0:
 		return
 	var perpendicular = (to_player - fire_dir * projected).length()
-	if perpendicular <= 22.0 and dist <= laser_length:
+	if perpendicular <= 22.0:
 		bullet_hit_player = true
 
 func _update_bullet(delta):
-	var step = bullet_speed * delta
+	# пуля летит с постоянной скоростью, БЕЗ учёта time_scale
+	var step = bullet_speed * delta / max(Engine.time_scale, 0.001)
 	bullet_traveled += step
 	bullet.global_position = bullet_origin + bullet_dir * bullet_traveled
 
 	if bullet_hit_player and player and is_instance_valid(player):
+		if player.get("is_dashing") == true:
+			bullet_hit_player = false
 		var d = bullet.global_position.distance_to(player.global_position)
-		if d <= 30.0:
-			print("[Sniper] пуля попала в игрока")
+		if bullet_hit_player and d <= 30.0:
 			_kill_player()
 			_bullet_stop()
 			return
 
-
+	if bullet_traveled >= laser_length:
+		_bullet_stop()
 
 func _bullet_stop():
 	bullet_active = false
