@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://cyqs5ww8hysx"]
 
 [ext_resource type="Script" uid="uid://d2vnwskd2kio0" path="res://Fish Slaves/Base/Scripts/Levels/Act1AquariumLevel.gd" id="1_u46od"]
-[ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="2_schuh"]
+[ext_resource type="PackedScene" uid="uid://bg460pgdqj2dp" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="2_schuh"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Act1CutsceneCamera.gd" id="4_4y1cg"]
 [ext_resource type="Texture2D" uid="uid://cdqyb6fx6avwo" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
 [ext_resource type="Texture2D" uid="uid://cdc8er87jramh" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle1.png" id="5_avqyc"]
@@ -19,7 +19,7 @@
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="FontFile" uid="uid://deaue7jmjg31r" path="res://Fish Slaves/Textures/Font/Font.ttf" id="13_pudq7"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://dfgw7jsbfbtib" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://Fish Slaves/Textures/Tiles/Act1Tiles/CollisionTileset.tres" id="17_ccpdg"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
