@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://crqsqldf3hvi6"]
 
 [ext_resource type="Script" uid="uid://xuysx76hjrgr" path="res://Fish Slaves/Base/Scripts/Menus/SettingsMenus/SettingsMenuFactory.gd" id="1_ly04p"]
-[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_e0cl8"]
+[ext_resource type="PackedScene" uid="uid://c213k6qc440fp" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_e0cl8"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="3_alx6u"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="4_y3cdo"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="5_x1v54"]
@@ -15,10 +15,10 @@
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="13_e8n2o"]
 [ext_resource type="Texture2D" uid="uid://d0kqvebxpatfa" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSlider.png" id="fac_full"]
 [ext_resource type="Texture2D" uid="uid://dxo5dt2f3cx8m" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSliderHover.png" id="fac_full_h"]
-[ext_resource type="Texture2D" uid="uid://1wyyahcftyjx" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png" id="fac_handle"]
-[ext_resource type="Texture2D" uid="uid://dnnpjhddquvlm" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuSlider/FactoryMenuSlider.png" id="fac_slider"]
-[ext_resource type="Texture2D" uid="uid://ck4hf441mlg4i" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOff/FactorySwitchOff.png" id="fac_sw_off"]
-[ext_resource type="Texture2D" uid="uid://cvbqx4d5fpx03" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOn/FactorySwitchOn.png" id="fac_sw_on"]
+[ext_resource type="Texture2D" uid="uid://cilcvgxswqd11" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png" id="fac_handle"]
+[ext_resource type="Texture2D" uid="uid://chflqo0drmfyu" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuSlider/FactoryMenuSlider.png" id="fac_slider"]
+[ext_resource type="Texture2D" uid="uid://prctmmiw7i5p" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOff/FactorySwitchOff.png" id="fac_sw_off"]
+[ext_resource type="Texture2D" uid="uid://prctmmiw7i5p" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOn/FactorySwitchOn.png" id="fac_sw_on"]
 
 [sub_resource type="AtlasTexture" id="AT_Fac_Handle"]
 atlas = ExtResource("fac_handle")
