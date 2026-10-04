@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c7dl4ohlk4lbv"]
 
 [ext_resource type="Script" uid="uid://cc20akyxlu5sg" path="res://Fish Slaves/Base/Scripts/Overlay/Effects/Box.gd" id="1_box"]
-[ext_resource type="Texture2D" uid="uid://cr1noaqbrx3ev" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png" id="2_box"]
+[ext_resource type="Texture2D" uid="uid://dpc8k5aehqmdp" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png" id="2_box"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_box"]
 size = Vector2(76, 68)
