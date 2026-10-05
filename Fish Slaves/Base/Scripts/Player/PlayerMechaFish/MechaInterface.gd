@@ -21,6 +21,7 @@ var hearts_base_pos: Vector2
 var stamina_base_pos: Vector2
 
 
+
 const HP_BAR_SPEED_TABLE: Dictionary = {
 	5: 1.0,
 	4: 1.125,
@@ -66,29 +67,30 @@ func _ready():
 func _process(delta):
 	if get_tree().paused:
 		return
-	
+
 	var player = get_tree().get_first_node_in_group("player")
 	if not player:
 		return
-	
+
 	if player.has_method("get_hp"):
 		current_hearts = player.get_hp()
 		_update_hearts()
-	
+
 	if player.has_method("get_stamina"):
 		stamina_value = player.get_stamina()
+		if player.has_method("get_max_stamina"):
+			max_stamina = player.get_max_stamina()
 		_update_stamina()
-	
-	
+
 	if hp_bar:
 		var h = clamp(current_hearts, 0, 5)
 		var speed = HP_BAR_SPEED_TABLE.get(h, 1.0)
 		hp_bar.speed_scale = speed
 		if speed <= 0.0:
 			hp_bar.stop()
-	
+
 	var hp_percent = float(current_hearts) / float(max_hearts)
-	
+
 	if hp_percent <= 0.2:
 		shake_amount = 2.0 * (1.0 - hp_percent / 0.2)
 		pulse_timer += delta
@@ -98,7 +100,7 @@ func _process(delta):
 		shake_amount = 0.0
 		pulse_timer = 0.0
 		glow.material.set_shader_parameter("pulse", 0.0)
-	
+
 	if shake_amount > 0:
 		var shake = Vector2(
 			randf_range(-shake_amount, shake_amount),
@@ -125,10 +127,13 @@ func _update_stamina():
 	if not stamina:
 		return
 	var total_frames = stamina.sprite_frames.get_frame_count("Stamina")
-	var percent = clamp(stamina_value / max_stamina, 0, 1)
-	var frame = int(percent * (total_frames - 1))
+	if total_frames <= 1:
+		return
+	var percent = clamp(stamina_value / max_stamina, 0.0, 1.0)
+	var frame = int((1.0 - percent) * float(total_frames - 1))
+	stamina.pause()
 	stamina.frame = clamp(frame, 0, total_frames - 1)
-	stamina.stop()
+	print("[UI-Stamina] value=", stamina_value, "/", max_stamina, " frame=", frame)
 
 func set_hearts(value: int):
 	current_hearts = clamp(value, 0, max_hearts)
