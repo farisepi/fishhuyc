@@ -15,7 +15,7 @@ func _ready():
 	top_level = true
 	enabled = true
 	zoom = camera_zoom
-	camera_offset = Vector2(0, -100)
+	camera_offset = Vector2(0, -65)
 	position_smoothing_enabled = false
 
 func _process(delta):

@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-@export var speed: float = 240.0
+@export var speed: float = 140.0
 @export var run_speed: float = 240.0
 @export var jump_velocity: float = -300.0
 @export var slide_speed: float = 650.0
@@ -16,6 +16,10 @@ var block_click_attack: bool = false
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
 
+
+var is_stunned: bool = false
+var stun_timer: float = 0.0
+const STUN_DURATION: float = 1.5
 var nearby_ladder: Area2D = null
 var is_on_ladder: bool = false
 var climb_sprite_offset: float = 0.0
@@ -24,6 +28,15 @@ var original_color: Color = Color(1, 1, 1, 1)
 var block_color: Color = Color(0.5, 0.8, 1.0, 1)
 var hp: int = 5
 var max_hp: int = 5
+var stamina: float = 11
+var max_stamina: float = 11
+const STAMINA_DASH_COST: float = 1
+const STAMINA_BLOCK_HIT_COST: float = 3
+const STAMINA_REGEN_INTERVAL: float = 1
+const STAMINA_REGEN_DELAY: float = 4
+var stamina_regen_timer: float = 0
+var stamina_regen_delay_timer: float = 0
+var stamina_locked: bool = false
 var is_blocking: bool = false
 var is_vaulting: bool = false
 var is_climbing: bool = false
@@ -63,6 +76,8 @@ func _ready():
 	add_to_group("player")
 	hp = 5
 	max_hp = 5
+	stamina = 11.0
+	max_stamina = 11.0
 	if sprite:
 		sprite.play("Idle")
 	held_icon = Sprite2D.new()
@@ -77,6 +92,15 @@ func get_hp() -> int:
 func get_max_hp() -> int:
 	return max_hp
 
+func get_stamina() -> float:
+	return stamina
+
+func get_max_stamina() -> float:
+	return max_stamina
+
+func set_stamina(value: float) -> void:
+	stamina = clamp(value, 0.0, max_stamina)
+
 func set_nearby_ladder(ladder: Area2D):
 	nearby_ladder = ladder
 
@@ -84,6 +108,21 @@ var was_on_floor: bool = true
 var velocity_y_before_jump: float = 0.0
 
 func _physics_process(delta):
+	
+	if not is_stunned and stamina < max_stamina:
+		if stamina_regen_delay_timer > 0.0:
+			stamina_regen_delay_timer -= delta
+		else:
+			stamina_regen_timer += delta
+			if stamina_regen_timer >= STAMINA_REGEN_INTERVAL:
+				stamina_regen_timer = 0.0
+				stamina = min(stamina + 1.0, max_stamina)
+				print("[Stamina] Реген +1 → ", stamina, "/", max_stamina)
+	if stamina <= 0.0:
+		stamina_locked = true
+	if stamina_locked and stamina >= max_stamina:
+		stamina_locked = false
+		print("[Stamina] 🔓 Разблокировка — стамина восстановлена")
 	if is_on_ladder:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -92,10 +131,21 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
-	
+
 	if get_tree().paused:
 		return
-	
+	if is_stunned:
+		stun_timer -= delta
+		if stun_timer <= 0.0:
+			is_stunned = false
+			movement_blocked = false
+			stamina_regen_timer = 0.0
+			stamina_regen_delay_timer = STAMINA_REGEN_DELAY
+			print("[Stun] Оглушение прошло, стамина начнёт восстанавливаться через 4 сек")
+		else:
+			velocity = Vector2.ZERO
+			move_and_slide()
+			return
 	if is_shift_held:
 		shift_held_time += delta
 	if dash_cooldown > 0:
@@ -114,12 +164,12 @@ func _physics_process(delta):
 		return
 	if parry_cooldown > 0:
 		parry_cooldown -= delta
-	
+
 	if is_vaulting or is_climbing or is_climbing_animation:
 		velocity.y = 0
 		move_and_slide()
 		return
-	
+
 	if not is_on_floor():
 		velocity.y += gravity * delta
 
@@ -207,7 +257,7 @@ func _physics_process(delta):
 			sprite.play("Idle")
 
 	move_and_slide()
-	
+
 	if is_sliding and is_on_wall():
 		global_position.y += 3
 
@@ -246,30 +296,31 @@ func _input(event: InputEvent) -> void:
 	if block_click_attack:
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			return
-	
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if not is_attacking and not is_dead and not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing:
 			_do_attack()
-	
+
 	if event.is_action_pressed("block"):
 		is_blocking = true
 		if sprite:
 			sprite.modulate = Color(0.5, 0.8, 1.0, 1)
+		print("[Stamina] Блок включён, стамина=", stamina)
 	if event.is_action_released("block"):
 		is_blocking = false
 		if sprite:
 			sprite.modulate = Color(1, 1, 1, 1)
-	
+
 	if event.is_action_pressed("interact"):
 		if has_item:
 			_throw_item()
 		else:
 			_grab_item()
-	
+
 	if event.is_action_pressed("Parry"):
 		if parry_active and not parry_done:
 			do_parry()
-	
+
 	if event is InputEventKey and event.keycode == KEY_SHIFT:
 		if event.pressed:
 			is_shift_held = true
@@ -284,13 +335,13 @@ func _do_attack() -> void:
 		return
 	if not sprite.sprite_frames.has_animation("AttackLeft") or not sprite.sprite_frames.has_animation("AttackRight"):
 		return
-	
+
 	var use_left = (randi() % 2 == 0)
 	if use_left:
 		sprite.scale.x = -1 if facing_direction > 0 else 1
 	else:
 		sprite.scale.x = 1 if facing_direction > 0 else -1
-	
+
 	is_attacking = true
 	var anim = "AttackLeft" if use_left else "AttackRight"
 	sprite.play(anim)
@@ -532,7 +583,7 @@ func _try_climb():
 		return false
 	if not barriers_node:
 		return false
-	
+
 	var player_pos = global_position
 	var col_shape = $CollisionShape2D.shape
 	var player_height: float = 60.0
@@ -543,7 +594,7 @@ func _try_climb():
 	var player_bottom = player_pos.y + player_height / 2
 	var player_center_x = player_pos.x
 	var player_top = player_pos.y - player_height / 2
-	
+
 	for child in barriers_node.get_children():
 		var obstacle = null
 		if child is StaticBody2D:
@@ -552,34 +603,34 @@ func _try_climb():
 			var parent = child.get_parent()
 			if parent and parent is StaticBody2D:
 				obstacle = parent
-		
+
 		if not obstacle:
 			continue
-		
+
 		if obstacle == last_climbed_obstacle:
 			continue
-		
+
 		var col = obstacle.get_node_or_null("CollisionShape2D")
 		if not col:
 			continue
-		
+
 		var s = col.shape
 		if s is RectangleShape2D:
 			var obstacle_top = obstacle.global_position.y - s.size.y / 2
 			var obstacle_bottom = obstacle.global_position.y + s.size.y / 2
 			var obstacle_left = obstacle.global_position.x - s.size.x / 2
 			var obstacle_right = obstacle.global_position.x + s.size.x / 2
-			
+
 			if player_bottom < obstacle_top - 5:
 				continue
-			
+
 			if player_top > obstacle_bottom + 5:
 				continue
-			
+
 			var dist_left = abs(player_center_x - obstacle_left)
 			var dist_right = abs(player_center_x - obstacle_right)
 			var is_over = player_center_x > obstacle_left - 30 and player_center_x < obstacle_right + 30
-			
+
 			var side = 0
 			if dist_left < 50 and dist_left < dist_right:
 				side = -1
@@ -589,18 +640,18 @@ func _try_climb():
 				side = 1 if facing_direction >= 0 else -1
 			else:
 				continue
-			
+
 			last_climbed_obstacle = obstacle
-			
+
 			is_climbing = true
 			is_climbing_animation = true
 			velocity = Vector2.ZERO
 			sprite.play("Climb")
-			
+
 			var target_y = obstacle_top - 5 - player_height / 2
 			var obstacle_center_x = (obstacle_left + obstacle_right) / 2.0
 			var land_x: float
-			
+
 			if s.size.y <= 40.0:
 				land_x = obstacle_center_x
 			else:
@@ -610,31 +661,40 @@ func _try_climb():
 					land_x = max(player_center_x - 10.0, obstacle_center_x)
 				else:
 					land_x = obstacle_center_x
+<<<<<<< HEAD
 			
 			var is_small = s.size.y <= 40.0
 			
+=======
+
+>>>>>>> 919ac15cbef60f930e0e71229fcd33f3dfa0dbfd
 			var target = Vector2(land_x, target_y)
-			
+
 			var climb_tween = create_tween()
 			climb_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			climb_tween.tween_property(self, "global_position", target, climb_time)
 			await climb_tween.finished
+<<<<<<< HEAD
 			
+=======
+
+>>>>>>> 919ac15cbef60f930e0e71229fcd33f3dfa0dbfd
 			is_climbing = false
-			
+
 			var total_frames = sprite.sprite_frames.get_frame_count("Climb")
 			while sprite.frame < total_frames - 1:
 				await get_tree().process_frame
-			
+
 			sprite.stop()
 			sprite.frame = total_frames - 1
 			is_climbing_animation = false
 			velocity = Vector2.ZERO
-			
+
 			if not is_on_floor() and sprite.sprite_frames.has_animation("Falling"):
 				sprite.play("Falling")
-			
+
 			await get_tree().create_timer(0.3).timeout
+<<<<<<< HEAD
 			
 			last_climbed_obstacle = null
 			return true
@@ -643,33 +703,39 @@ func _try_climb():
 	
 
 
+=======
+			last_climbed_obstacle = null
+			return true
+
+	return false
+>>>>>>> 919ac15cbef60f930e0e71229fcd33f3dfa0dbfd
 
 func die():
 	if is_dead:
 		return
 	is_dead = true
-	
+
 	movement_blocked = true
 	velocity = Vector2.ZERO
 	is_sliding = false
 	is_vaulting = false
 	is_climbing = false
 	is_dashing = false
-	
+
 	if sprite:
 		sprite.play("Death")
 		sprite.speed_scale = 1.0
-		
+
 		var total_frames = sprite.sprite_frames.get_frame_count("Death")
-		
+
 		while sprite.frame < total_frames - 1:
 			await get_tree().process_frame
-		
+
 		sprite.stop()
 		sprite.frame = total_frames - 1
-	
+
 	await get_tree().create_timer(0.3).timeout
-	
+
 	var death_screen = get_tree().current_scene.get_node_or_null("DeathScreen")
 	if death_screen and death_screen.has_method("show_death"):
 		death_screen.show_death()
@@ -681,9 +747,24 @@ func die():
 			new_death_screen.show_death()
 
 func take_damage(amount: int):
+	if is_dead:
+		return
+
+	if is_blocking:
+		stamina -= STAMINA_BLOCK_HIT_COST
+		if stamina < 0:
+			stamina = 0
+		stamina_regen_timer = 0.0
+		stamina_regen_delay_timer = STAMINA_REGEN_DELAY
+		print("[Damage] Удар в БЛОК! Стамина -", STAMINA_BLOCK_HIT_COST, " → ", stamina, "/", max_stamina)
+		if stamina <= 0.0:
+			_start_stun()
+		return
+
 	hp -= amount
 	if hp < 0:
 		hp = 0
+	print("[Damage] Получен урон ", amount, "! HP: ", hp, "/", max_hp)
 	if sprite:
 		sprite.play("Hit")
 		await sprite.animation_finished
@@ -695,6 +776,14 @@ func take_damage(amount: int):
 func _dash():
 	if is_dashing or dash_cooldown > 0:
 		return
+	if stamina < STAMINA_DASH_COST:
+		print("[Stamina] НЕ ХВАТАЕТ на dash! ", stamina, "/", max_stamina)
+		return
+	stamina -= STAMINA_DASH_COST
+	stamina_regen_timer = 0.0
+	stamina_regen_delay_timer = STAMINA_REGEN_DELAY
+	print("[Stamina] Dash! -", STAMINA_DASH_COST, " → ", stamina, "/", max_stamina)
+
 	is_dashing = true
 	dash_cooldown = 1.5
 	var direction = -1 if facing_direction == -1 else 1
@@ -711,6 +800,7 @@ func on_death_zone_entered():
 
 func set_hp(value: int) -> void:
 	hp = clamp(value, 0, max_hp)
+
 func _try_ladder_climb():
 	if is_on_ladder:
 		return
@@ -766,3 +856,30 @@ func _try_ladder_climb():
 	is_climbing = false
 	if sprite:
 		sprite.play("Idle")
+func _start_stun():
+	if is_stunned:
+		return
+	is_stunned = true
+	stun_timer = STUN_DURATION
+	movement_blocked = true
+	is_blocking = false
+	if sprite:
+		sprite.play("Hit")
+	print("[Stun] Оглушение на ", STUN_DURATION, " сек. Стамина заморожена.")
+	
+func take_sniper_hit(damage: float = 3.0):
+	if is_dead:
+		return
+
+	if is_blocking:
+		stamina -= damage
+		if stamina < 0:
+			stamina = 0
+		stamina_regen_timer = 0.0
+		stamina_regen_delay_timer = STAMINA_REGEN_DELAY
+		print("[Sniper] Попадание в БЛОК! Стамина -", damage, " → ", stamina, "/", max_stamina)
+		if stamina <= 0.0:
+			_start_stun()
+		return
+
+	die()
