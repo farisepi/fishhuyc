@@ -612,14 +612,6 @@ func _try_climb():
 					land_x = obstacle_center_x
 			
 			var is_small = s.size.y <= 40.0
-			if is_small:
-				print("=== CLIMB SMALL ===")
-				print("size=", s.size, " top=", obstacle_top, " bottom=", obstacle_bottom)
-				print("left=", obstacle_left, " right=", obstacle_right, " center_x=", obstacle_center_x)
-				print("player_center_x=", player_center_x, " player_top=", player_top, " player_bottom=", player_bottom)
-				print("dist_left=", dist_left, " dist_right=", dist_right, " side=", side)
-				print("land_x=", land_x, " target_y=", target_y)
-				print("START pos=", global_position)
 			
 			var target = Vector2(land_x, target_y)
 			
@@ -627,9 +619,6 @@ func _try_climb():
 			climb_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			climb_tween.tween_property(self, "global_position", target, climb_time)
 			await climb_tween.finished
-			
-			if is_small:
-				print("ПОСЛЕ tween pos=", global_position)
 			
 			is_climbing = false
 			
@@ -647,15 +636,13 @@ func _try_climb():
 			
 			await get_tree().create_timer(0.3).timeout
 			
-			if is_small:
-				print("ФИНАЛ pos=", global_position, " velocity=", velocity)
-			
 			last_climbed_obstacle = null
 			return true
 	
 	return false
 	
-	return false
+
+
 
 func die():
 	if is_dead:

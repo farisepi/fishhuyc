@@ -1,1117 +1,836 @@
-extends Node2D
+func get_chatter_state():
+	return {
+		"queue": chatter_queue.duplicate(),
+		"current_text": chatter_full_text,
+		"char_index": chatter_char_index
+	}
 
-@onready var player: CharacterBody2D = $Mecha_Fish
-@onready var elevator: ColorRect = $EndAct/Elevator
-@onready var elevator_button: Area2D = $EndAct/ElevatorButton
-@onready var forklift: CharacterBody2D = $ForkliftScene/Forklift
-@onready var falling_shelf: StaticBody2D = $ForkliftScene/FallingShelf
-@onready var forklift_trigger: Area2D = $ForkliftTrigger
-@onready var death_zone: Area2D = $DeathZone
-@onready var death_zone2: Area2D = $DeathZone2
-@onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
-@onready var pause_menu: CanvasLayer = $Pausemenu
-@onready var shift_tutorial: CanvasLayer = $ShiftTutorial
-@onready var shift_qte: CanvasLayer = $ShiftQTE
-@onready var qte_button: CanvasLayer = $QTEButton
-
-@export var sniper_scene: PackedScene = null
-@export var sniper_spawn_position: Vector2 = Vector2(-1410, 462)
-@export var escape_sniper_x: float = 3050.0
-@export var sniper_trigger_x: float = 517.0
-@export var sniper_trigger_y: float = 340.0
-
-const INTRO_START_X: float = -1400.0
-const INTRO_FADE_X: float = -1100.0
-const INTRO_CAPTURE_X: float = -150.0
-const INTRO_FADE_TIME: float = 3.5
-const INTRO_RUN_TIME: float = 6.5
-const ENEMY_MIN_GAP: float = 100.0
-const ENEMY_SPACING: float = 55.0
-const ENEMY_CATCHUP: float = 0.14
-const FORKLIFT_PLAYER_TARGET_X: float = 4000.0
-const FORKLIFT_TARGET_X: float = 7500.0
-
-const CUTSCENE_BARS_HEIGHT: float = 140.0
-
-enum State { INTRO_RUN, QTE_GRAB, RUNNING, SNIPER_CUTSCENE, FORKLIFT_CUTSCENE, FORKLIFT_QTE, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
-var state: State = State.INTRO_RUN
-var elevator_timer: float = 0.0
-var can_press_button: bool = false
-var forklift_activated: bool = false
-var shelf_climbed: bool = false
-var _shelf_climbing: bool = false
-var is_game_over: bool = false
-var check_timer: Timer
-
-var forklift_ready_for_throw: bool = false
-var forklift_stopped: bool = false
-var forklift_charging: bool = false
-
-var parry_done: bool = false
-var parry_trigger: Area2D = null
-
-var sniper: Node = null
-var sniper_active: bool = false
-var sniper_cutscene_played: bool = false
-
-var fade_overlay: ColorRect = null
-var _intro_enemies: Array = []
-var _intro_enemy_y_offsets: Array = []
-var _intro_started: bool = false
-
-var sniper_trigger: Area2D = null
-var _input_locked: bool = false
-
-var _bar_top: ColorRect = null
-var _bar_bottom: ColorRect = null
-var _cutscene_canvas: CanvasLayer = null
-
-func _ready():
-	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-
-	player.global_position.x = INTRO_START_X
-	_lock_player_input(true)
-	player.velocity = Vector2.ZERO
-	player.is_dead = false
-	player.movement_blocked = false
-	player.is_vaulting = false
-	player.is_climbing = false
-	player.is_climbing_animation = false
-	player.is_sliding = false
-	player.is_dashing = false
-	player.is_blocking = false
-	player.is_attacking = false
-	player.is_landing = false
-	player.modulate = Color.WHITE
-	if player.sprite:
-		player.sprite.modulate = Color.WHITE
-		player.sprite.stop()
-		player.sprite.play("Idle")
-
-	forklift.visible = false
-	falling_shelf.visible = false
-
-	_intro_enemies.clear()
-	_intro_enemy_y_offsets.clear()
-	var px = player.global_position.x
-	var py = player.global_position.y
-	var idx = 0
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(false)
-			enemy.set_process(false)
-			enemy.player = player
-			enemy.visible = true
-			var y_off = enemy.global_position.y - py
-			_intro_enemy_y_offsets.append(y_off)
-			enemy.global_position = Vector2(
-				px - ENEMY_MIN_GAP - idx * ENEMY_SPACING,
-				py + y_off
-			)
-			_intro_enemies.append(enemy)
-			idx += 1
-
-	check_timer = Timer.new()
-	check_timer.wait_time = 0.05
-	check_timer.autostart = true
-	check_timer.timeout.connect(_check_enemy_collision)
-	add_child(check_timer)
-
-	forklift_trigger.body_entered.connect(_on_forklift_trigger_entered)
-
-	death_zone.body_entered.connect(func(body):
-		if body == player and not is_game_over and state == State.RUNNING:
-			is_game_over = true
-			state = State.GAMEOVER
-			_stop_all_world()
-	)
-	death_zone2.body_entered.connect(func(body):
-		if body == player and not is_game_over and state == State.RUNNING:
-			is_game_over = true
-			state = State.GAMEOVER
-			_stop_all_world()
-	)
-
-	_create_sniper_trigger()
-	_create_cutscene_bars()
-
-	_setup_parry_scene()
-	_setup_entrance_gate()
-
-	if pause_menu:
-		pause_menu.hide()
-
-	_start_intro()
-
-func _create_cutscene_bars():
-	_cutscene_canvas = CanvasLayer.new()
-	_cutscene_canvas.layer = 90
-	add_child(_cutscene_canvas)
-
-	_bar_top = ColorRect.new()
-	_bar_top.color = Color.BLACK
-	_bar_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bar_top.anchor_left = 0.0
-	_bar_top.anchor_right = 1.0
-	_bar_top.anchor_top = 0.0
-	_bar_top.anchor_bottom = 0.0
-	_bar_top.offset_top = -CUTSCENE_BARS_HEIGHT
-	_bar_top.offset_bottom = 0.0
-	_cutscene_canvas.add_child(_bar_top)
-
-	_bar_bottom = ColorRect.new()
-	_bar_bottom.color = Color.BLACK
-	_bar_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bar_bottom.anchor_left = 0.0
-	_bar_bottom.anchor_right = 1.0
-	_bar_bottom.anchor_top = 1.0
-	_bar_bottom.anchor_bottom = 1.0
-	_bar_bottom.offset_top = 0.0
-	_bar_bottom.offset_bottom = CUTSCENE_BARS_HEIGHT
-	_cutscene_canvas.add_child(_bar_bottom)
-
-func _show_cutscene_bars(duration: float = 0.5):
-	var t = create_tween().set_parallel(true)
-	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.tween_property(_bar_top, "offset_top", 0.0, duration)
-	t.tween_property(_bar_top, "offset_bottom", CUTSCENE_BARS_HEIGHT, duration)
-	t.tween_property(_bar_bottom, "offset_top", -CUTSCENE_BARS_HEIGHT, duration)
-	t.tween_property(_bar_bottom, "offset_bottom", 0.0, duration)
-
-func _hide_cutscene_bars(duration: float = 0.5):
-	var t = create_tween().set_parallel(true)
-	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t.tween_property(_bar_top, "offset_top", -CUTSCENE_BARS_HEIGHT, duration)
-	t.tween_property(_bar_top, "offset_bottom", 0.0, duration)
-	t.tween_property(_bar_bottom, "offset_top", 0.0, duration)
-	t.tween_property(_bar_bottom, "offset_bottom", CUTSCENE_BARS_HEIGHT, duration)
-
-func _lock_player_input(locked: bool):
-	_input_locked = locked
-	if locked:
-		player.set_physics_process(false)
-		player.set_process(false)
-		player.set_process_input(false)
-		player.set_process_unhandled_input(false)
-		if "block_click_attack" in player:
-			player.block_click_attack = true
-		player.is_dashing = false
-		player.is_sliding = false
-		player.is_blocking = false
-		player.is_attacking = false
-		player.is_vaulting = false
-		player.is_climbing = false
-		player.is_climbing_animation = false
-		player.is_landing = false
-		player.movement_blocked = true
-		player.velocity = Vector2.ZERO
-	else:
-		player.set_physics_process(true)
-		player.set_process(true)
-		player.set_process_input(true)
-		player.set_process_unhandled_input(true)
-		if "block_click_attack" in player:
-			player.block_click_attack = false
-		player.movement_blocked = false
-		player.is_dashing = false
-		player.is_sliding = false
-		player.is_blocking = false
-		player.is_attacking = false
-		player.is_landing = false
-
-func _stop_all_world():
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(false)
-			enemy.set_process(false)
-			enemy.velocity = Vector2.ZERO
-	if sniper and is_instance_valid(sniper):
-		sniper.set_physics_process(false)
-	forklift.set_physics_process(false)
-	forklift.velocity = Vector2.ZERO
-
-func _resume_all_world():
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D:
-			enemy.set_physics_process(true)
-			enemy.set_process(true)
-	forklift.set_physics_process(true)
-
-func _create_sniper_trigger():
-	sniper_trigger = Area2D.new()
-	sniper_trigger.name = "SniperTriggerScript"
-	sniper_trigger.position = Vector2(sniper_trigger_x, sniper_trigger_y)
-	sniper_trigger.collision_layer = 0
-	sniper_trigger.collision_mask = 1
-	sniper_trigger.monitoring = true
-
-	var shape = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
-	rect.size = Vector2(120, 500)
-	shape.shape = rect
-	sniper_trigger.add_child(shape)
-
-	add_child(sniper_trigger)
-	sniper_trigger.body_entered.connect(_on_sniper_trigger_entered)
-
-func _on_sniper_trigger_entered(body):
-	if body != player:
+func set_chatter_state(state: Dictionary):
+	if state.is_empty():
 		return
-	if state != State.RUNNING:
-		return
-	if sniper_cutscene_played:
-		return
-	sniper_trigger.set_deferred("monitoring", false)
-	sniper_cutscene_played = true
-	call_deferred("_spawn_sniper_deferred", true)
-
-func _spawn_sniper_deferred(with_cutscene: bool):
-	_spawn_sniper(with_cutscene)
-
-func _setup_parry_scene():
-	var parrying_scene = get_node_or_null("ParryingScene")
-	if not parrying_scene:
-		return
-	parry_trigger = parrying_scene.get_node_or_null("ParryTrigger")
-	var enemy = parrying_scene.get_node_or_null("AttackParry")
-	if parry_trigger and enemy:
-		enemy.visible = false
-		enemy.set_physics_process(false)
-		enemy.set_process(false)
-		enemy.collision_layer = 0
-		enemy.collision_mask = 0
-		var col = enemy.get_node_or_null("CollisionShape2D")
-		if col:
-			col.disabled = true
-		parry_trigger.body_entered.connect(func(body):
-			if not is_inside_tree():
-				return
-			if body == player and not parry_done:
-				player.start_parry(enemy, _on_parry_complete)
-				parry_trigger.set_deferred("monitoring", false)
-		)
-
-func _setup_entrance_gate():
-	var entrance_gate = $EntranceGate
-	var entrance_trigger = $EntranceTrigger
-	var passage_trigger = $TightPassageTrigger
-	if entrance_gate and entrance_trigger and passage_trigger:
-		var col = entrance_gate.get_node_or_null("CollisionShape2D")
-		if col:
-			col.disabled = false
-
-func _start_intro():
-	if _intro_started:
-		return
-	_intro_started = true
-	state = State.INTRO_RUN
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Run")
-		player.sprite.scale.x = 1
-
-	var total_time = INTRO_RUN_TIME
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_LINEAR)
-	tween.tween_property(player, "global_position:x", INTRO_CAPTURE_X, total_time)
-
-	var fade_delay = total_time * ((INTRO_FADE_X - INTRO_START_X) / (INTRO_CAPTURE_X - INTRO_START_X))
-	_start_fade_after(fade_delay)
-
-	await tween.finished
-	if not is_inside_tree():
-		return
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Idle")
-
-	_start_qte_grab()
-
-func _start_fade_after(delay: float):
-	var canvas = CanvasLayer.new()
-	canvas.layer = 50
-	add_child(canvas)
-
-	fade_overlay = ColorRect.new()
-	fade_overlay.color = Color(0, 0, 0, 1)
-	fade_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fade_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canvas.add_child(fade_overlay)
-
-	await get_tree().create_timer(delay).timeout
-	if not is_inside_tree():
-		return
-
-	var tween = create_tween()
-	tween.tween_property(fade_overlay, "color:a", 0.0, INTRO_FADE_TIME)
-	await tween.finished
-	if not is_inside_tree():
-		return
-
-	if fade_overlay and is_instance_valid(fade_overlay):
-		fade_overlay.queue_free()
-		fade_overlay = null
-
-func _update_intro_enemies():
-	if not is_instance_valid(player):
-		return
-
-	if player.sprite and player.sprite.animation != "Run" and player.sprite.animation != "Idle":
-		if state == State.INTRO_RUN:
-			player.sprite.play("Run")
-		elif state == State.QTE_GRAB:
-			player.sprite.play("Idle")
-
-	var px = player.global_position.x
-	var py = player.global_position.y
-
-	for i in _intro_enemies.size():
-		var enemy = _intro_enemies[i]
-		if not is_instance_valid(enemy):
-			continue
-
-		var y_off = _intro_enemy_y_offsets[i] if i < _intro_enemy_y_offsets.size() else 0.0
-
-		var desired_x = px - ENEMY_MIN_GAP - i * ENEMY_SPACING
-		var max_x = px - ENEMY_MIN_GAP
-
-		if enemy.global_position.x > max_x:
-			enemy.global_position.x = max_x - i * ENEMY_SPACING
-		else:
-			var new_x = lerp(enemy.global_position.x, desired_x, ENEMY_CATCHUP)
-			if new_x > max_x:
-				new_x = max_x
-			enemy.global_position.x = new_x
-
-		enemy.global_position.y = py + y_off
-
-func _start_qte_grab():
-	state = State.QTE_GRAB
-	player.modulate = Color(1, 0.5, 0.5, 1)
-	_lock_player_input(true)
-
-	print("[Level] _start_qte_grab: перед await")
-	var success = await _run_e_button_qte_at(player.global_position + Vector2(0, -120))
-	print("[Level] _start_qte_grab: после await, success=", success)
-
-	if not is_inside_tree():
-		return
-
-	print("[QTE] success=", success)
-
-	player.modulate = Color.WHITE
-
-	if success:
-		print("[QTE] вход в success-ветку")
-		await get_tree().create_timer(0.8).timeout
-		if not is_inside_tree():
-			return
-
-		for enemy in _intro_enemies:
-			if not is_instance_valid(enemy):
-				continue
-			var target = enemy.global_position + Vector2(-250.0, 0)
-			var t = create_tween()
-			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			t.tween_property(enemy, "global_position:x", target.x, 0.35)
-
-		await get_tree().create_timer(0.35).timeout
-		if not is_inside_tree():
-			return
-
-		player.is_dead = false
-		player.is_vaulting = false
-		player.is_climbing = false
-		player.is_climbing_animation = false
-		player.is_sliding = false
-		player.is_dashing = false
-		player.is_blocking = false
-		player.is_attacking = false
-		player.is_landing = false
-		player.velocity = Vector2.ZERO
-		player.movement_blocked = false
-		player.modulate = Color.WHITE
-		if player.sprite:
-			player.sprite.stop()
-			player.sprite.modulate = Color.WHITE
-			player.sprite.play("Idle")
-
-		print("[QTE] до lock: movement_blocked=", player.movement_blocked, " state=", state)
-		state = State.RUNNING
-		_lock_player_input(false)
-		print("[QTE] после lock: movement_blocked=", player.movement_blocked, " state=", state, " physics=", player.is_physics_processing())
-		print("[QTE] input_locked=", _input_locked)
-
-		for enemy in _intro_enemies:
-			if is_instance_valid(enemy):
-				enemy.set_physics_process(true)
-				enemy.set_process(true)
-	else:
-		player.die()
-
-func _spawn_sniper(with_cutscene: bool = false):
-	if sniper or sniper_active:
-		return
-	if not sniper_scene:
-		return
-
-	sniper = sniper_scene.instantiate()
-	if "start_active" in sniper:
-		sniper.start_active = false
-	if "gravity" in sniper:
-		sniper.gravity = 0.0
-
-	get_tree().current_scene.add_child(sniper)
-	sniper.global_position = sniper_spawn_position
-	sniper.visible = false
-	sniper.set_physics_process(false)
-	sniper.set_process(false)
-	sniper.velocity = Vector2.ZERO
-
-	sniper_active = true
-
-	if with_cutscene:
-		_play_sniper_cutscene()
-
-func _play_sniper_cutscene():
-	state = State.SNIPER_CUTSCENE
-
-	_lock_player_input(true)
-	_stop_all_world()
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Idle")
-		player.sprite.scale.x = 1
-
-	_show_cutscene_bars(0.6)
-
-	var cam = camera
-	if not cam:
-		return
-
-	if "follow_enabled" in cam:
-		cam.follow_enabled = false
-	if "look_offset" in cam:
-		cam.look_offset = Vector2.ZERO
-	cam.position_smoothing_enabled = false
-	cam.rotation_smoothing_enabled = false
-
-	var player_pos = player.global_position
-	var sniper_pos = sniper.global_position
-	var start_zoom = cam.zoom
-
-	cam.global_position = player_pos
-
-	var t1 = create_tween().set_parallel(true)
-	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t1.tween_property(cam, "global_position", sniper_pos, 1.6)
-	t1.tween_property(cam, "zoom", Vector2(1.4, 1.4), 1.6)
-	await t1.finished
-	if not is_inside_tree():
-		return
-
-	await get_tree().create_timer(2.0).timeout
-	if not is_inside_tree():
-		return
-
-	if is_instance_valid(sniper):
-		sniper.visible = true
-
-	await get_tree().create_timer(1.5).timeout
-	if not is_inside_tree():
-		return
-
-	var t2 = create_tween().set_parallel(true)
-	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t2.tween_property(cam, "global_position", player_pos, 1.4)
-	t2.tween_property(cam, "zoom", start_zoom, 1.4)
-	await t2.finished
-	if not is_inside_tree():
-		return
-
-	_hide_cutscene_bars(0.6)
-
-	cam.global_position = player_pos
-	cam.zoom = start_zoom
-	if "follow_enabled" in cam:
-		cam.follow_enabled = true
-
-	if shift_tutorial and shift_tutorial.has_method("show_tutorial"):
-		shift_tutorial.show_tutorial()
-		while shift_tutorial.is_active:
-			await get_tree().process_frame
-			if not is_inside_tree():
-				return
-
-	if sniper and is_instance_valid(sniper):
-		sniper.set_process(true)
-		sniper.set_physics_process(false)
-		if sniper.has_method("activate"):
-			sniper.activate()
-
-	_resume_all_world()
-	_lock_player_input(false)
-	state = State.RUNNING
-
-func _deactivate_sniper():
-	if sniper and is_instance_valid(sniper):
-		if sniper.has_method("deactivate"):
-			sniper.deactivate()
-	sniper_active = false
-
-func _process(delta: float) -> void:
-	if get_tree().paused:
-		return
-
-	if state == State.INTRO_RUN or state == State.QTE_GRAB:
-		_update_intro_enemies()
-		if camera:
-			camera.global_position = player.global_position
-		return
-
-	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
-		return
-
-	if state == State.RUNNING and not is_game_over:
-		if sniper_active and player.global_position.x >= escape_sniper_x:
-			_deactivate_sniper()
-
-	_process_gameplay(delta)
-
-func _process_gameplay(delta):
-	if not is_inside_tree():
-		return
-	if get_tree().paused or state == State.GAMEOVER:
-		return
-	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
-		return
-
-	if camera and (state == State.RUNNING or state == State.ELEVATOR_WAIT or state == State.ELEVATOR_GO):
-		camera.global_position = player.global_position
-
-	if state == State.RUNNING:
-		_check_enemy_collision()
-
-		if forklift_activated and not shelf_climbed and falling_shelf.visible:
-			var dist = player.global_position.distance_to(falling_shelf.global_position)
-			if dist < 150 and Input.is_action_just_pressed("interact"):
-				shelf_climbed = true
-				_climb_shelf()
-
-		if forklift_ready_for_throw and not forklift_stopped:
-			var dist = player.global_position.distance_to(forklift.global_position)
-			if dist < 260 and player.has_item:
-				player.set_can_throw(true)
-				if Input.is_action_just_pressed("interact"):
-					_throw_item_at_forklift()
-			else:
-				player.set_can_throw(false)
-
-		if player.global_position.x > 4200 and parry_done:
-			if not can_press_button:
-				can_press_button = true
-			elif Input.is_action_just_pressed("interact"):
-				can_press_button = false
-				_lock_player_input(true)
-				state = State.ELEVATOR_WAIT
-				elevator_timer = 3.0
-
-	elif state == State.ELEVATOR_WAIT:
-		elevator_timer -= delta
-		if elevator_timer <= 0:
-			state = State.ELEVATOR_GO
-			elevator.color = Color.GREEN
-			var t = create_tween()
-			t.tween_property(player, "global_position:x", elevator.global_position.x + 30, 0.5)
-			await t.finished
-			if not is_inside_tree():
-				return
-			player.visible = false
-			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.0)
-			await lt.finished
-			if not is_inside_tree():
-				return
-			await get_tree().create_timer(0.5).timeout
-			if not is_inside_tree():
-				return
-			_win()
-
-	if _shelf_climbing:
-		if Input.is_action_pressed("ui_up"):
-			player.global_position.y -= 2
-
-		var shelf_top = falling_shelf.global_position.y - falling_shelf.get_node("CollisionShape2D").shape.size.y + 10
-
-		if player.global_position.y <= shelf_top:
-			player.global_position.y = shelf_top
-			_shelf_climbing = false
-			_lock_player_input(false)
-
-func _check_enemy_collision():
-	if state != State.RUNNING:
-		return
-	if is_game_over:
-		return
-	if player.is_dead:
-		return
-
-	var player_pos = player.global_position
-
-	for enemy in $Enemies.get_children():
-		if enemy is CharacterBody2D and not enemy.is_queued_for_deletion():
-			var dist = enemy.global_position.distance_to(player_pos)
-			if dist < 45:
-				is_game_over = true
-				state = State.GAMEOVER
-				_stop_all_world()
-				if player.has_method("die"):
-					player.die()
-				return
-
-func _on_forklift_trigger_entered(body):
-	if not is_inside_tree():
-		return
-	if body == player and not forklift_activated:
-		_activate_forklift()
-
-func _activate_forklift():
-	if not is_inside_tree():
-		return
-	if forklift_activated:
-		return
-	forklift_activated = true
-	_play_forklift_cutscene()
-
-var _forklift_player_tween: Tween = null
-var _forklift_tween: Tween = null
-
-func _play_forklift_cutscene():
-	state = State.FORKLIFT_CUTSCENE
-
-	_lock_player_input(true)
-	_stop_all_world()
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Run")
-		player.sprite.scale.x = 1
-
-	_show_cutscene_bars(0.6)
-
-	var cam = camera
-	if not cam:
-		return
-
-	if "follow_enabled" in cam:
-		cam.follow_enabled = false
-	if "look_offset" in cam:
-		cam.look_offset = Vector2.ZERO
-	cam.position_smoothing_enabled = false
-	cam.rotation_smoothing_enabled = false
-
-	var player_pos = player.global_position
-	var start_zoom = cam.zoom
-
-	if player.sprite:
-		player.sprite.play("Run")
-
-	var start_x = player.global_position.x
-	var dist1 = 4000.0 - start_x
-	var dur1 = abs(dist1) / 400.0
-
-	var t1 = create_tween().set_parallel(true)
-	t1.set_trans(Tween.TRANS_LINEAR)
-	t1.tween_property(player, "global_position:x", 4000.0, dur1)
-	t1.tween_property(cam, "global_position", Vector2((start_x + 4000.0) / 2.0, player_pos.y), dur1)
-	await t1.finished
-	if not is_inside_tree():
-		return
-
-	forklift.visible = true
-	falling_shelf.visible = true
-
-	var forklift_y = forklift.global_position.y
-	forklift.global_position = Vector2(8300.0, forklift_y)
-	falling_shelf.global_position = Vector2(8360.0, forklift_y)
-	forklift.set("active", true)
-
-	var t2 = create_tween().set_parallel(true)
-	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t2.tween_property(cam, "global_position", Vector2(7500.0, player_pos.y), 1.4)
-	t2.tween_property(cam, "zoom", Vector2(1.4, 1.4), 1.4)
-	await t2.finished
-	if not is_inside_tree():
-		return
-
-	var cam_x = (4700.0 + 6380.0) / 2.0
-	var t3 = create_tween().set_parallel(true)
-	t3.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t3.tween_property(cam, "global_position", Vector2(cam_x, player_pos.y), 1.2)
-	t3.tween_property(cam, "zoom", Vector2(0.55, 0.55), 1.2)
-	await t3.finished
-	if not is_inside_tree():
-		return
-
-	if player.sprite:
-		player.sprite.play("Run")
-
-	var player_dist = 4700.0 - player.global_position.x
-	var forklift_dist = 6380.0 - forklift.global_position.x
-	var travel_time = max(abs(player_dist), abs(forklift_dist)) / 500.0
-
-	_forklift_player_tween = create_tween()
-	_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_player_tween.tween_property(player, "global_position:x", 4700.0, travel_time)
-
-	_forklift_tween = create_tween()
-	_forklift_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_tween.tween_property(forklift, "global_position:x", 6380.0, travel_time)
-
-	await _forklift_player_tween.finished
-	await _forklift_tween.finished
-	if not is_inside_tree():
-		return
-
-	# снайпер
-	if not sniper or not is_instance_valid(sniper):
-		_spawn_sniper(false)
-		await get_tree().process_frame
-		if not is_inside_tree():
-			return
-
-	if sniper and is_instance_valid(sniper):
-		sniper.visible = true
-		sniper.set_physics_process(false)
-		sniper.set_process(true)
-		if sniper.has_method("activate"):
-			sniper.activate()
-
-	# ЗАПУСКАЕМ QTE, БЕГ ПРОДОЛЖАЕТСЯ В SLOW-MO
-	state = State.FORKLIFT_QTE
-
-	if player.sprite:
-		player.sprite.play("Run")
-
-	# новые tween'ы для движения в slow-mo — рыба вправо, погрузчик влево
-	_forklift_player_tween = create_tween()
-	_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_player_tween.tween_property(player, "global_position:x", 5000.0, 1.5)
-
-	_forklift_tween = create_tween()
-	_forklift_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_tween.tween_property(forklift, "global_position:x", 6000.0, 1.5)
-
-	var success = await _run_shift_qte_cutscene()
-
-	if not is_inside_tree():
-		return
-
-	# ОСТАНАВЛИВАЕМ tween'ы в любом случае
-	if _forklift_player_tween and _forklift_player_tween.is_valid():
-		_forklift_player_tween.kill()
-	if _forklift_tween and _forklift_tween.is_valid():
-		_forklift_tween.kill()
-
-	if success:
-		# рывок — вызываем публичный метод
-		_force_dash()
-
-		# мгновенно останавливаем погрузчик и шкаф
-		forklift.velocity = Vector2.ZERO
-		forklift_stopped = true
-		forklift.set("active", false)
-
-		if sniper and is_instance_valid(sniper):
-			if sniper.has_method("deactivate"):
-				sniper.deactivate()
-
-		var tilt = create_tween().set_parallel(true)
-		tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
-		tilt.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 40.0, 0.6)
-		await tilt.finished
-	else:
-		_hide_cutscene_bars(0.4)
-		cam.global_position = player_pos
-		if "follow_enabled" in cam:
-			cam.follow_enabled = true
-		cam.zoom = start_zoom
-		_resume_all_world()
-		player.die()
-		return
-
-	_hide_cutscene_bars(0.6)
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Idle")
-
-	var t6 = create_tween().set_parallel(true)
-	t6.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t6.tween_property(cam, "global_position", player.global_position, 1.2)
-	t6.tween_property(cam, "zoom", start_zoom, 1.2)
-	await t6.finished
-	if not is_inside_tree():
-		return
-
-	if "follow_enabled" in cam:
-		cam.follow_enabled = true
-
-	_resume_all_world()
-	_lock_player_input(false)
-
-	state = State.RUNNING
-
-func _force_dash():
-	if not player:
-		return
-	player.is_dashing = false
-	player.dash_cooldown = 0.0
-	if player.has_method("_dash"):
-		player._dash()
-
-func _start_forklift_qte_motion():
-	var ts = Engine.time_scale
-	if ts <= 0.0:
-		ts = 1.0
-
-	# в slow-mo они продолжают идти навстречу
-	# рыба вправо (до 5000), погрузчик влево (до 6000)
-	var dur = 1.5
-
-	var player_t = create_tween()
-	player_t.set_trans(Tween.TRANS_LINEAR)
-	player_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	player_t.tween_property(player, "global_position:x", 5000.0, dur * ts)
-
-	var forklift_t = create_tween()
-	forklift_t.set_trans(Tween.TRANS_LINEAR)
-	forklift_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	forklift_t.tween_property(forklift, "global_position:x", 6000.0, dur * ts)
-
-
-
-func _run_shift_qte_cutscene() -> bool:
-	if not shift_qte or not shift_qte.has_method("show_qte"):
-		await get_tree().create_timer(1.2).timeout
-		return true
-
-	shift_qte.show_qte()
-
-	var result: bool = false
-	var received: bool = false
-
-	var callback = func(success: bool):
-		result = success
-		received = true
-
-	if not shift_qte.qte_result.is_connected(callback):
-		shift_qte.qte_result.connect(callback)
-
-	while not received:
-		await get_tree().process_frame
-		if not is_inside_tree():
-			return false
-
-	if shift_qte.qte_result.is_connected(callback):
-		shift_qte.qte_result.disconnect(callback)
-
-	return result
-
-func _throw_item_at_forklift():
-	if not player.has_item or forklift_stopped:
-		return
-
-	forklift_stopped = true
-	forklift_ready_for_throw = false
-	forklift_charging = false
-
-	player.has_item = false
-	if player.held_icon:
-		player.held_icon.visible = false
-	if player.held_item_icon and is_instance_valid(player.held_item_icon):
-		player.held_item_icon.queue_free()
-		player.held_item_icon = null
-	player.set_can_throw(false)
-
-	var flash = ColorRect.new()
-	flash.color = Color(1, 1, 1, 0.6)
-	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flash.z_index = 100
-	add_child(flash)
-	var ft = create_tween()
-	ft.tween_property(flash, "modulate:a", 0.0, 0.2)
-	await ft.finished
-	if not is_inside_tree():
-		return
-	flash.queue_free()
-
-	forklift.modulate = Color(0.4, 0.4, 0.4, 1)
-
-	if falling_shelf:
-		var t = create_tween()
-		t.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 150, 0.6)
-		t.parallel().tween_property(falling_shelf, "rotation", 0.3, 0.6)
-
-	forklift_trigger.monitoring = false
-
-func _climb_shelf():
-	_lock_player_input(true)
-	_shelf_climbing = true
-
-func _on_parry_complete():
-	parry_done = true
-	if is_instance_valid(player):
-		_lock_player_input(false)
-		player.is_vaulting = false
-		player.is_climbing = false
-		player.is_sliding = false
-		player.is_crouching = false
-
-func _game_over():
-	if is_game_over or state == State.GAMEOVER:
-		return
-	is_game_over = true
-	state = State.GAMEOVER
-
-	_deactivate_sniper()
-	_stop_all_world()
-	_lock_player_input(true)
-	player.velocity = Vector2.ZERO
-
-	if not player.is_dead and player.has_method("die"):
-		player.die()
-
-func _win():
-	state = State.WIN
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-
-	var black = ColorRect.new()
-	black.color = Color.BLACK
-	black.set_anchors_preset(Control.PRESET_FULL_RECT)
-	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	black.z_index = 200
-	add_child(black)
-
-	var tween = create_tween()
-	tween.tween_property(black, "modulate:a", 1.0, 0.5)
-	await tween.finished
-	if not is_inside_tree():
-		return
-
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+	
+	chatter_queue = state["queue"].duplicate()
+	chatter_full_text = state["current_text"]
+	chatter_char_index = state["char_index"]
+	chatter_active = true
+	chatter_typing = false
+	
+	chatter_label.text = chatter_full_text
+	chatter_label_far.text = chatter_full_text
+	chatter_typed_text = chatter_full_text
+	chatter_panel.visible = true
+	chatter_panel.modulate.a = 1.0
+	
+	for phrase in chatter_phrases:
+		var text = ""
+		if phrase.has("text"):
+			text = phrase["text"]
+		elif phrase.has("parts"):
+			for p in phrase["parts"]:
+				text += p
+		if text == chatter_full_text:
+			chatter_speaker = phrase["speaker"]
+			chatter_panel_height = phrase.get("height", 28.0)
+			_update_speaker_icons()
+			break
+	
+	update_chatter_panel()
+	timer.start(2.5)
+
+#func _update_glitch(delta: float) -> void:
+	#var player_pos = player.global_position
+	#var safe_zone_min = Vector2(672, 488)
+	#var safe_zone_max = Vector2(864, 520)
+	#
+	#var dist_to_safe_zone = 0.0
+	#if player_pos.x < safe_zone_min.x:
+		#dist_to_safe_zone += safe_zone_min.x - player_pos.x
+	#if player_pos.x > safe_zone_max.x:
+		#dist_to_safe_zone += player_pos.x - safe_zone_max.x
+	#if player_pos.y < safe_zone_min.y:
+		#dist_to_safe_zone += safe_zone_min.y - player_pos.y
+	#if player_pos.y > safe_zone_max.y:
+		#dist_to_safe_zone += player_pos.y - safe_zone_max.y
+	#
+	#var max_dist = 500.0
+	#var t = clamp(dist_to_safe_zone / max_dist, 0.0, 1.0)
+	#var glitch_intensity = clamp(t * t, 0.0, 0.9)
+	#
+	#text_glitch_timer += delta
+	#var interval = clamp(randf_range(0.8, 1.8) - glitch_intensity * 1.2, 0.3, 1.8)
+	#
+	#if text_glitch_timer > interval and glitch_intensity > 0.02:
+		#text_glitch_timer = 0.0
+		#_apply_text_glitch(glitch_intensity)
+	#
+	#if glitch_intensity > 0.1 and randf() < glitch_intensity * 0.6:
+		#_apply_visual_glitch(glitch_intensity)
+	#
+	#UISounds.set_glitch(glitch_intensity)
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if cutscene_active:
+			return
+		_toggle_pause()
+		get_viewport().set_input_as_handled()
+		return
+	
 	if get_tree().paused:
 		return
+	
+	if event.is_action_pressed("interact") and in_zone and not dialogue_done and not cutscene_active:
+		_show_interact_pressed()
+		stop_chatter()
+		hit_sequence()
 
-	if _input_locked:
-		if event.is_action_pressed("interact") \
-		or event.is_action_pressed("jump") \
-		or event.is_action_pressed("Run") \
-		or event.is_action_pressed("crouch") \
-		or event.is_action_pressed("block") \
-		or event.is_action_pressed("Parry"):
-			get_viewport().set_input_as_handled()
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			get_viewport().set_input_as_handled()
+func update_chatter_panel() -> void:
+	if fading_chatter:
 		return
-
-	if state != State.RUNNING and state != State.ELEVATOR_WAIT and state != State.ELEVATOR_GO:
+	
+	if not chatter_active:
+		chatter_panel.visible = false
+		chatter_panel_far.visible = false
+		phantom_left.visible = false
+		phantom_left_label.visible = false
+		phantom_right.visible = false
+		phantom_right_label.visible = false
 		return
-
-	if event.is_action_pressed("interact"):
-		var entrance_trigger = get_node_or_null("EntranceTrigger")
-		var passage_trigger = get_node_or_null("TightPassageTrigger")
-
-		if entrance_trigger:
-			var bodies = entrance_trigger.get_overlapping_bodies()
-			if bodies.has(player) and passage_trigger and not passage_trigger.is_active:
-				var col = $EntranceGate.get_node_or_null("CollisionShape2D")
-				if col:
-					col.set_deferred("disabled", true)
-				player.global_position.x += 10
-				passage_trigger.activate(player)
-				return
-
-		if player.has_method("set_movement_blocked") and player.movement_blocked:
-			player.set_movement_blocked(false)
-			return
-
-func _toggle_pause():
-	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE:
+	
+	var cam: Camera2D = player_camera
+	if not cam:
 		return
-	if not pause_menu:
-		return
-	if pause_menu.visible:
-		get_tree().paused = false
-		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-		GlobalMusic.restore_volume()
-		UISounds.restore_ambience()
-		pause_menu.hide_menu()
+	
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var zoom = cam.zoom.x
+	
+	var cam_left = cam.global_position.x - viewport_size.x / 2.0 / zoom
+	var cam_right = cam.global_position.x + viewport_size.x / 2.0 / zoom
+	var cam_top = cam.global_position.y - viewport_size.y / 2.0 / zoom
+	var cam_bottom = cam.global_position.y + viewport_size.y / 2.0 / zoom
+	
+	var scientist_x = scientist.global_position.x
+	var scientist_y = scientist.global_position.y
+	
+	var scientist_visible = (scientist_x >= cam_left and scientist_x <= cam_right and 
+							 scientist_y >= cam_top and scientist_y <= cam_bottom)
+	
+	var dist_to_visible = 0.0
+	if not scientist_visible:
+		var dx = 0.0
+		if scientist_x < cam_left:
+			dx = cam_left - scientist_x
+		if scientist_x > cam_right:
+			dx = scientist_x - cam_right
+		
+		var dy = 0.0
+		if scientist_y < cam_top:
+			dy = cam_top - scientist_y
+		if scientist_y > cam_bottom:
+			dy = scientist_y - cam_bottom
+		
+		dist_to_visible = max(dx, dy)
+	
+	var fade = clamp(dist_to_visible / 300.0, 0.0, 1.0)
+	if scientist_visible:
+		fade = 0.0
+	
+	var phantom_alpha = fade * 0.25
+	current_phantom_offset = lerp(current_phantom_offset, fade, 0.03)
+	
+	if fade < 0.05:
+		_show_chatter_near()
 	else:
-		get_tree().paused = true
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		GlobalMusic.lower_volume()
-		UISounds.lower_ambience()
-		pause_menu.show_menu()
+		_show_chatter_far(fade, phantom_alpha, viewport_size)
 
-func _resume_after_pause() -> void:
+func _show_chatter_near() -> void:
+	chatter_panel_far.visible = false
+	phantom_left.visible = false
+	phantom_left_label.visible = false
+	phantom_right.visible = false
+	phantom_right_label.visible = false
+	chatter_panel.visible = true
+	chatter_panel.z_index = 100
+	current_phantom_offset = 0.0
+	
+	chatter_panel.size = Vector2(PANEL_WIDTH_NEAR, chatter_panel_height)
+	chatter_label.position = Vector2(4, 4)
+	chatter_label.size = chatter_panel.size - Vector2(8, 8)
+	
+	if chatter_speaker == "mechanic":
+		chatter_panel.position = mechanic.global_position + Vector2(22, -30)
+	else:
+		chatter_panel.position = scientist.global_position + Vector2(-120, -25)
+	
+	_clamp_chatter_to_viewport()
+
+func _show_chatter_far(fade: float, phantom_alpha: float, viewport_size: Vector2) -> void:
+	chatter_panel.visible = false
+	
+	var margin = 20.0
+	var panel_width = PANEL_WIDTH_FAR
+	var panel_height = PANEL_HEIGHT_FAR
+	
+	var target_x = viewport_size.x / 2.0 - panel_width / 2.0
+	var target_y = viewport_size.y - margin - panel_height
+	
+	chatter_panel_far.visible = true
+	chatter_panel_far.z_index = 100
+	chatter_panel_far.size = Vector2(panel_width, panel_height)
+	chatter_panel_far.position = Vector2(target_x, target_y)
+	chatter_panel_far.modulate.a = fade
+	
+	chatter_label_far.text = chatter_label.text
+	chatter_label_far.position = Vector2(70, 10)
+	chatter_label_far.size = chatter_panel_far.size - Vector2(80, 20)
+	
+	var icon_size = 60.0
+	var icon_y = (panel_height - icon_size) / 2.0
+	
+	if speaker_icon_far:
+		speaker_icon_far.position = Vector2(5, icon_y)
+		speaker_icon_far.size = Vector2(icon_size, icon_size)
+	
+	var zoom = player_camera.zoom.x if player_camera else 1.0
+	var offset_x_phantom = int(35 * current_phantom_offset) / zoom
+	var offset_y_phantom = int(25 * current_phantom_offset) / zoom
+	
+	phantom_left.visible = true
+	phantom_left.size = chatter_panel_far.size
+	phantom_left.position = chatter_panel_far.position + Vector2(-offset_x_phantom, offset_y_phantom)
+	phantom_left.modulate.a = phantom_alpha
+	phantom_left.z_index = 99
+	phantom_left_label.visible = true
+	phantom_left_label.text = chatter_label.text
+	phantom_left_label.position = Vector2(70, 10)
+	phantom_left_label.size = phantom_left.size - Vector2(80, 20)
+	
+	if speaker_icon_left:
+		speaker_icon_left.position = Vector2(5, icon_y)
+		speaker_icon_left.size = Vector2(icon_size, icon_size)
+	
+	phantom_right.visible = true
+	phantom_right.size = chatter_panel_far.size
+	phantom_right.position = chatter_panel_far.position + Vector2(offset_x_phantom, -offset_y_phantom)
+	phantom_right.modulate.a = phantom_alpha
+	phantom_right.z_index = 99
+	phantom_right_label.visible = true
+	phantom_right_label.text = chatter_label.text
+	phantom_right_label.position = Vector2(70, 10)
+	phantom_right_label.size = phantom_right.size - Vector2(80, 20)
+	
+	if speaker_icon_right:
+		speaker_icon_right.position = Vector2(5, icon_y)
+		speaker_icon_right.size = Vector2(icon_size, icon_size)
+
+func _clamp_chatter_to_viewport() -> void:
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var panel_size: Vector2 = chatter_panel.size
+	chatter_panel.position.x = clamp(chatter_panel.position.x, 0.0, viewport_size.x - panel_size.x)
+	chatter_panel.position.y = clamp(chatter_panel.position.y, 0.0, viewport_size.y - panel_size.y)
+
+func _generate_chatter_queue() -> void:
+	chatter_queue.clear()
+	for phrase in chatter_phrases:
+		chatter_queue.append(phrase)
+
+func _update_speaker_icons() -> void:
+	var icon = scientist_icon if chatter_speaker == "scientist" else mechanic_icon
+	if speaker_icon_far:
+		speaker_icon_far.texture = icon
+		speaker_icon_far.modulate = Color(1.0, 1.0, 1.0, 0.8)
+	if speaker_icon_left:
+		speaker_icon_left.texture = icon
+		speaker_icon_left.modulate = Color(1.0, 1.0, 1.0, 0.8)
+	if speaker_icon_right:
+		speaker_icon_right.texture = icon
+		speaker_icon_right.modulate = Color(1.0, 1.0, 1.0, 0.8)
+
+func _show_next_chatter_line() -> void:
+	if chatter_silence:
+		return
+	
+	if chatter_queue.is_empty():
+		chatter_queue = chatter_phrases.duplicate()
+	
+	var data: Dictionary = chatter_queue.pop_front()
+	chatter_speaker = data["speaker"]
+	_update_speaker_icons()
+	
+	if data.has("parts"):
+		chatter_segments.clear()
+		for part in data["parts"]:
+			var upper = part.to_upper()
+			var swear_list = ["БЛЯТЬ", "ЗАЕБАЛ", "НАХУЙ", "ЕБАННЫЙ", "ПИЗДЕТЬ"]
+			var is_swear = upper in swear_list
+			chatter_segments.append({"text": part, "swear": is_swear})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+		chatter_full_text = ""
+		for p in data["parts"]:
+			chatter_full_text += p
+	else:
+		chatter_segments.clear()
+		chatter_full_text = data["text"]
+		chatter_segments.append({"text": chatter_full_text, "swear": false})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+	
+	if chatter_full_text == "...":
+		chatter_silence = true
+		chatter_panel.visible = false
+		chatter_panel_far.visible = false
+		phantom_left.visible = false
+		phantom_right.visible = false
+		stop_chatter()
+		Achievements.unlock_coffee()
+		UISounds.play_achievement()
+		_show_achievement("Кофе бы...")
+		return
+	
+	chatter_panel_height = data.get("height", 28.0)
+	
+	chatter_label.clear()
+	chatter_label_far.clear()
+	chatter_label.text = ""
+	chatter_label_far.text = ""
+	chatter_typed_text = ""
+	chatter_panel.visible = false
+	chatter_panel_far.visible = false
+	chatter_typing = true
+	update_chatter_panel()
+	timer.start(typing_speed)
+
+func start_chatter() -> void:
+	if chatter_queue.is_empty():
+		_generate_chatter_queue()
+	
+	chatter_active = true
+	chatter_typing = true
+	chatter_panel.visible = true
+	chatter_panel.modulate.a = 1.0
+	chatter_panel_far.visible = false
+	phantom_left.visible = false
+	phantom_right.visible = false
+	current_phantom_offset = 0.0
+	
+	if chatter_queue.is_empty():
+		chatter_queue = chatter_phrases.duplicate()
+	
+	var data: Dictionary = chatter_queue.pop_front()
+	chatter_speaker = data["speaker"]
+	_update_speaker_icons()
+	
+	if data.has("parts"):
+		chatter_segments.clear()
+		for part in data["parts"]:
+			var upper = part.to_upper()
+			var swear_list = ["БЛЯТЬ", "ЗАЕБАЛ", "НАХУЙ", "ЕБАННЫЙ", "ПИЗДЕТЬ"]
+			var is_swear = upper in swear_list
+			chatter_segments.append({"text": part, "swear": is_swear})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+	else:
+		chatter_segments.clear()
+		chatter_full_text = data.get("text", "")
+		chatter_segments.append({"text": chatter_full_text, "swear": false})
+		chatter_segment_index = 0
+		chatter_char_in_segment = 0
+	
+	chatter_panel_height = data.get("height", 28.0)
+	chatter_label.clear()
+	chatter_label_far.clear()
+	chatter_label.text = ""
+	chatter_label_far.text = ""
+	chatter_typed_text = ""
+	
+	update_chatter_panel()
+	
+	timer.stop()
+	timer.wait_time = typing_speed
+	timer.start()
+
+func stop_chatter() -> void:
+	chatter_active = false
+	chatter_typing = false
+	chatter_panel.visible = false
+	chatter_panel_far.visible = false
+	phantom_left.visible = false
+	phantom_left_label.visible = false
+	phantom_right.visible = false
+	phantom_right_label.visible = false
+	if glitch_tween and glitch_tween.is_valid():
+		glitch_tween.kill()
+
+func _apply_text_glitch(intensity: float) -> void:
+	if not chatter_active or cutscene_active or not chatter_label or is_glitching:
+		return
+
+	var original = chatter_typed_text
+	if original.length() == 0:
+		return
+
+	is_glitching = true
+
+	if intensity > 0.03:
+		var chars_main = []
+		for c in original:
+			chars_main.append(c)
+
+		var up_count = max(1, int(intensity * chars_main.size() * 0.12))
+		for i in range(up_count):
+			var pos = randi() % chars_main.size()
+			if chars_main[pos] != " ":
+				chars_main[pos] = chars_main[pos].to_upper()
+
+		var rm_count = max(1, int(intensity * chars_main.size() * 0.08))
+		for i in range(rm_count):
+			var pos = randi() % chars_main.size()
+			if chars_main[pos] != " ":
+				chars_main[pos] = ""
+
+		var glitched_main = ""
+		for c in chars_main:
+			glitched_main += c
+
+		chatter_label.text = glitched_main
+		chatter_label.add_theme_color_override("default_color", Color(1.0, 0.4, 0.4))
+
+		if chatter_label_far:
+			chatter_label_far.text = glitched_main
+			chatter_label_far.add_theme_color_override("default_color", Color(1.0, 0.4, 0.4))
+
+		await get_tree().create_timer(0.06).timeout
+
+		if chatter_active and not cutscene_active and is_instance_valid(chatter_label):
+			
+			chatter_label.text = chatter_typed_text
+			chatter_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
+			if chatter_label_far:
+				chatter_label_far.text = chatter_typed_text
+				chatter_label_far.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
+
+	is_glitching = false
+
+
+func shake_panel() -> void:
+	if not dialogue_panel:
+		return
+	var orig = dialogue_panel.position
+	var t = create_tween()
+	t.set_loops(3)
+	t.tween_property(dialogue_panel, "position:x", orig.x + 5, 0.04)
+	t.tween_property(dialogue_panel, "position:x", orig.x - 5, 0.04)
+	t.tween_property(dialogue_panel, "position:x", orig.x, 0.04)
+
+func shake_chatter_panel() -> void:
+	var tp = chatter_panel if chatter_panel.visible else (chatter_panel_far if chatter_panel_far.visible else null)
+	if not tp:
+		return
+	var orig = tp.position
+	var t = create_tween()
+	t.set_loops(3)
+	t.tween_property(tp, "position:x", orig.x + 5, 0.04)
+	t.tween_property(tp, "position:x", orig.x - 5, 0.04)
+	t.tween_property(tp, "position:x", orig.x, 0.04)
+	
+func _apply_visual_glitch(intensity: float) -> void:
+	var panels_to_shake: Array[Panel] = []
+
+func scientist_say(p1: String, m: String, p2: String) -> void:
+	if not text_label or not dialogue_panel or not scientist or not timer:
+		return
+	
+	UISounds.stop_all_dialog()
+	timer.stop()
+	dialogue_panel.modulate.a = 1.0
+	text_label.text = ""
+	
+	var full = p1 + m + p2
+	var lines = ceil(full.length() / 11.0) + 1
+	var h = max(28.0, lines * 15.0)
+	
+	dialogue_panel.size = Vector2(100, h)
+	text_label.size = dialogue_panel.size - Vector2(8, 8)
+	text_label.position = Vector2(4, 4)
+	dialogue_panel.position = scientist.global_position + Vector2(-120, -25)
+	_clamp_panel_to_viewport()
+	dialogue_panel.visible = true
+	
+	part1 = p1
+	mate = m
+	part2 = p2
+	typing_index = 0
+	mate_shown = false
+	waiting_for_next = false
+	timer.start(typing_speed)
+
+func mechanic_say(text: String, h_override: float = 0.0) -> void:
+	if not text_label or not dialogue_panel or not mechanic or not timer:
+		return
+	
+	UISounds.stop_all_dialog()
+	timer.stop()
+	dialogue_panel.modulate.a = 1.0
+	text_label.text = ""
+	
+	var h: float
+	if h_override > 0:
+		h = h_override
+	else:
+		var lines = ceil(text.length() / 14.0) + 1
+		h = max(28.0, lines * 15.0)
+	
+	dialogue_panel.size = Vector2(100, h)
+	text_label.size = dialogue_panel.size - Vector2(8, 8)
+	text_label.position = Vector2(4, 4)
+	dialogue_panel.position = mechanic.global_position + Vector2(22, -30)
+	_clamp_panel_to_viewport()
+	dialogue_panel.visible = true
+	
+	part1 = text
+	mate = ""
+	part2 = ""
+	typing_index = 0
+	mate_shown = false
+	waiting_for_next = false
+	timer.start(typing_speed)
+
+func _clamp_panel_to_viewport() -> void:
+	var vp = get_viewport().get_visible_rect().size
+	dialogue_panel.position.x = clamp(dialogue_panel.position.x, 0.0, vp.x - dialogue_panel.size.x)
+	dialogue_panel.position.y = clamp(dialogue_panel.position.y, 0.0, vp.y - dialogue_panel.size.y)
+
+func _on_timer_timeout() -> void:
+	if get_tree().paused:
+		return
+	
+	if cutscene_active:
+		_on_cutscene_timer()
+		return
+	
+	if chatter_active and chatter_typing:
+		_on_chatter_typing_timer()
+		return
+	
+	if chatter_active and not chatter_typing:
+		_show_next_chatter_line()
+
+func _on_cutscene_timer() -> void:
+	if waiting_for_next:
+		timer.stop()
+		waiting_for_next = false
+		_advance_cutscene()
+		return
+	
+	if mate != "" and not mate_shown:
+		if typing_index < part1.length():
+			text_label.text += part1[typing_index]
+			typing_index += 1
+			UISounds.play_scientist()
+			timer.start(typing_speed)
+		else:
+			text_label.text += "[color=#FF3333]" + mate + "[/color]"
+			mate_shown = true
+			shake_panel()
+			UISounds.play_scientist()
+			timer.start(typing_speed)
+		return
+	
+	if mate != "" and mate_shown:
+		if typing_index - part1.length() < part2.length():
+			text_label.text += part2[typing_index - part1.length()]
+			typing_index += 1
+			UISounds.play_scientist()
+			timer.start(typing_speed)
+		else:
+			timer.stop()
+			waiting_for_next = true
+			timer.start(0.6)
+		return
+	
+	if typing_index < part1.length():
+		text_label.text += part1[typing_index]
+		typing_index += 1
+		UISounds.play_mechanic()
+		timer.start(typing_speed)
+	else:
+		timer.stop()
+		waiting_for_next = true
+		timer.start(0.6)
+
+func _on_chatter_typing_timer() -> void:
+	if chatter_segment_index < chatter_segments.size():
+		var seg: Dictionary = chatter_segments[chatter_segment_index]
+		if seg["swear"]:
+			chatter_typed_text += "[color=#FF3333]" + seg["text"] + "[/color]"
+			chatter_label.text = chatter_typed_text
+			shake_chatter_panel()
+			chatter_segment_index += 1
+			chatter_char_in_segment = 0
+			timer.start(typing_speed * 2)
+		else:
+			var seg_text = seg["text"]
+			if chatter_char_in_segment < seg_text.length():
+				chatter_typed_text += seg_text[chatter_char_in_segment]
+				chatter_label.text = chatter_typed_text
+				chatter_char_in_segment += 1
+				timer.start(typing_speed)
+			else:
+				chatter_segment_index += 1
+				chatter_char_in_segment = 0
+				timer.start(typing_speed)
+		if chatter_speaker == "scientist":
+			UISounds.play_scientist()
+		else:
+			UISounds.play_mechanic()
+		return
+	else:
+		chatter_typing = false
+		timer.start(2.5)
+
+func _on_dialogue_timer_timeout() -> void:
+	pass
+
+func hit_sequence() -> void:
+	if interact_icon:
+		interact_icon.visible = false
+	cutscene_active = true
+	if player and player.has_method("hit_glass"):
+		player.hit_glass()
+	
+	await get_tree().create_timer(1.0).timeout
+	
+	var target_global_pos = cutscene_cam.global_position
+	var target_zoom = cutscene_cam.zoom
+	
+	player_camera.enabled = false
+	
+	var temp_cam = Camera2D.new()
+	temp_cam.name = "CutsceneCameraTemp"
+	var viewport_size = get_viewport().get_visible_rect().size
+	var offset_x = viewport_size.x / 16.0 - 16.25
+	temp_cam.global_position = player.global_position - Vector2(offset_x, 0)
+	temp_cam.zoom = player_camera.zoom
+	temp_cam.enabled = true
+	temp_cam.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(temp_cam)
+	
+	await get_tree().process_frame
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(temp_cam, "global_position", target_global_pos, 1.5)
+	tween.tween_property(temp_cam, "zoom", target_zoom, 1.5)
+	
+	await get_tree().create_timer(1.8).timeout
+	
+	temp_cam.enabled = false
+	cutscene_cam.enabled = true
+	cutscene_cam.global_position = target_global_pos
+	cutscene_cam.zoom = target_zoom
+	temp_cam.queue_free()
+	
+	start_cutscene()
+
+func _transition_to_cutscene_camera() -> void:
+	if not player_camera or not cutscene_cam:
+		return
+	
+	var target_pos = player.global_position + Vector2(0, -100)
+	
+	cutscene_cam.global_position = player_camera.global_position
+	cutscene_cam.zoom = player_camera.zoom
+	cutscene_cam.enabled = true
+	player_camera.enabled = false
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(cutscene_cam, "global_position", target_pos, 1.2).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(cutscene_cam, "zoom", Vector2(1.5, 1.5), 1.2).set_ease(Tween.EASE_IN_OUT)
+
+func start_cutscene() -> void:
+	if not player or not interact_icon:
+		return
+	
+	chatter_active = false
+	chatter_typing = false
+	stop_chatter()
+	timer.stop()
+	
+	cutscene_active = true
+	dialogue_done = true
+	if interact_icon:
+		interact_icon.visible = false
+	player.set_physics_process(false)
+	player.set_process(false)
+	
+	cutscene_step = 1
+	_scientist_play_angry()
+	scientist_say("Проснулся ", "БЛЯТЬ", " наконец...")
+
+func _advance_cutscene() -> void:
+	UISounds.stop_all_dialog()
+	timer.stop()
+	
+	match cutscene_step:
+		1:
+			cutscene_step = 2
+			scientist_say("Пол комплекса чуть не ", "РАЗЪЕБАЛ", "")
+		2:
+			cutscene_step = 3
+			mechanic_say("Во-во...", 42.0)
+		3:
+			cutscene_step = 4
+			mechanic_say("А простым работягам это все чинить...", 56.0)
+		4:
+			cutscene_step = 5
+			dialogue_panel.visible = false
+			_start_earthquake()
+
+func _wait_for_cutscene_line() -> void:
+	while not waiting_for_next:
+		await get_tree().create_timer(0.05).timeout
+	waiting_for_next = false
+
+func _start_earthquake() -> void:
+	UISounds.play_earthquake()
+	
+	if player_camera:
+		player_camera.enabled = false
+	cutscene_cam.enabled = true
+	cutscene_cam.trauma = 0.8
+	
+	var quake_tween = create_tween()
+	quake_tween.set_loops()
+	quake_tween.tween_callback(func(): 
+		if is_instance_valid(cutscene_cam):
+			cutscene_cam.trauma = 0.8
+	)
+	quake_tween.tween_interval(0.05)
+	
+	scientist_say("", "ЕБАНЫЙ", " РОТ, ОПЯТЬ НАЧАЛОСЬ")
+	await _wait_dialog()
+	
+	mechanic_say("ОНО СИЛЬНЕЕ ВСЕХ, ЧТО БЫЛИ ЗА ПОСЛЕДНИЙ ГОД", 85.0)
+	await _wait_dialog()
+	
+	scientist_say("", "БЫСТРЕЕ", " ЭВАКУИРУЙ ПЕРСОНАЛ И ЗАКЛЮЧЕННЫХ")
+	await _wait_dialog()
+	
+	mechanic_say("МЫ НЕ УСПЕ...", 56.0)
+	await get_tree().create_timer(0.8).timeout
+	
+	_knockout_fish()
+	_spawn_falling_debris()
+	await get_tree().create_timer(0.6).timeout
+	
+	UISounds.stop_earthquake()
+	
+	quake_tween.kill()
+	
+	cutscene_cam.trauma = 0.0
+	cutscene_cam.set_external_offset(Vector2.ZERO)
+	cutscene_cam.enabled = false
+	if player_camera:
+		player_camera.enabled = true
+	
+	_show_blackout_title()
+
+func _knockout_fish() -> void:
 	if not player:
 		return
-	player.set_physics_process(true)
-	player.set_process(true)
-
-func _on_continue_pressed():
-	pass
 	
+	player.can_move = false
+	player.velocity = Vector2.ZERO
 	
-func _run_e_button_qte_at(world_pos: Vector2) -> bool:
-	print("[Level] _run_e_button_qte_at вызван, pos=", world_pos)
-	if not qte_button or not qte_button.has_method("show_qte_at"):
-		await get_tree().create_timer(8.0).timeout
-		return true
+	var player_sprite = player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if not player_sprite:
+		return
+	
+	player_sprite.play("wake")
+	player_sprite.speed_scale = -1.0
+	player_sprite.frame = player_sprite.sprite_frames.get_frame_count("wake") - 1
+	
+	var fade_tween = create_tween()
+	fade_tween.tween_property(player_sprite, "modulate", Color(0.4, 0.4, 0.5, 1.0), 1.5)
+	
+	await get_tree().create_timer(1.5).timeout
+	player_sprite.pause()
 
-	qte_button.show_qte_at(world_pos)
-
-	var state_dict = {"result": false, "received": false}
-
-	var callback = func(success: bool):
-		print("[Level] >>> сигнал qte_result получен, success=", success)
-		state_dict["result"] = success
-		state_dict["received"] = true
-
-	if not qte_button.qte_result.is_connected(callback):
-		qte_button.qte_result.connect(callback)
-
-	while not state_dict["received"]:
-		await get_tree().process_frame
-		if not is_inside_tree():
-			return false
-
-	print("[Level] вышли из цикла, result=", state_dict["result"])
-
-	if qte_button.qte_result.is_connected(callback):
-		qte_button.qte_result.disconnect(callback)
-
-	return state_dict["result"]
-func _run_forklift_qte_motion():
-	var ts = Engine.time_scale
-	if ts <= 0.0:
-		ts = 1.0
-
-	# длительности в реальных секундах (не зависят от time_scale)
-	var dur = 1.5
-
-	var player_t = create_tween()
-	player_t.set_trans(Tween.TRANS_LINEAR)
-	player_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	player_t.tween_property(player, "global_position:x", 4700.0, dur * ts)
-
-	var forklift_t = create_tween()
-	forklift_t.set_trans(Tween.TRANS_LINEAR)
-	forklift_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	forklift_t.tween_property(forklift, "global_position:x", 6380.0, dur * ts)
+func _spawn_falling_debris() -> void:
+	var view_size = get_viewport().get_visible_rect().size
+	var debris = Control.new()
+	debris.z_index = 200
+	debris.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(debris)
+	
+	var body = Polygon2D.new()
+	var bw = 340
+	var bh = 200
+	var tw = 90
+	var antialias = 1
+	
+	body.polygon = PackedVector2Array([
+		Vector2(-60, -1500),
+		Vector2(view_size.x + 60, -1500),
+		Vector2(view_size.x + 60, -bh + antialias),
+		Vector2(view_size.x - tw + 60, -bh + antialias),
+		Vector2(view_size.x - tw + 60, -tw + antialias),
+		Vector2(view_size.x - bw + 60, -tw + antialias),
+		Vector2(view_size.x - bw + 60, antialias),
+		Vector2(-60, antialias),
+	])
+	body.color = Color(0.06, 0.06, 0.08)
+	body.antialiased = true
+	debris.add_child(body)
+	
+	var crack = Line2D.new()
+	crack.width = 2
+	crack.default_color = Color(0.15, 0.15, 0.18)
+	crack.antialiased = true
+	crack.points = [
+		Vector2(view_size.x - 80, -bh),
+		Vector2(view_size.x - 40, -bh + 50),
+		Vector2(view_size.x - 70, -bh + 90),
+		Vector2(view_size.x - 120, -bh + 130),
+	]
+	debris.add_child(crack)
+	
+	var crack2 = Line2D.new()
+	crack2.width = 1.5
+	crack2.default_color = Color(0.12, 0.12, 0.15)
+	crack2.antialiased = true
+	crack2.points = [
+		Vector2(view_size.x - bw + 20, -30),
+		Vector2(view_size.x - bw + 80, -10),
+		Vector2(view_size.x - bw + 60, 0),
+	]
+	debris.add_child(crack2)
+	
+	var rebars_data = [
+		{"from": Vector2(view_size.x - bw + 60, 0), "to": Vector2(view_size.x - bw + 40, 70)},
+		{"from": Vector2(view_size.x - bw + 120, 0), "to": Vector2(view_size.x - bw + 110, 100)},
+		{"from": Vector2(view_size.x - bw + 220, 0), "to": Vector2(view_size.x - bw + 240, 80)},
+		{"from": Vector2(view_size.x - tw + 60, -tw), "to": Vector2(view_size.x - tw + 120, -tw - 60)},
+		{"from": Vector2(view_size.x - 40, -bh), "to": Vector2(view_size.x, -bh - 50)},
+	]
+	for r in rebars_data:
+		var rebar = Line2D.new()
+		rebar.width = 4
+		rebar.default_color = Color(0.35, 0.25, 0.2)
+		rebar.antialiased = true
+		rebar.points = [r["from"], r["to"]]
+		debris.add_child(rebar)
+	
+	for i in range(10):
+		var chip = ColorRect.new()
+		chip.color = Color(0.08, 0.08, 0.1)
+		chip.size = Vector2(randf_range(6, 20), randf_range(6, 20))
+		chip.position = Vector2(randf_range(60, view_size.x - 60), randf_range(-140, -40))
+		debris.add_child(chip)
+		
+		var ct = create_tween()
+		ct.tween_property(chip, "position:y", view_size.y + 

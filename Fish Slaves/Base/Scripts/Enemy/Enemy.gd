@@ -20,12 +20,9 @@ func _ready():
 	
 	if detection_area:
 		detection_area.body_entered.connect(_on_detection_area_body_entered)
-	else:
-		print("❌ DetectionArea не найден! Создай его в сцене врага.")
 
 func _on_detection_area_body_entered(body: Node2D):
 	if body.is_in_group("player") and not is_stunned and not is_dead:
-		print("🔴 ВРАГ КОСНУЛСЯ ИГРОКА!")
 		if body.has_method("die"):
 			body.die()
 
