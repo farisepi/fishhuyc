@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ba1v3ohrfskpx"]
 
-[ext_resource type="Texture2D" uid="uid://d1p7myeg8md7" path="res://Fish Slaves/Textures/Effects/Bubble/Bubble.tres" id="1_as3ai"]
-[ext_resource type="Script" uid="uid://d1p7myeg8md7" path="res://Fish Slaves/Base/Scripts/Overlay/Effects/Bubble.gd" id="1_giubm"]
+[ext_resource type="Texture2D" uid="uid://dagv538sqlyfc" path="res://Fish Slaves/Textures/Effects/Bubble/Bubble.tres" id="1_as3ai"]
+[ext_resource type="Script" uid="uid://dtaq6niq174dx" path="res://Fish Slaves/Base/Scripts/Overlay/Effects/Bubble.gd" id="1_giubm"]
 [ext_resource type="Texture2D" uid="uid://csqggu3i7hsm3" path="res://Fish Slaves/Textures/Effects/Bubble/BubblePop.png" id="2_bq4ij"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_urqfx"]
@@ -30,7 +30,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("1_as3ai")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 1.0
 }, {
@@ -50,7 +50,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_yoxmu")
 }],
-"loop": false,
+"loop": 0,
 "name": &"pop",
 "speed": 8.0
 }]
@@ -58,22 +58,22 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_gqii3"]
 radius = 8.0
 
-[node name="Bubble" type="Area2D" unique_id=181905497]
+[node name="Bubble" type="Area2D" unique_id=2111497579]
 script = ExtResource("1_giubm")
 
-[node name="VisibleOnScreenEnabler2D" type="VisibleOnScreenEnabler2D" parent="." unique_id=137227109]
+[node name="VisibleOnScreenEnabler2D" type="VisibleOnScreenEnabler2D" parent="." unique_id=716751084]
 position = Vector2(-32, -32)
 rect = Rect2(-10, -10, 64, 64)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2110606397]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1557858879]
 position = Vector2(1, 1)
 scale = Vector2(2.590909, 2.590909)
 sprite_frames = SubResource("SpriteFrames_1o785")
 animation = &"pop"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1323073209]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=322977490]
 shape = SubResource("CircleShape2D_gqii3")
 
-[connection signal="input_event" from="." to="." method="_on_input_event"]
+[connection signal="input_event" from="." to="." method="_input_event"]
 [connection signal="screen_exited" from="VisibleOnScreenEnabler2D" to="." method="_on_visible_on_screen_enabler_2d_screen_exited"]
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

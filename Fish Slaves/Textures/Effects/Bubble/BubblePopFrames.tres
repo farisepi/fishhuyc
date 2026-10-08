@@ -1,7 +1,7 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://dmhqjuv7q3v1y"]
 
 [ext_resource type="Texture2D" uid="uid://dagv538sqlyfc" path="res://Fish Slaves/Textures/Effects/Bubble/Bubble.tres" id="1_ebwsc"]
-[ext_resource type="Texture2D" uid="uid://bcxu3bvpxagth" path="res://Fish Slaves/Textures/Effects/Bubble/BubblePop.png" id="1_q6cj6"]
+[ext_resource type="Texture2D" uid="uid://csqggu3i7hsm3" path="res://Fish Slaves/Textures/Effects/Bubble/BubblePop.png" id="1_q6cj6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ebwsc"]
 atlas = ExtResource("1_q6cj6")
@@ -25,7 +25,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("1_ebwsc")
 }],
-"loop": false,
+"loop": 0,
 "name": &"default",
 "speed": 5.0
 }, {
@@ -45,7 +45,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_15rb6")
 }],
-"loop": true,
+"loop": 1,
 "name": &"pop",
 "speed": 8.0
 }]

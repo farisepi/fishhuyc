@@ -1,81 +1,81 @@
 [gd_scene format=3 uid="uid://7c2uer11ktpd"]
 
 [ext_resource type="Script" uid="uid://c213k6qc440fp" path="res://Fish Slaves/Base/Scripts/Overlay/Backgrounds/FactoryBackground.gd" id="1_cvjl2"]
-[ext_resource type="Texture2D" uid="uid://dppr0r0i8yjly" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer1.png" id="2_cvjl2"]
-[ext_resource type="Texture2D" uid="uid://dhtvc1yymvlay" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer2.png" id="3_p66mv"]
-[ext_resource type="Texture2D" uid="uid://dxt6sobo2qhh2" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer3.png" id="4_t68dc"]
-[ext_resource type="Texture2D" uid="uid://q1s8r5tcyxss" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer4.png" id="5_mseju"]
-[ext_resource type="Texture2D" uid="uid://drclmjxdk61l8" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer5.png" id="6_if51l"]
-[ext_resource type="Texture2D" uid="uid://c6ibr0q6vvlib" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer6.png" id="7_pfgir"]
-[ext_resource type="Texture2D" uid="uid://ct8es46aogluw" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7.png" id="8_o7kh0"]
-[ext_resource type="Texture2D" uid="uid://dmtx0j7oxujxu" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer8.png" id="9_k0q2n"]
-[ext_resource type="Texture2D" uid="uid://cafnycgyby6l2" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer9.png" id="10_ipdd6"]
+[ext_resource type="Texture2D" uid="uid://dl1cp7hnbdre5" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer1.png" id="2_cvjl2"]
+[ext_resource type="Texture2D" uid="uid://brck4g8neqrvn" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer2.png" id="3_p66mv"]
+[ext_resource type="Texture2D" uid="uid://c2360a87c5vha" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer3.png" id="4_t68dc"]
+[ext_resource type="Texture2D" uid="uid://e07b3pe5mvam" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer4.png" id="5_mseju"]
+[ext_resource type="Texture2D" uid="uid://crtoo4w2iuc06" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer5.png" id="6_if51l"]
+[ext_resource type="Texture2D" uid="uid://bqra7oh6iyi4b" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer6.png" id="7_pfgir"]
+[ext_resource type="Texture2D" uid="uid://c3h3vue18cxmb" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7.png" id="8_o7kh0"]
+[ext_resource type="Texture2D" uid="uid://dthavdrbn0h8" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer8.png" id="9_k0q2n"]
+[ext_resource type="Texture2D" uid="uid://q25x60r3luet" path="res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer9.png" id="10_ipdd6"]
 
-[node name="BG" type="Node2D"]
+[node name="BG" type="Node2D" unique_id=1974329144]
 script = ExtResource("1_cvjl2")
 
-[node name="Layer9" type="Sprite2D" parent="."]
+[node name="Layer9" type="Sprite2D" parent="." unique_id=1349725618]
 z_index = -18
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("2_cvjl2")
 
-[node name="Layer8" type="Sprite2D" parent="."]
+[node name="Layer8" type="Sprite2D" parent="." unique_id=966578182]
 z_index = -16
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("3_p66mv")
 
-[node name="Layer7" type="Sprite2D" parent="."]
+[node name="Layer7" type="Sprite2D" parent="." unique_id=1870934916]
 z_index = -14
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("4_t68dc")
 
-[node name="Layer6" type="Sprite2D" parent="."]
+[node name="Layer6" type="Sprite2D" parent="." unique_id=2097130679]
 z_index = -12
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("5_mseju")
 
-[node name="Layer5" type="Sprite2D" parent="."]
+[node name="Layer5" type="Sprite2D" parent="." unique_id=545396139]
 z_index = -10
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("6_if51l")
 
-[node name="Layer4" type="Sprite2D" parent="."]
+[node name="Layer4" type="Sprite2D" parent="." unique_id=1355583871]
 z_index = -8
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("7_pfgir")
 
-[node name="Layer3" type="Sprite2D" parent="."]
+[node name="Layer3" type="Sprite2D" parent="." unique_id=685194986]
 z_index = -4
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("8_o7kh0")
 
-[node name="Layer3Clone" type="Sprite2D" parent="."]
+[node name="Layer3Clone" type="Sprite2D" parent="." unique_id=1091338653]
 z_index = -4
 position = Vector2(1728, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("8_o7kh0")
 
-[node name="Layer3Clone2" type="Sprite2D" parent="."]
+[node name="Layer3Clone2" type="Sprite2D" parent="." unique_id=1570585410]
 z_index = -4
 position = Vector2(2880, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("8_o7kh0")
 
-[node name="Layer2" type="Sprite2D" parent="."]
+[node name="Layer2" type="Sprite2D" parent="." unique_id=334739329]
 z_index = -2
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("9_k0q2n")
 
-[node name="Layer1" type="Sprite2D" parent="."]
+[node name="Layer1" type="Sprite2D" parent="." unique_id=1738979695]
 z_index = -1
 position = Vector2(576, 324)
-scale = Vector2(4.6, 5.0)
+scale = Vector2(4.6, 5)
 texture = ExtResource("10_ipdd6")

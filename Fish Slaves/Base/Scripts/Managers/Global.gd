@@ -92,9 +92,9 @@ func _apply_all_settings_from_config() -> void:
 		1: DisplayServer.window_set_size(Vector2i(1280, 720))
 		2: DisplayServer.window_set_size(Vector2i(854, 480))
 	
-	var screen_center = DisplayServer.screen_get_size() / 2
+	var screen_center = DisplayServer.screen_get_size() / 2.0
 	var window_size = DisplayServer.window_get_size()
-	DisplayServer.window_set_position(screen_center - window_size / 2)
+	DisplayServer.window_set_position(screen_center - window_size / 2.0)
 	
 	var locale = config.get_value("language", "locale", "ru")
 	TranslationServer.set_locale(locale)

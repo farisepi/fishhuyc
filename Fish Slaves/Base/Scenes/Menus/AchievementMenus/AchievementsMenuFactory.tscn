@@ -8,8 +8,8 @@
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="6_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="7_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="8_btnh"]
-[ext_resource type="Texture2D" uid="uid://8qwdnwihoqf2" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/FactoryAchievementBanner.png" id="9_banner"]
-[ext_resource type="Texture2D" uid="uid://ceo3jy5ur1vbw" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust"]
+[ext_resource type="Texture2D" uid="uid://dsx380yf1mky5" path="res://Fish Slaves/Textures/Interface/MenuButtons/AchievementBanners/FactoryAchievementBanner.png" id="9_banner"]
+[ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="10_rust"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="11_qm5k0"]
 
 [node name="AchievementsMenu" type="Control" unique_id=569335734]
@@ -336,31 +336,31 @@ text = "Поймать коробку, падающую с неба"
 vertical_alignment = 1
 autowrap_mode = 1
 
-[node name="WorkerOfMonthAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000101]
+[node name="WorkerOfMonthAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967195]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000102]
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967194]
 position = Vector2(384, 36.5)
 scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
-[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000103]
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967193]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 60.0
 offset_bottom = 60.0
 
-[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000104]
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967192]
 layout_mode = 0
 offset_left = 772.0
 offset_top = 20.0
 offset_right = 812.0
 offset_bottom = 60.0
 
-[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000105]
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967191]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 21.0
@@ -369,7 +369,7 @@ offset_bottom = 45.0
 theme_override_font_sizes/font_size = 16
 text = "Работник месяца"
 
-[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=3000000106]
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967190]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 33.0
@@ -380,31 +380,31 @@ text = "Закончить смену идеально"
 vertical_alignment = 1
 autowrap_mode = 1
 
-[node name="ScoutAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000111]
+[node name="ScoutAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967185]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000112]
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967184]
 position = Vector2(384, 36.5)
 scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
-[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000113]
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967183]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 60.0
 offset_bottom = 60.0
 
-[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000114]
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967182]
 layout_mode = 0
 offset_left = 772.0
 offset_top = 20.0
 offset_right = 812.0
 offset_bottom = 60.0
 
-[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000115]
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967181]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 21.0
@@ -413,7 +413,7 @@ offset_bottom = 45.0
 theme_override_font_sizes/font_size = 16
 text = "Разведчик"
 
-[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=3000000116]
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967180]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 33.0
@@ -424,31 +424,31 @@ text = "Записать всю информацию об окружении"
 vertical_alignment = 1
 autowrap_mode = 1
 
-[node name="FreedomAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=3000000121]
+[node name="FreedomAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967175]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000122]
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967174]
 position = Vector2(384, 36.5)
 scale = Vector2(2.06, 1.972)
 texture = ExtResource("9_banner")
 
-[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000123]
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967173]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 60.0
 offset_bottom = 60.0
 
-[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000124]
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967172]
 layout_mode = 0
 offset_left = 772.0
 offset_top = 20.0
 offset_right = 812.0
 offset_bottom = 60.0
 
-[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000125]
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967171]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 21.0
@@ -457,7 +457,7 @@ offset_bottom = 45.0
 theme_override_font_sizes/font_size = 16
 text = "Свобода"
 
-[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=3000000126]
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967170]
 layout_mode = 0
 offset_left = 86.0
 offset_top = 33.0

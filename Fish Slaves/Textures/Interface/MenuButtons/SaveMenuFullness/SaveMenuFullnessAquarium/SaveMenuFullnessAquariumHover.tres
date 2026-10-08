@@ -1,6 +1,6 @@
 [gd_resource type="StyleBoxTexture" format=3 uid="uid://dxm627bvh71fm"]
 
-[ext_resource type="Texture2D" uid="uid://byukxac6vwrmw" path="res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessAquarium/SaveMenuFullnessAquarium.png" id="1_dk1ra"]
+[ext_resource type="Texture2D" uid="uid://26q58x0tk1pg" path="res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessAquarium/SaveMenuFullnessAquarium.png" id="1_dk1ra"]
 
 [resource]
 texture = ExtResource("1_dk1ra")

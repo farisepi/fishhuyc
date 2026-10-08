@@ -1,6 +1,6 @@
 [gd_resource type="StyleBoxTexture" format=3 uid="uid://b23fofn5sn22c"]
 
-[ext_resource type="Texture2D" uid="uid://0v1wxcg7epon" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.png" id="1_yogxm"]
+[ext_resource type="Texture2D" uid="uid://chp3k6dkx8wwl" path="res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.png" id="1_yogxm"]
 
 [resource]
 texture = ExtResource("1_yogxm")

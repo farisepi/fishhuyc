@@ -1,6 +1,6 @@
 [gd_resource type="StyleBoxTexture" format=3 uid="uid://cyabga62sx7pc"]
 
-[ext_resource type="Texture2D" uid="uid://x5586ux2lijl" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButton.png" id="1_qn0dn"]
+[ext_resource type="Texture2D" uid="uid://tmw67uq8d80i" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallingAquariumMenuButton/FallingAquariumMenuButton.png" id="1_qn0dn"]
 
 [resource]
 texture = ExtResource("1_qn0dn")

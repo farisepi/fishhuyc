@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://cbwf4atigfcml" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishIdle/FishIdle4.png" id="5_5ndnw"]
 [ext_resource type="Texture2D" uid="uid://b56ur5m61oqea" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishIdle/FishIdle5.png" id="6_p1bbl"]
 [ext_resource type="Texture2D" uid="uid://b0aivgvfyepyo" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishIdle/FishIdle6.png" id="7_18y4f"]
-[ext_resource type="Texture2D" uid="uuid://bupkgp08y7w7y" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/FishSwim1.png" id="8_p1bbl"]
+[ext_resource type="Texture2D" uid="uid://bupkgp08y7w7y" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/FishSwim1.png" id="8_p1bbl"]
 [ext_resource type="Texture2D" uid="uid://b6t3ijswn8i65" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/FishSwim2.png" id="9_18y4f"]
 [ext_resource type="Texture2D" uid="uid://lrh2wfitqdqp" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/FishSwim3.png" id="10_j26bl"]
 [ext_resource type="Texture2D" uid="uid://ddqg714iqycx6" path="res://Fish Slaves/Textures/Characters/Player/PlayerFish/FishSwim/FishSwim4.png" id="11_40kp8"]
@@ -647,8 +647,6 @@ position_smoothing_enabled = true
 script = ExtResource("24_cmea6")
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=874896627]
-follow_viewport_enabled = false
-follow_viewport_scale = 1.0
 script = ExtResource("19_btaig")
 
 [node name="UI_Container" type="Control" parent="GUI" unique_id=610954526]

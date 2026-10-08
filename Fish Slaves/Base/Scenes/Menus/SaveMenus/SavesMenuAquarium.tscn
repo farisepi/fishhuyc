@@ -2,16 +2,16 @@
 
 [ext_resource type="Script" uid="uid://bs6763qirkbg" path="res://Fish Slaves/Base/Scripts/Menus/SavesMenus/SavesMenuAquarium.gd" id="1_script"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="2_camera"]
-[ext_resource type="PackedScene" uid="uid://b1ty4286lclmd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="3_bg"]
 [ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres" id="4_slotn"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres" id="5_slotp"]
-[ext_resource type="Texture2D" uid="uid://crsbct406q7yg" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed.png" id="6_ms13i"]
+[ext_resource type="Texture2D" uid="uid://bg01xquf4a1e4" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed/HugeButtonAcuariumMenuSeaweed.png" id="6_ms13i"]
 [ext_resource type="StyleBox" uid="uid://cbfwkdnsfbg3" path="res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonHover.tres" id="6_sloth"]
 [ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonNormal.tres" id="7_btnn"]
 [ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonPressed.tres" id="8_btnp"]
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="9_btnh"]
-[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="10_seaweed"]
+[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="10_seaweed"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader" id="11_shader"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/AquariumBackground.tscn" id="13_mn6dy"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_ms13i"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
@@ -35,8 +35,6 @@ offset_top = -80.0
 offset_right = 1273.0
 offset_bottom = 702.0
 color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
-
-[node name="BG" parent="." unique_id=1182054723 instance=ExtResource("3_bg")]
 
 [node name="TitleLabel" type="Label" parent="." unique_id=841509892]
 offset_left = 497.0
@@ -211,5 +209,7 @@ offset_top = 152.0
 offset_right = 424.0
 offset_bottom = 175.0
 script = ExtResource("13_ms13i")
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("13_mn6dy")]
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]

@@ -472,7 +472,7 @@ func _remove_bubbles_recursive(node: Node) -> void:
 		else:
 			_remove_bubbles_recursive(child)
 
-func _hide_all_decorations(node: Node, hide: bool) -> void:
+func _hide_all_decorations(node: Node, should_hide: bool) -> void:
 	if not node or not is_instance_valid(node):
 		return
 	for child in node.get_children():
@@ -485,7 +485,7 @@ func _hide_all_decorations(node: Node, hide: bool) -> void:
 		elif child.name == "Seaweed" or child.name == "Rust":
 			child.visible = not hide
 		else:
-			_hide_all_decorations(child, hide)
+			_hide_all_decorations(child, should_hide)
 
 func _apply_fps_visibility() -> void:
 	config.load(CONFIG_PATH)
@@ -999,3 +999,6 @@ func _make_menu_bubble() -> void:
 	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
+
+func _on_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")

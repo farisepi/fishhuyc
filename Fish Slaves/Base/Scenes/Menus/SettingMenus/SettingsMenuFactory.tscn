@@ -1,24 +1,23 @@
 [gd_scene format=3 uid="uid://crqsqldf3hvi6"]
 
 [ext_resource type="Script" uid="uid://xuysx76hjrgr" path="res://Fish Slaves/Base/Scripts/Menus/SettingsMenus/SettingsMenuFactory.gd" id="1_ly04p"]
-[ext_resource type="PackedScene" uid="uid://c213k6qc440fp" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="2_e0cl8"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonNormal.tres" id="3_alx6u"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="4_y3cdo"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="5_x1v54"]
-[ext_resource type="Texture2D" uid="uid://hs0pvj64f31k" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="6_ncwmy"]
+[ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="6_ncwmy"]
 [ext_resource type="StyleBox" uid="uid://c0ck1x27nrwfj" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonNormal.tres" id="7_hsvnn"]
 [ext_resource type="StyleBox" uid="uid://cbd42ikbtrhos" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonPressed.tres" id="8_3cj0i"]
 [ext_resource type="StyleBox" uid="uid://8w80r31dxqhk" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonHover.tres" id="9_orhu2"]
 [ext_resource type="StyleBox" uid="uid://4rsmhqrh86tv" path="res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuFactoryMenuButtons/FallingFalledMenuButton/FallingFactoryMenuButtonDisaibled.tres" id="10_rden2"]
-[ext_resource type="Texture2D" uid="uid://s2e6b85oo236" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandleHover.png" id="10_vvur5"]
+[ext_resource type="Texture2D" uid="uid://tidu310kq6t8" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandleHover.png" id="10_vvur5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="12_wqgc5"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="13_e8n2o"]
-[ext_resource type="Texture2D" uid="uid://d0kqvebxpatfa" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSlider.png" id="fac_full"]
-[ext_resource type="Texture2D" uid="uid://dxo5dt2f3cx8m" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSliderHover.png" id="fac_full_h"]
+[ext_resource type="Texture2D" uid="uid://beoob48s2h6me" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSlider.png" id="fac_full"]
+[ext_resource type="Texture2D" uid="uid://c5c52pjtfw85k" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSliderHover.png" id="fac_full_h"]
 [ext_resource type="Texture2D" uid="uid://cilcvgxswqd11" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png" id="fac_handle"]
-[ext_resource type="Texture2D" uid="uid://chflqo0drmfyu" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuSlider/FactoryMenuSlider.png" id="fac_slider"]
-[ext_resource type="Texture2D" uid="uid://prctmmiw7i5p" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOff/FactorySwitchOff.png" id="fac_sw_off"]
-[ext_resource type="Texture2D" uid="uid://prctmmiw7i5p" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOn/FactorySwitchOn.png" id="fac_sw_on"]
+[ext_resource type="Texture2D" uid="uid://dbqkhxkfdobaq" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuSlider/FactoryMenuSlider.png" id="fac_slider"]
+[ext_resource type="Texture2D" uid="uid://cuy31uh1p35dw" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOff/FactorySwitchOff.png" id="fac_sw_off"]
+[ext_resource type="Texture2D" uid="uid://b51xiar2xbgs5" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSwitchs/FactoryMenuSwitchs/FactorySwitchOn/FactorySwitchOn.png" id="fac_sw_on"]
 
 [sub_resource type="AtlasTexture" id="AT_Fac_Handle"]
 atlas = ExtResource("fac_handle")
@@ -90,7 +89,7 @@ mouse_filter = 2
 color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
 metadata/_edit_use_anchors_ = true
 
-[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("2_e0cl8")]
+[node name="BG" parent="." unique_id=1653505568]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
 anchors_preset = 0
@@ -368,7 +367,8 @@ text = "Звуковые эффекты"
 
 [node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
 layout_mode = 0
-offset_left = 584.0offset_top = 272.0
+offset_left = 584.0
+offset_top = 272.0
 offset_right = 880.0
 offset_bottom = 312.0
 theme_override_icons/grabber = SubResource("AT_Fac_Handle")

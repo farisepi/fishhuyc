@@ -1,11 +1,11 @@
 extends Area2D
 
-var speed: float = 40.0
+@export var speed: float = 40.0
+@export var clickable: bool = false
 
 var direction: Vector2 = Vector2.UP
 var life_time: float = 4.0
 var life_timer: float = 0.0
-var clickable: bool = false
 var popped: bool = false
 var ignore_fish_collision: bool = false
 var ignore_timer: float = 0.0
@@ -20,58 +20,58 @@ func _ready() -> void:
 	if not Global.atmospheric_effects_enabled:
 		queue_free()
 		return
-	
+
 	process_mode = Node.PROCESS_MODE_PAUSABLE
-	
+
 	mouse_entered.connect(_on_mouse_entered)
 	body_entered.connect(_on_body_entered)
-	
+
 	ignore_fish_collision = true
 	ignore_timer = 0.3
-	
+
 	life_timer = life_time
-	
+
 	modulate.a = 0.0
-	
+
 	var target_alpha = randf_range(0.01, 0.75)
-	
+
 	var fade_tween = create_tween()
 	fade_tween.tween_property(self, "modulate:a", target_alpha, 0.6)
-	
+
 	var scale_value = randf_range(0.15, 0.5)
 	scale = Vector2.ONE * scale_value
-	
+
 	if sprite:
 		sprite.play("idle")
 
 func _on_body_entered(body: Node2D) -> void:
 	if popped:
 		return
-	
+
 	if ignore_fish_collision:
 		return
-	
+
 	if body.name == "рыбка":
 		_pop()
 
 func _process(delta: float) -> void:
 	if get_tree().paused:
 		return
-	
+
 	if popped:
 		return
-	
+
 	if not Global.atmospheric_effects_enabled:
 		queue_free()
 		return
-	
+
 	if ignore_fish_collision:
 		ignore_timer -= delta
 		if ignore_timer <= 0:
 			ignore_fish_collision = false
-	
+
 	global_position += direction * speed * delta
-	
+
 	life_timer -= delta
 	if life_timer <= 0:
 		_auto_pop()
@@ -88,7 +88,7 @@ func _on_mouse_entered() -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if popped:
 		return
-	
+
 	var check_node = area
 	while check_node:
 		if check_node.name == "рыбка":
@@ -106,45 +106,45 @@ func _input_event(_viewport, event, _shape_idx) -> void:
 func _pop() -> void:
 	if popped:
 		return
-	
+
 	popped = true
 	clickable = false
-	
+
 	Global.bubbles_popped += 1
 	if Global.bubbles_popped >= 100:
 		Achievements.unlock_pop_star()
 		call_deferred("_notify_achievement")
-	
+
 	if collision:
 		collision.call_deferred("set_disabled", true)
-	
+
 	var is_act1 = get_tree().current_scene and get_tree().current_scene.scene_file_path.contains("Act1")
-	
+
 	if is_act1:
 		_play_act1_pop_sound()
 	else:
 		_play_random_pop_sound()
-	
+
 	if sprite:
 		sprite.play("pop")
 		await sprite.animation_finished
-	
+
 	queue_free()
 
 func _auto_pop() -> void:
 	if popped:
 		return
-	
+
 	popped = true
 	clickable = false
-	
+
 	if collision:
 		collision.call_deferred("set_disabled", true)
-	
+
 	if sprite:
 		sprite.play("pop")
 		await sprite.animation_finished
-	
+
 	queue_free()
 
 func _notify_achievement():
@@ -155,11 +155,11 @@ func _notify_achievement():
 func _play_random_pop_sound() -> void:
 	var random_index = randi() % 12 + 1
 	var sound_path = POP_SOUND_PATH + str(random_index) + ".mp3"
-	
+
 	var sound_stream = load(sound_path)
 	if sound_stream == null:
 		return
-	
+
 	var pop_sound = AudioStreamPlayer.new()
 	pop_sound.bus = "SFX"
 	add_child(pop_sound)
@@ -172,7 +172,7 @@ func _play_act1_pop_sound() -> void:
 	var sound_stream = load(ACT1_POP_SOUND)
 	if sound_stream == null:
 		return
-	
+
 	var pop_sound = AudioStreamPlayer.new()
 	pop_sound.bus = "SFX"
 	add_child(pop_sound)
@@ -180,3 +180,9 @@ func _play_act1_pop_sound() -> void:
 	pop_sound.volume_db = -8.0
 	pop_sound.pitch_scale = randf_range(0.95, 1.05)
 	pop_sound.play()
+
+func _on_animated_sprite_2d_animation_finished() -> void:
+	pass
+
+func _on_visible_on_screen_enabler_2d_screen_exited() -> void:
+	queue_free()
