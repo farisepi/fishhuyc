@@ -1,61 +1,70 @@
-extends CharacterBody2D
+extends Node2D
 
-@export var speed: float = 120.0
-@export var gravity: float = 980.0
-@export var stun_duration: float = 2.0
+@export var layer3_speed: float = 30.0
+@export var box_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Box.tscn")
+@export var box_spawn_interval: float = 3.0
+@export var box_spawn_chance: float = 0.75
+@export var box_spawn_position: Vector2 = Vector2(1393.0, 405.0)
 
-var player: CharacterBody2D = null
-var is_stunned: bool = false
-var stun_timer: float = 0.0
-var is_dead: bool = false
-var original_color: Color = Color(1, 0, 0, 1)
+@onready var layer3: Sprite2D = $Layer3
+@onready var layer3_clone: Sprite2D = $Layer3Clone
+@onready var layer3_clone2: Sprite2D = $Layer3Clone2
 
-@onready var sprite: ColorRect = $ColorRect
-@onready var detection_area: Area2D = $DetectionArea
+var layer_width: float = 0.0
+var start_x: float = 576.0
+var spawn_timer: float = 0.0
+var rng := RandomNumberGenerator.new()
 
-func _ready():
-	add_to_group("enemies")
-	if sprite:
-		original_color = sprite.color
+func _ready() -> void:
+	rng.randomize()
 	
-	if detection_area:
-		detection_area.body_entered.connect(_on_detection_area_body_entered)
-
-func _on_detection_area_body_entered(body: Node2D):
-	if body.is_in_group("player") and not is_stunned and not is_dead:
-		if body.has_method("die"):
-			body.die()
-
-func _physics_process(delta):
-	if is_dead:
+	print("FactoryBackground ready")
+	print("box_scene = ", box_scene)
+	print("layer3 = ", layer3)
+	
+	if not layer3 or not layer3_clone or not layer3_clone2 or not layer3.texture:
+		print("FactoryBackground: отсутствуют ноды или текстура!")
 		return
 	
-	if is_stunned:
-		stun_timer -= delta
-		if stun_timer <= 0:
-			is_stunned = false
-			if sprite:
-				sprite.color = original_color
-		return
+	layer_width = layer3.texture.get_width() * abs(layer3.scale.x)
+	start_x = layer3.position.x
 	
-	if not player:
-		var players = get_tree().get_nodes_in_group("player")
-		if players.size() > 0:
-			player = players[0]
-		return
+	print("FactoryBackground: layer_width = ", layer_width)
+	print("FactoryBackground: start_x = ", start_x)
 	
-	if not is_on_floor():
-		velocity.y += gravity * delta
+	layer3_clone.position.x = start_x + layer_width
+	layer3_clone2.position.x = start_x + layer_width * 2.0
 	
-	var dir = sign(player.global_position.x - global_position.x)
-	velocity.x = dir * speed
-	
-	move_and_slide()
+	spawn_timer = box_spawn_interval
 
-func stun():
-	if is_stunned or is_dead:
+func _process(delta: float) -> void:
+	if layer_width <= 0.0:
 		return
-	is_stunned = true
-	stun_timer = stun_duration
-	if sprite:
-		sprite.color = Color(0.2, 0.5, 1.0, 1)
+	
+	var move = layer3_speed * delta
+	for spr in [layer3, layer3_clone, layer3_clone2]:
+		if not spr:
+			continue
+		spr.position.x -= move
+		if spr.position.x <= start_x - layer_width:
+			spr.position.x += layer_width * 3.0
+	
+	spawn_timer -= delta
+	if spawn_timer <= 0.0:
+		spawn_timer = box_spawn_interval
+		if rng.randf() < box_spawn_chance:
+			_spawn_box()
+
+func _spawn_box() -> void:
+	if not box_scene:
+		print("box_scene is NULL")
+		return
+	
+	var box = box_scene.instantiate()
+	add_child(box)
+	
+	box.global_position = to_global(box_spawn_position)
+	box.rotation = rng.randf_range(-0.2, 0.2)
+	box.conveyor_speed = layer3_speed
+	
+	print("Box spawned at ", box.global_position)
