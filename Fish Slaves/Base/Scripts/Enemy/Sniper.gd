@@ -2,7 +2,6 @@ extends CharacterBody2D
 
 signal shot_fired
 
-@export var stamina_damage: float = 3.0
 @export var gravity: float = 980.0
 @export var charge_time: float = 1.2
 @export var reload_time: float = 2.0
@@ -228,7 +227,7 @@ func _update_bullet(delta):
 			bullet_hit_player = false
 		var d = bullet.global_position.distance_to(player.global_position)
 		if bullet_hit_player and d <= 30.0:
-			_hit_player()
+			_kill_player()
 			_bullet_stop()
 			return
 
@@ -239,12 +238,8 @@ func _bullet_stop():
 	bullet_active = false
 	bullet.visible = false
 
-func _hit_player():
-	if not player:
-		return
-	if player.has_method("take_sniper_hit"):
-		player.take_sniper_hit(stamina_damage)
-	elif player.has_method("die"):
+func _kill_player():
+	if player.has_method("die"):
 		player.die()
 	else:
 		get_tree().reload_current_scene()
