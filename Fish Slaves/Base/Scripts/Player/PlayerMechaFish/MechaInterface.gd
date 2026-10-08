@@ -41,7 +41,7 @@ func _ready():
 	stamina_base_pos = stamina.position
 	
 	glow = ColorRect.new()
-	glow.mouse_filter = 0
+	glow.mouse_filter = Control.MOUSE_FILTER_STOP
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
 	
 	var shader = Shader.new()

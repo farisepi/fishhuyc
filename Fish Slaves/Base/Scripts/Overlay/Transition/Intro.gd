@@ -130,7 +130,7 @@ func _enforce_label_font() -> void:
 		skip_label.add_theme_font_override("font", custom_font)
 		skip_label.add_theme_font_size_override("font_size", SKIP_FONT_SIZE)
 
-func _input(event: InputEvent) -> void:
+func _input(_event: InputEvent) -> void:
 	if final_fade_started:
 		return
 	get_viewport().set_input_as_handled()

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bpg2y1uxesep3"]
 
-[ext_resource type="PackedScene" uid="uid://bmsi2gukmu73v" path="res://Fish Slaves/Base/Scenes/Player/PlayerMechaFish.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://bmsi2gukmu73v" path="res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png" id="1_player"]
 [ext_resource type="Script" uid="uid://3a7oowaeqa6" path="res://Fish Slaves/Base/Scripts/Levels/Act2FactoryLevel.gd" id="2_main"]
 [ext_resource type="Texture2D" uid="uid://cxyoaebq6mwhn" path="res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2ConveyorBelt.png" id="3_conveyor"]
 [ext_resource type="Texture2D" uid="uid://bitik1yn2y8vu" path="res://Fish Slaves/Textures/Interface/MenuButtons/TinyMenuButtons/TinyFactoryMenuButton/TinyFactoryMenuButton.png" id="4_tinybtn"]
@@ -11,7 +11,7 @@
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonPressed.tres" id="9_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallFactoryMenuButtons/SmallFactoryMenuButtonHover.tres" id="10_btnh"]
 [ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonFactoryMenuRust/SmallButtonFactoryMenuRust/SmallButtonFactoryMenuRust.png" id="11_rust"]
-[ext_resource type="PackedScene" uid="uid://bprsc3a63qog5" path="res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn" id="12_death"]
+[ext_resource type="PackedScene" uid="uid://bprsc3a63qog5" path="res://Fish Slaves/Base/Scripts/Overlay/Transition/DeathScreen.gd" id="12_death"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)

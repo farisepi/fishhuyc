@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://cyqs5ww8hysx"]
 
 [ext_resource type="Script" uid="uid://d2vnwskd2kio0" path="res://Fish Slaves/Base/Scripts/Levels/Act1AquariumLevel.gd" id="1_u46od"]
-[ext_resource type="PackedScene" uid="uid://bg460pgdqj2dp" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="2_schuh"]
+[ext_resource type="PackedScene" uid="uid://dr1p62m7bi368" path="res://Fish Slaves/Base/Scenes/Player/PlayerFish.tscn" id="3_15cj8"]
 [ext_resource type="Script" uid="uid://bc65ucrgnu1yj" path="res://Fish Slaves/Base/Scripts/Levels/Act1Assistant/Act1CutsceneCamera.gd" id="4_4y1cg"]
 [ext_resource type="Texture2D" uid="uid://cdqyb6fx6avwo" path="res://Fish Slaves/Textures/Backgrounds/Act1Backgrounds/Act1Aquarium.png" id="4_whdfm"]
 [ext_resource type="Texture2D" uid="uid://cdc8er87jramh" path="res://Fish Slaves/Textures/Characters/Scientist/ScientistIdle/ScientistIdle1.png" id="5_avqyc"]
@@ -19,7 +19,7 @@
 [ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://Fish Slaves/Textures/Interface/MenuButtons/SmallMenuButtons/SmallAquariumMenuButtons/SmallAquariumMenuButtonHover.tres" id="13_fljlw"]
 [ext_resource type="FontFile" uid="uid://deaue7jmjg31r" path="res://Fish Slaves/Textures/Font/Font.ttf" id="13_pudq7"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="13_yp00i"]
-[ext_resource type="Texture2D" uid="uid://bd2sngokktcdy" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
+[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://Fish Slaves/Textures/Effects/MainMenuButtonAttributes/ButtonAcuariumMenuSeaweed/AllButtonAcuariumMenuSeaweed/ButtonAcuariumMenuSeaweed.png" id="15_5vwn5"]
 [ext_resource type="Texture2D" uid="uid://dfgw7jsbfbtib" path="res://Fish Slaves/Textures/Interface/PauseMenuFraming/AquariumPauseMenuFraming.png" id="15_yijt6"]
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://Fish Slaves/Textures/Tiles/Act1Tiles/CollisionTileset.tres" id="17_ccpdg"]
 [ext_resource type="Texture2D" uid="uid://brwyrfgj6g55f" path="res://Fish Slaves/Textures/Interface/KeyboardKeys/KeyboardKeysPressed/EKeyboardKeyPressed.tres" id="19_x2xif"]
@@ -37,10 +37,6 @@
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://Fish Slaves/Textures/Effects/LightTextures/LightTexture1.webp" id="31_pudq7"]
 [ext_resource type="AudioStream" uid="uid://dm4u7jsr17sln" path="res://Fish Slaves/Sounds/SFX/Act1SFX/Ambience/Act1SwimAmbient.mp3" id="34_p3tjk"]
 [ext_resource type="AudioStream" uid="uid://dlpyar3xo7lqh" path="res://Fish Slaves/Sounds/SFX/Act1SFX/Ambience/Act1GlitchNoise.mp3" id="34_sdbdi"]
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mjdn3"]
-radius = 16.0
-height = 46.100098
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icw3l"]
 atlas = ExtResource("9_kiyxu")
@@ -4393,7 +4389,7 @@ variation_transform = Transform2D(1, 0.2, 0, 1, 0, 0)
 base_font = SubResource("FontFile_fa88l")
 variation_transform = Transform2D(1, 0.2, 0, 1, 0, 0)
 
-[sub_resource type="Image" id="Image_15cj8"]
+[sub_resource type="Image" id="Image_qq0vt"]
 data = {
 "data": PackedByteArray("/////////////////////w=="),
 "format": "RGBA8",
@@ -4403,7 +4399,7 @@ data = {
 }
 
 [sub_resource type="ImageTexture" id="ImageTexture_jdvko"]
-image = SubResource("Image_15cj8")
+image = SubResource("Image_qq0vt")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o0igu"]
 content_margin_left = 0.0
@@ -4982,41 +4978,8 @@ offset_right = 424.0
 offset_bottom = 175.0
 script = ExtResource("13_yp00i")
 
-[node name="рыбка" parent="." unique_id=294675082 groups=["Player"] instance=ExtResource("2_schuh")]
-position = Vector2(605, 347)
-
-[node name="CollisionShape2D" parent="рыбка" index="0" unique_id=1551150667]
-shape = SubResource("CapsuleShape2D_mjdn3")
-
-[node name="PlayerCamera" parent="рыбка" index="2" unique_id=675897869]
-position = Vector2(2, 7)
-rotation = -0.24335194
-limit_left = 350
-limit_top = 204
-limit_right = 860
-limit_bottom = 701
-position_smoothing_enabled = false
-
-[node name="UI_Container" parent="рыбка/GUI" parent_id_path=PackedInt32Array(294675082, 874896627) index="0" unique_id=610954526]
-offset_left = 1.0
-offset_top = -53.0
-offset_right = 1158.0
-offset_bottom = 599.0
-
-[node name="SuitIcon" parent="рыбка/GUI/UI_Container" index="0" unique_id=1337637497]
-position = Vector2(75, 214)
-
-[node name="HP_Bar" parent="рыбка/GUI/UI_Container" index="1" unique_id=649183349]
-position = Vector2(174.964, 111)
-
-[node name="Hearts" parent="рыбка/GUI/UI_Container" index="2" unique_id=110311014]
-position = Vector2(174.964, 111.05)
-
-[node name="Stamina" parent="рыбка/GUI/UI_Container" index="3" unique_id=1479520771]
-position = Vector2(175.002, 112.857)
-
-[node name="Air_Bar" parent="рыбка/GUI/UI_Container" index="4" unique_id=802405014]
-position = Vector2(1116.237, 380.77325)
+[node name="рыбка" parent="." unique_id=294675082 instance=ExtResource("3_15cj8")]
+position = Vector2(641, 374)
 
 [node name="фон" type="Sprite2D" parent="." unique_id=1625983424]
 z_index = -100
@@ -5486,5 +5449,3 @@ color = Color(0.27022192, 0.27022192, 0.2702219, 1)
 [connection signal="body_entered" from="DialogueZone" to="." method="_on_dialogue_zone_body_entered"]
 [connection signal="body_exited" from="DialogueZone" to="." method="_on_dialogue_zone_body_exited"]
 [connection signal="timeout" from="DialogueTimer" to="." method="_on_dialogue_timer_timeout"]
-
-[editable path="рыбка"]

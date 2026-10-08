@@ -5,8 +5,9 @@ var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/E
 const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var pause_menu: CanvasLayer = $Pausemenu
-@onready var player: CharacterBody2D = $рыбка
-@onready var player_camera: Camera2D = $"рыбка/PlayerCamera"
+# ИЗМЕНЕНО: ищем игрока через группу, а не по имени узла
+@onready var player: CharacterBody2D = get_tree().get_first_node_in_group("player")
+@onready var player_camera: Camera2D = null # будет найден позже
 
 @onready var interact_icon: Sprite2D = $InteractLabel
 @onready var dialogue_panel: Panel = $DialoguePanel2
@@ -36,7 +37,6 @@ const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var fade_rect: ColorRect = $FadeRect
 
-#шрифт тут ваще по моему нахуй не нужен
 const FONT_SIZE_NEAR: int = 5
 const FONT_SIZE_FAR: int = 8
 const FONT_SIZE_CUTSCENE: int = 6
@@ -170,19 +170,28 @@ func _ready() -> void:
 	phantom_left.visible = false
 	phantom_right.visible = false
 	
+	# Ищем камеру игрока, если игрок есть
+	if player:
+		player_camera = player.get_node_or_null("PlayerCamera")
+		if player_camera:
+			# Убедимся, что камера не выключена
+			player_camera.enabled = true
+	
 	if player and player.has_node("AnimatedSprite2D"):
 		var player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
 		player_sprite.stop()
 		player_sprite.frame = 0
 		player_sprite.animation = "wake"
 	
-	player.can_move = false
+	if player:
+		player.can_move = false
+	
 	if Global.just_returned_from_settings:
 		_on_return_from_settings()
 		_spawn_bubbles()
 		return
 	
-	if Global.player_position != Vector2.ZERO:
+	if Global.player_position != Vector2.ZERO and player:
 		player.global_position = Global.player_position
 		Global.player_position = Vector2.ZERO
 		
@@ -306,7 +315,7 @@ func _on_mechanic_animation_finished() -> void:
 		mechanic.play("idle")
 		_schedule_boring(mechanic_boring_timer)
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if get_tree().paused:
 		return
 	
@@ -319,7 +328,6 @@ func _process(delta: float) -> void:
 	
 	if chatter_active and not cutscene_active:
 		update_chatter_panel()
-		#_update_glitch(delta)
 	else:
 		UISounds.set_glitch(0.0)
 
@@ -369,7 +377,8 @@ func _start_wake_sequence() -> void:
 		player_sprite.play("idle")
 	
 	await get_tree().create_timer(0.5).timeout
-	player.can_move = true
+	if player:
+		player.can_move = true
 
 func _remove_black_nodes(node: Node) -> void:
 	for child in node.get_children():
@@ -675,7 +684,7 @@ func _setup_labels() -> void:
 func _on_return_from_settings() -> void:
 	Global.just_returned_from_settings = false
 	
-	if Global.player_position != Vector2.ZERO:
+	if Global.player_position != Vector2.ZERO and player:
 		player.global_position = Global.player_position
 	
 	if pause_menu:
@@ -739,37 +748,6 @@ func set_chatter_state(state: Dictionary):
 	
 	update_chatter_panel()
 	timer.start(2.5)
-
-#func _update_glitch(delta: float) -> void:
-	#var player_pos = player.global_position
-	#var safe_zone_min = Vector2(672, 488)
-	#var safe_zone_max = Vector2(864, 520)
-	#
-	#var dist_to_safe_zone = 0.0
-	#if player_pos.x < safe_zone_min.x:
-		#dist_to_safe_zone += safe_zone_min.x - player_pos.x
-	#if player_pos.x > safe_zone_max.x:
-		#dist_to_safe_zone += player_pos.x - safe_zone_max.x
-	#if player_pos.y < safe_zone_min.y:
-		#dist_to_safe_zone += safe_zone_min.y - player_pos.y
-	#if player_pos.y > safe_zone_max.y:
-		#dist_to_safe_zone += player_pos.y - safe_zone_max.y
-	#
-	#var max_dist = 500.0
-	#var t = clamp(dist_to_safe_zone / max_dist, 0.0, 1.0)
-	#var glitch_intensity = clamp(t * t, 0.0, 0.9)
-	#
-	#text_glitch_timer += delta
-	#var interval = clamp(randf_range(0.8, 1.8) - glitch_intensity * 1.2, 0.3, 1.8)
-	#
-	#if text_glitch_timer > interval and glitch_intensity > 0.02:
-		#text_glitch_timer = 0.0
-		#_apply_text_glitch(glitch_intensity)
-	#
-	#if glitch_intensity > 0.1 and randf() < glitch_intensity * 0.6:
-		#_apply_visual_glitch(glitch_intensity)
-	#
-	#UISounds.set_glitch(glitch_intensity)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -1137,8 +1115,8 @@ func shake_chatter_panel() -> void:
 	t.tween_property(tp, "position:x", orig.x - 5, 0.04)
 	t.tween_property(tp, "position:x", orig.x, 0.04)
 	
-func _apply_visual_glitch(intensity: float) -> void:
-	var panels_to_shake: Array[Panel] = []
+func _apply_visual_glitch(_intensity: float) -> void:
+	var _panels_to_shake: Array[Panel] = []
 
 func scientist_say(p1: String, m: String, p2: String) -> void:
 	if not text_label or not dialogue_panel or not scientist or not timer:
@@ -1307,14 +1285,16 @@ func hit_sequence() -> void:
 	var target_global_pos = cutscene_cam.global_position
 	var target_zoom = cutscene_cam.zoom
 	
-	player_camera.enabled = false
+	if player_camera:
+		player_camera.enabled = false
 	
 	var temp_cam = Camera2D.new()
 	temp_cam.name = "CutsceneCameraTemp"
 	var viewport_size = get_viewport().get_visible_rect().size
 	var offset_x = viewport_size.x / 16.0 - 16.25
-	temp_cam.global_position = player.global_position - Vector2(offset_x, 0)
-	temp_cam.zoom = player_camera.zoom
+	if player:
+		temp_cam.global_position = player.global_position - Vector2(offset_x, 0)
+	temp_cam.zoom = player_camera.zoom if player_camera else Vector2(2, 2)
 	temp_cam.enabled = true
 	temp_cam.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(temp_cam)
@@ -1342,7 +1322,9 @@ func _transition_to_cutscene_camera() -> void:
 	if not player_camera or not cutscene_cam:
 		return
 	
-	var target_pos = player.global_position + Vector2(0, -100)
+	var target_pos = Vector2.ZERO
+	if player:
+		target_pos = player.global_position + Vector2(0, -100)
 	
 	cutscene_cam.global_position = player_camera.global_position
 	cutscene_cam.zoom = player_camera.zoom
@@ -1518,7 +1500,7 @@ func _spawn_falling_debris() -> void:
 		{"from": Vector2(view_size.x - bw + 120, 0), "to": Vector2(view_size.x - bw + 110, 100)},
 		{"from": Vector2(view_size.x - bw + 220, 0), "to": Vector2(view_size.x - bw + 240, 80)},
 		{"from": Vector2(view_size.x - tw + 60, -tw), "to": Vector2(view_size.x - tw + 120, -tw - 60)},
-		{"from": Vector2(view_size.x - 40, -bh), "to": Vector2(view_size.x, -bh - 50)},
+			{"from": Vector2(view_size.x - 40, -bh), "to": Vector2(view_size.x, -bh - 50)},
 	]
 	for r in rebars_data:
 		var rebar = Line2D.new()
@@ -1662,6 +1644,9 @@ func _save_progress():
 		print("Ошибка сохранения в слот ", Global.save_slot, ". Ошибка: ", error)
 
 func _auto_save_to_current_slot():
+	if not player:
+		return
+	
 	Global.player_position = player.global_position
 	Global.chatter_queue_state = get_chatter_state()["queue"]
 	Global.chatter_current_text = get_chatter_state()["current_text"]

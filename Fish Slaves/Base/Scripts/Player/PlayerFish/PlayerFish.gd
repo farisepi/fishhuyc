@@ -220,17 +220,18 @@ func _clamp_to_viewport() -> void:
 	global_position.y = clamp(global_position.y, margin, viewport_size.y - margin)
 
 func hit_glass() -> void:
-	if sprite:
-		var old_scale = sprite.scale
-		sprite.play("hit")
-		can_move = false
-		velocity = Vector2.ZERO
-		current_speed = 0.0
-		await get_tree().create_timer(0.3).timeout
-		shake_amount = 10.0
-		shake_decay = 24.0
-		UISounds.play_hit()
-		await sprite.animation_finished
-		sprite.play("idle")
-		sprite.scale = old_scale
-		can_move = true
+	if not sprite:
+		return
+	var old_scale = sprite.scale
+	sprite.play("hit")
+	can_move = false
+	velocity = Vector2.ZERO
+	current_speed = 0.0
+	await get_tree().create_timer(0.3).timeout
+	shake_amount = 10.0
+	shake_decay = 24.0
+	UISounds.play_hit()
+	await sprite.animation_finished
+	sprite.play("idle")
+	sprite.scale = old_scale
+	can_move = true
