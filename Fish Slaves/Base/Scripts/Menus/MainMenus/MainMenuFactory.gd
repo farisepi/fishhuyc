@@ -252,7 +252,7 @@ func _create_falling_catchable_box(canvas: CanvasLayer, box_texture: Texture2D, 
 	tween.tween_property(box, "position:x", box.position.x + sway_x, fall_duration)
 	tween.tween_property(box, "rotation", box.rotation + randf_range(-3.0, 3.0), fall_duration)
 
-func _on_caught_box(box: Area2D, spr: Sprite2D) -> void:
+func _on_caught_box(box: Area2D, _spr: Sprite2D) -> void:
 	if not is_instance_valid(box):
 		return
 	

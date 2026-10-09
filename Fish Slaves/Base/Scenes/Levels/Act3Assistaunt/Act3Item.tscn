@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://du6okcvj7dvpp"]
 
 [ext_resource type="Script" uid="uid://dt5gn5rjtqmvt" path="res://Fish Slaves/Base/Scripts/Levels/Act3Assistaunt/Act3GrabbableItem.gd" id="1_7w5se"]
-[ext_resource type="Texture2D" uid="uid://ckia6k0njn83" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets.png" id="2_fj5uh"]
+[ext_resource type="Texture2D" uid="uid://c1c53f10kdmbd" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Pallets/Act3Pallet1.png" id="2_fj5uh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t8xdf"]
 size = Vector2(38, 18.5)

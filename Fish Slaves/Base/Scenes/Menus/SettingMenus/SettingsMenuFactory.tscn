@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://tidu310kq6t8" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandleHover.png" id="10_vvur5"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="12_wqgc5"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="13_e8n2o"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="19_vvur5"]
 [ext_resource type="Texture2D" uid="uid://beoob48s2h6me" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSlider.png" id="fac_full"]
 [ext_resource type="Texture2D" uid="uid://c5c52pjtfw85k" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuSliders/FactoryMenuFullSlider/FactoryMenuFullSliderHover.png" id="fac_full_h"]
 [ext_resource type="Texture2D" uid="uid://cilcvgxswqd11" path="res://Fish Slaves/Textures/Interface/MenuButtons/MenuSliders/FactoryMenuSliders/FactoryMenuHandle/FactoryMenuHandle.png" id="fac_handle"]
@@ -88,8 +89,6 @@ offset_bottom = 840.01996
 mouse_filter = 2
 color = Color(0.07058824, 0.05882353, 0.03529412, 0.39215687)
 metadata/_edit_use_anchors_ = true
-
-[node name="BG" parent="." unique_id=1653505568]
 
 [node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
 anchors_preset = 0
@@ -864,5 +863,7 @@ offset_top = 88.0
 offset_right = 1052.0
 offset_bottom = 92.0
 color = Color(0.4117647, 0.24705882, 0.09019608, 1)
+
+[node name="BG" parent="." unique_id=1974329144 instance=ExtResource("19_vvur5")]
 
 [connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]

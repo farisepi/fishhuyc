@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://0b8ccycltp3p" path="res://Fish Slaves/Textures/Interface/MainMenuLogos/FactoryMainMenuLogo.png" id="16_8pq2d"]
 [ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://Fish Slaves/Base/Scripts/Overlay/Interface/FpsCounter.gd" id="16_wo3ea"]
 [ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://Fish Slaves/Base/Scripts/Menus/MainMenus/MainMenuAssistant/MainMenuCamera.gd" id="17_1q4bd"]
+[ext_resource type="PackedScene" uid="uid://7c2uer11ktpd" path="res://Fish Slaves/Base/Scenes/Overlay/Backgrounds/FactoryBackground.tscn" id="19_8nuso"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_xt27g"]
 particle_flag_disable_z = true
@@ -190,8 +191,6 @@ theme_override_styles/hover = ExtResource("11_g82wj")
 icon = ExtResource("14_8nuso")
 expand_icon = true
 
-[node name="BG" parent="." unique_id=1653505568]
-
 [node name="MainMenuCamera" type="Camera2D" parent="." unique_id=1057194260]
 position = Vector2(578, 323)
 script = ExtResource("17_1q4bd")
@@ -211,6 +210,8 @@ autoplay = "default"
 frame_progress = 0.57846695
 
 [node name="MenuMusic" type="AudioStreamPlayer" parent="." unique_id=1754046363]
+
+[node name="BG" parent="." unique_id=1974329144 instance=ExtResource("19_8nuso")]
 
 [connection signal="pressed" from="PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="SaveButton" to="." method="_on_save_button_pressed"]

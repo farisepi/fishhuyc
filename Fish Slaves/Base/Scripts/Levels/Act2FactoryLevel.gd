@@ -2130,7 +2130,7 @@ func _process_inspect_click(_mouse_pos: Vector2) -> void:
 			inspect_targets.erase(area)
 			return
 
-func _show_inspect_text(title: String, phrase: String, journal: String) -> void:
+func _show_inspect_text(title: String, phrase: String, _journal: String) -> void:
 	if not inspect_text_panel or not inspect_text_label:
 		return
 	inspect_text_panel.visible = true
