@@ -10,22 +10,22 @@ const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 @onready var player_camera: Camera2D = null # будет найден позже
 
 @onready var interact_icon: Sprite2D = $InteractLabel
-@onready var dialogue_panel: Panel = $DialoguePanel2
-@onready var text_label: RichTextLabel = $DialoguePanel2/TextLabel
+@onready var dialogue_panel: NinePatchRect = $Dialogue/DialoguePanel2
+@onready var text_label: RichTextLabel = $Dialogue/DialoguePanel2/TextLabel
 @onready var timer: Timer = $DialogueTimer
 @onready var cutscene_cam: Camera2D = $CutsceneCamera
 
 @onready var scientist: AnimatedSprite2D = $Scientist1
 @onready var mechanic: AnimatedSprite2D = $Mechanic
 
-@onready var chatter_panel: Panel = $DialoguePanel2
-@onready var chatter_label: RichTextLabel = $DialoguePanel2/TextLabel
-@onready var chatter_panel_far: Panel = $ChatterCanvas/DialoguePanelFar
+@onready var chatter_panel: NinePatchRect = $Dialogue/DialoguePanel2
+@onready var chatter_label: RichTextLabel = $Dialogue/DialoguePanel2/TextLabel
+@onready var chatter_panel_far: NinePatchRect = $ChatterCanvas/DialoguePanelFar
 @onready var chatter_label_far: RichTextLabel = $ChatterCanvas/DialoguePanelFar/TextLabelFar
 
-@onready var phantom_left: Panel = $ChatterCanvas/PhantomPanelLeft
+@onready var phantom_left: NinePatchRect = $ChatterCanvas/PhantomPanelLeft
 @onready var phantom_left_label: RichTextLabel = $ChatterCanvas/PhantomPanelLeft/TextLabelLeft
-@onready var phantom_right: Panel = $ChatterCanvas/PhantomPanelRight
+@onready var phantom_right: NinePatchRect = $ChatterCanvas/PhantomPanelRight
 @onready var phantom_right_label: RichTextLabel = $ChatterCanvas/PhantomPanelRight/TextLabelRight
 
 @onready var fps_label: Label = $FPSCounter
@@ -37,9 +37,10 @@ const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
 @onready var fade_rect: ColorRect = $FadeRect
 
-const FONT_SIZE_NEAR: int = 5
-const FONT_SIZE_FAR: int = 8
-const FONT_SIZE_CUTSCENE: int = 6
+
+const FONT_SIZE_NEAR: int = 16
+const FONT_SIZE_FAR: int = 14
+const FONT_SIZE_CUTSCENE: int = 16
 const PANEL_WIDTH_NEAR: float = 120.0
 const PANEL_WIDTH_FAR: float = 400.0
 const PANEL_HEIGHT_FAR: float = 80.0
@@ -159,7 +160,7 @@ func _ready() -> void:
 	
 	_setup_timer()
 	_setup_ui()
-	_setup_labels()
+	#_setup_labels()
 	_setup_atmosphere()
 	_generate_chatter_queue()
 	_update_interact_icon()
@@ -642,42 +643,42 @@ func _setup_ui() -> void:
 		phantom_right_label.visible = false
 		phantom_right_label.modulate.a = 0.4
 
-func _setup_labels() -> void:
-	if chatter_label:
-		chatter_label.bbcode_enabled = true
-		chatter_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_NEAR)
-		chatter_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		chatter_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
-	
-	if chatter_label_far:
-		chatter_label_far.bbcode_enabled = true
-		chatter_label_far.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
-		chatter_label_far.autowrap_mode = TextServer.AUTOWRAP_WORD
-		chatter_label_far.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
-	
-	if phantom_left_label:
-		phantom_left_label.bbcode_enabled = true
-		phantom_left_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
-		phantom_left_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		phantom_left_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
-	
-	if phantom_right_label:
-		phantom_right_label.bbcode_enabled = true
-		phantom_right_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
-		phantom_right_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		phantom_right_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
-	
-	if text_label:
-		text_label.bbcode_enabled = true
-		text_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_CUTSCENE)
-		text_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	
+#func _setup_labels() -> void:
+	#if chatter_label:
+		#chatter_label.bbcode_enabled = true
+		##chatter_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_NEAR)
+		#chatter_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		#chatter_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
+	#
+	#if chatter_label_far:
+		#chatter_label_far.bbcode_enabled = true
+		##chatter_label_far.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
+		#chatter_label_far.autowrap_mode = TextServer.AUTOWRAP_WORD
+		#chatter_label_far.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 1.0))
+	#
+	#if phantom_left_label:
+		#phantom_left_label.bbcode_enabled = true
+		##phantom_left_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
+		#phantom_left_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		#phantom_left_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
+	#
+	#if phantom_right_label:
+		#phantom_right_label.bbcode_enabled = true
+		##phantom_right_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_FAR)
+		#phantom_right_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		#phantom_right_label.add_theme_color_override("default_color", Color(0.0, 0.0, 0.0, 0.4))
+	#
+	#if text_label:
+		#text_label.bbcode_enabled = true
+		##text_label.add_theme_font_size_override("normal_font_size", FONT_SIZE_NEAR)
+		#text_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	#
 	var config = ConfigFile.new()
 	config.load("user://settings.cfg")
 	if fps_label:
 		fps_label.visible = config.get_value("graphics", "show_fps", false)
-		fps_label.add_theme_font_size_override("font_size", 14)
-		fps_label.add_theme_color_override("font_color", Color.WHITE)
+		#fps_label.add_theme_font_size_override("font_size", 14)
+		#fps_label.add_theme_color_override("font_color", Color.WHITE)
 		fps_label.position = Vector2(10, 10)
 		fps_label.z_index = 200
 
@@ -834,7 +835,7 @@ func _show_chatter_near() -> void:
 	chatter_panel.z_index = 100
 	current_phantom_offset = 0.0
 	
-	chatter_panel.size = Vector2(PANEL_WIDTH_NEAR, chatter_panel_height)
+	#chatter_panel.size = Vector2(PANEL_WIDTH_NEAR, chatter_panel_height)
 	chatter_label.position = Vector2(4, 4)
 	chatter_label.size = chatter_panel.size - Vector2(8, 8)
 	
@@ -1132,7 +1133,7 @@ func scientist_say(p1: String, m: String, p2: String) -> void:
 	var h = max(28.0, lines * 15.0)
 	
 	dialogue_panel.size = Vector2(100, h)
-	text_label.size = dialogue_panel.size - Vector2(8, 8)
+	text_label.size = dialogue_panel.size - Vector2(2, 2)
 	text_label.position = Vector2(4, 4)
 	dialogue_panel.position = scientist.global_position + Vector2(-120, -25)
 	_clamp_panel_to_viewport()
@@ -1163,7 +1164,7 @@ func mechanic_say(text: String, h_override: float = 0.0) -> void:
 		h = max(28.0, lines * 15.0)
 	
 	dialogue_panel.size = Vector2(100, h)
-	text_label.size = dialogue_panel.size - Vector2(8, 8)
+	text_label.size = dialogue_panel.size - Vector2(2, 2)
 	text_label.position = Vector2(4, 4)
 	dialogue_panel.position = mechanic.global_position + Vector2(22, -30)
 	_clamp_panel_to_viewport()
@@ -1565,7 +1566,7 @@ func _show_blackout_title():
 	var label = Label.new()
 	label.text = "Пару дней назад..."
 	label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
-	label.add_theme_font_size_override("font_size", 48)
+	#label.add_theme_font_size_override("font_size", 48)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
