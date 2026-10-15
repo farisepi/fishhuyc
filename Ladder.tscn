@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dcj4tnl33uxqe"]
 
 [ext_resource type="Script" uid="uid://dh7pglugp0f0" path="res://Ladder.gd" id="1_1j01k"]
-[ext_resource type="Texture2D" uid="uid://wdxxf0etcavs" path="res://Fish Slaves/Textures/Tiles/Act3Tiles/Act3Ladder.png" id="2_t351p"]
+[ext_resource type="Texture2D" uid="uid://wdxxf0etcavs" path="res://Act3Ladder.png" id="2_t351p"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
 size = Vector2(39.17, 142.99)

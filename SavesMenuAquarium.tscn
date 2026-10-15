@@ -1,0 +1,215 @@
+[gd_scene format=3 uid="uid://c06fidsg2xixw"]
+
+[ext_resource type="Script" uid="uid://bs6763qirkbg" path="res://SavesMenuAquarium.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://MainMenuCamera.gd" id="2_camera"]
+[ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://HugeAquariumMenuButtonNormal.tres" id="4_slotn"]
+[ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://HugeAquariumMenuButtonPressed.tres" id="5_slotp"]
+[ext_resource type="Texture2D" uid="uid://bg01xquf4a1e4" path="res://HugeButtonAcuariumMenuSeaweed.png" id="6_ms13i"]
+[ext_resource type="StyleBox" uid="uid://cbfwkdnsfbg3" path="res://HugeAquariumMenuButtonHover.tres" id="6_sloth"]
+[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://SmallAquariumMenuButtonNormal.tres" id="7_btnn"]
+[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://SmallAquariumMenuButtonPressed.tres" id="8_btnp"]
+[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://SmallAquariumMenuButtonHover.tres" id="9_btnh"]
+[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://ButtonAcuariumMenuSeaweed.png" id="10_seaweed"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://Act1AquariumShader.gdshader" id="11_shader"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://AquariumBackground.tscn" id="13_mn6dy"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://FpsCounter.gd" id="13_ms13i"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+shader = ExtResource("11_shader")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+
+[node name="SaveMenu" type="Node2D" unique_id=1042776814]
+script = ExtResource("1_script")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1165006840]
+offset_left = -104.0
+offset_top = -80.0
+offset_right = 1273.0
+offset_bottom = 702.0
+color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
+
+[node name="TitleLabel" type="Label" parent="." unique_id=841509892]
+offset_left = 497.0
+offset_top = 18.0
+offset_right = 607.0
+offset_bottom = 66.0
+scale = Vector2(1.5, 1.5)
+text = "СОХРАНЕНИЯ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DividingLine1" type="ColorRect" parent="." unique_id=1955616717]
+custom_minimum_size = Vector2(160, 2)
+offset_left = 104.0
+offset_top = 103.0
+offset_right = 1052.0
+offset_bottom = 107.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=2104385215]
+offset_left = 156.0
+offset_top = 137.0
+offset_right = 1164.0
+offset_bottom = 521.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="SaveGrid" type="GridContainer" parent="ScrollContainer" unique_id=477820060]
+custom_minimum_size = Vector2(1000, 500)
+clip_contents = true
+layout_mode = 2
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+
+[node name="SaveSlot1" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1499653889]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot1" unique_id=1162940637]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="SaveSlot2" type="Button" parent="ScrollContainer/SaveGrid" unique_id=735201807]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot2" unique_id=2118736526]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="SaveSlot3" type="Button" parent="ScrollContainer/SaveGrid" unique_id=598157556]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot3" unique_id=1135860262]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="SaveSlot4" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1100250346]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot4" unique_id=1037964276]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="SaveSlot5" type="Button" parent="ScrollContainer/SaveGrid" unique_id=248967717]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot5" unique_id=2009452318]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="SaveSlot6" type="Button" parent="ScrollContainer/SaveGrid" unique_id=1526641775]
+custom_minimum_size = Vector2(840, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("4_slotn")
+theme_override_styles/pressed = ExtResource("5_slotp")
+theme_override_styles/hover = ExtResource("6_sloth")
+text = "Пусто"
+
+[node name="Seaweed" type="Sprite2D" parent="ScrollContainer/SaveGrid/SaveSlot6" unique_id=1790893237]
+visible = false
+position = Vector2(419.99997, 39.999996)
+scale = Vector2(2.2826085, 1.8181818)
+texture = ExtResource("6_ms13i")
+
+[node name="DividingLine2" type="ColorRect" parent="." unique_id=1469874739]
+custom_minimum_size = Vector2(160, 2)
+offset_left = 104.0
+offset_top = 552.0
+offset_right = 1052.0
+offset_bottom = 556.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="BackButton" type="Button" parent="." unique_id=188696501]
+offset_left = 460.0
+offset_top = 566.0
+offset_right = 692.0
+offset_bottom = 613.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("7_btnn")
+theme_override_styles/pressed = ExtResource("8_btnp")
+theme_override_styles/hover = ExtResource("9_btnh")
+text = "Назад"
+
+[node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=711613202]
+visible = false
+position = Vector2(116, 24)
+scale = Vector2(1.8861793, 1.7142868)
+texture = ExtResource("10_seaweed")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1923407015]
+position = Vector2(576, 328)
+script = ExtResource("2_camera")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=1630111855]
+z_index = -1
+material = SubResource("ShaderMaterial_water")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -77.0
+offset_top = -80.0
+offset_right = 1339.0
+offset_bottom = 788.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1009038011]
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("13_ms13i")
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("13_mn6dy")]
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_pressed"]
