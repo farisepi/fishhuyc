@@ -1,7 +1,0 @@
-[gd_resource type="StyleBoxTexture" format=3 uid="uid://bvw32iyxcpi0t"]
-
-[ext_resource type="Texture2D" uid="uid://bwb3i3e7x710e" path="res://HugeAquariumMenuButton.png" id="1_7qcac"]
-
-[resource]
-texture = ExtResource("1_7qcac")
-modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)
