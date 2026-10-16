@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://30r8xy8ri5b2"]
+
+[ext_resource type="Texture2D" uid="uid://fx135ym0hxdo" path="res://GameAssets/Sprites/UserInterfaceSprites/SaveMenuSprites/SaveMenuFactorySprites/Menu_SaveMenu_Factory_Button_Huge_Fullnes_Texture.png" id="1_0ig4q"]
+
+[resource]
+texture = ExtResource("1_0ig4q")
+modulate_color = Color(0.7355655, 0.7355655, 0.7355655, 0.78431374)

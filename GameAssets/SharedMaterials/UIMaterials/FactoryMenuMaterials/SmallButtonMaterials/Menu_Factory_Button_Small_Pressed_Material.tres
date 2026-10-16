@@ -1,0 +1,7 @@
+[gd_resource type="StyleBoxTexture" format=3 uid="uid://cdb508kt3onl1"]
+
+[ext_resource type="Texture2D" uid="uid://x5iodi8jae3i" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/SmallButtonTextures/Menu_Factory_Button_Small_Texture.png" id="1_gspnl"]
+
+[resource]
+texture = ExtResource("1_gspnl")
+modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)

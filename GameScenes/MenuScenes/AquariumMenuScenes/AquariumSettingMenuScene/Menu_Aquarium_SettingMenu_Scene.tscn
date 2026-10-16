@@ -1,0 +1,898 @@
+[gd_scene format=3 uid="uid://ixfow7tuskw8"]
+
+[ext_resource type="Script" uid="uid://duglsjmo880sj" path="res://GameScripts/MenuScripts/AquariumMenuScripts/SettingMenuAquariumScript/Menu_Aquarium_SettingMenu_Script.gd" id="1_cqlcn"]
+[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Normal_Material.tres" id="3_cxufn"]
+[ext_resource type="StyleBox" uid="uid://ckokayo6gx4bi" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/FallingButtonMaterials/Menu_Aquarium_Button_Falling_Normal_Material.tres" id="3_xchot"]
+[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Pressed_Material.tres" id="4_dbauv"]
+[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Hover_Material.tres" id="5_bb24s"]
+[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuSprites/AquariumMenuButtonTextures/SmallButtonTextures/Menu_Aquarium_Button_Small_ButtonAttribute_Texture.png" id="7_xpquy"]
+[ext_resource type="StyleBox" uid="uid://dfca6b7n4m2is" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/FallingButtonMaterials/Menu_Aquarium_Button_Falling_Pressed_Material.tres" id="8_4m4e8"]
+[ext_resource type="StyleBox" uid="uid://bce6qjy25g6nc" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/FallingButtonMaterials/Menu_Aquarium_Button_Falling_Hover_Material.tres" id="9_td0rv"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://GameScripts/MenuScripts/FpsCounterScripts/Menu_FpsCounter_Script.gd" id="9_ugdgc"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://GameScripts/MenuScripts/MainMenuScripts/MainMenuCameraScript/Menu_MainMenu_Camera_Script.gd" id="10_l8d1f"]
+[ext_resource type="StyleBox" uid="uid://cyabga62sx7pc" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/FallingButtonMaterials/Menu_Aquarium_Button_Falling_Disaibled_Material.tres" id="10_nmydp"]
+[ext_resource type="Texture2D" uid="uid://tmmnskayf4sb" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/SliderTextures/Menu_Aquarium_Slider_Fullness_Hover_Texture.png" id="13_02ri3"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_AquariumLevel_Aquarium_Shader.gdshader" id="13_2vibe"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumBackgroundScene/Menu_Aquarium_Background_Scene.tscn" id="20_02ri3"]
+[ext_resource type="Texture2D" uid="uid://o6erciw7a4ul" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/SliderTextures/Menu_Aquarium_Slider_Fullness_Normal_Texture.png" id="aq_full"]
+[ext_resource type="Texture2D" uid="uid://b5r7ykoa1lub7" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/HandleTextures/Menu_Aquarium_Handle_Normal_Texture.png" id="aq_handle"]
+[ext_resource type="Texture2D" uid="uid://c1a1fwgrmp8rw" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/HandleTextures/Menu_Aquarium_Handle_Hover_Texture.png" id="aq_handle_h"]
+[ext_resource type="Texture2D" uid="uid://bocampmr782bv" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/SliderTextures/Menu_Aquarium_Slider_Empty_Normal_Texture.png" id="aq_slider"]
+[ext_resource type="Texture2D" uid="uid://c5j0hii71c42o" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/SwitchTextures/Menu_Aquarium_Switch_Off_Texture.png" id="aq_sw_off"]
+[ext_resource type="Texture2D" uid="uid://cdm0hjtwxk8aw" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/SwitchTextures/Menu_Aquarium_Switch_On_Texture.png" id="aq_sw_on"]
+
+[sub_resource type="AtlasTexture" id="AT_Aq_Handle"]
+atlas = ExtResource("aq_handle")
+
+[sub_resource type="StyleBoxTexture" id="SB_Aq_Slider_Normal"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("aq_slider")
+
+[sub_resource type="StyleBoxTexture" id="SB_Aq_Full_Normal"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("aq_full")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hvs4q"]
+texture = ExtResource("aq_full")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vvur5"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="AtlasTexture" id="AT_Aq_SwOn"]
+atlas = ExtResource("aq_sw_on")
+
+[sub_resource type="AtlasTexture" id="AT_Aq_SwOff"]
+atlas = ExtResource("aq_sw_off")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3ivvd"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o1jbc"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_j2mno"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gbfnw"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qfy0m"]
+texture = ExtResource("13_02ri3")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8uthl"]
+shader = ExtResource("13_2vibe")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+
+[node name="SettingsMenu" type="Control" unique_id=146561357]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 1
+script = ExtResource("1_cqlcn")
+
+[node name="FPSCounter" type="Label" parent="." unique_id=645757073]
+layout_mode = 0
+offset_left = 1016.0
+offset_top = 24.0
+offset_right = 1088.0
+offset_bottom = 56.0
+script = ExtResource("9_ugdgc")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1859616107]
+layout_mode = 0
+offset_left = -89.0
+offset_top = -49.0
+offset_right = 1288.0
+offset_bottom = 725.0
+color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
+
+[node name="GraphicsPage" type="Control" parent="." unique_id=815704850]
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 1160.0
+offset_bottom = 656.0
+
+[node name="PageBackground" type="ColorRect" parent="GraphicsPage" unique_id=173467530]
+modulate = Color(0.1764706, 0.1764706, 0.1764706, 1)
+layout_mode = 0
+offset_left = -5.0
+offset_right = 1147.0
+offset_bottom = 648.0
+color = Color(1, 1, 1, 0)
+
+[node name="ResolutionLabel" type="Label" parent="GraphicsPage" unique_id=61398240]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 122.0
+offset_right = 324.0
+offset_bottom = 145.0
+text = "Разрешение"
+
+[node name="ResolutionButton" type="Button" parent="GraphicsPage" unique_id=391987072]
+layout_mode = 0
+offset_left = 607.0
+offset_top = 107.0
+offset_right = 805.0
+offset_bottom = 146.0
+theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
+text = "1920x1080"
+
+[node name="Seaweed" type="Sprite2D" parent="GraphicsPage/ResolutionButton" unique_id=2098690276]
+visible = false
+position = Vector2(98.99996, 19.49999)
+scale = Vector2(1.6097562, 1.3928567)
+texture = ExtResource("7_xpquy")
+
+[node name="LanguageLabel" type="Label" parent="GraphicsPage" unique_id=2025691448]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 159.0
+offset_right = 263.0
+offset_bottom = 182.0
+text = "Язык"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LanguageOption" type="Button" parent="GraphicsPage" unique_id=1255295112]
+layout_mode = 0
+offset_left = 607.0
+offset_top = 150.0
+offset_right = 805.0
+offset_bottom = 190.0
+theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
+text = "Русский"
+
+[node name="Seaweed" type="Sprite2D" parent="GraphicsPage/LanguageOption" unique_id=2066254607]
+visible = false
+position = Vector2(98.99996, 20.00001)
+scale = Vector2(1.6097562, 1.4285724)
+texture = ExtResource("7_xpquy")
+
+[node name="BrightnessLabel" type="Label" parent="GraphicsPage" unique_id=2089159619]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 212.0
+offset_right = 288.0
+offset_bottom = 235.0
+text = "Яркость"
+
+[node name="BrightnessSlider" type="HSlider" parent="GraphicsPage" unique_id=2089159620]
+layout_mode = 0
+offset_left = 554.0
+offset_top = 194.0
+offset_right = 858.0
+offset_bottom = 234.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_hvs4q")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="CameraSensivityLabel" type="Label" parent="GraphicsPage" unique_id=1931320122]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 250.0
+offset_right = 371.0
+offset_bottom = 273.0
+text = "Слежение камеры"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CameraSensitivitySlider" type="HSlider" parent="GraphicsPage" unique_id=1934867960]
+layout_mode = 0
+offset_left = 554.0
+offset_top = 240.0
+offset_right = 858.0
+offset_bottom = 280.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_vvur5")
+max_value = 1.0
+step = 0.01
+
+[node name="FullScreenLabel" type="Label" parent="GraphicsPage" unique_id=134815476]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 301.0
+offset_right = 339.0
+offset_bottom = 324.0
+text = "Полный экран"
+
+[node name="FullScreenCheck" type="CheckButton" parent="GraphicsPage" unique_id=134815477]
+layout_mode = 0
+offset_left = 549.0
+offset_top = 291.0
+offset_right = 593.0
+offset_bottom = 319.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+
+[node name="V-SyncLabel" type="Label" parent="GraphicsPage" unique_id=1981078602]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 350.0
+offset_right = 273.0
+offset_bottom = 373.0
+text = "V-Sync"
+
+[node name="VSyncCheck" type="CheckButton" parent="GraphicsPage" unique_id=1981078603]
+layout_mode = 0
+offset_left = 549.0
+offset_top = 341.0
+offset_right = 593.0
+offset_bottom = 369.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+button_pressed = true
+
+[node name="FPSLabel" type="Label" parent="GraphicsPage" unique_id=119669908]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 400.0
+offset_right = 329.0
+offset_bottom = 423.0
+text = "Показать FPS"
+
+[node name="FPSCheck" type="CheckButton" parent="GraphicsPage" unique_id=626264177]
+layout_mode = 0
+offset_left = 549.0
+offset_top = 391.0
+offset_right = 593.0
+offset_bottom = 419.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+
+[node name="EffectsLabel" type="Label" parent="GraphicsPage" unique_id=1658047112]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 450.0
+offset_right = 412.0
+offset_bottom = 473.0
+text = "Атмосферные эффекты"
+
+[node name="EffectsCheck" type="CheckButton" parent="GraphicsPage" unique_id=1658047113]
+layout_mode = 0
+offset_left = 549.0
+offset_top = 441.0
+offset_right = 593.0
+offset_bottom = 469.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+button_pressed = true
+
+[node name="IntarfaceAtributesLabel" type="Label" parent="GraphicsPage" unique_id=1503275156]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 500.0
+offset_right = 412.0
+offset_bottom = 523.0
+text = "Атрибуты интерфейса"
+
+[node name="InterfaceAttributesCheck" type="CheckButton" parent="GraphicsPage" unique_id=1503275157]
+layout_mode = 0
+offset_left = 549.0
+offset_top = 491.0
+offset_right = 593.0
+offset_bottom = 519.0
+theme_override_icons/checked = SubResource("AT_Aq_SwOn")
+theme_override_icons/unchecked = SubResource("AT_Aq_SwOff")
+button_pressed = true
+
+[node name="AudioPage" type="Control" parent="." unique_id=209264160]
+visible = false
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+
+[node name="ColorRect" type="ColorRect" parent="AudioPage" unique_id=1349034489]
+layout_mode = 0
+offset_left = 90.0
+offset_top = -6.0
+offset_right = 1234.0
+offset_bottom = 642.0
+color = Color(0.1764706, 0.1764706, 0.1764706, 0)
+
+[node name="MasterLabel" type="Label" parent="AudioPage" unique_id=1000000001]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 182.0
+offset_right = 402.0
+offset_bottom = 205.0
+text = "Общая громкость"
+
+[node name="MasterSlider" type="HSlider" parent="AudioPage" unique_id=1000000002]
+layout_mode = 0
+offset_left = 582.0
+offset_top = 172.0
+offset_right = 878.0
+offset_bottom = 212.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_3ivvd")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicLabel" type="Label" parent="AudioPage" unique_id=1631299506]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 232.0
+offset_right = 402.0
+offset_bottom = 255.0
+text = "Музыка"
+
+[node name="MusicSlider" type="HSlider" parent="AudioPage" unique_id=516089308]
+layout_mode = 0
+offset_left = 582.0
+offset_top = 222.0
+offset_right = 878.0
+offset_bottom = 262.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_o1jbc")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SFXLabel" type="Label" parent="AudioPage" unique_id=11202023]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 282.0
+offset_right = 402.0
+offset_bottom = 305.0
+text = "Звуковые эффекты"
+
+[node name="SFXSlider" type="HSlider" parent="AudioPage" unique_id=1496472719]
+layout_mode = 0
+offset_left = 582.0
+offset_top = 272.0
+offset_right = 878.0
+offset_bottom = 312.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_j2mno")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="AmbienceLabel" type="Label" parent="AudioPage" unique_id=121444495]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 332.0
+offset_right = 402.0
+offset_bottom = 355.0
+text = "Окружение"
+
+[node name="AmbienceSlider" type="HSlider" parent="AudioPage" unique_id=1923459666]
+layout_mode = 0
+offset_left = 582.0
+offset_top = 322.0
+offset_right = 878.0
+offset_bottom = 362.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_gbfnw")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="UILabel" type="Label" parent="AudioPage" unique_id=1000000003]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 382.0
+offset_right = 410.0
+offset_bottom = 405.0
+text = "Громкость интерфейса"
+
+[node name="UISlider" type="HSlider" parent="AudioPage" unique_id=1000000004]
+layout_mode = 0
+offset_left = 582.0
+offset_top = 372.0
+offset_right = 878.0
+offset_bottom = 412.0
+theme_override_icons/grabber = SubResource("AT_Aq_Handle")
+theme_override_icons/grabber_highlight = ExtResource("aq_handle_h")
+theme_override_icons/grabber_disabled = SubResource("AT_Aq_Handle")
+theme_override_styles/slider = SubResource("SB_Aq_Slider_Normal")
+theme_override_styles/grabber_area = SubResource("SB_Aq_Full_Normal")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxTexture_qfy0m")
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="DynamicRangeLabel" type="Label" parent="AudioPage" unique_id=1000000005]
+layout_mode = 0
+offset_left = 222.0
+offset_top = 434.0
+offset_right = 482.0
+offset_bottom = 457.0
+text = "Динамический диапазон"
+
+[node name="DynamicRangeOption" type="Button" parent="AudioPage" unique_id=1000000006]
+layout_mode = 0
+offset_left = 639.0
+offset_top = 420.0
+offset_right = 837.0
+offset_bottom = 459.0
+theme_override_styles/normal = ExtResource("3_xchot")
+theme_override_styles/pressed = ExtResource("8_4m4e8")
+theme_override_styles/hover = ExtResource("9_td0rv")
+theme_override_styles/disabled = ExtResource("10_nmydp")
+text = "Стандартный"
+
+[node name="Seaweed" type="Sprite2D" parent="AudioPage/DynamicRangeOption" unique_id=1535275608]
+visible = false
+position = Vector2(98.99994, 19.49999)
+scale = Vector2(1.6097559, 1.3928567)
+texture = ExtResource("7_xpquy")
+
+[node name="ControlsPage" type="Control" parent="." unique_id=1028448608]
+visible = false
+anchors_preset = 0
+offset_left = -3.0
+offset_top = -1.0
+offset_right = 1149.0
+offset_bottom = 662.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ControlsPage" unique_id=2024790193]
+layout_mode = 0
+offset_left = 197.0
+offset_top = 130.0
+offset_right = 1134.0
+offset_bottom = 528.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="ContentGrid" type="GridContainer" parent="ControlsPage/ScrollContainer" unique_id=910545739]
+layout_mode = 2
+theme_override_constants/h_separation = 40
+theme_override_constants/v_separation = 12
+columns = 4
+
+[node name="ActionHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000010]
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "Действие"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KeyHeader1" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000011]
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "Клавиша"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ActionHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000012]
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "Действие"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KeyHeader2" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000013]
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "Клавиша"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HLine1" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000014]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="HLine2" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000015]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="HLine3" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000016]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="HLine4" type="ColorRect" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000017]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 2
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="MoveUpLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000020]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Вверх"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MoveUpButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=565267772]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveUpButton" unique_id=267447346]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="MoveDownLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000022]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Вниз"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MoveDownButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=708118919]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveDownButton" unique_id=59484970]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="MoveLeftLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000024]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Влево"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MoveLeftButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1597221555]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveLeftButton" unique_id=283809734]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="MoveRightLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000026]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Вправо"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MoveRightButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1453332579]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/MoveRightButton" unique_id=1121697421]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="JumpLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000028]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Прыжок"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JumpButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=695658269]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/JumpButton" unique_id=1334554639]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="InteractLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000030]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Взаимодействие"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InteractButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1220683337]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InteractButton" unique_id=309254476]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="InventoryLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000032]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Инвентарь"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InventoryButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=86391702]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InventoryButton" unique_id=718042350]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="PauseLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000034]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Пауза"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PauseButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1251175926]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/PauseButton" unique_id=2037251310]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="InspectLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000036]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Осмотреться"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InspectButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000037]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/InspectButton" unique_id=1000000038]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="JournalLabel" type="Label" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000040]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+text = "Журнал"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JournalButton" type="Button" parent="ControlsPage/ScrollContainer/ContentGrid" unique_id=1000000041]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsPage/ScrollContainer/ContentGrid/JournalButton" unique_id=1000000042]
+visible = false
+position = Vector2(79.999985, 22.000006)
+scale = Vector2(1.3008134, 1.5714294)
+texture = ExtResource("7_xpquy")
+
+[node name="ApplyButton" type="Button" parent="." unique_id=1614612318]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 566.0
+offset_right = 692.0
+offset_bottom = 613.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "Применить"
+
+[node name="Seaweed" type="Sprite2D" parent="ApplyButton" unique_id=1973268641]
+visible = false
+position = Vector2(115.99999, 23.500004)
+scale = Vector2(1.8861797, 1.678572)
+texture = ExtResource("7_xpquy")
+
+[node name="DefaultButton" type="Button" parent="." unique_id=2024975690]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 566.0
+offset_right = 944.0
+offset_bottom = 613.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "По умолчанию "
+
+[node name="Seaweed" type="Sprite2D" parent="DefaultButton" unique_id=1673907654]
+visible = false
+position = Vector2(115.99997, 23.500004)
+scale = Vector2(1.8861793, 1.678572)
+texture = ExtResource("7_xpquy")
+
+[node name="GeneralTab" type="Button" parent="." unique_id=785485694]
+layout_mode = 0
+offset_left = 208.0
+offset_top = 30.0
+offset_right = 440.0
+offset_bottom = 78.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "Основные
+"
+icon_alignment = 1
+
+[node name="Seaweed" type="Sprite2D" parent="GeneralTab" unique_id=1174535296]
+visible = false
+position = Vector2(115.99997, 24)
+scale = Vector2(1.8861793, 1.7142857)
+texture = ExtResource("7_xpquy")
+
+[node name="AudioTab" type="Button" parent="." unique_id=931140739]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 30.0
+offset_right = 692.0
+offset_bottom = 78.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "Аудио"
+icon_alignment = 1
+
+[node name="Seaweed" type="Sprite2D" parent="AudioTab" unique_id=392488541]
+visible = false
+position = Vector2(115.99995, 23.999998)
+scale = Vector2(1.886179, 1.7142856)
+texture = ExtResource("7_xpquy")
+
+[node name="ControlsTab" type="Button" parent="." unique_id=968413340]
+layout_mode = 0
+offset_left = 712.0
+offset_top = 30.0
+offset_right = 944.0
+offset_bottom = 78.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "Управление"
+icon_alignment = 1
+
+[node name="Seaweed" type="Sprite2D" parent="ControlsTab" unique_id=70332014]
+visible = false
+position = Vector2(115.99995, 24)
+scale = Vector2(1.886179, 1.7142857)
+texture = ExtResource("7_xpquy")
+
+[node name="BackButton" type="Button" parent="." unique_id=1884264781]
+layout_mode = 0
+offset_left = 208.0
+offset_top = 566.0
+offset_right = 440.0
+offset_bottom = 614.0
+theme_override_styles/normal = ExtResource("3_cxufn")
+theme_override_styles/pressed = ExtResource("4_dbauv")
+theme_override_styles/hover = ExtResource("5_bb24s")
+text = "Назад
+"
+
+[node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=1306186201]
+visible = false
+position = Vector2(115.99996, 24.000015)
+scale = Vector2(1.8861793, 1.7142868)
+texture = ExtResource("7_xpquy")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=117281949]
+position = Vector2(576, 320)
+script = ExtResource("10_l8d1f")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=799857351]
+z_index = -1
+material = SubResource("ShaderMaterial_8uthl")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -81.0
+offset_top = -37.0
+offset_right = 1335.0
+offset_bottom = 831.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="DividingLine1" type="ColorRect" parent="." unique_id=1637037840]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 552.0
+offset_right = 1052.0
+offset_bottom = 556.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="DividingLine2" type="ColorRect" parent="." unique_id=37877982]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 88.0
+offset_right = 1052.0
+offset_bottom = 92.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="BG" parent="." unique_id=1653505568 instance=ExtResource("20_02ri3")]
+
+[connection signal="pressed" from="BackButton" to="." method="_on_button_pressed"]

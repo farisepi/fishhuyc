@@ -1,0 +1,547 @@
+[gd_scene format=3 uid="uid://4y425e7wgbp4"]
+
+[ext_resource type="Script" uid="uid://dmou8vm5a0awv" path="res://GameScripts/MenuScripts/AquariumMenuScripts/AchievementMenuAquariumScript/Menu_Aquarium_AchievementMenu_Script.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bdlkqctyc07cu" path="res://GameScripts/MenuScripts/MainMenuScripts/MainMenuCameraScript/Menu_MainMenu_Camera_Script.gd" id="2_camera"]
+[ext_resource type="PackedScene" uid="uid://c8v3c74ined2d" path="res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumBackgroundScene/Menu_Aquarium_Background_Scene.tscn" id="3_bg"]
+[ext_resource type="StyleBox" uid="uid://dlj1nu7jpcv16" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Normal_Material.tres" id="4_btnn"]
+[ext_resource type="StyleBox" uid="uid://d1dbikuie2cjm" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Pressed_Material.tres" id="5_btnp"]
+[ext_resource type="StyleBox" uid="uid://deevbbukdau1k" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/SmallButtonMaterials/Menu_Aquarium_Button_Small_Hover_Material.tres" id="6_btnh"]
+[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_AquariumLevel_Aquarium_Shader.gdshader" id="7_shader"]
+[ext_resource type="Texture2D" uid="uid://dr3drp17gdtbj" path="res://GameAssets/Sprites/UserInterfaceSprites/AchievementMenuSprites/AchievementButtonTextures/Menu_AchivementMenu_Aquarium_Button_Huge_Fullnes_Texture.png" id="8_banner"]
+[ext_resource type="Texture2D" uid="uid://k42h18gsjql3" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuSprites/AquariumMenuButtonTextures/SmallButtonTextures/Menu_Aquarium_Button_Small_ButtonAttribute_Texture.png" id="9_seaweed"]
+[ext_resource type="StyleBox" uid="uid://c1bbuan3bjjp4" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/ProgressbarMaterials/Menu_Aquarium_Progressbar_Empty_Material.tres" id="10_pbbg"]
+[ext_resource type="StyleBox" uid="uid://ckdv3klg5r04a" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/ProgressbarMaterials/Menu_Aquarium_Progressbar_Fullness_Material.tres" id="11_pbfill"]
+[ext_resource type="Script" uid="uid://dnrp3q15e0g45" path="res://GameScripts/MenuScripts/FpsCounterScripts/Menu_FpsCounter_Script.gd" id="12_bldbw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+shader = ExtResource("7_shader")
+shader_parameter/depth = 1.8
+shader_parameter/water_alpha = 0.35
+shader_parameter/wave_speed = 1.2
+shader_parameter/water_color_shallow = Color(0.03, 0.08, 0.12, 1)
+shader_parameter/water_color_deep = Color(0.005, 0.015, 0.03, 1)
+shader_parameter/light_intensity = 1.0
+shader_parameter/caustic_strength = 0.8
+shader_parameter/lab_light_strength = 0.8
+shader_parameter/lab_light_color = Color(1, 0.9, 0.7, 1)
+
+[node name="AchievementsMenu" type="Control" unique_id=1165528728]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="FPSCounter" type="Label" parent="." unique_id=1777984415]
+layout_mode = 0
+offset_left = 384.0
+offset_top = 152.0
+offset_right = 424.0
+offset_bottom = 175.0
+script = ExtResource("12_bldbw")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1480958869]
+layout_mode = 0
+offset_left = -104.0
+offset_top = -80.0
+offset_right = 1273.0
+offset_bottom = 702.0
+color = Color(0.039215688, 0.05882353, 0.101960786, 0.5529412)
+
+[node name="BG" parent="." unique_id=1596405554 instance=ExtResource("3_bg")]
+
+[node name="Title" type="Label" parent="." unique_id=1933389392]
+layout_mode = 0
+offset_left = 488.0
+offset_top = -7.0000005
+offset_right = 604.0
+offset_bottom = 41.0
+scale = Vector2(1.5, 1.5)
+text = "ДОСТИЖЕНИЯ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DividingLine1" type="ColorRect" parent="." unique_id=1509735894]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 103.0
+offset_right = 1052.0
+offset_bottom = 107.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="ProgressBar" type="ProgressBar" parent="." unique_id=1058035517]
+layout_mode = 0
+offset_left = 249.0
+offset_top = 57.0
+offset_right = 905.0
+offset_bottom = 89.0
+theme_override_styles/background = ExtResource("10_pbbg")
+theme_override_styles/fill = ExtResource("11_pbfill")
+
+[node name="ProgressLabel" type="Label" parent="." unique_id=1951979506]
+layout_mode = 0
+offset_left = 857.0
+offset_top = 57.0
+offset_right = 905.0
+offset_bottom = 89.0
+text = "0/8"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AchievementsScroll" type="ScrollContainer" parent="." unique_id=1821771213]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 137.0
+offset_right = 1036.0
+offset_bottom = 521.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="AchievementsList" type="VBoxContainer" parent="AchievementsScroll" unique_id=17471988]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CoffeeAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=559629083]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=466556755]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=444415134]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=2119343073]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=1301016316]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Кофе бы..."
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/CoffeeAchievement" unique_id=1896351929]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Подслушать разговор между механиком и ученым"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="FlashbackAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=170426923]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=322425790]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=115930043]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=1622025350]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=1745865689]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Флешбек"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/FlashbackAchievement" unique_id=878267421]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Вспомнить все"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="PopStarAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=897446897]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=1393489364]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=1056337103]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=926481198]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=1353359414]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Поп-звезда"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=609518627]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 686.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Лопнуть 100 пузырей "
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="ProgressLabel" type="Label" parent="AchievementsScroll/AchievementsList/PopStarAchievement" unique_id=344121522]
+layout_mode = 0
+offset_left = 625.0
+offset_top = 15.0
+offset_right = 685.0
+offset_bottom = 39.0
+theme_override_font_sizes/font_size = 12
+text = "0/100"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="RebelAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=1563151040]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=1216113916]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=842332191]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=1342531291]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=1763623605]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Бунтарь"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=342776739]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 686.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Скинуть 50 коробок с конвейера"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="ProgressLabel" type="Label" parent="AchievementsScroll/AchievementsList/RebelAchievement" unique_id=508643349]
+layout_mode = 0
+offset_left = 625.0
+offset_top = 15.0
+offset_right = 685.0
+offset_bottom = 39.0
+theme_override_font_sizes/font_size = 12
+text = "0/50"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="AcrobatAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=396362378]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=1477090154]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=259841896]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=1576088708]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=1861309310]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Акробат"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/AcrobatAchievement" unique_id=536913980]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 686.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Поймать коробку, падающую с неба"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="WorkerOfMonthAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967295]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967294]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967293]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967292]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967291]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Работник месяца"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/WorkerOfMonthAchievement" unique_id=-1294967290]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Закончить смену идеально"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="ScoutAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967285]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967284]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967283]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967282]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967281]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Разведчик"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/ScoutAchievement" unique_id=-1294967280]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Записать всю информацию об окружении"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="FreedomAchievement" type="Control" parent="AchievementsScroll/AchievementsList" unique_id=-1294967275]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Banner" type="Sprite2D" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967274]
+position = Vector2(384, 36.5)
+scale = Vector2(2.0628932, 1.973684)
+texture = ExtResource("8_banner")
+
+[node name="Icon" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967273]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 60.0
+offset_bottom = 60.0
+
+[node name="Check" type="TextureRect" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967272]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 20.0
+offset_right = 812.0
+offset_bottom = 60.0
+
+[node name="NameLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967271]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 21.0
+offset_right = 286.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 16
+text = "Свобода"
+
+[node name="DescLabel" type="Label" parent="AchievementsScroll/AchievementsList/FreedomAchievement" unique_id=-1294967270]
+layout_mode = 0
+offset_left = 86.0
+offset_top = 33.0
+offset_right = 766.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 12
+text = "Выбраться из рабства"
+vertical_alignment = 1
+autowrap_mode = 1
+
+[node name="DividingLine2" type="ColorRect" parent="." unique_id=232725940]
+custom_minimum_size = Vector2(160, 2)
+layout_mode = 0
+offset_left = 104.0
+offset_top = 552.0
+offset_right = 1052.0
+offset_bottom = 556.0
+color = Color(0.141176, 0.211765, 0.258824, 1)
+
+[node name="ResetButton" type="Button" parent="." unique_id=244192086]
+layout_mode = 0
+offset_left = 334.0
+offset_top = 566.0
+offset_right = 566.0
+offset_bottom = 613.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("4_btnn")
+theme_override_styles/pressed = ExtResource("5_btnp")
+theme_override_styles/hover = ExtResource("6_btnh")
+text = "Сбросить"
+
+[node name="Seaweed" type="Sprite2D" parent="ResetButton" unique_id=1723297031]
+visible = false
+position = Vector2(116, 24)
+scale = Vector2(1.8861793, 1.7142868)
+texture = ExtResource("9_seaweed")
+
+[node name="BackButton" type="Button" parent="." unique_id=558305008]
+layout_mode = 0
+offset_left = 586.0
+offset_top = 566.0
+offset_right = 818.0
+offset_bottom = 613.0
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("4_btnn")
+theme_override_styles/pressed = ExtResource("5_btnp")
+theme_override_styles/hover = ExtResource("6_btnh")
+text = "Назад"
+
+[node name="Seaweed" type="Sprite2D" parent="BackButton" unique_id=213074909]
+visible = false
+position = Vector2(116, 24)
+scale = Vector2(1.8861793, 1.7142868)
+texture = ExtResource("9_seaweed")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=983321844]
+position = Vector2(576, 328)
+script = ExtResource("2_camera")
+
+[node name="WaterShader" type="ColorRect" parent="." unique_id=997005480]
+z_index = -1
+material = SubResource("ShaderMaterial_water")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -385.0
+offset_top = -145.0
+offset_right = 1031.0
+offset_bottom = 723.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

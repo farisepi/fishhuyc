@@ -1,7 +1,0 @@
-[gd_resource type="StyleBoxTexture" format=3 uid="uid://dhcit2yj7m2m"]
-
-[ext_resource type="Texture2D" uid="uid://x5iodi8jae3i" path="res://Menu_Factory_Button_Small_Texture.png" id="1_xsp6l"]
-
-[resource]
-texture = ExtResource("1_xsp6l")
-modulate_color = Color(0.7355655, 0.7355655, 0.7355655, 0.78431374)

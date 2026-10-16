@@ -1,7 +1,0 @@
-[gd_resource type="StyleBoxTexture" format=3 uid="uid://cyabga62sx7pc"]
-
-[ext_resource type="Texture2D" uid="uid://tmw67uq8d80i" path="res://Menu_Aquarium_Button_Falling_Texture.png" id="1_qn0dn"]
-
-[resource]
-texture = ExtResource("1_qn0dn")
-modulate_color = Color(0.3882353, 0.3882353, 0.3882353, 0.78431374)
