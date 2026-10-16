@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5c52pjtfw85k"
-path="res://.godot/imported/Menu_Factory_Slider_Fullness_Hover_Texture.png-671c892139750131b905c09c519de82c.ctex"
+uid="uid://b51xiar2xbgs5"
+path="res://.godot/imported/Menu_Factory_Switch_On_Texture.png-4fdbf469f388f57ce393f414b399fef1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuCommonUITextures/FactorySliderTextures/Menu_Factory_Slider_Fullness_Hover_Texture.png"
-dest_files=["res://.godot/imported/Menu_Factory_Slider_Fullness_Hover_Texture.png-671c892139750131b905c09c519de82c.ctex"]
+source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactorySwitchTextures/Menu_Factory_Switch_On_Texture.png"
+dest_files=["res://.godot/imported/Menu_Factory_Switch_On_Texture.png-4fdbf469f388f57ce393f414b399fef1.ctex"]
 
 [params]
 

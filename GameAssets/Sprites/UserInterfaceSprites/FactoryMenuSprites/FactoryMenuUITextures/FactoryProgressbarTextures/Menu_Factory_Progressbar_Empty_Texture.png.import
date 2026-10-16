@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chp3k6dkx8wwl"
-path="res://.godot/imported/Menu_Factory_Progressbar_Fullness_Texture.png-30621941b0eaf3f724d46a6d2b13fe82.ctex"
+uid="uid://xeh65yebsxhd"
+path="res://.godot/imported/Menu_Factory_Progressbar_Empty_Texture.png-38dac5e8d2b69aca4dbb80b9cbcb00d1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuCommonUITextures/FactoryProgressbarTextures/Menu_Factory_Progressbar_Fullness_Texture.png"
-dest_files=["res://.godot/imported/Menu_Factory_Progressbar_Fullness_Texture.png-30621941b0eaf3f724d46a6d2b13fe82.ctex"]
+source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactoryProgressbarTextures/Menu_Factory_Progressbar_Empty_Texture.png"
+dest_files=["res://.godot/imported/Menu_Factory_Progressbar_Empty_Texture.png-38dac5e8d2b69aca4dbb80b9cbcb00d1.ctex"]
 
 [params]
 

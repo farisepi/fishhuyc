@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuy31uh1p35dw"
-path="res://.godot/imported/Menu_Factory_Switch_Off_Texture.png-0b4ce3f7fa29248c65666bd71c5fef90.ctex"
+path="res://.godot/imported/Menu_Factory_Switch_Off_Texture.png-1c2e853cd0fc7b84dbe1b810aed87d3f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuCommonUITextures/FactorySwitchTextures/Menu_Factory_Switch_Off_Texture.png"
-dest_files=["res://.godot/imported/Menu_Factory_Switch_Off_Texture.png-0b4ce3f7fa29248c65666bd71c5fef90.ctex"]
+source_file="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactorySwitchTextures/Menu_Factory_Switch_Off_Texture.png"
+dest_files=["res://.godot/imported/Menu_Factory_Switch_Off_Texture.png-1c2e853cd0fc7b84dbe1b810aed87d3f.ctex"]
 
 [params]
 
