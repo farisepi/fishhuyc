@@ -13,7 +13,7 @@ extends Node2D
 @onready var logo: AnimatedSprite2D = $LogoArea/LogoAnimation
 @onready var menu_music: AudioStreamPlayer = $MenuMusic
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 var logo_float_time: float = 0.0
 var logo_original_y: float = 0.0
@@ -107,7 +107,7 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		var click_sound = AudioStreamPlayer.new()
 		click_sound.bus = "UI"
 		add_child(click_sound)
-		click_sound.stream = preload("res://Fish Slaves/Sounds/SFX/MenuSFX/MainMenuAquariumLogoClick.mp3")
+		click_sound.stream = preload("res://GameAssets/Audio/SoundEffects/UserInterfaceSounds/LogoClickSounds/Menu_MainMenu_Aquarium_MainMenu_LogoClick_SoundEffect.mp3")
 		click_sound.volume_db = -18.0
 		click_sound.pitch_scale = randf_range(0.98, 1.02)
 		click_sound.play()
@@ -180,23 +180,23 @@ func _on_play_button_pressed() -> void:
 	Global.intro_completed = false
 	Global.prologue1_completed = false
 	Global.prologue2_completed = false
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
 
 func _on_settings_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn")
 
 func _on_achivments_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/AchievementMenus/AchievementMenuAquarium.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumAchievementMenuScene/Menu_Aquarium_AchievementMenu_Scene.tscn")
 
 func _on_save_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = false
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
 
 func _on_discord_button_pressed() -> void:
 	UISounds.play_click()

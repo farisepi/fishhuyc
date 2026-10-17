@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var layer3_speed: float = 30.0
-@export var box_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Box.tscn")
+@export var box_scene: PackedScene = preload("res://GameScenes/LevelScenes/ActPrologueLevelScenes/FactoryLevelScenes/FactoryEntityScenes/FactoryBoxScene/ActPrologue_LevelFactory_Box_Scene.tscn")
 @export var box_spawn_interval: float = 3.0
 @export var box_spawn_chance: float = 0.75
 @export var box_spawn_position: Vector2 = Vector2(1393.0, 405.0)

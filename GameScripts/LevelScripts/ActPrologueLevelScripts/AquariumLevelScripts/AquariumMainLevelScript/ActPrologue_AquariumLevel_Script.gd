@@ -1,6 +1,6 @@
 extends Node2D
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 const WATER_RECT: Rect2 = Rect2(320, 195, 576, 315)
 
@@ -76,8 +76,8 @@ var text_glitch_timer: float = 0.0
 var current_phantom_offset: float = 0.0
 var chatter_silence: bool = false
 
-var scientist_icon = preload("res://Fish Slaves/Textures/Characters/Scientist/ScientistDialogPortrait/ScientistDialogPortrait.png")
-var mechanic_icon = preload("res://Fish Slaves/Textures/Characters/Mechanic/MechanicDialogPortrait/MechanicDialogPortrait.png")
+var scientist_icon = preload("res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistPortaitTextures/NPC_Scientist_Portaint_Texture.png")
+var mechanic_icon = preload("res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicPortraitTextures/NPC_Mechanic_Portaint_Texture.png")
 
 var interact_normal_texture: Texture2D = null
 
@@ -245,7 +245,7 @@ func _ready() -> void:
 	var water_shader_mat = $WaterShader.material
 	if not water_shader_mat:
 		var new_mat = ShaderMaterial.new()
-		new_mat.shader = preload("res://Fish Slaves/Base/Shaders/Act1AquariumLevelShaders/Act1AquariumShader.gdshader")
+		new_mat.shader = preload("res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_AquariumLevel_Aquarium_Shader.gdshader")
 		$WaterShader.material = new_mat
 	
 	_start_wake_sequence()
@@ -1616,7 +1616,7 @@ func _on_hide_finished(_blackout: CanvasLayer):
 
 func _change_to_act2():
 	GlobalMusic.stop_music()
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/FactoryLevelScenes/FactoryMainLevelScene/ActPrologue_LevelFactory_Scene.tscn")
 
 func _save_progress():
 	if not has_node("/root/Global"):
@@ -1626,7 +1626,7 @@ func _save_progress():
 	
 	var config = ConfigFile.new()
 	
-	config.set_value("save", "scene", "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
+	config.set_value("save", "scene", "res://GameScenes/LevelScenes/ActPrologueLevelScenes/FactoryLevelScenes/FactoryMainLevelScene/ActPrologue_LevelFactory_Scene.tscn")
 	config.set_value("save", "time", Time.get_datetime_string_from_system())
 	
 	if player:
@@ -1659,7 +1659,7 @@ func _auto_save_to_current_slot():
 	if config.load(save_path) != OK:
 		return
 	
-	config.set_value("save", "scene", "res://Fish Slaves/Base/Scenes/Levels/Act2FactoryLevel.tscn")
+	config.set_value("save", "scene", "res://GameScenes/LevelScenes/ActPrologueLevelScenes/FactoryLevelScenes/FactoryMainLevelScene/ActPrologue_LevelFactory_Scene.tscn")
 	config.set_value("save", "time", Time.get_datetime_string_from_system())
 	config.set_value("save", "player_x", player.global_position.x)
 	config.set_value("save", "player_y", player.global_position.y)

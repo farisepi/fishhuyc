@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://cd3ovrwgkbuxl" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/BigButtonMaterials/Menu_Factory_Button_Big_Hover_Material.tres" id="4_l6i1u"]
 [ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/BigButtonMaterials/Menu_Aquarium_Button_Big_Hover_Material.tres" id="5_qps51"]
 [ext_resource type="Script" uid="uid://mkq572lg6l57" path="res://GameScripts/MenuScripts/MainMenuScripts/MainMenuPlayButtonScript/Menu_MainMenu_PlayButton_Script.gd" id="6_2in4n"]
-[ext_resource type="Texture2D" path="res://переименнованы/Menu_Factory_Button_Big_ButtonAttribute_Texture.png" id="6_8nuso"]
+[ext_resource type="Texture2D" uid="uid://bunabxhfm6aag" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/BigButtonTextures/Menu_Factory_Button_Big_Texture.png" id="6_8nuso"]
 [ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Normal_Material.tres" id="8_er5pt"]
 [ext_resource type="StyleBox" uid="uid://csjyi7n70eaoj" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/ShareButtonMaterials/Menu_Factory_Button_Share_Normal_Material.tres" id="9_0w4o0"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Pressed_Material.tres" id="9_gw61p"]

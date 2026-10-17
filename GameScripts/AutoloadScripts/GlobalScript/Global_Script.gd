@@ -42,14 +42,14 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	print("=== CREATING SEAWEEDSTATE ===")
-	var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
+	var seaweed_path = "res://GameScripts/MenuScripts/MainMenuScripts/MainMenuButtonsAttributesStateScript/Menu_MainMenu_ButtonsAttributesState_Script.gd"
 	if FileAccess.file_exists(seaweed_path):
 		seaweed_state = load(seaweed_path).new()
 		add_child(seaweed_state)
 		seaweed_state.name = "SeaweedState"
 		print("SeaweedState created from: ", seaweed_path)
 	
-	var font_path = "res://Fish Slaves/Textures/Font/Font.ttf"
+	var font_path = "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 	
 	if FileAccess.file_exists(font_path):
 		_font = load(font_path)
@@ -279,7 +279,7 @@ func _force_apply_seaweed(scene: Node) -> void:
 		return
 	
 	if not has_node("SeaweedState"):
-		var seaweed_path = "res://Fish Slaves/Base/Scripts/Managers/MainMenuButtonAttributesState.gd"
+		var seaweed_path = "res://GameScripts/MenuScripts/MainMenuScripts/MainMenuButtonsAttributesStateScript/Menu_MainMenu_ButtonsAttributesState_Script.gd"
 		if FileAccess.file_exists(seaweed_path):
 			seaweed_state = load(seaweed_path).new()
 			add_child(seaweed_state)

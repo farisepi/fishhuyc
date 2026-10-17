@@ -5,13 +5,13 @@ extends Node2D
 
 const SAVE_DIR = "user://saves/"
 
-const EMPTY_NORMAL = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonNormal.tres"
-const EMPTY_HOVER = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonHover.tres"
-const EMPTY_PRESSED = "res://Fish Slaves/Textures/Interface/MenuButtons/HugeMenuButtons/HugeAquariumMenuButtons/HugeAquariumMenuButtonPressed.tres"
+const EMPTY_NORMAL = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Normal_Material.tres"
+const EMPTY_HOVER = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Hover_Material.tres"
+const EMPTY_PRESSED = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Pressed_Material.tres"
 
-const FULL_NORMAL = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessAquarium/SaveMenuFullnessAquariumNormal.tres"
-const FULL_HOVER = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessAquarium/SaveMenuFullnessAquariumHover.tres"
-const FULL_PRESSED = "res://Fish Slaves/Textures/Interface/MenuButtons/SaveMenuFullness/SaveMenuFullnessAquarium/SaveMenuFullnessAquariumPressed.tres"
+const FULL_NORMAL = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Fullness_Normal_Material.tres"
+const FULL_HOVER = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Fullness_Hover_Material.tres"
+const FULL_PRESSED = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Fullness_Pressed_Material.tres"
 
 var current_popup: AcceptDialog = null
 var intro_active: bool = false
@@ -19,10 +19,10 @@ var intro_instance: CanvasLayer = null
 
 var custom_font: FontFile
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
-	custom_font = load("res://Fish Slaves/Textures/Font/Font.ttf")
+	custom_font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	if custom_font:
 		custom_font.fixed_size = 10
 	
@@ -136,14 +136,14 @@ func _on_slot_pressed(index: int):
 				Fade.fade_out()
 				await get_tree().create_timer(0.3).timeout
 			
-			var intro_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/Intro.tscn")
+			var intro_scene = load("res://GameScenes/IntroScenes/IntroScene/Intro_Scene.tscn")
 			if intro_scene:
 				intro_instance = intro_scene.instantiate()
 				add_child(intro_instance)
 				intro_active = true
 			else:
 				intro_instance = CanvasLayer.new()
-				var script = load("res://Fish Slaves/Base/Scripts/Overlay/Transition/Intro.gd")
+				var script = load("res://GameScripts/IntroScripts/IntroScript/Intro_Script.gd")
 				if script:
 					intro_instance.set_script(script)
 					add_child(intro_instance)
@@ -164,7 +164,7 @@ func _skip_intro():
 	if is_instance_valid(Fade):
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+	get_tree().change_scene_to_file("res://GameScripts/LevelScripts/ActPrologueLevelScripts/AquariumLevelScripts/AquariumMainLevelScript/ActPrologue_AquariumLevel_Script.gd")
 
 func _show_load_or_overwrite(index: int):
 	_close_current_popup()
@@ -275,7 +275,7 @@ func _save_game(index: int, scene_path: String = ""):
 	
 	var current_scene = scene_path
 	if current_scene == "" or "SavesMenu" in current_scene:
-		current_scene = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
+		current_scene = "res://GameScripts/LevelScripts/ActPrologueLevelScripts/AquariumLevelScripts/AquariumMainLevelScript/ActPrologue_AquariumLevel_Script.gd"
 	
 	var datetime = Time.get_datetime_dict_from_system()
 	var month = "%02d" % datetime.month
@@ -316,7 +316,7 @@ func _save_game(index: int, scene_path: String = ""):
 		Global.just_returned_from_settings = true
 		var target = Global.scene_to_save
 		if target == "" or "SavesMenu" in target:
-			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
+			target = "res://GameScripts/LevelScripts/ActPrologueLevelScripts/AquariumLevelScripts/AquariumMainLevelScript/ActPrologue_AquariumLevel_Script.gd"
 		if is_instance_valid(Fade):
 			Fade.fade_out()
 			await get_tree().create_timer(0.3).timeout
@@ -357,7 +357,7 @@ func _on_back_pressed() -> void:
 		Global.just_returned_from_settings = true
 		var target = Global.scene_to_save
 		if target == "" or "SavesMenu" in target:
-			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
+			target = "res://GameScripts/LevelScripts/ActPrologueLevelScripts/AquariumLevelScripts/AquariumMainLevelScript/ActPrologue_AquariumLevel_Script.gd"
 		if is_instance_valid(Fade):
 			Fade.fade_out()
 			await get_tree().create_timer(0.3).timeout
@@ -367,7 +367,7 @@ func _on_back_pressed() -> void:
 	if is_instance_valid(Fade):
 		Fade.fade_out()
 		await get_tree().create_timer(0.3).timeout
-	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	Global.goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

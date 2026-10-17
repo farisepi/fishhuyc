@@ -26,9 +26,9 @@ func _ready() -> void:
 	var level = Global.last_save_level
 	var target = ""
 	if level >= 2:
-		target = "res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn"
+		target = "res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn"
 	else:
-		target = "res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn"
+		target = "res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn"
 	
 	
 	ResourceLoader.load_threaded_request(target)

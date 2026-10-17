@@ -13,8 +13,8 @@ var ignore_timer: float = 0.0
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
 
-const POP_SOUND_PATH = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/MainMenuAquariumPop/MainMenuAquariumPop"
-const ACT1_POP_SOUND = "res://Fish Slaves/Sounds/SFX/OverlaySFX/Pop/Act1Pop/Act1Pop.mp3"
+const POP_SOUND_PATH = "res://GameAssets/Audio/SoundEffects/UserInterfaceSounds/PopUpOptionSounds/Menu_Aquarium_MainMenu_Pop_Option_SoundEffect.mp3"
+const ACT1_POP_SOUND = "res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/PopAmbienceSounds/ActPrologue_LevelAquarium_Pop_SoundEffect.mp3"
 
 func _ready() -> void:
 	if not Global.atmospheric_effects_enabled:

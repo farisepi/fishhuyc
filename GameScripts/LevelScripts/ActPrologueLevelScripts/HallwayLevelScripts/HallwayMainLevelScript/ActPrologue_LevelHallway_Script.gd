@@ -1002,7 +1002,7 @@ func _win():
 	if not is_inside_tree():
 		return
 
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
 	if get_tree().paused:

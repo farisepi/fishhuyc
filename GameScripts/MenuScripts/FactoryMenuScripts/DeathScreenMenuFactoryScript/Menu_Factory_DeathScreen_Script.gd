@@ -101,7 +101,7 @@ func _on_main_menu_button_pressed():
 	print("меню нажато")
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	_fade_out_and_goto("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	_fade_out_and_goto("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
 func _on_quit_button_pressed():
 	if not can_interact:

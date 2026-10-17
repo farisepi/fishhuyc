@@ -18,7 +18,7 @@ var logo_original_y: float = 0.0
 var logo_original_scale: Vector2 = Vector2.ONE
 var can_click_logo: bool = true
 
-const BOX_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Backgrounds/MainMenuBackgrounds/MainMenuFactoryBackground/FactoryBackgroundLayer7Box.png"
+const BOX_TEXTURE_PATH: String = "res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuBoxTextures/Menu_Factory_Box_Texture.png"
 
 func _ready() -> void:
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
@@ -104,7 +104,7 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		can_click_logo = false
 		var click_sound = AudioStreamPlayer.new()
 		add_child(click_sound)
-		click_sound.stream = preload("res://Fish Slaves/Sounds/SFX/MenuSFX/MainMenuAquariumLogoClick.mp3")
+		click_sound.stream = preload("res://GameAssets/Audio/SoundEffects/UserInterfaceSounds/LogoClickSounds/Menu_MainMenu_Aquarium_MainMenu_LogoClick_SoundEffect.mp3")
 		click_sound.volume_db = -18.0
 		click_sound.pitch_scale = randf_range(0.98, 1.02)
 		click_sound.play()
@@ -156,23 +156,23 @@ func _on_play_button_pressed() -> void:
 	Global.intro_completed = false
 	Global.prologue1_completed = false
 	Global.prologue2_completed = false
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
 func _on_settings_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
 
 func _on_achivments_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/AchievementMenus/AchievementsMenuFactory.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryAchievementMenuScene/Menu_Factory_AchievementMenu_Scene.tscn")
 
 func _on_save_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = false
-	_goto_scene("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+	_goto_scene("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
 func _on_discord_button_pressed() -> void:
 	UISounds.play_click()

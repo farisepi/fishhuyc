@@ -10,4 +10,4 @@ func _on_play_button_pressed() -> void:
 	await Fade.fade_out()
 	var tree = get_tree()
 	if tree:
-		tree.change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+		tree.change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")

@@ -1,16 +1,16 @@
 extends CanvasLayer
 
 var slides = [
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide1.png"), "text": "Он держал в руке то, что изменит всё."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide2.png"), "text": "Первой подопытной стала крыса."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide3.png"), "text": "Она больше не чувствовала себя собой."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide4.png"), "text": "Со временем очередь дошла до всех."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide5.png"), "text": "Так появилась новая рабочая сила."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide6.png"), "text": "Чип взял на себя то, что раньше решал мозг."},
-	{"image": preload("res://Fish Slaves/Textures/Backgrounds/IntroSlides/IntroSlide7.png"), "text": "Система казалась безупречной..."}
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide1_Texture.png"), "text": "Он держал в руке то, что изменит всё."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide2_Texture.png"), "text": "Первой подопытной стала крыса."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide3_Texture.png"), "text": "Она больше не чувствовала себя собой."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide4_Texture.png"), "text": "Со временем очередь дошла до всех."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide5_Texture.png"), "text": "Так появилась новая рабочая сила."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide6_Texture.png"), "text": "Чип взял на себя то, что раньше решал мозг."},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide7_Texture.png"), "text": "Система казалась безупречной..."}
 ]
 
-const MUSIC_PATH = "res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3"
+const MUSIC_PATH = "res://GameAssets/Audio/MusicTracks/IntroMusic/Intro_Music.mp3"
 const MUSIC_LENGTH: float = 31.2
 const SLIDES_TOTAL_BEFORE_7: float = 25.0
 const FINAL_FADE_START_TIME: float = 29.0
@@ -24,8 +24,8 @@ const TYPE_DELAY_SLIDE7: float = 0.10
 const TYPE_DELAY_SLIDE7_DOT: float = 0.35
 const SLIDE_TRANSITION: float = 0.3
 
-const PROGRESS_BG_PATH = "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbar.png"
-const PROGRESS_FULL_PATH = "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/AquariumProgressbar/AquariumProgressbarFull.png"
+const PROGRESS_BG_PATH = "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/ProgressBarTextures/Menu_Aquarium_Progressbar_Empty_Texture.png"
+const PROGRESS_FULL_PATH = "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/ProgressBarTextures/Menu_Aquarium_Progressbar_Fullness_Texture.png"
 
 const SKIP_WIDTH: float = 140.0
 const SKIP_HEIGHT: float = 8.0
@@ -81,17 +81,17 @@ func _ready() -> void:
 	add_child(intro_music)
 	intro_music.play(0.5)
 	
-	custom_font = load("res://Fish Slaves/Textures/Font/Font.ttf")
+	custom_font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	slide_font = custom_font.duplicate() if custom_font else null
 	if slide_font:
 		slide_font.fixed_size = SLIDE_FONT_SIZE
 	
 	scientist_voice = AudioStreamPlayer.new()
-	var voice_path = "res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoice.MP3"
+	var voice_path = "res://GameAssets/Audio/SoundEffects/NPCVoiceSounds/ScientistVoiceSounds/NPC_Scientist_Voiсe_SoundEffect.mp3"
 	if ResourceLoader.exists(voice_path):
 		scientist_voice.stream = load(voice_path)
 	else:
-		var fallback_path = "res://Fish Slaves/Sounds/SFX/Act1SFX/ScientistSFX/Act1ScientistVoise.MP3"
+		var fallback_path = "res://GameAssets/Audio/SoundEffects/NPCVoiceSounds/ScientistVoiceSounds/NPC_Scientist_Voiсe_SoundEffect.mp3"
 		if ResourceLoader.exists(fallback_path):
 			scientist_voice.stream = load(fallback_path)
 	scientist_voice.volume_db = VOICE_NORMAL_DB
@@ -275,7 +275,7 @@ func _skip_intro() -> void:
 	_cleanup_menus()
 	
 	_log_time("CHANGE SCENE -> Act1")
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
 
 func _cleanup_menus() -> void:
 	var parent = get_parent()
@@ -312,7 +312,7 @@ func _own_fade_and_change_scene() -> void:
 	await tween.finished
 	
 	_log_time("CHANGE SCENE -> Act1")
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
 
 func _stop_main_menu_music() -> void:
 	if has_node("/root/GlobalMusic"):

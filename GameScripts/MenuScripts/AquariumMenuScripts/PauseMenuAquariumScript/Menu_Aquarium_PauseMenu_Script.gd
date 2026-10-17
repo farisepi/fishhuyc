@@ -139,25 +139,25 @@ func _on_save_pressed() -> void:
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
 	if _is_factory_level():
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuFactory.tscn")
+		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 	else:
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SaveMenus/SavesMenuAquarium.tscn")
+		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
 
 func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	if _is_factory_level():
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuFactory.tscn")
+		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
 	else:
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/SettingMenus/SettingsMenuAquarium.tscn")
+		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn")
 
 func _on_exit_pressed() -> void:
 	UISounds.play_click()
 	if _is_factory_level():
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuFactory.tscn")
+		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn")
 	else:
-		_transition_to("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
 
 func _on_restart_pressed() -> void:
 	UISounds.play_click()

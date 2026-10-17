@@ -58,7 +58,7 @@ extends Control
 var total_achievements: int = 8
 var unlocked_count: int = 0
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
@@ -237,7 +237,7 @@ func _on_reset_pressed() -> void:
 func _on_back_button_pressed() -> void:
 	Fade.fade_out()
 	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

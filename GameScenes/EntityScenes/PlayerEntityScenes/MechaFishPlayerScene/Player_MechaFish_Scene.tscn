@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b78p05we4k3he"]
 
-[ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://GameScripts/EntityScripts/PlayerEntityScripts/MechaFishPlayerScripts/PlayerMechaFishCamera_Scripts/PlayerMechaFishScript/Player_MechaFish_Script.gd" id="1_wwsif"]
+[ext_resource type="Script" uid="uid://dhy3pkgcn7qma" path="res://GameScripts/EntityScripts/PlayerEntityScripts/MechaFishPlayerScripts/PlayerMechaFishScript/Player_MechaFish_Script.gd" id="1_wwsif"]
 [ext_resource type="Texture2D" uid="uid://rodyc3oti5g" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishDeathFrames/Player_MechaFish_Death_Fish_SpriteList_Animation.png" id="2_aikcy"]
 [ext_resource type="Texture2D" uid="uid://bcwjgr03l6jw" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishClimbFrames/Player_MechaFish_Climb_SpriteList_Animation.png" id="3_70hpr"]
 [ext_resource type="Texture2D" uid="uid://nwsgxo8r20pk" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishGetDownFrames/Player_MechaFish_GetDown_SpriteList_Animation.png" id="3_77rrf"]

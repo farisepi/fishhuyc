@@ -46,8 +46,8 @@ extends Control
 var config: ConfigFile = ConfigFile.new()
 const CONFIG_PATH: String = "user://settings.cfg"
 
-const POPUP_MENU_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FalledFallingAquariumMenuButton/FalledFallingAquariumMenuButton.png"
-const ARROW_TEXTURE_PATH: String = "res://Fish Slaves/Textures/Interface/MenuButtons/FallMenuMenuButtons/FallMenuAquariumMenuButtons/FallMenuArrowAquarium/FallMenuArrowAquarium.png"
+const POPUP_MENU_TEXTURE_PATH: String = "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuSprites/AquariumMenuButtonTextures/FallingButtonTextures/Menu_Aquarium_Button_Falling_Falled_Texture.png"
+const ARROW_TEXTURE_PATH: String = "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuSprites/AquariumMenuButtonTextures/FallingButtonTextures/Menu_Aquarium_Button_Falling_Arrow_Texture.png"
 
 var current_brightness_layer: ColorRect = null
 
@@ -81,7 +81,7 @@ var resolution_arrow: TextureRect = null
 var language_arrow: TextureRect = null
 var dynamic_range_arrow: TextureRect = null
 
-var bubble_scene: PackedScene = preload("res://Fish Slaves/Base/Scenes/Overlay/Effects/Bubble.tscn")
+var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 var _suppress_switch_sound: bool = false
 
@@ -914,10 +914,10 @@ func _exit_to_main_menu() -> void:
 		Global.just_returned_from_settings = true
 		var target = Global.scene_to_save
 		if target == "" or "SettingsMenu" in target:
-			target = "res://Fish Slaves/Base/Scenes/Levels/Act1AquariumLevel.tscn"
+			target = "res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn"
 		Global.goto_scene(target)
 		return
-	Global.goto_scene("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	Global.goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
 
 func _on_back_pressed() -> void:
 	if has_unsaved_changes:
@@ -1001,4 +1001,4 @@ func _make_menu_bubble() -> void:
 	bubble.start_life(randf_range(6.0, 15.0))
 
 func _on_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Menus/MainMenus/MainMenuAquarium.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")

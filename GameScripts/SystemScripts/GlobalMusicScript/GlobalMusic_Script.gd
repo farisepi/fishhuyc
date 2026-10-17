@@ -1,7 +1,7 @@
 extends Node
 
-const MENU_AQUARIUM = "res://Fish Slaves/Sounds/Music/MenuMusic/AquariumMenuMusic.mp3"
-const LEVEL_ACT1 = "res://Fish Slaves/Sounds/Music/Act1Music/Act1AquariumMusic.mp3"
+const MENU_AQUARIUM = "res://GameAssets/Audio/MusicTracks/MenuMusic/Menu_Aquarium_Music.mp3"
+const LEVEL_ACT1 = "res://GameAssets/Audio/MusicTracks/LevelMusic/ActPrologueAquariumMusic/ActPrologue_AquariumLevel_Music.mp3"
 
 const VOLUME_NORMAL: float = -15.0
 const VOLUME_PAUSED: float = -25.0
@@ -53,7 +53,7 @@ func play_track(path: String) -> void:
 		push_warning("GlobalMusic: не найден трек " + path)
 		return
 	
-	if path != "res://Fish Slaves/Sounds/Music/IntroMusic/IntroMusic.mp3":
+	if path != "res://GameAssets/Audio/MusicTracks/IntroMusic/Intro_Music.mp3":
 		if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
 			stream.loop = true
 	

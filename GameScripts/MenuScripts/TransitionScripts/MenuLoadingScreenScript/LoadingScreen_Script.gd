@@ -18,7 +18,7 @@ func _ready() -> void:
 	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	var font = load("res://Fish Slaves/Textures/Font/Font.ttf")
+	var font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	if font:
 		font.fixed_size = 10
 		label.add_theme_font_override("font", font)

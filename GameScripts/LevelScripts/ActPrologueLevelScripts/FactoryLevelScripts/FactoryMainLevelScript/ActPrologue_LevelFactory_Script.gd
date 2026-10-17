@@ -46,14 +46,14 @@ const GUARD_LIFT_POSITION := Vector2(-290, 325)
 const SNIPER_POSITION := Vector2(1060, 60)
 const GUARD_WALK_SPEED: float = 200.0
 
-const FISH_IDLE_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishIdle/MechaFishIdle.png"
-const FISH_JOGGING_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishJogging/MechaFishJogging.png"
-const FISH_ATTACK_PATH := "res://Fish Slaves/Textures/Characters/Player/PlayerMechaFish/PlayerMechaFishAttack/PlayerMechaFishAttack.png"
+const FISH_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishIdleFrames/Player_MechaFish_Idle_SpriteList_Animation.png"
+const FISH_JOGGING_PATH := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishJoggingFrames/Player_MechaFish_Jogging_SpriteList_Animation.png"
+const FISH_ATTACK_PATH := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishAttackFrames/Player_MechaFish_Attack_SpriteList_Animation.png"
 const FISH_IDLE_FRAMES: int = 16
 const FISH_JOGGING_FRAMES: int = 12
 const FISH_ATTACK_FRAMES_PER_SIDE: int = 8
 
-const BOX_TEXTURE_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Box.png"
+const BOX_TEXTURE_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Box_Texture.png"
 
 const PLAYER_ZONE_CENTER := Vector2(156.0, 386.0)
 const PLAYER_ZONE_SIZE := Vector2(80.0, 120.0)
@@ -66,8 +66,8 @@ const ACTION_STRIKE_INTERVAL: float = 1.0
 
 const MINIGAME_SLIDER_SPEED: float = 1.0
 
-const PROGRESSBAR_BG_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbar.png"
-const PROGRESSBAR_FILL_PATH := "res://Fish Slaves/Textures/Interface/MenuButtons/Progressbar/FactoryProgressbar/FactoryProgressbarFull.png"
+const PROGRESSBAR_BG_PATH := "res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactoryProgressbarTextures/Menu_Factory_Progressbar_Empty_Texture.png"
+const PROGRESSBAR_FILL_PATH := "res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactoryProgressbarTextures/Menu_Factory_Progressbar_Fullness_Texture.png"
 
 const STRESS_BY_HP: Dictionary = {
 	5: 0,
@@ -98,30 +98,30 @@ const STAGE_COLORS: Array = [
 ]
 
 # --- Спрайты лифта и кнопки ---
-const ELEVATOR_BUTTON_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorButton.png"
-const ELEVATOR_CLOSE_BACK_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorClose/Act2ElevatorCloseBack.png"
-const ELEVATOR_CLOSE_FRONT_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorClose/Act2ElevatorCloseFront.png"
-const ELEVATOR_OPEN_BACK_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorOpen/Act2ElevatorOpenBack.png"
-const ELEVATOR_OPEN_FRONT_PATH := "res://Fish Slaves/Textures/Tiles/Act2Tiles/Act2Elevator/Act2ElevatorOpen/Act2ElevatorOpenFront.png"
+const ELEVATOR_BUTTON_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_ElevatorButton_Texture.png"
+const ELEVATOR_CLOSE_BACK_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Elevator_Back_Close_SpriteList_Animation.png"
+const ELEVATOR_CLOSE_FRONT_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Elevator_Front_Close_SpriteList_Animation.png"
+const ELEVATOR_OPEN_BACK_PATH := "res://GameAssets/LevelAssets/ActPrologue/HallwayLevelAssets/HallwayTilesetTextures/ActPrologue_LevelHallway_TileSet_Elevator_Back_Open_SpriteList_Animation.png"
+const ELEVATOR_OPEN_FRONT_PATH := "res://GameAssets/LevelAssets/ActPrologue/HallwayLevelAssets/HallwayTilesetTextures/ActPrologue_LevelHallway_TileSet_Elevator_Front_Open_SpriteList_Animation.png"
 const ELEVATOR_FRAMES: int = 12
 const ELEVATOR_BUTTON_POSITION := Vector2(-250, 328)
 
 # --- Спрайты НПС-рыбок (личности) ---
-const NPC_EYE_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCIdleEye.png"
-const NPC_EYE_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCJoggingEye.png"
-const NPC_EYE_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCEye/MechaFishNPCAttackEye.png"
+const NPC_EYE_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Idle_SpriteList_Animation.png"
+const NPC_EYE_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Jogging_SpriteList_Animation.png"
+const NPC_EYE_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Attack_SpriteList_Animation.png"
 
-const NPC_HAT_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCIdleHat.png"
-const NPC_HAT_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCJoggingHat.png"
-const NPC_HAT_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCHat/MechaFishNPCAttackHat.png"
+const NPC_HAT_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Idle_SpriteList_Animation.png"
+const NPC_HAT_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFannyHat_Jogging_SpriteList_Animation.png"
+const NPC_HAT_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Attack_SpriteList_Animation.png"
 
-const NPC_SCAR_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCIdleScar.png"
-const NPC_SCAR_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCJoggingScar.png"
-const NPC_SCAR_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCScar/MechaFishNPCAttackScar.png"
+const NPC_SCAR_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Idle_SpriteList_Animation.png"
+const NPC_SCAR_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Jogging_SpriteList_Animation.png"
+const NPC_SCAR_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Attack_SpriteList_Animation.png"
 
-const NPC_NOHAND_IDLE_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCIdleNoHand.png"
-const NPC_NOHAND_JOG_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCJoggingNoHand.png"
-const NPC_NOHAND_ATK_PATH := "res://Fish Slaves/Textures/Characters/MechaFishNps/MechaFishNPCNoHand/MechaFishNPCAttackNoHand.png"
+const NPC_NOHAND_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Idle_SpriteList_Animation.png"
+const NPC_NOHAND_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Jogging_SpriteList_Animation.png"
+const NPC_NOHAND_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Attack_SpriteList_Animation.png"
 
 const NPC_IDLE_FRAMES: int = 16
 const NPC_JOG_FRAMES: int = 12
@@ -608,7 +608,7 @@ func _guard_walk_to(target: Vector2) -> void:
 func _ensure_death_screen() -> void:
 	var ds = get_node_or_null("DeathScreen")
 	if ds == null:
-		var death_scene = load("res://Fish Slaves/Base/Scenes/Overlay/Transition/DeathScreen.tscn")
+		var death_scene = load("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn")
 		if death_scene:
 			var instance = death_scene.instantiate()
 			instance.name = "DeathScreen"
@@ -2342,7 +2342,7 @@ func _enter_elevator() -> void:
 	_show_dialog("ПОБЕГ...", 1.5)
 	await _await_elevator_anim("open")
 	await get_tree().create_timer(1.0).timeout
-	get_tree().change_scene_to_file("res://Fish Slaves/Base/Scenes/Levels/Act3HallwayLevel.tscn")
+	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayMainLevelScene/ActPrologue_LevelHallway_Scene.tscn")
 
 func _show_worker_of_month_achievement() -> void:
 	_show_achievement_banner("Работник месяца")
