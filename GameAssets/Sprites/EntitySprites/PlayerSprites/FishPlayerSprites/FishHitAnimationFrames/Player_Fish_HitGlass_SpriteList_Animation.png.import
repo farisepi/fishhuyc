@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b18cjkgxxooc8"
-path="res://.godot/imported/Player_Fish_Hit_SpriteList_Animation.png-8a9669d9851759936b6e51753cdde027.ctex"
+path="res://.godot/imported/Player_Fish_HitGlass_SpriteList_Animation.png-335f4261a2eac85528484f5b1aa5fd53.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishHitAnimationFrames/Player_Fish_Hit_SpriteList_Animation.png"
-dest_files=["res://.godot/imported/Player_Fish_Hit_SpriteList_Animation.png-8a9669d9851759936b6e51753cdde027.ctex"]
+source_file="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishHitAnimationFrames/Player_Fish_HitGlass_SpriteList_Animation.png"
+dest_files=["res://.godot/imported/Player_Fish_HitGlass_SpriteList_Animation.png-335f4261a2eac85528484f5b1aa5fd53.ctex"]
 
 [params]
 

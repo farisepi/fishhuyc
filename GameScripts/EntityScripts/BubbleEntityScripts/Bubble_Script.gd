@@ -13,7 +13,8 @@ var ignore_timer: float = 0.0
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
 
-const POP_SOUND_PATH = "res://GameAssets/Audio/SoundEffects/UserInterfaceSounds/PopUpOptionSounds/Menu_Aquarium_MainMenu_Pop_Option_SoundEffect.mp3"
+const POP_SOUND_PREFIX = "res://GameAssets/Audio/SoundEffects/UserInterfaceSounds/PopUpOptionSounds/Menu_Aquarium_MainMenu_Pop_Option"
+const POP_SOUND_SUFFIX = "_SoundEffect.mp3"
 const ACT1_POP_SOUND = "res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/PopAmbienceSounds/ActPrologue_LevelAquarium_Pop_SoundEffect.mp3"
 
 func _ready() -> void:
@@ -154,7 +155,7 @@ func _notify_achievement():
 
 func _play_random_pop_sound() -> void:
 	var random_index = randi() % 12 + 1
-	var sound_path = POP_SOUND_PATH + str(random_index) + ".mp3"
+	var sound_path = POP_SOUND_PREFIX + str(random_index) + POP_SOUND_SUFFIX
 
 	var sound_stream = load(sound_path)
 	if sound_stream == null:

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bpg2y1uxesep3"]
 
-[ext_resource type="PackedScene" uid="uid://bmsi2gukmu73v" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishAttackFrames/Player_MechaFish_Attack_SpriteList_Animation.png" id="1_player"]
 [ext_resource type="Script" uid="uid://3a7oowaeqa6" path="res://GameScripts/LevelScripts/ActPrologueLevelScripts/FactoryLevelScripts/FactoryMainLevelScript/ActPrologue_LevelFactory_Script.gd" id="2_main"]
 [ext_resource type="Texture2D" uid="uid://cxyoaebq6mwhn" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_ConveyorBelt_Texture.png" id="3_conveyor"]
 [ext_resource type="Texture2D" uid="uid://bitik1yn2y8vu" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/TinyButtonTextures/Menu_Factory_Button_Tiny_Texture.png" id="4_tinybtn"]
+[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="4_vhxde"]
 [ext_resource type="Texture2D" uid="uid://csypnbfngf0g2" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishIdleFrames/Player_MechaFish_Idle_SpriteList_Animation.png" id="5_fishidle"]
 [ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="6_pause"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="7_framing"]
@@ -11,7 +11,7 @@
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="9_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="10_btnh"]
 [ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/SmallButtonTextures/Menu_Factory_Button_Small_ButtonAttribute_Texture.png" id="11_rust"]
-[ext_resource type="PackedScene" uid="uid://bprsc3a63qog5" path="res://GameScripts/MenuScripts/FactoryMenuScripts/DeathScreenMenuFactoryScript/Menu_Factory_DeathScreen_Script.gd" id="12_death"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="12_death"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)
@@ -160,36 +160,6 @@ offset_right = 10000.0
 offset_bottom = 700.0
 color = Color(0.22, 0.14, 0.1, 1)
 
-[node name="ConveyorSprite3" type="Sprite2D" parent="." unique_id=1664677221]
-position = Vector2(1292, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
-[node name="ConveyorSprite6" type="Sprite2D" parent="." unique_id=747270934]
-position = Vector2(691.99994, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
-[node name="ConveyorSprite7" type="Sprite2D" parent="." unique_id=810926037]
-position = Vector2(91.99994, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
-[node name="ConveyorSprite8" type="Sprite2D" parent="." unique_id=1800495917]
-position = Vector2(-508, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
-[node name="ConveyorSprite5" type="Sprite2D" parent="." unique_id=2005446675]
-position = Vector2(1292, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
-[node name="ConveyorSprite4" type="Sprite2D" parent="." unique_id=1683320866]
-position = Vector2(1893, 386.00003)
-scale = Vector2(1.8749996, 1.2)
-texture = ExtResource("3_conveyor")
-
 [node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
 offset_left = -320.0
 offset_top = 275.0
@@ -237,8 +207,38 @@ sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="Mecha_Fish" parent="." unique_id=508208840 instance=ExtResource("1_player")]
-position = Vector2(156, 351)
+[node name="Mecha_Fish" parent="." unique_id=221706649 instance=ExtResource("4_vhxde")]
+position = Vector2(174, 350)
+
+[node name="ConveyorSprite3" type="Sprite2D" parent="Mecha_Fish" unique_id=1664677221]
+position = Vector2(1118, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
+
+[node name="ConveyorSprite6" type="Sprite2D" parent="Mecha_Fish" unique_id=747270934]
+position = Vector2(517.99994, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
+
+[node name="ConveyorSprite7" type="Sprite2D" parent="Mecha_Fish" unique_id=810926037]
+position = Vector2(-82.00006, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
+
+[node name="ConveyorSprite8" type="Sprite2D" parent="Mecha_Fish" unique_id=1800495917]
+position = Vector2(-682.00006, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
+
+[node name="ConveyorSprite5" type="Sprite2D" parent="Mecha_Fish" unique_id=2005446675]
+position = Vector2(1118, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
+
+[node name="ConveyorSprite4" type="Sprite2D" parent="Mecha_Fish" unique_id=1683320866]
+position = Vector2(1719, -32.99994)
+scale = Vector2(1.8749996, 1.2)
+texture = ExtResource("3_conveyor")
 
 [node name="Objects" type="Node2D" parent="." unique_id=2006886263]
 

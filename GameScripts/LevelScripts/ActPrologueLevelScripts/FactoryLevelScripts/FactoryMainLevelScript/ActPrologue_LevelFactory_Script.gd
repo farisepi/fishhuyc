@@ -53,6 +53,10 @@ const FISH_IDLE_FRAMES: int = 16
 const FISH_JOGGING_FRAMES: int = 12
 const FISH_ATTACK_FRAMES_PER_SIDE: int = 8
 
+# --- Охранник MechaDog ---
+const GUARD_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogIdleFrames/Enemy_MechaDog_Idle_SpriteList_Animation.png"
+const GUARD_IDLE_FRAMES: int = 16
+
 const BOX_TEXTURE_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Box_Texture.png"
 
 const PLAYER_ZONE_CENTER := Vector2(156.0, 386.0)
@@ -103,30 +107,36 @@ const ELEVATOR_CLOSE_BACK_PATH := "res://GameAssets/LevelAssets/ActPrologue/Fact
 const ELEVATOR_CLOSE_FRONT_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Elevator_Front_Close_SpriteList_Animation.png"
 const ELEVATOR_OPEN_BACK_PATH := "res://GameAssets/LevelAssets/ActPrologue/HallwayLevelAssets/HallwayTilesetTextures/ActPrologue_LevelHallway_TileSet_Elevator_Back_Open_SpriteList_Animation.png"
 const ELEVATOR_OPEN_FRONT_PATH := "res://GameAssets/LevelAssets/ActPrologue/HallwayLevelAssets/HallwayTilesetTextures/ActPrologue_LevelHallway_TileSet_Elevator_Front_Open_SpriteList_Animation.png"
-const ELEVATOR_FRAMES: int = 12
+const ELEVATOR_FRAMES: int = 13
 const ELEVATOR_BUTTON_POSITION := Vector2(-250, 328)
+const ELEVATOR_SCALE: float = 3.0
 
 # --- Спрайты НПС-рыбок (личности) ---
 const NPC_EYE_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Idle_SpriteList_Animation.png"
 const NPC_EYE_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Jogging_SpriteList_Animation.png"
 const NPC_EYE_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Attack_SpriteList_Animation.png"
+const NPC_EYE_HIT_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Hit_SpriteList_Animation.png"
 
 const NPC_HAT_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Idle_SpriteList_Animation.png"
 const NPC_HAT_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFannyHat_Jogging_SpriteList_Animation.png"
 const NPC_HAT_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Attack_SpriteList_Animation.png"
+const NPC_HAT_HIT_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Hit_SpriteList_Animation.png"
 
 const NPC_SCAR_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Idle_SpriteList_Animation.png"
 const NPC_SCAR_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Jogging_SpriteList_Animation.png"
 const NPC_SCAR_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Attack_SpriteList_Animation.png"
+const NPC_SCAR_HIT_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/ScarMechaFishFrames/NPC_MechaFish_WithScar_Hit_SpriteList_Animation.png"
 
 const NPC_NOHAND_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Idle_SpriteList_Animation.png"
 const NPC_NOHAND_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Jogging_SpriteList_Animation.png"
 const NPC_NOHAND_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Attack_SpriteList_Animation.png"
+const NPC_NOHAND_HIT_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Hit_SpriteList_Animation.png"
 
 const NPC_IDLE_FRAMES: int = 16
 const NPC_JOG_FRAMES: int = 12
 const NPC_ATK_FRAMES_PER_SIDE: int = 8
 const NPC_ATK_FRAMES_NOHAND: int = 8
+const NPC_HIT_FRAMES: int = 10
 
 const NPC_IDENTITY_ORDER: Array = ["hat", "scar", "eye", "nohand"]
 
@@ -153,10 +163,10 @@ const NPC_IDENTITY_DATA: Dictionary = {
 	},
 }
 
-@onready var player: CharacterBody2D = $Mecha_Fish
-@onready var camera: Camera2D = $Mecha_Fish/MechaFishCamera
-@onready var player_sprite: AnimatedSprite2D = $Mecha_Fish/AnimatedSprite2D
-@onready var player_gui: CanvasLayer = $Mecha_Fish/GUI
+@onready var player: CharacterBody2D = get_tree().get_first_node_in_group("player")
+@onready var camera: Camera2D = player.get_node_or_null("MechaFishCamera") if player else null
+@onready var player_sprite: AnimatedSprite2D = player.get_node_or_null("AnimatedSprite2D") if player else null
+@onready var player_gui: CanvasLayer = player.get_node_or_null("GUI") if player else null
 @onready var objects_layer: Node2D = $Objects
 @onready var npc_fishes: Array[Node] = [$NPCParent/Fish1, $NPCParent/Fish2, $NPCParent/Fish3, $NPCParent/Fish4]
 @onready var elevator_door: ColorRect = $Elevator
@@ -359,7 +369,7 @@ func _ready() -> void:
 	if camera:
 		camera.enabled = true
 		camera.top_level = true
-		camera.global_position = player.global_position
+		camera.global_position = player.global_position if player else Vector2.ZERO
 		camera.offset = Vector2.ZERO
 		inspect_camera_original_zoom = camera.zoom
 	
@@ -429,6 +439,28 @@ func _build_fish_sprite_frames() -> SpriteFrames:
 	
 	return frames
 
+# --- Спрайты охранника (MechaDog idle + MechaFish jogging/attack) ---
+func _build_guard_sprite_frames() -> SpriteFrames:
+	var frames = SpriteFrames.new()
+	if frames.has_animation("default"):
+		frames.remove_animation("default")
+	
+	var idle_tex = load(GUARD_IDLE_PATH)
+	if idle_tex:
+		_add_sliced_frames(frames, "idle", idle_tex, GUARD_IDLE_FRAMES, 0, GUARD_IDLE_FRAMES, true, 10.0)
+	
+	# TODO: когда появятся спрайты MechaMonkey — заменить этот блок на отдельный билдер.
+	var fish_frames = _build_fish_sprite_frames()
+	for anim in ["jogging", "attack_right", "attack_left"]:
+		if fish_frames.has_animation(anim):
+			frames.add_animation(anim)
+			frames.set_animation_loop(anim, fish_frames.get_animation_loop(anim))
+			frames.set_animation_speed(anim, fish_frames.get_animation_speed(anim))
+			for i in range(fish_frames.get_frame_count(anim)):
+				frames.add_frame(anim, fish_frames.get_frame(anim, i))
+	
+	return frames
+
 # --- Универсальный нарезчик спрайт-листов ---
 func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D, total_in_sheet: int, start_index: int, count: int, loop: bool, speed: float) -> void:
 	if frames.has_animation(anim_name):
@@ -448,13 +480,13 @@ func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D,
 func _npc_identity_paths(identity: String) -> Dictionary:
 	match identity:
 		"eye":
-			return {"idle": NPC_EYE_IDLE_PATH, "jog": NPC_EYE_JOG_PATH, "atk": NPC_EYE_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+			return {"idle": NPC_EYE_IDLE_PATH, "jog": NPC_EYE_JOG_PATH, "atk": NPC_EYE_ATK_PATH, "hit": NPC_EYE_HIT_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
 		"hat":
-			return {"idle": NPC_HAT_IDLE_PATH, "jog": NPC_HAT_JOG_PATH, "atk": NPC_HAT_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+			return {"idle": NPC_HAT_IDLE_PATH, "jog": NPC_HAT_JOG_PATH, "atk": NPC_HAT_ATK_PATH, "hit": NPC_HAT_HIT_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
 		"scar":
-			return {"idle": NPC_SCAR_IDLE_PATH, "jog": NPC_SCAR_JOG_PATH, "atk": NPC_SCAR_ATK_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
+			return {"idle": NPC_SCAR_IDLE_PATH, "jog": NPC_SCAR_JOG_PATH, "atk": NPC_SCAR_ATK_PATH, "hit": NPC_SCAR_HIT_PATH, "atk_total": NPC_ATK_FRAMES_PER_SIDE * 2}
 		"nohand":
-			return {"idle": NPC_NOHAND_IDLE_PATH, "jog": NPC_NOHAND_JOG_PATH, "atk": NPC_NOHAND_ATK_PATH, "atk_total": NPC_ATK_FRAMES_NOHAND}
+			return {"idle": NPC_NOHAND_IDLE_PATH, "jog": NPC_NOHAND_JOG_PATH, "atk": NPC_NOHAND_ATK_PATH, "hit": NPC_NOHAND_HIT_PATH, "atk_total": NPC_ATK_FRAMES_NOHAND}
 		_:
 			return {}
 
@@ -483,6 +515,11 @@ func _build_npc_identity_frames(identity: String) -> SpriteFrames:
 		else:
 			_add_sliced_frames(frames, "AttackRight", atk_tex, atk_total, 0, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
 			_add_sliced_frames(frames, "AttackLeft", atk_tex, atk_total, NPC_ATK_FRAMES_PER_SIDE, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
+	
+	if paths.has("hit"):
+		var hit_tex = load(paths["hit"])
+		if hit_tex:
+			_add_sliced_frames(frames, "hit", hit_tex, NPC_HIT_FRAMES, 0, NPC_HIT_FRAMES, false, 14.0)
 	
 	return frames
 
@@ -524,6 +561,7 @@ func _create_elevator_visuals() -> void:
 		elevator_button.texture = btn_tex
 	elevator_button.position = ELEVATOR_BUTTON_POSITION
 	elevator_button.z_index = 3
+	elevator_button.scale = Vector2(ELEVATOR_SCALE, ELEVATOR_SCALE)
 	add_child(elevator_button)
 	
 	elevator_back = AnimatedSprite2D.new()
@@ -531,6 +569,7 @@ func _create_elevator_visuals() -> void:
 	elevator_back.sprite_frames = _build_elevator_frames(false)
 	elevator_back.position = GUARD_LIFT_POSITION
 	elevator_back.z_index = 2
+	elevator_back.scale = Vector2(ELEVATOR_SCALE, ELEVATOR_SCALE)
 	add_child(elevator_back)
 	_set_elevator_idle_closed(elevator_back)
 	
@@ -539,6 +578,7 @@ func _create_elevator_visuals() -> void:
 	elevator_front.sprite_frames = _build_elevator_frames(true)
 	elevator_front.position = GUARD_LIFT_POSITION
 	elevator_front.z_index = 4
+	elevator_front.scale = Vector2(ELEVATOR_SCALE, ELEVATOR_SCALE)
 	add_child(elevator_front)
 	_set_elevator_idle_closed(elevator_front)
 	
@@ -567,7 +607,7 @@ func _await_elevator_anim(anim_name: String) -> void:
 func _create_guard_sprite() -> void:
 	guard_sprite = AnimatedSprite2D.new()
 	guard_sprite.name = "GuardSprite"
-	guard_sprite.sprite_frames = _build_fish_sprite_frames()
+	guard_sprite.sprite_frames = _build_guard_sprite_frames()
 	guard_sprite.animation = "idle"
 	guard_sprite.position = GUARD_POSITION
 	guard_sprite.scale = Vector2(1.2, 1.2)
@@ -1295,7 +1335,7 @@ func _update_clock_label() -> void:
 	var hour = _current_hour()
 	var h = int(hour)
 	var m = int((hour - h) * 60)
-	m = int(m / 15) * 15
+	m = int(floor(float(m) / 15.0)) * 15
 	if clock_label:
 		clock_label.text = "%02d:%02d" % [h, m]
 
@@ -1345,6 +1385,8 @@ func _guard_shift_sequence() -> void:
 	else:
 		guard_sprite.modulate = GUARD_MONKEY_COLOR
 	guard_sprite.position = GUARD_LIFT_POSITION
+	
+	# TODO: когда появится MechaMonkey — здесь менять sprite_frames на обезьяньи.
 	
 	# 7. Лифт открывается, новый охранник внутри
 	await _await_elevator_anim("open")
@@ -1405,7 +1447,8 @@ func _spawn_next_object() -> void:
 	rect.position = Vector2(-20, -20)
 	current_object.add_child(rect)
 	
-	current_object.position = Vector2(OBJECT_SPAWN_X, CONVEYOR_Y)
+	# Коробки спавнятся выше конвейера
+	current_object.position = Vector2(OBJECT_SPAWN_X, CONVEYOR_Y - 40.0)
 	objects_layer.add_child(current_object)
 	
 	object_x = OBJECT_SPAWN_X
@@ -1434,7 +1477,7 @@ func _set_object_texture(path: String) -> void:
 	var spr = Sprite2D.new()
 	spr.name = "Sprite"
 	spr.texture = tex
-	spr.scale = Vector2(3, 3)
+	spr.scale = Vector2(1.5, 1.5)
 	current_object.add_child(spr)
 
 func _reach_fish(fish_index: int) -> void:
@@ -1795,6 +1838,12 @@ func _guard_hit_npc(fish: Node) -> void:
 		var tw = create_tween()
 		tw.tween_property(fish, "modulate", Color(1, 0.4, 0.4), 0.1)
 		tw.tween_property(fish, "modulate", Color(1, 1, 1, 1), 0.25)
+		
+		if fish.sprite_frames.has_animation("hit"):
+			fish.play("hit")
+			await fish.animation_finished
+			if fish.sprite_frames.has_animation("idle"):
+				fish.play("idle")
 	
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.25)
@@ -1834,7 +1883,7 @@ func _sniper_kill_player() -> void:
 	hint_label.visible = false
 	
 	var sniper_pos = sniper_sprite.global_position if sniper_sprite else Vector2(1060, 60)
-	var player_pos = player.global_position + Vector2(0, -20)
+	var player_pos = player.global_position + Vector2(0, -20) if player else Vector2.ZERO
 	
 	# 1. Белая полоска-трассер от снайпера к игроку
 	var tracer = Line2D.new()
@@ -1920,11 +1969,20 @@ func _fade_and_new_shift() -> void:
 
 # --- Рандомизация позиций НПС и игрока ---
 func _randomize_npc_positions() -> void:
-	for fish in npc_fishes:
+	# НПС всегда стоят вдоль конвейера на своих рабочих точках.
+	# Порядок перемешивается, но X привязан к FISH_START_X + i * FISH_SPACING.
+	var order: Array = []
+	for i in range(npc_fishes.size()):
+		order.append(i)
+	order.shuffle()
+	
+	for slot in range(npc_fishes.size()):
+		var fish = npc_fishes[slot]
 		if fish == null:
 			continue
-		var x = randf_range(220.0, 700.0)
-		var y = randf_range(335.0, 355.0)
+		var src_index: int = order[slot]
+		var x: float = FISH_START_X + src_index * FISH_SPACING
+		var y: float = CONVEYOR_Y - 42.0
 		fish.position = Vector2(x, y)
 		if fish is AnimatedSprite2D and fish.sprite_frames and fish.sprite_frames.has_animation("idle"):
 			fish.play("idle")
@@ -2043,7 +2101,7 @@ func _enter_inspect() -> void:
 	
 	_update_inspect_highlights()
 	
-	inspect_camera_original_pos = player.global_position
+	inspect_camera_original_pos = player.global_position if player else Vector2.ZERO
 	inspect_camera_offset = Vector2.ZERO
 	if camera:
 		var tw = create_tween()
@@ -2082,7 +2140,8 @@ func _exit_inspect() -> void:
 		tw.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(camera, "zoom", inspect_camera_original_zoom, 0.5)
 		tw.tween_callback(func():
-			camera.global_position = player.global_position
+			if player:
+				camera.global_position = player.global_position
 		)
 	
 	if inspect_vignette:

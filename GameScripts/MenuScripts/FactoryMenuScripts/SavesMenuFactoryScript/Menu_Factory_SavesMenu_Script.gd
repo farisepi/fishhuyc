@@ -1,7 +1,7 @@
 extends Control
 
 @onready var back_btn: Button = $BackButton
-@onready var grid: GridContainer = $ScrollContainer/SaveGrid
+@onready var grid: VBoxContainer = $ScrollContainer/SaveGrid
 
 const SAVE_DIR = "user://saves/"
 
@@ -52,8 +52,6 @@ func _ready() -> void:
 	scroll.follow_focus = false
 	scroll.scroll_vertical = 0
 	
-	
-	grid.columns = 1
 	DirAccess.make_dir_absolute(SAVE_DIR)
 	
 	for i in range(grid.get_child_count()):

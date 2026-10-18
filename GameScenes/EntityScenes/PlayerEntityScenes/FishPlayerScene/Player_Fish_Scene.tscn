@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dr1p62m7bi368"]
 
 [ext_resource type="Script" uid="uid://bg460pgdqj2dp" path="res://GameScripts/EntityScripts/PlayerEntityScripts/FishPlayerScripts/FishPlayerScript/Player_Fish_Script.gd" id="1_f8hhw"]
-[ext_resource type="Texture2D" uid="uid://b18cjkgxxooc8" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishHitAnimationFrames/Player_Fish_Hit_SpriteList_Animation.png" id="2_6411s"]
+[ext_resource type="Texture2D" uid="uid://b18cjkgxxooc8" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishHitAnimationFrames/Player_Fish_HitGlass_SpriteList_Animation.png" id="2_6411s"]
 [ext_resource type="Texture2D" uid="uid://ds1g2irjaqvie" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishIdleAnimationFrames/Player_Fish_Idle_Sprite1_Animation.png" id="2_a4jka"]
 [ext_resource type="Texture2D" uid="uid://cq5n15i0ssg6t" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishIdleAnimationFrames/Player_Fish_Idle_Sprite2_Animation.png" id="3_g5j16"]
 [ext_resource type="Texture2D" uid="uid://twdbfky7c7gh" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishIdleAnimationFrames/Player_Fish_Idle_Sprite3_Animation.png" id="4_fm6fd"]
