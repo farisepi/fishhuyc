@@ -610,6 +610,139 @@ _data = {
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_liwwc"]
 polygon = PackedVector2Array(619, 15, 619, 21, 621, 21, 620.985, 25.565002, 627.985, 25.565002, 627.985, 21.565002, 629.985, 21.565002, 630, 19, 637, 19, 637, 22, 639, 22, 639, 26, 646, 26, 646, 22, 648, 22, 648, 15)
 
+[sub_resource type="Animation" id="Animation_2fvow"]
+resource_name = "INTRO"
+length = 4.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/stuff/Fade:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.9, 1.6666666),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Player/PlayerCamera:zoom")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(2.2, 2.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(5, 5), Vector2(2, 2)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Player/AnimatedSprite2D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1.5333333, 1.6, 1.6666666, 1.7333333, 1.8, 1.8666666, 1.9333334),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [1, 0, 1, 2, 3, 4, 5, 6]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Player/AnimatedSprite2D:animation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 4.192308),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [&"wake", &"idle"]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Player/GUI/UI_Container:modulate")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(3.0937455, 3.9095895),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_j2tti"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/stuff/Fade:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Player/PlayerCamera:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(5, 5)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Player/AnimatedSprite2D:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Player/AnimatedSprite2D:animation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [&"wake"]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Player/GUI/UI_Container:modulate")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_0i8mc"]
+_data = {
+&"INTRO": SubResource("Animation_2fvow"),
+&"RESET": SubResource("Animation_j2tti")
+}
+
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
 
@@ -617,32 +750,17 @@ script = ExtResource("1_u46od")
 position = Vector2(646, 226)
 
 [node name="PlayerCamera" parent="Player" index="2" unique_id=675897869]
-limit_left = 322
-limit_top = 62
-limit_right = 957
+zoom = Vector2(5, 5)
+limit_left = 363
+limit_top = 103
+limit_right = 914
 limit_bottom = 498
-position_smoothing_enabled = false
 
-[node name="GUI" parent="Player" index="3" unique_id=874896627]
-visible = false
+[node name="UI_Container" parent="Player/GUI" parent_id_path=PackedInt32Array(294675082, 874896627) index="0" unique_id=610954526]
+modulate = Color(1, 1, 1, 0)
 
 [node name="Visual" type="Node2D" parent="." unique_id=161334246]
 position = Vector2(639, 335)
-
-[node name="Ambience" type="Node2D" parent="Visual" unique_id=1477851486]
-
-[node name="ambienceswim" type="AudioStreamPlayer2D" parent="Visual/Ambience" unique_id=1148327141]
-position = Vector2(10, -110)
-stream = ExtResource("34_p3tjk")
-volume_db = -22.0
-autoplay = true
-
-[node name="ambienceglitch" type="AudioStreamPlayer2D" parent="Visual/Ambience" unique_id=1265385605]
-position = Vector2(313, 99)
-stream = ExtResource("34_sdbdi")
-volume_db = -27.0
-autoplay = true
-max_distance = 300.0
 
 [node name="bg" type="Node2D" parent="Visual" unique_id=379618543]
 
@@ -683,6 +801,23 @@ z_index = 4
 position = Vector2(-306.42426, -6.3636475)
 scale = Vector2(0.48484847, 0.4545458)
 occluder = SubResource("OccluderPolygon2D_syf5m")
+
+[node name="ColorRect" type="ColorRect" parent="Visual/stuff" unique_id=1303046730]
+z_index = 10
+offset_left = -345.0
+offset_top = 166.0
+offset_right = 320.0
+offset_bottom = 215.0
+color = Color(0.9490196, 0.93333334, 0.8509804, 1)
+
+[node name="Fade" type="ColorRect" parent="Visual/stuff" unique_id=1848109362]
+modulate = Color(1, 1, 1, 0)
+z_index = 10
+offset_left = -370.0
+offset_top = -289.0
+offset_right = 404.0
+offset_bottom = 183.0
+color = Color(0, 0, 0, 1)
 
 [node name="Light" type="Node2D" parent="Visual" unique_id=155342823]
 
@@ -779,6 +914,26 @@ texture_scale = 3.19
 position = Vector2(-639, -335)
 color = Color(0.27058825, 0.27058825, 0.27058825, 1)
 
+[node name="Music" type="Node2D" parent="." unique_id=1434165889]
+
+[node name="Ambience" type="Node2D" parent="Music" unique_id=1477851486]
+position = Vector2(639, 335)
+
+[node name="ambienceswim" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1148327141]
+position = Vector2(10, -110)
+stream = ExtResource("34_p3tjk")
+volume_db = -22.0
+autoplay = true
+
+[node name="ambienceglitch" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1265385605]
+position = Vector2(313, 99)
+stream = ExtResource("34_sdbdi")
+volume_db = -27.0
+autoplay = true
+max_distance = 300.0
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1125747272]
+
 [node name="npc" type="Node2D" parent="." unique_id=508626050]
 position = Vector2(640, 338)
 
@@ -788,7 +943,7 @@ position = Vector2(640, 338)
 position = Vector2(8.712952, 120.219666)
 scale = Vector2(2.16956, 2.1695597)
 sprite_frames = SubResource("SpriteFrames_ufc8t")
-animation = &"angry"
+animation = &"idle"
 autoplay = "idle"
 frame = 1
 
@@ -931,5 +1086,8 @@ texture = ExtResource("15_5vwn5")
 position = Vector2(576, 324)
 scale = Vector2(4, 4)
 texture = ExtResource("15_yijt6")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=741486502]
+libraries/ = SubResource("AnimationLibrary_0i8mc")
 
 [editable path="Player"]
