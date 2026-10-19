@@ -19,6 +19,9 @@
 [ext_resource type="Texture2D" uid="uid://b0w8biklaccuw" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogIdleFrames/Enemy_MechaDog_Idle_SpriteList_Animation.png" id="25_dog"]
 [ext_resource type="Texture2D" uid="uid://dx3oktm8jpjt6" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_HydraulicPress_Down_SpriteList_Animation.png" id="26_pdown"]
 [ext_resource type="Texture2D" uid="uid://uwdc03tws5ro" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_HydraulicPress_Up_SpriteList_Animation.png" id="27_pup"]
+[ext_resource type="Texture2D" uid="uid://bkn77yoat4ah8" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Window_Texture.png" id="30_mg_track"]
+[ext_resource type="Texture2D" uid="uid://drklf34ic6ixs" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Zone_Texture.png" id="31_mg_zone"]
+[ext_resource type="Texture2D" uid="uid://cghyeyawqqo0t" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Slider_Texture.png" id="32_mg_slider"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)
@@ -834,8 +837,10 @@ animations = [{
 "speed": 13.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stopzone"]
+size = Vector2(40, 40)
+
 [node name="Act2FactoryLevel" type="Node2D" unique_id=1891776122]
-position = Vector2(2, 0)
 script = ExtResource("2_main")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1311441245]
@@ -855,15 +860,22 @@ shape = SubResource("RectangleShape2D_floor")
 [node name="FloorVisual" type="ColorRect" parent="." unique_id=1639859172]
 offset_left = -10000.0
 offset_top = 450.0
-offset_right = 9972.0
+offset_right = 10000.0
 offset_bottom = 700.0
 color = Color(0.22, 0.14, 0.1, 1)
 
+[node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
+offset_left = -320.0
+offset_top = 275.0
+offset_right = -260.0
+offset_bottom = 375.0
+color = Color(0.3, 0.3, 0.35, 1)
+
 [node name="MaintenanceRoom" type="ColorRect" parent="." unique_id=1181198440]
-offset_left = 1201.0
-offset_top = 251.0
-offset_right = 1261.0
-offset_bottom = 351.0
+offset_left = 1200.0
+offset_top = 275.0
+offset_right = 1260.0
+offset_bottom = 375.0
 color = Color(0.4, 0.2, 0.1, 1)
 
 [node name="SniperBalcony" type="ColorRect" parent="." unique_id=1067948079]
@@ -874,26 +886,26 @@ offset_bottom = 100.0
 color = Color(0.2, 0.2, 0.25, 1)
 
 [node name="ElevatorButton" type="Sprite2D" parent="." unique_id=900000001]
-position = Vector2(-353, 328)
+position = Vector2(-250, 328)
 scale = Vector2(3, 3)
 texture = ExtResource("20_btn")
 
 [node name="ElevatorBack" type="AnimatedSprite2D" parent="." unique_id=900000002]
-position = Vector2(-295, 327)
-scale = Vector2(2.933, 2.918)
+position = Vector2(-290, 325)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_eb")
 animation = &"close"
 frame = 12
 
 [node name="ElevatorFront" type="AnimatedSprite2D" parent="." unique_id=900000003]
-position = Vector2(-295, 327)
-scale = Vector2(2.8, 2.918)
+position = Vector2(-290, 325)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_ef")
 animation = &"close"
 frame = 12
 
 [node name="GuardSprite" type="AnimatedSprite2D" parent="." unique_id=900000004]
-position = Vector2(-215, 336)
+position = Vector2(-215, 310)
 scale = Vector2(1.2, 1.2)
 sprite_frames = SubResource("SF_guard")
 animation = &"idle"
@@ -906,82 +918,83 @@ animation = &"idle"
 autoplay = "idle"
 
 [node name="Press1" type="AnimatedSprite2D" parent="." unique_id=900000011]
-position = Vector2(313, 317.87875)
-scale = Vector2(3.2272727, 3.5359282)
+z_index = 20
+position = Vector2(285, 344)
 sprite_frames = SubResource("SF_press")
 animation = &"press_up"
 frame = 12
-frame_progress = 1.0
 
 [node name="Press2" type="AnimatedSprite2D" parent="." unique_id=900000012]
-position = Vector2(446, 329.75)
-scale = Vector2(1.3181819, 1.8142858)
+z_index = 20
+position = Vector2(408, 344)
 sprite_frames = SubResource("SF_press")
 animation = &"press_up"
 frame = 12
 
 [node name="Press3" type="AnimatedSprite2D" parent="." unique_id=900000013]
+z_index = 20
 position = Vector2(530, 344)
 sprite_frames = SubResource("SF_press")
 animation = &"press_up"
 frame = 12
 
 [node name="Press4" type="AnimatedSprite2D" parent="." unique_id=900000014]
+z_index = 20
 position = Vector2(661, 344)
 sprite_frames = SubResource("SF_press")
 animation = &"press_up"
 frame = 12
 
 [node name="PressPlayer" type="AnimatedSprite2D" parent="." unique_id=900000015]
+z_index = 20
 position = Vector2(156, 344)
 sprite_frames = SubResource("SF_press")
 animation = &"press_up"
 frame = 12
 
 [node name="ConveyorSprite3" type="Sprite2D" parent="." unique_id=1664677221]
-z_index = 5
-position = Vector2(1292, 330.00006)
+z_index = 30
+position = Vector2(1292, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="ConveyorSprite6" type="Sprite2D" parent="." unique_id=747270934]
-z_index = 5
-position = Vector2(691.99994, 330.00006)
+z_index = 30
+position = Vector2(691.99994, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="ConveyorSprite7" type="Sprite2D" parent="." unique_id=810926037]
-z_index = 5
-position = Vector2(91.99994, 330.00006)
+z_index = 30
+position = Vector2(91.99994, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="ConveyorSprite8" type="Sprite2D" parent="." unique_id=1800495917]
-z_index = 5
-position = Vector2(-508, 330.00006)
+z_index = 30
+position = Vector2(-508.00006, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="ConveyorSprite5" type="Sprite2D" parent="." unique_id=2005446675]
-z_index = 5
-position = Vector2(1292, 330.00006)
+z_index = 30
+position = Vector2(1292, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="ConveyorSprite4" type="Sprite2D" parent="." unique_id=1683320866]
-z_index = 5
-position = Vector2(1893, 330.00006)
+z_index = 30
+position = Vector2(1893, 317.00006)
 scale = Vector2(1.8749996, 1.2)
 texture = ExtResource("3_conveyor")
 
 [node name="NPCParent" type="Node2D" parent="." unique_id=1000813928]
 
 [node name="Fish1" type="AnimatedSprite2D" parent="NPCParent" unique_id=1789915601]
-position = Vector2(282, 344)
+position = Vector2(285, 344)
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
-frame_progress = 0.491451
 
 [node name="Fish2" type="AnimatedSprite2D" parent="NPCParent" unique_id=1235570946]
 position = Vector2(408, 344)
@@ -1002,9 +1015,49 @@ animation = &"idle"
 autoplay = "idle"
 
 [node name="Mecha_Fish" parent="." unique_id=221706649 instance=ExtResource("4_vhxde")]
-position = Vector2(182, 357)
+position = Vector2(174, 350)
 
 [node name="Objects" type="Node2D" parent="." unique_id=2006886263]
+
+[node name="StopZone1" type="Area2D" parent="." unique_id=900000021]
+position = Vector2(285, 344)
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StopZone1" unique_id=900000022]
+shape = SubResource("RectangleShape2D_stopzone")
+
+[node name="StopZone2" type="Area2D" parent="." unique_id=900000023]
+position = Vector2(408, 344)
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StopZone2" unique_id=900000024]
+shape = SubResource("RectangleShape2D_stopzone")
+
+[node name="StopZone3" type="Area2D" parent="." unique_id=900000025]
+position = Vector2(530, 344)
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StopZone3" unique_id=900000026]
+shape = SubResource("RectangleShape2D_stopzone")
+
+[node name="StopZone4" type="Area2D" parent="." unique_id=900000027]
+position = Vector2(661, 344)
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StopZone4" unique_id=900000028]
+shape = SubResource("RectangleShape2D_stopzone")
+
+[node name="StopZonePlayer" type="Area2D" parent="." unique_id=900000029]
+position = Vector2(156, 344)
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StopZonePlayer" unique_id=900000030]
+shape = SubResource("RectangleShape2D_stopzone")
 
 [node name="InspectZones" type="Node2D" parent="." unique_id=317889801]
 
@@ -1246,37 +1299,33 @@ offset_top = 260.0
 offset_right = 776.0
 offset_bottom = 360.0
 
-[node name="BG" type="ColorRect" parent="UI/MinigamePanel" unique_id=303042483]
-layout_mode = 0
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 410.0
-offset_bottom = 110.0
-color = Color(0, 0, 0, 0.85)
-
 [node name="Track" type="Control" parent="UI/MinigamePanel" unique_id=207594382]
 anchors_preset = 0
 offset_top = 40.0
 offset_right = 400.0
 offset_bottom = 70.0
 
-[node name="TrackBG" type="ColorRect" parent="UI/MinigamePanel/Track" unique_id=1078518628]
+[node name="TrackBG" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=1078518628]
 layout_mode = 0
 offset_right = 400.0
 offset_bottom = 30.0
-color = Color(0.25, 0.25, 0.25, 1)
+texture = ExtResource("30_mg_track")
+expand_mode = 1
 
-[node name="Zone" type="ColorRect" parent="UI/MinigamePanel/Track" unique_id=435318423]
+[node name="Zone" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=435318423]
 layout_mode = 0
 offset_left = 150.0
 offset_right = 250.0
 offset_bottom = 30.0
-color = Color(0.2, 0.8, 0.3, 1)
+texture = ExtResource("31_mg_zone")
+expand_mode = 1
 
-[node name="Slider" type="ColorRect" parent="UI/MinigamePanel/Track" unique_id=1125588118]
+[node name="Slider" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=1125588118]
 layout_mode = 0
 offset_right = 6.0
 offset_bottom = 30.0
+texture = ExtResource("32_mg_slider")
+expand_mode = 1
 
 [node name="JournalPanel" type="Control" parent="UI" unique_id=1394020786]
 visible = false

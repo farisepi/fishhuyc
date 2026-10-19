@@ -89,7 +89,6 @@ const STAGE_COLORS: Array = [
 	Color(0.90, 0.85, 0.40),
 ]
 
-# --- Пути текстур для НПС (нужны для _build_npc_identity_frames) ---
 const NPC_EYE_IDLE_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Idle_SpriteList_Animation.png"
 const NPC_EYE_JOG_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Jogging_SpriteList_Animation.png"
 const NPC_EYE_ATK_PATH := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Attack_SpriteList_Animation.png"
@@ -150,7 +149,8 @@ const NPC_IDENTITY_DATA: Dictionary = {
 @onready var elevator_door: ColorRect = $Elevator
 @onready var maintenance_door: ColorRect = $MaintenanceRoom
 
-# --- Узлы из сцены ---
+@onready var stop_zones: Array[Area2D] = [$StopZone1, $StopZone2, $StopZone3, $StopZone4, $StopZonePlayer]
+
 @onready var elevator_button: Sprite2D = $ElevatorButton
 @onready var elevator_back: AnimatedSprite2D = $ElevatorBack
 @onready var elevator_front: AnimatedSprite2D = $ElevatorFront
@@ -171,9 +171,8 @@ const NPC_IDENTITY_DATA: Dictionary = {
 @onready var bind_hint_j: Control = $UI/BindHintJ
 
 @onready var minigame_panel: Control = $UI/MinigamePanel
-@onready var minigame_slider: ColorRect = $UI/MinigamePanel/Track/Slider
-@onready var minigame_zone: ColorRect = $UI/MinigamePanel/Track/Zone
-@onready var minigame_bg: ColorRect = $UI/MinigamePanel/BG
+@onready var minigame_slider: TextureRect = $UI/MinigamePanel/Track/Slider
+@onready var minigame_zone: TextureRect = $UI/MinigamePanel/Track/Zone
 
 @onready var journal_panel: Control = $UI/JournalPanel
 @onready var journal_list: VBoxContainer = $UI/JournalPanel/BG/Scroll/JournalList
@@ -194,6 +193,7 @@ var object_x: float = 0.0
 var object_progress: int = 0
 var conveyor_paused: bool = false
 var current_object_index: int = 0
+var _box_processed_zones: Array = []
 
 var finished_boxes: Array = []
 var broken_boxes: Array = []
@@ -316,14 +316,16 @@ func _ready() -> void:
 	_setup_guard_camera()
 	_ensure_death_screen()
 	
-	# Прессы в исходное состояние (подняты)
+	for z in stop_zones:
+		if z:
+			z.visible = false
+	
 	for press in presses:
 		if press and press.sprite_frames and press.sprite_frames.has_animation("press_up"):
 			press.animation = "press_up"
 			press.frame = press.sprite_frames.get_frame_count("press_up") - 1
 			press.stop()
 	
-	# Лифт в исходное состояние (закрыт)
 	if elevator_back and elevator_back.sprite_frames and elevator_back.sprite_frames.has_animation("close"):
 		elevator_back.animation = "close"
 		elevator_back.frame = elevator_back.sprite_frames.get_frame_count("close") - 1
@@ -360,7 +362,6 @@ func _ready() -> void:
 	if player and player.has_method("set_movement_blocked"):
 		player.set_movement_blocked(true)
 	
-	# Включаем только заводскую камеру
 	if player:
 		for child in player.get_children():
 			if child is Camera2D:
@@ -379,7 +380,31 @@ func _ready() -> void:
 	intro_timer = 0.0
 	state = State.INTRO
 
-# --- Нарезчик спрайт-листов ---
+func _get_stop_zone_x(index: int) -> float:
+	if index < 0 or index >= stop_zones.size():
+		return FISH_START_X + index * FISH_SPACING
+	var z = stop_zones[index]
+	if z == null:
+		return FISH_START_X + index * FISH_SPACING
+	return z.global_position.x
+
+func _is_box_in_zone(index: int, box_pos: Vector2, box_size: Vector2) -> bool:
+	if _box_processed_zones.has(index):
+		return false
+	if index < 0 or index >= stop_zones.size():
+		return false
+	var z = stop_zones[index]
+	if z == null:
+		return false
+	var zone_pos = z.global_position
+	var zone_size = Vector2(40, 40)
+	var col = z.get_node_or_null("CollisionShape2D")
+	if col and col.shape is RectangleShape2D:
+		zone_size = col.shape.size * col.scale
+	var zone_right = zone_pos.x + zone_size.x / 2.0
+	var box_right = box_pos.x + box_size.x / 2.0
+	return box_right >= zone_right
+
 func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D, total_in_sheet: int, start_index: int, count: int, loop: bool, speed: float) -> void:
 	if frames.has_animation(anim_name):
 		return
@@ -394,7 +419,6 @@ func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D,
 		atlas.region = Rect2((start_index + i) * fw, 0, fw, fh)
 		frames.add_frame(anim_name, atlas)
 
-# --- Личности НПС ---
 func _npc_identity_paths(identity: String) -> Dictionary:
 	match identity:
 		"eye":
@@ -412,19 +436,15 @@ func _build_npc_identity_frames(identity: String) -> SpriteFrames:
 	var frames = SpriteFrames.new()
 	if frames.has_animation("default"):
 		frames.remove_animation("default")
-	
 	var paths = _npc_identity_paths(identity)
 	if paths.is_empty():
 		return frames
-	
 	var idle_tex = load(paths["idle"])
 	if idle_tex:
 		_add_sliced_frames(frames, "idle", idle_tex, NPC_IDLE_FRAMES, 0, NPC_IDLE_FRAMES, true, 10.0)
-	
 	var jog_tex = load(paths["jog"])
 	if jog_tex:
 		_add_sliced_frames(frames, "jogging", jog_tex, NPC_JOG_FRAMES, 0, NPC_JOG_FRAMES, true, 12.0)
-	
 	var atk_tex = load(paths["atk"])
 	if atk_tex:
 		var atk_total = int(paths["atk_total"])
@@ -433,12 +453,10 @@ func _build_npc_identity_frames(identity: String) -> SpriteFrames:
 		else:
 			_add_sliced_frames(frames, "AttackRight", atk_tex, atk_total, 0, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
 			_add_sliced_frames(frames, "AttackLeft", atk_tex, atk_total, NPC_ATK_FRAMES_PER_SIDE, NPC_ATK_FRAMES_PER_SIDE, false, 14.0)
-	
 	if paths.has("hit"):
 		var hit_tex = load(paths["hit"])
 		if hit_tex:
 			_add_sliced_frames(frames, "hit", hit_tex, NPC_HIT_FRAMES, 0, NPC_HIT_FRAMES, false, 14.0)
-	
 	return frames
 
 func _assign_npc_identities() -> void:
@@ -455,7 +473,6 @@ func _assign_npc_identities() -> void:
 			if frames.has_animation("idle"):
 				fish.play("idle")
 
-# --- Лифт ---
 func _elevator_play(anim_name: String) -> void:
 	if elevator_back:
 		elevator_back.play(anim_name)
@@ -476,7 +493,6 @@ func _guard_walk_to(target: Vector2) -> void:
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
 	elif target.x > guard_sprite.position.x:
 		guard_sprite.scale.x = abs(guard_sprite.scale.x)
-	
 	if guard_sprite.sprite_frames.has_animation("jogging"):
 		guard_sprite.play("jogging")
 	else:
@@ -540,6 +556,8 @@ func _collect_conveyor_sprites() -> void:
 	conveyor_tile_width = s.texture.get_width() * abs(s.scale.x)
 	conveyor_sprites.sort_custom(func(a, b): return a.position.x < b.position.x)
 	conveyor_base_x = conveyor_sprites[0].position.x
+	for sp in conveyor_sprites:
+		sp.z_index = 30
 
 func _create_conveyor_floor() -> void:
 	conveyor_floor_rect = ColorRect.new()
@@ -549,7 +567,7 @@ func _create_conveyor_floor() -> void:
 	conveyor_floor_rect.offset_top = 416.0
 	conveyor_floor_rect.offset_right = 2000.0
 	conveyor_floor_rect.offset_bottom = 446.0
-	conveyor_floor_rect.z_index = 4
+	conveyor_floor_rect.z_index = 25
 	conveyor_floor_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(conveyor_floor_rect)
 
@@ -571,14 +589,12 @@ func _create_maintenance_safe_zone() -> void:
 	maintenance_safe_zone_rect.color = Color(0.2, 0.8, 0.3, 0.35)
 	maintenance_safe_zone_rect.z_index = 1
 	maintenance_safe_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
 	var center = Vector2(1230, 325)
 	var size = Vector2(160, 200)
 	maintenance_safe_zone_rect.offset_left = center.x - size.x / 2.0
 	maintenance_safe_zone_rect.offset_top = center.y - size.y / 2.0
 	maintenance_safe_zone_rect.offset_right = center.x + size.x / 2.0
 	maintenance_safe_zone_rect.offset_bottom = center.y + size.y / 2.0
-	
 	add_child(maintenance_safe_zone_rect)
 
 func _create_work_zone() -> void:
@@ -605,7 +621,6 @@ func _create_vignette() -> void:
 	inspect_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inspect_vignette.z_index = 50
 	inspect_vignette.visible = false
-	
 	var shader = Shader.new()
 	shader.code = """
 shader_type canvas_item;
@@ -620,14 +635,12 @@ void fragment() {
 	var mat = ShaderMaterial.new()
 	mat.shader = shader
 	inspect_vignette.material = mat
-	
 	var canvas = CanvasLayer.new()
 	canvas.name = "InspectVignetteLayer"
 	canvas.layer = 5
 	canvas.add_child(inspect_vignette)
 	add_child(canvas)
 	
-	# Красная пульсирующая обводка при 1 HP
 	low_hp_vignette = ColorRect.new()
 	low_hp_vignette.name = "LowHpVignette"
 	low_hp_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -647,7 +660,6 @@ void fragment() {
 	var pulse_mat = ShaderMaterial.new()
 	pulse_mat.shader = pulse_shader
 	low_hp_vignette.material = pulse_mat
-	
 	var pulse_canvas = CanvasLayer.new()
 	pulse_canvas.name = "LowHpVignetteLayer"
 	pulse_canvas.layer = 6
@@ -662,7 +674,6 @@ func _update_low_hp_pulse(delta: float) -> void:
 		hp = player.get_hp()
 	else:
 		hp = player.hp
-	
 	if hp <= 1 and hp > 0:
 		low_hp_vignette.visible = true
 		_low_hp_pulse_time += delta * 3.0
@@ -675,7 +686,6 @@ func _update_low_hp_pulse(delta: float) -> void:
 func _create_shift_bars() -> void:
 	var bg_tex = load(PROGRESSBAR_BG_PATH)
 	var fill_tex = load(PROGRESSBAR_FILL_PATH)
-	
 	guard_shift_bar = ProgressBar.new()
 	guard_shift_bar.name = "GuardShiftBar"
 	guard_shift_bar.position = Vector2(376, 100)
@@ -692,7 +702,6 @@ func _create_shift_bars() -> void:
 		sf.texture = fill_tex
 		guard_shift_bar.add_theme_stylebox_override("fill", sf)
 	$UI.add_child(guard_shift_bar)
-	
 	guard_shift_label = Label.new()
 	guard_shift_label.name = "GuardShiftLabel"
 	guard_shift_label.position = Vector2(786, 96)
@@ -701,7 +710,6 @@ func _create_shift_bars() -> void:
 	guard_shift_label.add_theme_color_override("font_color", Color.WHITE)
 	guard_shift_label.text = "0/3"
 	$UI.add_child(guard_shift_label)
-	
 	sniper_shift_bar = ProgressBar.new()
 	sniper_shift_bar.name = "SniperShiftBar"
 	sniper_shift_bar.position = Vector2(376, 126)
@@ -718,7 +726,6 @@ func _create_shift_bars() -> void:
 		sf2.texture = fill_tex
 		sniper_shift_bar.add_theme_stylebox_override("fill", sf2)
 	$UI.add_child(sniper_shift_bar)
-	
 	sniper_shift_bar_label = Label.new()
 	sniper_shift_bar_label.name = "SniperShiftLabel"
 	sniper_shift_bar_label.position = Vector2(786, 122)
@@ -727,7 +734,6 @@ func _create_shift_bars() -> void:
 	sniper_shift_bar_label.add_theme_color_override("font_color", Color.WHITE)
 	sniper_shift_bar_label.text = "0/3"
 	$UI.add_child(sniper_shift_bar_label)
-	
 	guard_shift_bar.visible = false
 	guard_shift_label.visible = false
 	sniper_shift_bar.visible = false
@@ -748,7 +754,6 @@ func _create_stress_bar() -> void:
 	sb_fill.bg_color = Color(0.85, 0.2, 0.2, 0.9)
 	stress_bar.add_theme_stylebox_override("fill", sb_fill)
 	$UI.add_child(stress_bar)
-	
 	stress_label = Label.new()
 	stress_label.name = "StressLabel"
 	stress_label.position = Vector2(786, 148)
@@ -757,7 +762,6 @@ func _create_stress_bar() -> void:
 	stress_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
 	stress_label.text = "СТРЕСС: 0%"
 	$UI.add_child(stress_label)
-	
 	stress_bar.visible = false
 	stress_label.visible = false
 
@@ -790,14 +794,10 @@ func _get_miss_chance() -> float:
 
 func _update_shift_bars() -> void:
 	if current_shift < 2:
-		if guard_shift_bar:
-			guard_shift_bar.visible = false
-		if guard_shift_label:
-			guard_shift_label.visible = false
-		if sniper_shift_bar:
-			sniper_shift_bar.visible = false
-		if sniper_shift_bar_label:
-			sniper_shift_bar_label.visible = false
+		if guard_shift_bar: guard_shift_bar.visible = false
+		if guard_shift_label: guard_shift_label.visible = false
+		if sniper_shift_bar: sniper_shift_bar.visible = false
+		if sniper_shift_bar_label: sniper_shift_bar_label.visible = false
 		return
 	if guard_shift_bar:
 		guard_shift_bar.visible = true
@@ -813,42 +813,31 @@ func _update_shift_bars() -> void:
 			sniper_shift_bar_label.visible = true
 			sniper_shift_bar_label.text = str(sniper_shifts_found.size()) + "/3"
 	else:
-		if sniper_shift_bar:
-			sniper_shift_bar.visible = false
-		if sniper_shift_bar_label:
-			sniper_shift_bar_label.visible = false
+		if sniper_shift_bar: sniper_shift_bar.visible = false
+		if sniper_shift_bar_label: sniper_shift_bar_label.visible = false
 
 func _create_inspect_targets() -> void:
 	_add_inspect_target("clock", Vector2(576, 80), Vector2(120, 60),
-		"Часы", "Сколько я тут?", "Смена длится 10 часов",
-		COLOR_HIGHLIGHT_BLUE, "")
+		"Часы", "Сколько я тут?", "Смена длится 10 часов", COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("elevator", Vector2(-290, 325), Vector2(100, 120),
-		"Лифт", "Стоит попробовать..", "Лифт из которого приходят охранники",
-		COLOR_HIGHLIGHT_BLUE, "")
+		"Лифт", "Стоит попробовать..", "Лифт из которого приходят охранники", COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("maintenance", Vector2(1230, 325), Vector2(100, 120),
 		"Комната техобслуживания", "Туда уходят рабочие в конце смены..",
-		"Комната техобслуживания — сюда уходят рабочие после смены",
-		COLOR_HIGHLIGHT_BLUE, "")
+		"Комната техобслуживания — сюда уходят рабочие после смены", COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("sniper", Vector2(1060, 60), Vector2(120, 80),
 		"Снайпер-Голубь", "Снайпер, который может пристрелить меня когда угодно..",
-		"Снайпер-Голубь в меха костюме. Имеет крылья винтовку и пистолет",
-		COLOR_HIGHLIGHT_BLUE, "")
+		"Снайпер-Голубь в меха костюме. Имеет крылья винтовку и пистолет", COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("guard_dog", Vector2(-215, 310), Vector2(80, 80),
 		"Охранник-Собака", "Лучший друг человека..",
-		"Охранник-Собака в меха костюме. Имеет меха челюсти со смертельной силой сжатия",
-		COLOR_HIGHLIGHT_BLUE, "dog")
+		"Охранник-Собака в меха костюме. Имеет меха челюсти со смертельной силой сжатия", COLOR_HIGHLIGHT_BLUE, "dog")
 	_add_inspect_target("guard_monkey", Vector2(-215, 310), Vector2(80, 80),
 		"Охранник-Обезьяна", "Человекоподобные тоже с ними..",
-		"Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост",
-		COLOR_HIGHLIGHT_BLUE, "monkey")
-	
+		"Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост", COLOR_HIGHLIGHT_BLUE, "monkey")
 	var conv_center_x = (OBJECT_SPAWN_X + OBJECT_DESPAWN_X) / 2.0
 	var conv_width = OBJECT_SPAWN_X - OBJECT_DESPAWN_X
 	_add_inspect_target("conveyor", Vector2(conv_center_x, 400), Vector2(conv_width, 80),
 		"Конвейер", "Сколько еще таких заводов они построили?",
-		str(TOTAL_OBJECTS) + " коробок за смену",
-		COLOR_HIGHLIGHT_BLUE, "")
-	
+		str(TOTAL_OBJECTS) + " коробок за смену", COLOR_HIGHLIGHT_BLUE, "")
 	for fish in npc_fishes:
 		if fish == null:
 			continue
@@ -857,33 +846,24 @@ func _create_inspect_targets() -> void:
 		if info.is_empty():
 			continue
 		_add_inspect_target("npc_" + identity, fish.position, Vector2(70, 90),
-			info.get("title", ""), info.get("phrase", ""), info.get("journal", ""),
-			COLOR_HIGHLIGHT_BLUE, "")
-	
+			info.get("title", ""), info.get("phrase", ""), info.get("journal", ""), COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("guard_shift_9", Vector2(-215, 310), Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать",
-		"Смена охранника в 09:00",
+		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 09:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 9.0)
 	_add_inspect_target("guard_shift_13", Vector2(-215, 310), Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать",
-		"Смена охранника в 13:00",
+		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 13:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 13.0)
 	_add_inspect_target("guard_shift_17", Vector2(-215, 310), Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать",
-		"Смена охранника в 17:00",
+		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 17:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 17.0)
-	
 	_add_inspect_target("sniper_shift_11", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать",
-		"Смена снайпера в 11:00",
+		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 11:00",
 		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 11.0)
 	_add_inspect_target("sniper_shift_13", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать",
-		"Смена снайпера в 13:00",
+		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 13:00",
 		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 13.0)
 	_add_inspect_target("sniper_shift_15", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать",
-		"Смена снайпера в 15:00",
+		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 15:00",
 		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 15.0)
 
 func _add_inspect_target(id: String, pos: Vector2, size: Vector2, title: String, phrase: String, journal: String, color: Color, special_type: String = "", special_hour: float = -1.0) -> void:
@@ -896,20 +876,12 @@ func _add_inspect_target(id: String, pos: Vector2, size: Vector2, title: String,
 	col.shape = shape
 	area.add_child(col)
 	add_child(area)
-	
 	inspect_targets.append(area)
 	inspect_target_data[area] = {
-		"id": id,
-		"title": title,
-		"phrase": phrase,
-		"journal": journal,
-		"pos": pos,
-		"size": size,
-		"color": color,
-		"special_type": special_type,
-		"special_hour": special_hour,
+		"id": id, "title": title, "phrase": phrase, "journal": journal,
+		"pos": pos, "size": size, "color": color,
+		"special_type": special_type, "special_hour": special_hour,
 	}
-	
 	var hl = ColorRect.new()
 	hl.name = "Highlight_" + id
 	hl.color = color
@@ -990,7 +962,6 @@ func _create_inspect_text_panel() -> void:
 	style.border_color = Color(0.3, 0.7, 1.0, 0.8)
 	inspect_text_panel.add_theme_stylebox_override("panel", style)
 	$UI.add_child(inspect_text_panel)
-	
 	inspect_text_label = RichTextLabel.new()
 	inspect_text_label.name = "InspectTextLabel"
 	inspect_text_label.bbcode_enabled = true
@@ -1002,7 +973,6 @@ func _create_inspect_text_panel() -> void:
 	inspect_text_label.add_theme_font_size_override("normal_font_size", 16)
 	inspect_text_label.add_theme_color_override("default_color", Color.WHITE)
 	inspect_text_panel.add_child(inspect_text_label)
-	
 	inspect_journal_notice = Label.new()
 	inspect_journal_notice.name = "InspectJournalNotice"
 	inspect_journal_notice.visible = false
@@ -1038,7 +1008,6 @@ func _process(delta: float) -> void:
 		return
 	if get_tree().paused:
 		return
-	
 	_process_clock(delta)
 	_process_shift_changes()
 	_process_conveyor_scroll(delta)
@@ -1050,7 +1019,6 @@ func _process(delta: float) -> void:
 	_process_inspect_notice(delta)
 	_update_stress_from_hp()
 	_update_low_hp_pulse(delta)
-	
 	if state == State.INSPECT:
 		_process_inspect_camera(delta)
 		_process_working(delta)
@@ -1069,7 +1037,6 @@ func _process(delta: float) -> void:
 				_process_minigame(delta)
 			State.SHIFT_END:
 				pass
-	
 	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD and state != State.INSPECT:
 		_process_guard_talk(delta)
 
@@ -1263,11 +1230,14 @@ func _process_working(delta: float) -> void:
 	current_object.position.x = object_x
 	if object_progress < NUM_NPC_FISHES:
 		var npc_order = NUM_NPC_FISHES - 1 - object_progress
-		var fish_x = FISH_START_X + npc_order * FISH_SPACING
-		if object_x <= fish_x + 25:
+		var box_pos = current_object.global_position
+		var box_size = Vector2(40, 40)
+		if _is_box_in_zone(npc_order, box_pos, box_size):
 			_reach_fish(npc_order)
 		return
-	if object_x <= player_turn_x + 25:
+	var box_pos2 = current_object.global_position
+	var box_size2 = Vector2(40, 40)
+	if _is_box_in_zone(4, box_pos2, box_size2):
 		_reach_player()
 
 func _spawn_next_object() -> void:
@@ -1282,12 +1252,13 @@ func _spawn_next_object() -> void:
 	rect.size = Vector2(40, 40)
 	rect.position = Vector2(-20, -20)
 	current_object.add_child(rect)
-	current_object.z_index = 10
+	current_object.z_index = 15
 	current_object.position = Vector2(OBJECT_SPAWN_X, CONVEYOR_Y - 40.0)
 	objects_layer.add_child(current_object)
 	object_x = OBJECT_SPAWN_X
 	object_progress = 0
 	conveyor_paused = false
+	_box_processed_zones.clear()
 
 func _set_object_color(c: Color) -> void:
 	if current_object == null:
@@ -1333,11 +1304,11 @@ func _reach_fish(fish_index: int) -> void:
 	if fish_index < 0 or fish_index >= npc_fishes.size():
 		conveyor_paused = false
 		return
+	if not _box_processed_zones.has(fish_index):
+		_box_processed_zones.append(fish_index)
 	var fish = npc_fishes[fish_index]
 	
-	_play_npc_attack(fish)
-	
-	# Пресс опускается/поднимается
+	await _play_npc_attack(fish)
 	await _play_press(fish_index)
 	
 	var mistake = randf() < NPC_MISTAKE_CHANCE
@@ -1358,7 +1329,6 @@ func _reach_fish(fish_index: int) -> void:
 	object_progress += 1
 	var stage_index = clamp(object_progress - 1, 0, STAGE_COLORS.size() - 1)
 	_set_object_color(STAGE_COLORS[stage_index])
-	await get_tree().create_timer(0.4).timeout
 	conveyor_paused = false
 
 func _play_npc_attack(fish: Node) -> void:
@@ -1390,10 +1360,9 @@ func _play_player_attack() -> void:
 
 func _reach_player() -> void:
 	conveyor_paused = true
-	
-	# Пресс у игрока
+	if not _box_processed_zones.has(4):
+		_box_processed_zones.append(4)
 	await _play_press(4)
-	
 	if current_shift == 1 and current_object_index < AUTO_OBJECTS:
 		_play_player_attack()
 		await get_tree().create_timer(0.5).timeout
@@ -1410,7 +1379,6 @@ func _reach_player() -> void:
 			state = State.WORKING
 			_spawn_next_object()
 		return
-	
 	if current_shift == 1 and current_object_index == AUTO_OBJECTS:
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
@@ -1427,7 +1395,6 @@ func _reach_player() -> void:
 			state = State.WORKING
 			_spawn_next_object()
 		return
-	
 	if not _is_player_in_zone():
 		wrong_count += 1
 		_mark_progress(current_object_index, false)
@@ -1442,10 +1409,8 @@ func _reach_player() -> void:
 			state = State.WORKING
 			_spawn_next_object()
 		return
-	
 	if player_gui and not player_gui.visible:
 		_show_gui()
-	
 	state = State.MINIGAME
 	minigame_active = true
 	minigame_panel.visible = true
@@ -1585,8 +1550,6 @@ func _press_button() -> void:
 		_spawn_next_object()
 
 func _stress_miss_effect() -> void:
-	if minigame_bg:
-		minigame_bg.color = Color(0.9, 0.1, 0.1, 0.85)
 	var original_pos = minigame_panel.position
 	var tween = create_tween()
 	tween.set_loops(4)
@@ -1594,8 +1557,6 @@ func _stress_miss_effect() -> void:
 	tween.tween_property(minigame_panel, "position:x", original_pos.x - 8, 0.04)
 	tween.tween_property(minigame_panel, "position:x", original_pos.x, 0.04)
 	await get_tree().create_timer(0.5).timeout
-	if minigame_bg:
-		minigame_bg.color = Color(0, 0, 0, 0.85)
 	minigame_panel.position = original_pos
 
 func _guard_hit_player() -> void:
@@ -1767,16 +1728,11 @@ func _fade_and_new_shift() -> void:
 		fade_rect.visible = false
 
 func _randomize_npc_positions() -> void:
-	var order: Array = []
 	for i in range(npc_fishes.size()):
-		order.append(i)
-	order.shuffle()
-	for slot in range(npc_fishes.size()):
-		var fish = npc_fishes[slot]
+		var fish = npc_fishes[i]
 		if fish == null:
 			continue
-		var src_index: int = order[slot]
-		var x: float = FISH_START_X + src_index * FISH_SPACING
+		var x: float = _get_stop_zone_x(i)
 		var y: float = CONVEYOR_Y - 42.0
 		fish.position = Vector2(x, y)
 		if fish is AnimatedSprite2D and fish.sprite_frames and fish.sprite_frames.has_animation("idle"):
@@ -1786,11 +1742,12 @@ func _randomize_npc_positions() -> void:
 			_update_npc_inspect_position(identity, fish.position)
 
 func _get_player_shift_spawn() -> Vector2:
+	var base_x = _get_stop_zone_x(4)
 	var spawn: Vector2
 	if randf() < 0.5:
-		spawn = Vector2(PLAYER_TURN_X, 351)
+		spawn = Vector2(base_x, 351)
 	else:
-		spawn = Vector2(randf_range(PLAYER_TURN_X, 500.0), randf_range(340.0, 365.0))
+		spawn = Vector2(randf_range(base_x, base_x + 344.0), randf_range(340.0, 365.0))
 	player_turn_x = spawn.x
 	player_zone_center = Vector2(spawn.x, PLAYER_ZONE_CENTER.y)
 	_update_work_zone_position()
@@ -2013,11 +1970,9 @@ func _update_journal_options() -> void:
 	if guard_shifts_found.size() >= 3 and sniper_shifts_found.size() >= 3:
 		_add_journal_line("", Color.BLACK, 14)
 		if elevator_inspected:
-			_add_journal_line(">>> 13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ <<<",
-				Color.DARK_RED, 20)
+			_add_journal_line(">>> 13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ <<<", Color.DARK_RED, 20)
 		else:
-			_add_journal_line(">>> 13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА <<<",
-				Color.DARK_RED, 20)
+			_add_journal_line(">>> 13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА <<<", Color.DARK_RED, 20)
 
 func _add_journal_line(text: String, color: Color, font_size: int) -> void:
 	var l = Label.new()
