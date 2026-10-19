@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dw2hfnyqcfk2w"]
+[gd_scene format=3]
 
 [ext_resource type="Script" uid="uid://1ixi3c4gk2ut" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/Enemy_MechaPigeon_Storage_Script.gd" id="1_pigeon"]
 
@@ -15,6 +15,13 @@ collision_mask = 1
 script = ExtResource("1_pigeon")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="PlaceholderRect" type="ColorRect" parent="."]
+offset_left = -18.0
+offset_top = -26.0
+offset_right = 18.0
+offset_bottom = 26.0
+color = Color(0.3, 0.7, 1.0, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_body")

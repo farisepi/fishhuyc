@@ -36,10 +36,25 @@ func take_damage(amount: int) -> void:
 	if is_dead:
 		return
 	hp -= amount
+	_flash_damage()
 	if hp <= 0:
 		die()
 	else:
 		_on_hurt()
+
+func _flash_damage() -> void:
+	var target = null
+	for child in get_children():
+		if child is AnimatedSprite2D or child is Sprite2D or child is ColorRect:
+			target = child
+			break
+	if target == null:
+		return
+	var original = target.modulate
+	target.modulate = Color(1, 0.3, 0.3, 1)
+	await get_tree().create_timer(0.15).timeout
+	if is_instance_valid(target):
+		target.modulate = original
 
 func _on_hurt() -> void:
 	pass
