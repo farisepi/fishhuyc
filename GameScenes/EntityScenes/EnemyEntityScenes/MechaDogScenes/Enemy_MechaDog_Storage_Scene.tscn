@@ -1,0 +1,62 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://c7k2m9p4vq1xa" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaDogScripts/Enemy_MechaDog_Script.gd" id="1_dog"]
+[ext_resource type="Texture2D" uid="uid://b0w8biklaccuw" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogIdleFrames/Enemy_MechaDog_Idle_SpriteList_Animation.png" id="2_idle"]
+
+[sub_resource type="AtlasTexture" id="Atlas_idle_0"]
+atlas = ExtResource("2_idle")
+region = Rect2(0, 0, 75, 75)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dog"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Atlas_idle_0")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 10.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
+radius = 22.0
+height = 55.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
+radius = 350.0
+
+[node name="MechaDog" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_dog")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_dog")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_body")
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_detect")
+
+[node name="BiteArea" type="Area2D" parent="."]
+position = Vector2(40, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BiteArea"]
+shape = SubResource("CircleShape2D_detect")
+
+[node name="HitArea" type="Area2D" parent="."]
+position = Vector2(30, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea"]
+shape = SubResource("CircleShape2D_detect")

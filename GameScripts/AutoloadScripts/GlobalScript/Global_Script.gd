@@ -38,6 +38,13 @@ var seaweed_state: Node = null
 var _pending_seaweed_apply: bool = false
 var _scene_change_pending: bool = false
 
+# === SHARDS ===
+var shards_blue: int = 0
+var shards_green: int = 0
+var shards_cyan: int = 0
+
+signal shards_changed(blue: int, green: int, cyan: int)
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -63,6 +70,7 @@ func _ready() -> void:
 	get_tree().tree_changed.connect(_on_scene_changed)
 	
 	_detect_last_save_level()
+	load_shards_from_slot()
 
 func _apply_all_settings_from_config() -> void:
 	var config = ConfigFile.new()
@@ -455,3 +463,46 @@ func _cleanup_loading() -> void:
 func reset_seaweed() -> void:
 	if has_node("SeaweedState"):
 		get_node("SeaweedState").reset()
+
+# === SHARD FUNCTIONS ===
+
+func add_shard(color: String, amount: int = 1) -> void:
+	match color:
+		"blue": shards_blue += amount
+		"green": shards_green += amount
+		"cyan": shards_cyan += amount
+		_: return
+	shards_changed.emit(shards_blue, shards_green, shards_cyan)
+	save_shards_to_slot()
+
+func get_shards(color: String) -> int:
+	match color:
+		"blue": return shards_blue
+		"green": return shards_green
+		"cyan": return shards_cyan
+	return 0
+
+func get_total_shards() -> int:
+	return shards_blue + shards_green + shards_cyan
+
+func save_shards_to_slot() -> void:
+	var save_path = "user://saves/save_" + str(save_slot) + ".cfg"
+	var config = ConfigFile.new()
+	if config.load(save_path) != OK:
+		return
+	config.set_value("shards", "blue", shards_blue)
+	config.set_value("shards", "green", shards_green)
+	config.set_value("shards", "cyan", shards_cyan)
+	config.save(save_path)
+
+func load_shards_from_slot() -> void:
+	var save_path = "user://saves/save_" + str(save_slot) + ".cfg"
+	var config = ConfigFile.new()
+	if config.load(save_path) != OK:
+		shards_blue = 0
+		shards_green = 0
+		shards_cyan = 0
+		return
+	shards_blue = config.get_value("shards", "blue", 0)
+	shards_green = config.get_value("shards", "green", 0)
+	shards_cyan = config.get_value("shards", "cyan", 0)

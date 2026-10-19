@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://b3n8v6k2m0q7r" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaMonkeyScripts/Enemy_MechaMonkey_Script.gd" id="1_monkey"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
+radius = 20.0
+height = 52.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
+radius = 400.0
+
+[node name="MechaMonkey" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_monkey")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_body")
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_detect")
+
+[node name="TailArea" type="Area2D" parent="."]
+position = Vector2(45, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TailArea"]
+shape = SubResource("CircleShape2D_detect")

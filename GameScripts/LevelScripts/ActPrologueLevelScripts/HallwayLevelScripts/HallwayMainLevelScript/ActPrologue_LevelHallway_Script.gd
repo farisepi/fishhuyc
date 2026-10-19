@@ -1002,7 +1002,21 @@ func _win():
 	if not is_inside_tree():
 		return
 
-	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn")
+	# сохраняем прогресс в текущий слот
+	if player:
+		Global.player_position = player.global_position
+	var config = ConfigFile.new()
+	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
+	if config.load(save_path) == OK:
+		config.set_value("save", "scene", "res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelMainScene/ActStorage_LevelNearFactory_Scene.tscn")
+		config.set_value("save", "time", Time.get_datetime_string_from_system())
+		if player:
+			config.set_value("save", "player_x", player.global_position.x)
+			config.set_value("save", "player_y", player.global_position.y)
+		config.save(save_path)
+
+	GlobalMusic.stop_music()
+	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelMainScene/ActStorage_LevelNearFactory_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
 	if get_tree().paused:

@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dw2hfnyqcfk2w"]
+
+[ext_resource type="Script" uid="uid://1ixi3c4gk2ut" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/Enemy_MechaPigeon_Storage_Script.gd" id="1_pigeon"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
+radius = 18.0
+height = 44.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
+radius = 800.0
+
+[node name="MechaPigeon" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_pigeon")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_body")
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_detect")
+
+[node name="AimLine" type="Line2D" parent="."]
+visible = false
+width = 2.0
+default_color = Color(1, 0.2, 0.2, 0.6)
+z_index = 50
+points = PackedVector2Array(0, 0, 2000, 0)
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(24, 0)
+
+[node name="PistolMuzzle" type="Marker2D" parent="."]
+position = Vector2(20, 0)

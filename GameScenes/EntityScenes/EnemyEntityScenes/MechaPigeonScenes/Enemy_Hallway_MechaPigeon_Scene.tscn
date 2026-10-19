@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bj7o3h0ohq867"]
 
-[ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/Enemy_MechaPigeon_Script.gd" id="1_02tg6"]
+[ext_resource type="Script" uid="uid://bb0ib6b7o0msy" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/Enemy_MechaPigeon_Hallway_Script.gd" id="1_02tg6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_riqys"]
 

@@ -95,6 +95,8 @@ func _update_slot_text(slot: Button, index: int):
 			location = "Завод"
 		elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
 			location = "Коридор к складовым помещениям"
+		elif "ActStorage" in scene or "Storage" in scene:
+			location = "Склад"
 		else:
 			location = scene
 		slot.text = location + "\n" + time
@@ -301,6 +303,10 @@ func _save_game(index: int, scene_path: String = ""):
 	config.set_value("save", "chatter_text", Global.chatter_current_text)
 	config.set_value("save", "chatter_index", Global.chatter_char_index)
 	
+	config.set_value("shards", "blue", Global.shards_blue)
+	config.set_value("shards", "green", Global.shards_green)
+	config.set_value("shards", "cyan", Global.shards_cyan)
+	
 	config.save(save_path)
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
@@ -309,11 +315,15 @@ func _save_game(index: int, scene_path: String = ""):
 		Global.last_save_level = 2
 	elif current_scene.contains("Act3") or current_scene.contains("Level_3"):
 		Global.last_save_level = 3
+	elif current_scene.contains("ActStorage") or current_scene.contains("Storage"):
+		Global.last_save_level = 4
 	else:
 		Global.last_save_level = 1
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
+		Global.save_slot = index
+		Global.save_shards_to_slot()
 		var target = Global.scene_to_save
 		if target == "" or "SavesMenu" in target:
 			target = "res://GameScripts/LevelScripts/ActPrologueLevelScripts/AquariumLevelScripts/AquariumMainLevelScript/ActPrologue_AquariumLevel_Script.gd"
@@ -342,7 +352,12 @@ func _load_game(index: int):
 				level = 2
 			elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
 				level = 3
+			elif "ActStorage" in scene or "Storage" in scene:
+				level = 4
 			Global.last_save_level = level
+			
+			Global.save_slot = index
+			Global.load_shards_from_slot()
 			
 			Global.goto_scene(scene)
 

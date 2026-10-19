@@ -1,0 +1,339 @@
+[gd_scene format=3 uid="uid://b4ky63vucgacp"]
+
+[ext_resource type="Script" uid="uid://b2qp27ydyl87c" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/ActStorage_LevelNearFactory_Script.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="3_death"]
+[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="4_pause"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="5_btnn"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="6_btnp"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="7_btnh"]
+[ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="8_framing"]
+[ext_resource type="Texture2D" uid="uid://bpam00ltom6y5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactoryTileSet_Barrel_Option4_Texture.png" id="10_barrel4"]
+[ext_resource type="Texture2D" uid="uid://dhyb0xr1wv32f" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="11_barrel1"]
+[ext_resource type="Texture2D" uid="uid://dllm44c2sp1fi" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="12_barrel2"]
+[ext_resource type="Texture2D" uid="uid://c6apw8h3vgnbi" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option3_Texture.png" id="13_barrel3"]
+[ext_resource type="Texture2D" uid="uid://ci7a61l22xm78" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option1_Texture.png" id="14_box1"]
+[ext_resource type="Texture2D" uid="uid://c7b4f5lsvj8lx" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option2_Texture.png" id="15_box2"]
+[ext_resource type="Texture2D" uid="uid://d0302s5e4s2j5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option4_Texture.png" id="16_box4"]
+[ext_resource type="Texture2D" uid="uid://d1ph1hd743pgd" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option5_Texture.png" id="17_box5"]
+[ext_resource type="Texture2D" uid="uid://pivutylbvkp5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Back_Texture.png" id="18_con1b"]
+[ext_resource type="Texture2D" uid="uid://7xh71tmbl12a" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Front_Texture.png" id="19_con1f"]
+[ext_resource type="Texture2D" uid="uid://bjkh4arwfu2dm" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Back_Texture.png" id="20_con2b"]
+[ext_resource type="Texture2D" uid="uid://cn66hm8kudvw6" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Front_Texture.png" id="21_con2f"]
+[ext_resource type="Texture2D" uid="uid://b76wc1q05dchm" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option1_Texture.png" id="22_fork1"]
+[ext_resource type="Texture2D" uid="uid://5gsapumvk4ch" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option2_Texture.png" id="23_fork2"]
+[ext_resource type="Texture2D" uid="uid://c3mmm6osforcr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option1_Texture.png" id="26_fuel1"]
+[ext_resource type="Texture2D" uid="uid://p6im7x3sa3s1" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option2_Texture.png" id="27_fuel2"]
+[ext_resource type="Texture2D" uid="uid://c7jfyknwugbgj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option1_Texture.png" id="28_ibox1"]
+[ext_resource type="Texture2D" uid="uid://5vb5ao386eei" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option2_Texture.png" id="29_ibox2"]
+[ext_resource type="Texture2D" uid="uid://r34pme42x5pj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_IronDoor_Texture.png" id="30_door"]
+[ext_resource type="Texture2D" uid="uid://cxc7fljchhsfq" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Ladder_Texture.png" id="31_ladder"]
+[ext_resource type="Texture2D" uid="uid://bojplhlaq3jqr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option1_Texture.png" id="32_pallet1"]
+[ext_resource type="Texture2D" uid="uid://8h5nwdkfctte" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option2_Texture.png" id="33_pallet2"]
+[ext_resource type="Texture2D" uid="uid://cx65c5nch1trt" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option1_Texture.png" id="34_shelf1"]
+[ext_resource type="Texture2D" uid="uid://crk8fsa333yts" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option2_Texture.png" id="35_shelf2"]
+[ext_resource type="Texture2D" uid="uid://dqbumpxmolyfo" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option3_Texture.png" id="36_shelf3"]
+[ext_resource type="Texture2D" uid="uid://d21xy4m8myegn" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_WashBag_Texture.png" id="37_washbag"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(6000, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(400, 24)
+
+[node name="ActStorageLevel" type="Node2D" unique_id=180657049]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="." unique_id=217792557]
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+color = Color(0.08, 0.06, 0.05, 1)
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=619556977]
+position = Vector2(2000, 520)
+
+[node name="FloorShape" type="CollisionShape2D" parent="Floor" unique_id=1167928064]
+position = Vector2(0, -20)
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="FloorVisual" type="ColorRect" parent="." unique_id=175251576]
+offset_left = -3000.0
+offset_top = 520.0
+offset_right = 9000.0
+offset_bottom = 600.0
+color = Color(0.22, 0.14, 0.1, 1)
+
+[node name="Platform1" type="StaticBody2D" parent="." unique_id=1048574803]
+position = Vector2(900, 380)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1" unique_id=1321912850]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="PlatformVisual" type="ColorRect" parent="Platform1" unique_id=573105977]
+offset_left = -200.0
+offset_top = -12.0
+offset_right = 200.0
+offset_bottom = 12.0
+color = Color(0.35, 0.22, 0.15, 1)
+
+[node name="Platform2" type="StaticBody2D" parent="." unique_id=702613659]
+position = Vector2(1700, 340)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2" unique_id=1102655205]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="PlatformVisual" type="ColorRect" parent="Platform2" unique_id=1177448521]
+offset_left = -200.0
+offset_top = -12.0
+offset_right = 200.0
+offset_bottom = 12.0
+color = Color(0.35, 0.22, 0.15, 1)
+
+[node name="LadderSprite" type="Sprite2D" parent="." unique_id=395916630]
+position = Vector2(900, 450)
+scale = Vector2(2, 2)
+texture = ExtResource("31_ladder")
+
+[node name="BackgroundDecor1" type="Sprite2D" parent="." unique_id=836791906]
+position = Vector2(200, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("34_shelf1")
+
+[node name="BackgroundDecor2" type="Sprite2D" parent="." unique_id=915378229]
+position = Vector2(400, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("35_shelf2")
+
+[node name="BackgroundDecor3" type="Sprite2D" parent="." unique_id=539515900]
+position = Vector2(1200, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("36_shelf3")
+
+[node name="Container1Back" type="Sprite2D" parent="." unique_id=57218965]
+position = Vector2(2400, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("18_con1b")
+
+[node name="Container1Front" type="Sprite2D" parent="." unique_id=650917731]
+position = Vector2(2400, 490)
+scale = Vector2(3, 3)
+texture = ExtResource("19_con1f")
+
+[node name="Container2Back" type="Sprite2D" parent="." unique_id=2024915253]
+position = Vector2(2800, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("20_con2b")
+
+[node name="Container2Front" type="Sprite2D" parent="." unique_id=1136513966]
+position = Vector2(2800, 490)
+scale = Vector2(3, 3)
+texture = ExtResource("21_con2f")
+
+[node name="Forklift1" type="Sprite2D" parent="." unique_id=1782962758]
+position = Vector2(3100, 490)
+scale = Vector2(3, 3)
+texture = ExtResource("22_fork1")
+
+[node name="Forklift2" type="Sprite2D" parent="." unique_id=439613596]
+position = Vector2(3300, 490)
+scale = Vector2(3, 3)
+texture = ExtResource("23_fork2")
+
+[node name="Barrel1" type="Sprite2D" parent="." unique_id=751725150]
+position = Vector2(500, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("11_barrel1")
+
+[node name="Barrel2" type="Sprite2D" parent="." unique_id=287136768]
+position = Vector2(550, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("12_barrel2")
+
+[node name="Barrel3" type="Sprite2D" parent="." unique_id=1544544672]
+position = Vector2(600, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("13_barrel3")
+
+[node name="Barrel4" type="Sprite2D" parent="." unique_id=595401132]
+position = Vector2(650, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("10_barrel4")
+
+[node name="Box1" type="Sprite2D" parent="." unique_id=2087629208]
+position = Vector2(1400, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("14_box1")
+
+[node name="Box2" type="Sprite2D" parent="." unique_id=706012571]
+position = Vector2(1450, 470)
+scale = Vector2(2, 2)
+texture = ExtResource("15_box2")
+
+[node name="Box4" type="Sprite2D" parent="." unique_id=1566984684]
+position = Vector2(1500, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("16_box4")
+
+[node name="Box5" type="Sprite2D" parent="." unique_id=889520832]
+position = Vector2(1550, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("17_box5")
+
+[node name="Pallet1" type="Sprite2D" parent="." unique_id=626296458]
+position = Vector2(2000, 500)
+scale = Vector2(2, 2)
+texture = ExtResource("32_pallet1")
+
+[node name="Pallet2" type="Sprite2D" parent="." unique_id=2057877851]
+position = Vector2(2100, 500)
+scale = Vector2(2, 2)
+texture = ExtResource("33_pallet2")
+
+[node name="Fuel1" type="Sprite2D" parent="." unique_id=142295159]
+position = Vector2(700, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("26_fuel1")
+
+[node name="Fuel2" type="Sprite2D" parent="." unique_id=1611045797]
+position = Vector2(750, 490)
+scale = Vector2(2, 2)
+texture = ExtResource("27_fuel2")
+
+[node name="InstrumentBox1" type="Sprite2D" parent="." unique_id=1957434754]
+position = Vector2(1600, 505)
+scale = Vector2(2, 2)
+texture = ExtResource("28_ibox1")
+
+[node name="InstrumentBox2" type="Sprite2D" parent="." unique_id=1616959636]
+position = Vector2(1650, 505)
+scale = Vector2(2, 2)
+texture = ExtResource("29_ibox2")
+
+[node name="WashBag" type="Sprite2D" parent="." unique_id=1840157621]
+position = Vector2(3500, 470)
+scale = Vector2(2, 2)
+texture = ExtResource("37_washbag")
+
+[node name="IronDoor" type="Sprite2D" parent="." unique_id=570561479]
+position = Vector2(3800, 470)
+scale = Vector2(3, 3)
+texture = ExtResource("30_door")
+
+[node name="Enemies" type="Node2D" parent="." unique_id=1597903671]
+
+[node name="SpawnPoints" type="Node2D" parent="." unique_id=1960239016]
+
+[node name="SpawnDog1" type="Marker2D" parent="SpawnPoints" unique_id=401951551]
+position = Vector2(1000, 490)
+metadata/enemy_type = "dog"
+
+[node name="SpawnDog2" type="Marker2D" parent="SpawnPoints" unique_id=2090275236]
+position = Vector2(2200, 490)
+metadata/enemy_type = "dog"
+
+[node name="SpawnDog3" type="Marker2D" parent="SpawnPoints" unique_id=1451498498]
+position = Vector2(3500, 490)
+metadata/enemy_type = "dog"
+
+[node name="SpawnMonkey1" type="Marker2D" parent="SpawnPoints" unique_id=2022733367]
+position = Vector2(1500, 490)
+metadata/enemy_type = "monkey"
+
+[node name="SpawnMonkey2" type="Marker2D" parent="SpawnPoints" unique_id=1481309486]
+position = Vector2(2700, 490)
+metadata/enemy_type = "monkey"
+
+[node name="SpawnMonkey3" type="Marker2D" parent="SpawnPoints" unique_id=703788921]
+position = Vector2(3900, 490)
+metadata/enemy_type = "monkey"
+
+[node name="SpawnPigeon1" type="Marker2D" parent="SpawnPoints" unique_id=2138638366]
+position = Vector2(3200, 400)
+metadata/enemy_type = "pigeon"
+
+[node name="Mecha_Fish" parent="." unique_id=1551560694 instance=ExtResource("2_player")]
+position = Vector2(200, 490)
+
+[node name="DeathScreen" parent="." unique_id=1694675507 instance=ExtResource("3_death")]
+visible = false
+
+[node name="Pausemenu" type="CanvasLayer" parent="." unique_id=2112506778]
+process_mode = 3
+layer = 2
+visible = false
+script = ExtResource("4_pause")
+
+[node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1987061270]
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+color = Color(0, 0, 0, 0.69803923)
+
+[node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=1587223227]
+offset_left = 486.0
+offset_top = 176.5
+offset_right = 666.0
+offset_bottom = 231.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Продолжить"
+
+[node name="SaveButton" type="Button" parent="Pausemenu" unique_id=1776635816]
+offset_left = 486.0
+offset_top = 236.5
+offset_right = 666.0
+offset_bottom = 291.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Сохраниться"
+
+[node name="RestartButton" type="Button" parent="Pausemenu" unique_id=517668352]
+offset_left = 486.0
+offset_top = 296.5
+offset_right = 666.0
+offset_bottom = 351.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Рестарт"
+
+[node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=1326680208]
+offset_left = 486.0
+offset_top = 356.5
+offset_right = 666.0
+offset_bottom = 411.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Настройки"
+
+[node name="ExitButton" type="Button" parent="Pausemenu" unique_id=384350162]
+offset_left = 486.0
+offset_top = 416.5
+offset_right = 666.0
+offset_bottom = 471.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Выход"
+
+[node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=489014488]
+position = Vector2(575.99994, 324)
+scale = Vector2(3.9999993, 4)
+texture = ExtResource("8_framing")
+
+[connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
+[connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]
+[connection signal="pressed" from="Pausemenu/RestartButton" to="Pausemenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="Pausemenu/SettingsButton" to="Pausemenu" method="_on_settings_pressed"]
+[connection signal="pressed" from="Pausemenu/ExitButton" to="Pausemenu" method="_on_exit_pressed"]

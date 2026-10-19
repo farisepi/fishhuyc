@@ -1,0 +1,128 @@
+[gd_scene format=3 uid="uid://sh3anh8yn83w"]
+
+[ext_resource type="Script" uid="uid://xhlqa7b6dui7" path="res://GameScripts/UIScripts/HUDScripts/ActStorage_ShardInventory_Script.gd" id="1_inv"]
+[ext_resource type="Texture2D" uid="uid://dqgs8skcoul7h" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaDog_Texture.png" id="2_blue"]
+[ext_resource type="Texture2D" uid="uid://bp6bol8eawm2q" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaMonkey_Texture.png" id="3_green"]
+[ext_resource type="Texture2D" uid="uid://bactnsbq42ho4" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaPigeon_Texture.png" id="4_cyan"]
+
+[node name="ShardInventory" type="CanvasLayer" unique_id=1779490333]
+layer = 50
+script = ExtResource("1_inv")
+
+[node name="Panel" type="Panel" parent="." unique_id=1481477343]
+offset_left = 426.0
+offset_top = 174.0
+offset_right = 726.0
+offset_bottom = 474.0
+
+[node name="Title" type="Label" parent="Panel" unique_id=1716277300]
+layout_mode = 0
+offset_top = 12.0
+offset_right = 300.0
+offset_bottom = 40.0
+text = "ОСКОЛКИ"
+horizontal_alignment = 1
+
+[node name="BlueRow" type="Control" parent="Panel" unique_id=275199672]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 280.0
+offset_bottom = 100.0
+
+[node name="Icon" type="TextureRect" parent="Panel/BlueRow" unique_id=318155441]
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
+texture = ExtResource("2_blue")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Panel/BlueRow" unique_id=412116810]
+layout_mode = 0
+offset_left = 48.0
+offset_right = 200.0
+offset_bottom = 32.0
+text = "Собака"
+vertical_alignment = 1
+
+[node name="Count" type="Label" parent="Panel/BlueRow" unique_id=676770835]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 260.0
+offset_bottom = 32.0
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="GreenRow" type="Control" parent="Panel" unique_id=1438239650]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 110.0
+offset_right = 280.0
+offset_bottom = 150.0
+
+[node name="Icon" type="TextureRect" parent="Panel/GreenRow" unique_id=386595998]
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
+texture = ExtResource("3_green")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Panel/GreenRow" unique_id=106746801]
+layout_mode = 0
+offset_left = 48.0
+offset_right = 200.0
+offset_bottom = 32.0
+text = "Обезьяна"
+vertical_alignment = 1
+
+[node name="Count" type="Label" parent="Panel/GreenRow" unique_id=359541035]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 260.0
+offset_bottom = 32.0
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="CyanRow" type="Control" parent="Panel" unique_id=834394243]
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 160.0
+offset_right = 280.0
+offset_bottom = 200.0
+
+[node name="Icon" type="TextureRect" parent="Panel/CyanRow" unique_id=1276663852]
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
+texture = ExtResource("4_cyan")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Panel/CyanRow" unique_id=1135987331]
+layout_mode = 0
+offset_left = 48.0
+offset_right = 200.0
+offset_bottom = 32.0
+text = "Голубь"
+vertical_alignment = 1
+
+[node name="Count" type="Label" parent="Panel/CyanRow" unique_id=416655191]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 260.0
+offset_bottom = 32.0
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TotalLabel" type="Label" parent="Panel" unique_id=932498806]
+layout_mode = 0
+offset_top = 240.0
+offset_right = 300.0
+offset_bottom = 268.0
+text = "Всего: 0"
+horizontal_alignment = 1
