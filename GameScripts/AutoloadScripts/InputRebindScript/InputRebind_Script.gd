@@ -39,6 +39,26 @@ func _ensure_default_actions() -> void:
 		var ev2 = InputEventKey.new()
 		ev2.keycode = KEY_J
 		InputMap.action_add_event("journal", ev2)
+	
+	if not FileAccess.file_exists(SAVE_PATH):
+		_apply_first_launch_defaults()
+
+func _apply_first_launch_defaults() -> void:
+	var defaults = {
+		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
+		"interact": KEY_F, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"inspect": KEY_I, "journal": KEY_J
+	}
+	for action in defaults.keys():
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		for e in InputMap.action_get_events(action).duplicate():
+			if e is InputEventKey:
+				InputMap.action_erase_event(action, e)
+		var ev = InputEventKey.new()
+		ev.keycode = defaults[action]
+		InputMap.action_add_event(action, ev)
+	save_keybinds()
 
 func _process(delta: float) -> void:
 	if rebind_delay > 0:

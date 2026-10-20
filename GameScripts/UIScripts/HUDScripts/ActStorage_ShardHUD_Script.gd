@@ -1,9 +1,9 @@
 extends CanvasLayer
 
-@onready var blue_icon: TextureRect = $Panel/BlueIcon
-@onready var green_icon: TextureRect = $Panel/GreenIcon
-@onready var cyan_icon: TextureRect = $Panel/CyanIcon
-@onready var total_label: Label = $Panel/TotalLabel
+@onready var blue_icon: TextureRect = $BlueIcon
+@onready var green_icon: TextureRect = $GreenIcon
+@onready var cyan_icon: TextureRect = $CyanIcon
+@onready var total_label: Label = $TotalLabel
 
 const BLUE_TEX = preload("res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaDog_Texture.png")
 const GREEN_TEX = preload("res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaMonkey_Texture.png")

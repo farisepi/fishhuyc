@@ -6,14 +6,17 @@ extends StorageEnemy
 @onready var pistol_muzzle: Marker2D = $PistolMuzzle
 @onready var detection_area: Area2D = $DetectionArea
 
-enum State { IDLE, AIM, FIRE, RELOAD, FLYBACK, PISTOL, STUN, DEAD }
-var state: State = State.IDLE
+enum State { PATROL, ALERT, AIM, FIRE, RELOAD, FLYBACK, PISTOL, RETREAT, STUN, DEAD }
+var state: State = State.PATROL
 var timer: float = 0.0
 var cooldown_timer: float = 0.0
 var fire_range: float = 800.0
 var close_range: float = 200.0
 var aim_time: float = 1.2
 var reload_time: float = 1.5
+var alert_timer: float = 0.0
+var alert_duration: float = 0.3
+var retreat_range: float = 400.0
 var current_aim_dir: Vector2 = Vector2.RIGHT
 var bullet_active: bool = false
 var bullet_dir: Vector2 = Vector2.RIGHT
@@ -26,9 +29,11 @@ var bullet: Line2D = null
 func _ready() -> void:
 	super._ready()
 	shard_color = "cyan"
-	max_hp = 2
-	hp = 2
+	max_hp = 5
+	hp = 5
 	can_be_parried = false
+	aggro_range = 800.0
+	deaggro_range = 1200.0
 	if detection_area:
 		detection_area.body_entered.connect(func(b):
 			if b.is_in_group("player") and player == null:
@@ -43,6 +48,7 @@ func _ready() -> void:
 	bullet.visible = false
 	bullet.points = PackedVector2Array([Vector2(-16, 0), Vector2.ZERO])
 	add_child(bullet)
+	_play_anim("idle_aim")
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -55,7 +61,7 @@ func _physics_process(delta: float) -> void:
 		stun_timer -= delta
 		if stun_timer <= 0:
 			is_stunned = false
-			state = State.IDLE
+			state = State.PATROL if not is_aggro else State.AIM
 		velocity.x = 0
 		move_and_slide()
 		return
@@ -65,22 +71,26 @@ func _physics_process(delta: float) -> void:
 
 	if player == null:
 		_find_player()
-		if player == null:
-			velocity.x = 0
-			move_and_slide()
-			return
 
-	var dist = global_position.distance_to(player.global_position)
-	var dir = sign(player.global_position.x - global_position.x)
-	if dir != 0:
-		facing_dir = dir
+	var dist = 99999.0
+	if player != null:
+		dist = global_position.distance_to(player.global_position)
+		_update_aggro(dist)
+
 	if sprite:
 		sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
 
 	match state:
-		State.IDLE:
+		State.PATROL:
 			_play_anim("idle_aim")
-			if dist < fire_range:
+			velocity.x = 0
+			if is_aggro:
+				state = State.ALERT
+				alert_timer = 0.0
+		State.ALERT:
+			alert_timer += delta
+			_clamp_facing_to_player()
+			if alert_timer >= alert_duration:
 				state = State.AIM
 				timer = 0.0
 				if aim_line:
@@ -116,7 +126,7 @@ func _physics_process(delta: float) -> void:
 						aim_line.visible = true
 		State.FLYBACK:
 			timer += delta
-			velocity.x = -facing_dir * 200.0
+			velocity.x = -facing_dir * 220.0
 			move_and_slide()
 			if timer >= 0.6:
 				state = State.PISTOL
@@ -127,6 +137,19 @@ func _physics_process(delta: float) -> void:
 		State.PISTOL:
 			timer += delta
 			if timer >= 1.0:
+				if dist > retreat_range:
+					state = State.AIM
+					timer = 0.0
+					if aim_line:
+						aim_line.visible = true
+				else:
+					state = State.RETREAT
+					timer = 0.0
+		State.RETREAT:
+			velocity.x = -facing_dir * speed
+			_play_anim("run_fast")
+			timer += delta
+			if dist > retreat_range or timer >= 1.5:
 				state = State.AIM
 				timer = 0.0
 				if aim_line:

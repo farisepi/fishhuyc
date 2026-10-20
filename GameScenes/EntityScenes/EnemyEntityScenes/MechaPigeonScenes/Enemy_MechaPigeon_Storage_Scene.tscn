@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://1ixi3c4gk2ut" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/Enemy_MechaPigeon_Storage_Script.gd" id="1_pigeon"]
+[ext_resource type="Script" uid="uid://d6p1x4k8n2m3v" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScripts/Enemy_MechaPigeon_Storage_Script.gd" id="1_pigeon"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
 radius = 18.0

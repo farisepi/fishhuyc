@@ -788,7 +788,7 @@ func _get_current_page() -> int:
 func _reset_controls_only() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
-		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"interact": KEY_F, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
 		"inspect": KEY_I, "journal": KEY_J
 	}
 	for action in defaults.keys():

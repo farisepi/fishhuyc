@@ -2,39 +2,36 @@ extends StorageEnemy
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var detection_area: Area2D = $DetectionArea
-@onready var tail_area: Area2D = $TailArea
 
-enum State { IDLE, CHASE, TAIL_JUMP, TAIL_FALL, TAIL_LAND, TAIL_ATTACK, STUN, DEAD }
-var state: State = State.IDLE
+enum State { PATROL, ALERT, CHASE, RETREAT, TAIL_JUMP, TAIL_FALL, TAIL_LAND, TAIL_ATTACK, STUN, DEAD }
+var state: State = State.PATROL
 var jump_timer: float = 0.0
 var tail_attack_timer: float = 0.0
 var cooldown_timer: float = 0.0
-var chase_range: float = 400.0
 var tail_range: float = 120.0
+var retreat_range: float = 160.0
 var jump_velocity_y: float = -420.0
 var jump_velocity_x: float = 160.0
-var attack_cooldown: float = 2.0
+var attack_cooldown: float = 2.2
+var alert_timer: float = 0.0
+var alert_duration: float = 0.35
+var _damage_dealt_this_attack: bool = false
 
 func _ready() -> void:
 	super._ready()
 	shard_color = "green"
-	max_hp = 3
-	hp = 3
+	max_hp = 5
+	hp = 5
 	can_be_parried = true
+	aggro_range = 380.0
+	deaggro_range = 700.0
+	min_distance = 70.0
 	if detection_area:
 		detection_area.body_entered.connect(func(b):
 			if b.is_in_group("player") and player == null:
 				player = b
 		)
-	if tail_area:
-		tail_area.body_entered.connect(_on_tail_hit)
-
-func _on_tail_hit(body: Node2D) -> void:
-	if body.is_in_group("player") and state == State.TAIL_ATTACK:
-		if body.get("is_dashing") == true:
-			return
-		if body.has_method("take_damage"):
-			body.take_damage(1)
+	_play_anim("idle")
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -44,7 +41,7 @@ func _physics_process(delta: float) -> void:
 		stun_timer -= delta
 		if stun_timer <= 0:
 			is_stunned = false
-			state = State.CHASE
+			state = State.CHASE if is_aggro else State.PATROL
 		velocity.x = 0
 		move_and_slide()
 		return
@@ -53,33 +50,53 @@ func _physics_process(delta: float) -> void:
 
 	if player == null:
 		_find_player()
-		if player == null:
-			velocity.x = 0
-			move_and_slide()
-			return
 
-	var dist = global_position.distance_to(player.global_position)
-	var dir = sign(player.global_position.x - global_position.x)
-	if dir != 0:
-		facing_dir = dir
+	var dist = 99999.0
+	if player != null:
+		dist = global_position.distance_to(player.global_position)
+		_update_aggro(dist)
+
 	if sprite:
 		sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
 
 	match state:
-		State.IDLE:
-			velocity.x = 0
+		State.PATROL:
 			_play_anim("idle")
-			if dist < chase_range:
+			if is_aggro:
+				state = State.ALERT
+				alert_timer = 0.0
+				velocity.x = 0
+			else:
+				_patrol_step(delta)
+				return
+		State.ALERT:
+			alert_timer += delta
+			velocity.x = 0
+			_clamp_facing_to_player()
+			if alert_timer >= alert_duration:
 				state = State.CHASE
 		State.CHASE:
+			if not is_aggro:
+				state = State.PATROL
+				return
+			_clamp_facing_to_player()
+			if _is_player_too_close(55.0):
+				state = State.RETREAT
+				return
 			velocity.x = facing_dir * speed
 			_play_anim("run_fast")
 			if dist < tail_range and cooldown_timer <= 0 and is_on_floor():
 				state = State.TAIL_JUMP
 				jump_timer = 0.0
+				_damage_dealt_this_attack = false
 				_play_anim("tail_jump")
 				velocity.y = jump_velocity_y
 				velocity.x = facing_dir * jump_velocity_x
+		State.RETREAT:
+			velocity.x = -facing_dir * speed * 0.9
+			_play_anim("run_fast")
+			if dist > retreat_range:
+				state = State.CHASE
 		State.TAIL_JUMP:
 			_play_anim("tail_jump")
 			jump_timer += delta
@@ -102,8 +119,11 @@ func _physics_process(delta: float) -> void:
 		State.TAIL_ATTACK:
 			velocity.x = 0
 			tail_attack_timer += delta
+			if not _damage_dealt_this_attack and _is_player_in_attack_zone(tail_range):
+				_damage_dealt_this_attack = true
+				_hurt_player(1)
 			if tail_attack_timer >= 0.4:
-				state = State.CHASE
+				state = State.RETREAT
 				cooldown_timer = attack_cooldown
 	move_and_slide()
 

@@ -1,15 +1,14 @@
-[gd_scene load_steps=46 format=3]
+[gd_scene format=3 uid="uid://ds3i0mktve5rp"]
 
-[ext_resource type="Script" uid="uid://bst0rage1lvl1" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/ActStorage_LevelNearFactory_Script.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://b2qp27ydyl87c" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/NearFactoryLevelMainScript/ActStorage_LevelNearFactory_Script.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="3_death"]
 [ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="4_pause"]
-
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="5_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="6_btnp"]
 [ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="7_btnh"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="8_framing"]
-
+[ext_resource type="PackedScene" path="res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelEntityScenes/NearFactoryLadderScene/ActStorage_LevelNearFactory_Ladder_Scene.tscn" id="9_ladder_scene"]
 [ext_resource type="Texture2D" uid="uid://bpam00ltom6y5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactoryTileSet_Barrel_Option4_Texture.png" id="10_barrel4"]
 [ext_resource type="Texture2D" uid="uid://dhyb0xr1wv32f" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="11_barrel1"]
 [ext_resource type="Texture2D" uid="uid://dllm44c2sp1fi" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="12_barrel2"]
@@ -25,13 +24,11 @@
 [ext_resource type="Texture2D" uid="uid://b76wc1q05dchm" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option1_Texture.png" id="22_fork1"]
 [ext_resource type="Texture2D" uid="uid://5gsapumvk4ch" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option2_Texture.png" id="23_fork2"]
 [ext_resource type="Texture2D" uid="uid://d23k13dmviwvs" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option3_Texture.png" id="24_fork3"]
-[ext_resource type="Texture2D" uid="uid://d2wlp87oi72hd" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option4_Texture.png" id="25_fork4"]
 [ext_resource type="Texture2D" uid="uid://c3mmm6osforcr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option1_Texture.png" id="26_fuel1"]
 [ext_resource type="Texture2D" uid="uid://p6im7x3sa3s1" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option2_Texture.png" id="27_fuel2"]
 [ext_resource type="Texture2D" uid="uid://c7jfyknwugbgj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option1_Texture.png" id="28_ibox1"]
 [ext_resource type="Texture2D" uid="uid://5vb5ao386eei" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option2_Texture.png" id="29_ibox2"]
 [ext_resource type="Texture2D" uid="uid://r34pme42x5pj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_IronDoor_Texture.png" id="30_door"]
-[ext_resource type="Texture2D" uid="uid://cxc7fljchhsfq" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Ladder_Texture.png" id="31_ladder"]
 [ext_resource type="Texture2D" uid="uid://bojplhlaq3jqr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option1_Texture.png" id="32_pallet1"]
 [ext_resource type="Texture2D" uid="uid://8h5nwdkfctte" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option2_Texture.png" id="33_pallet2"]
 [ext_resource type="Texture2D" uid="uid://cx65c5nch1trt" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option1_Texture.png" id="34_shelf1"]
@@ -45,399 +42,371 @@ size = Vector2(8000, 40)
 [sub_resource type="RectangleShape2D" id="PlatShape"]
 size = Vector2(320, 24)
 
-[sub_resource type="RectangleShape2D" id="WallShape"]
-size = Vector2(40, 400)
-
-[node name="ActStorageLevel" type="Node2D"]
+[node name="ActStorageLevel" type="Node2D" unique_id=868798963]
 script = ExtResource("1_main")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1952586122]
 offset_left = -10000.0
 offset_top = -10000.0
 offset_right = 14000.0
 offset_bottom = 10000.0
 color = Color(0.08, 0.06, 0.05, 1)
 
-[node name="Floor" type="StaticBody2D" parent="."]
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1488506489]
 position = Vector2(3500, 1000)
 
-[node name="FloorShape" type="CollisionShape2D" parent="Floor"]
+[node name="FloorShape" type="CollisionShape2D" parent="Floor" unique_id=1692774404]
 position = Vector2(0, -20)
 shape = SubResource("FloorShape")
 
-[node name="FloorVisual" type="ColorRect" parent="."]
+[node name="FloorVisual" type="ColorRect" parent="." unique_id=1265760876]
 offset_left = -1000.0
 offset_top = 1000.0
 offset_right = 9000.0
 offset_bottom = 1080.0
 color = Color(0.22, 0.14, 0.1, 1)
 
-[node name="MidFloor" type="StaticBody2D" parent="."]
+[node name="MidFloor" type="StaticBody2D" parent="." unique_id=1727468055]
 position = Vector2(3500, 680)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MidFloor"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MidFloor" unique_id=452480165]
 position = Vector2(0, -20)
 shape = SubResource("FloorShape")
 
-[node name="MidFloorVisual" type="ColorRect" parent="."]
+[node name="MidFloorVisual" type="ColorRect" parent="." unique_id=1570558037]
 offset_left = -1000.0
 offset_top = 680.0
 offset_right = 9000.0
 offset_bottom = 720.0
 color = Color(0.25, 0.16, 0.11, 1)
 
-[node name="TopFloor" type="StaticBody2D" parent="."]
+[node name="TopFloor" type="StaticBody2D" parent="." unique_id=922835646]
 position = Vector2(3500, 380)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TopFloor"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TopFloor" unique_id=672682534]
 position = Vector2(0, -20)
 shape = SubResource("FloorShape")
 
-[node name="TopFloorVisual" type="ColorRect" parent="."]
+[node name="TopFloorVisual" type="ColorRect" parent="." unique_id=1322662461]
 offset_left = -1000.0
 offset_top = 380.0
 offset_right = 9000.0
 offset_bottom = 420.0
 color = Color(0.28, 0.18, 0.12, 1)
 
-[node name="Ladder1" type="StaticBody2D" parent="."]
-position = Vector2(500, 840)
+[node name="Ladder1" parent="." unique_id=545842774 instance=ExtResource("9_ladder_scene")]
+position = Vector2(500, 870)
 
-[node name="LadderShape" type="CollisionShape2D" parent="Ladder1"]
-shape = SubResource("WallShape")
+[node name="Ladder2" parent="." unique_id=404220686 instance=ExtResource("9_ladder_scene")]
+position = Vector2(2500, 550)
 
-[node name="LadderSprite" type="Sprite2D" parent="."]
-position = Vector2(500, 840)
-scale = Vector2(3, 3)
-texture = ExtResource("31_ladder")
+[node name="Ladder3" parent="." unique_id=1404444211 instance=ExtResource("9_ladder_scene")]
+position = Vector2(4500, 250)
 
-[node name="Ladder2" type="StaticBody2D" parent="."]
-position = Vector2(2500, 520)
-
-[node name="LadderShape" type="CollisionShape2D" parent="Ladder2"]
-shape = SubResource("WallShape")
-
-[node name="LadderSprite2" type="Sprite2D" parent="."]
-position = Vector2(2500, 520)
-scale = Vector2(3, 3)
-texture = ExtResource("31_ladder")
-
-[node name="Ladder3" type="StaticBody2D" parent="."]
-position = Vector2(4500, 220)
-
-[node name="LadderShape" type="CollisionShape2D" parent="Ladder3"]
-shape = SubResource("WallShape")
-
-[node name="LadderSprite3" type="Sprite2D" parent="."]
-position = Vector2(4500, 220)
-scale = Vector2(3, 3)
-texture = ExtResource("31_ladder")
-
-[node name="Platform1" type="StaticBody2D" parent="."]
+[node name="Platform1" type="StaticBody2D" parent="." unique_id=942128489]
 position = Vector2(1400, 820)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform1" unique_id=256422742]
 shape = SubResource("PlatShape")
 
-[node name="Platform2" type="StaticBody2D" parent="."]
+[node name="Platform2" type="StaticBody2D" parent="." unique_id=882642943]
 position = Vector2(1900, 700)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform2" unique_id=271872744]
 shape = SubResource("PlatShape")
 
-[node name="Platform3" type="StaticBody2D" parent="."]
+[node name="Platform3" type="StaticBody2D" parent="." unique_id=943058415]
 position = Vector2(3200, 520)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform3" unique_id=1113676811]
 shape = SubResource("PlatShape")
 
-[node name="Platform4" type="StaticBody2D" parent="."]
+[node name="Platform4" type="StaticBody2D" parent="." unique_id=8205223]
 position = Vector2(3800, 400)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform4"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform4" unique_id=465653679]
 shape = SubResource("PlatShape")
 
-[node name="Platform5" type="StaticBody2D" parent="."]
+[node name="Platform5" type="StaticBody2D" parent="." unique_id=1295252518]
 position = Vector2(5200, 520)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform5"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform5" unique_id=1220895308]
 shape = SubResource("PlatShape")
 
-[node name="Platform6" type="StaticBody2D" parent="."]
+[node name="Platform6" type="StaticBody2D" parent="." unique_id=318867224]
 position = Vector2(5800, 260)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform6"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform6" unique_id=1007518668]
 shape = SubResource("PlatShape")
 
-[node name="Shelf1" type="Sprite2D" parent="."]
+[node name="Shelf1" type="Sprite2D" parent="." unique_id=1557783278]
 position = Vector2(300, 960)
 scale = Vector2(4, 4)
 texture = ExtResource("34_shelf1")
 
-[node name="Shelf2" type="Sprite2D" parent="."]
+[node name="Shelf2" type="Sprite2D" parent="." unique_id=634926398]
 position = Vector2(700, 960)
 scale = Vector2(4, 4)
 texture = ExtResource("35_shelf2")
 
-[node name="Shelf3" type="Sprite2D" parent="."]
+[node name="Shelf3" type="Sprite2D" parent="." unique_id=1800966749]
 position = Vector2(2000, 960)
 scale = Vector2(4, 4)
 texture = ExtResource("36_shelf3")
 
-[node name="Shelf4" type="Sprite2D" parent="."]
+[node name="Shelf4" type="Sprite2D" parent="." unique_id=180037568]
 position = Vector2(3000, 640)
 scale = Vector2(4, 4)
 texture = ExtResource("34_shelf1")
 
-[node name="Shelf5" type="Sprite2D" parent="."]
+[node name="Shelf5" type="Sprite2D" parent="." unique_id=216713692]
 position = Vector2(5400, 640)
 scale = Vector2(4, 4)
 texture = ExtResource("35_shelf2")
 
-[node name="Shelf6" type="Sprite2D" parent="."]
+[node name="Shelf6" type="Sprite2D" parent="." unique_id=2026975727]
 position = Vector2(6000, 340)
 scale = Vector2(4, 4)
 texture = ExtResource("36_shelf3")
 
-[node name="Container1Back" type="Sprite2D" parent="."]
+[node name="Container1Back" type="Sprite2D" parent="." unique_id=1170662037]
 position = Vector2(1200, 940)
 scale = Vector2(4, 4)
 texture = ExtResource("18_con1b")
 
-[node name="Container1Front" type="Sprite2D" parent="."]
+[node name="Container1Front" type="Sprite2D" parent="." unique_id=1960082086]
 position = Vector2(1200, 970)
 scale = Vector2(4, 4)
 texture = ExtResource("19_con1f")
 
-[node name="Container2Back" type="Sprite2D" parent="."]
+[node name="Container2Back" type="Sprite2D" parent="." unique_id=8840043]
 position = Vector2(1600, 940)
 scale = Vector2(4, 4)
 texture = ExtResource("20_con2b")
 
-[node name="Container2Front" type="Sprite2D" parent="."]
+[node name="Container2Front" type="Sprite2D" parent="." unique_id=2132542647]
 position = Vector2(1600, 970)
 scale = Vector2(4, 4)
 texture = ExtResource("21_con2f")
 
-[node name="Container3Back" type="Sprite2D" parent="."]
+[node name="Container3Back" type="Sprite2D" parent="." unique_id=828285211]
 position = Vector2(4200, 620)
 scale = Vector2(4, 4)
 texture = ExtResource("18_con1b")
 
-[node name="Container3Front" type="Sprite2D" parent="."]
+[node name="Container3Front" type="Sprite2D" parent="." unique_id=543788954]
 position = Vector2(4200, 650)
 scale = Vector2(4, 4)
 texture = ExtResource("19_con1f")
 
-[node name="Container4Back" type="Sprite2D" parent="."]
+[node name="Container4Back" type="Sprite2D" parent="." unique_id=1990014733]
 position = Vector2(4600, 620)
 scale = Vector2(4, 4)
 texture = ExtResource("20_con2b")
 
-[node name="Container4Front" type="Sprite2D" parent="."]
+[node name="Container4Front" type="Sprite2D" parent="." unique_id=7215153]
 position = Vector2(4600, 650)
 scale = Vector2(4, 4)
 texture = ExtResource("21_con2f")
 
-[node name="Forklift1" type="Sprite2D" parent="."]
+[node name="Forklift1" type="Sprite2D" parent="." unique_id=1926129453]
 position = Vector2(3500, 960)
 scale = Vector2(4, 4)
 texture = ExtResource("22_fork1")
 
-[node name="Forklift2" type="Sprite2D" parent="."]
+[node name="Forklift2" type="Sprite2D" parent="." unique_id=475901297]
 position = Vector2(7000, 960)
 scale = Vector2(4, 4)
 texture = ExtResource("23_fork2")
 
-[node name="Forklift3" type="Sprite2D" parent="."]
+[node name="Forklift3" type="Sprite2D" parent="." unique_id=1690798616]
 position = Vector2(5200, 640)
 scale = Vector2(4, 4)
 texture = ExtResource("24_fork3")
 
-[node name="Barrel1" type="Sprite2D" parent="."]
+[node name="Barrel1" type="Sprite2D" parent="." unique_id=950830070]
 position = Vector2(900, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("11_barrel1")
 
-[node name="Barrel2" type="Sprite2D" parent="."]
+[node name="Barrel2" type="Sprite2D" parent="." unique_id=542331224]
 position = Vector2(960, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("12_barrel2")
 
-[node name="Barrel3" type="Sprite2D" parent="."]
+[node name="Barrel3" type="Sprite2D" parent="." unique_id=1776564736]
 position = Vector2(1020, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("13_barrel3")
 
-[node name="Barrel4" type="Sprite2D" parent="."]
+[node name="Barrel4" type="Sprite2D" parent="." unique_id=365758074]
 position = Vector2(1080, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("10_barrel4")
 
-[node name="Barrel5" type="Sprite2D" parent="."]
+[node name="Barrel5" type="Sprite2D" parent="." unique_id=1304593716]
 position = Vector2(6600, 640)
 scale = Vector2(3, 3)
 texture = ExtResource("11_barrel1")
 
-[node name="Barrel6" type="Sprite2D" parent="."]
+[node name="Barrel6" type="Sprite2D" parent="." unique_id=1637641484]
 position = Vector2(6660, 640)
 scale = Vector2(3, 3)
 texture = ExtResource("12_barrel2")
 
-[node name="Box1" type="Sprite2D" parent="."]
+[node name="Box1" type="Sprite2D" parent="." unique_id=791782868]
 position = Vector2(2400, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("14_box1")
 
-[node name="Box2" type="Sprite2D" parent="."]
+[node name="Box2" type="Sprite2D" parent="." unique_id=1165621744]
 position = Vector2(2460, 940)
 scale = Vector2(3, 3)
 texture = ExtResource("15_box2")
 
-[node name="Box4" type="Sprite2D" parent="."]
+[node name="Box4" type="Sprite2D" parent="." unique_id=408907033]
 position = Vector2(2520, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("16_box4")
 
-[node name="Box5" type="Sprite2D" parent="."]
+[node name="Box5" type="Sprite2D" parent="." unique_id=1962603063]
 position = Vector2(2580, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("17_box5")
 
-[node name="Pallet1" type="Sprite2D" parent="."]
+[node name="Pallet1" type="Sprite2D" parent="." unique_id=950072285]
 position = Vector2(4800, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("32_pallet1")
 
-[node name="Pallet2" type="Sprite2D" parent="."]
+[node name="Pallet2" type="Sprite2D" parent="." unique_id=478368964]
 position = Vector2(4900, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("33_pallet2")
 
-[node name="Pallet3" type="Sprite2D" parent="."]
+[node name="Pallet3" type="Sprite2D" parent="." unique_id=1742775486]
 position = Vector2(3600, 380)
 scale = Vector2(3, 3)
 texture = ExtResource("32_pallet1")
 
-[node name="Fuel1" type="Sprite2D" parent="."]
+[node name="Fuel1" type="Sprite2D" parent="." unique_id=132040958]
 position = Vector2(2700, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("26_fuel1")
 
-[node name="Fuel2" type="Sprite2D" parent="."]
+[node name="Fuel2" type="Sprite2D" parent="." unique_id=824069129]
 position = Vector2(2760, 960)
 scale = Vector2(3, 3)
 texture = ExtResource("27_fuel2")
 
-[node name="InstrumentBox1" type="Sprite2D" parent="."]
+[node name="InstrumentBox1" type="Sprite2D" parent="." unique_id=1994100295]
 position = Vector2(3800, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("28_ibox1")
 
-[node name="InstrumentBox2" type="Sprite2D" parent="."]
+[node name="InstrumentBox2" type="Sprite2D" parent="." unique_id=373416049]
 position = Vector2(3860, 970)
 scale = Vector2(3, 3)
 texture = ExtResource("29_ibox2")
 
-[node name="InstrumentBox3" type="Sprite2D" parent="."]
+[node name="InstrumentBox3" type="Sprite2D" parent="." unique_id=1722688193]
 position = Vector2(5000, 360)
 scale = Vector2(3, 3)
 texture = ExtResource("28_ibox1")
 
-[node name="WashBag1" type="Sprite2D" parent="."]
+[node name="WashBag1" type="Sprite2D" parent="." unique_id=703217029]
 position = Vector2(5600, 940)
 scale = Vector2(3, 3)
 texture = ExtResource("37_washbag")
 
-[node name="WashBag2" type="Sprite2D" parent="."]
+[node name="WashBag2" type="Sprite2D" parent="." unique_id=286839835]
 position = Vector2(6200, 940)
 scale = Vector2(3, 3)
 texture = ExtResource("37_washbag")
 
-[node name="IronDoor1" type="Sprite2D" parent="."]
+[node name="IronDoor1" type="Sprite2D" parent="." unique_id=2083743985]
 position = Vector2(8000, 940)
 scale = Vector2(4, 4)
 texture = ExtResource("30_door")
 
-[node name="IronDoor2" type="Sprite2D" parent="."]
+[node name="IronDoor2" type="Sprite2D" parent="." unique_id=1430666338]
 position = Vector2(7800, 620)
 scale = Vector2(4, 4)
 texture = ExtResource("30_door")
 
-[node name="IronDoor3" type="Sprite2D" parent="."]
+[node name="IronDoor3" type="Sprite2D" parent="." unique_id=438224000]
 position = Vector2(6600, 320)
 scale = Vector2(4, 4)
 texture = ExtResource("30_door")
 
-[node name="Enemies" type="Node2D" parent="."]
+[node name="Enemies" type="Node2D" parent="." unique_id=1252743497]
 
-[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="SpawnPoints" type="Node2D" parent="." unique_id=1871787805]
 
-[node name="SpawnDog1" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnDog1" type="Marker2D" parent="SpawnPoints" unique_id=1477983951]
 position = Vector2(1500, 940)
 metadata/enemy_type = "dog"
 
-[node name="SpawnDog2" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnDog2" type="Marker2D" parent="SpawnPoints" unique_id=1747667197]
 position = Vector2(3600, 620)
 metadata/enemy_type = "dog"
 
-[node name="SpawnDog3" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnDog3" type="Marker2D" parent="SpawnPoints" unique_id=1084574255]
 position = Vector2(5600, 320)
 metadata/enemy_type = "dog"
 
-[node name="SpawnDog4" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnDog4" type="Marker2D" parent="SpawnPoints" unique_id=1277404872]
 position = Vector2(7200, 940)
 metadata/enemy_type = "dog"
 
-[node name="SpawnMonkey1" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnMonkey1" type="Marker2D" parent="SpawnPoints" unique_id=1279604981]
 position = Vector2(2100, 940)
 metadata/enemy_type = "monkey"
 
-[node name="SpawnMonkey2" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnMonkey2" type="Marker2D" parent="SpawnPoints" unique_id=2096079835]
 position = Vector2(3200, 620)
 metadata/enemy_type = "monkey"
 
-[node name="SpawnMonkey3" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnMonkey3" type="Marker2D" parent="SpawnPoints" unique_id=347721382]
 position = Vector2(4400, 620)
 metadata/enemy_type = "monkey"
 
-[node name="SpawnMonkey4" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnMonkey4" type="Marker2D" parent="SpawnPoints" unique_id=12118351]
 position = Vector2(5800, 220)
 metadata/enemy_type = "monkey"
 
-[node name="SpawnMonkey5" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnMonkey5" type="Marker2D" parent="SpawnPoints" unique_id=571867678]
 position = Vector2(6600, 940)
 metadata/enemy_type = "monkey"
 
-[node name="SpawnPigeon1" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnPigeon1" type="Marker2D" parent="SpawnPoints" unique_id=886980787]
 position = Vector2(4800, 320)
 metadata/enemy_type = "pigeon"
 
-[node name="SpawnPigeon2" type="Marker2D" parent="SpawnPoints"]
+[node name="SpawnPigeon2" type="Marker2D" parent="SpawnPoints" unique_id=929200520]
 position = Vector2(6400, 320)
 metadata/enemy_type = "pigeon"
 
-[node name="Mecha_Fish" parent="." instance=ExtResource("2_player")]
+[node name="Mecha_Fish" parent="." unique_id=1536034390 instance=ExtResource("2_player")]
 position = Vector2(200, 940)
-collision_mask = 3
 
-[node name="DeathScreen" parent="." instance=ExtResource("3_death")]
+[node name="DeathScreen" parent="." unique_id=1746289319 instance=ExtResource("3_death")]
 visible = false
 
-[node name="Pausemenu" type="CanvasLayer" parent="."]
+[node name="Pausemenu" type="CanvasLayer" parent="." unique_id=773448241]
 process_mode = 3
-layer = 2
+layer = 100
 visible = false
 script = ExtResource("4_pause")
 
-[node name="ColorRect" type="ColorRect" parent="Pausemenu"]
+[node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=852607459]
 offset_left = -10000.0
 offset_top = -10000.0
 offset_right = 10000.0
 offset_bottom = 10000.0
 color = Color(0, 0, 0, 0.69803923)
 
-[node name="ContinueButton" type="Button" parent="Pausemenu"]
+[node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=993544388]
 offset_left = 486.0
 offset_top = 176.5
 offset_right = 666.0
@@ -448,7 +417,7 @@ theme_override_styles/pressed = ExtResource("6_btnp")
 theme_override_styles/hover = ExtResource("7_btnh")
 text = "Продолжить"
 
-[node name="SaveButton" type="Button" parent="Pausemenu"]
+[node name="SaveButton" type="Button" parent="Pausemenu" unique_id=445417092]
 offset_left = 486.0
 offset_top = 236.5
 offset_right = 666.0
@@ -459,7 +428,7 @@ theme_override_styles/pressed = ExtResource("6_btnp")
 theme_override_styles/hover = ExtResource("7_btnh")
 text = "Сохраниться"
 
-[node name="RestartButton" type="Button" parent="Pausemenu"]
+[node name="RestartButton" type="Button" parent="Pausemenu" unique_id=2084130677]
 offset_left = 486.0
 offset_top = 296.5
 offset_right = 666.0
@@ -470,7 +439,7 @@ theme_override_styles/pressed = ExtResource("6_btnp")
 theme_override_styles/hover = ExtResource("7_btnh")
 text = "Рестарт"
 
-[node name="SettingsButton" type="Button" parent="Pausemenu"]
+[node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=495616924]
 offset_left = 486.0
 offset_top = 356.5
 offset_right = 666.0
@@ -481,7 +450,7 @@ theme_override_styles/pressed = ExtResource("6_btnp")
 theme_override_styles/hover = ExtResource("7_btnh")
 text = "Настройки"
 
-[node name="ExitButton" type="Button" parent="Pausemenu"]
+[node name="ExitButton" type="Button" parent="Pausemenu" unique_id=741030040]
 offset_left = 486.0
 offset_top = 416.5
 offset_right = 666.0
@@ -492,7 +461,7 @@ theme_override_styles/pressed = ExtResource("6_btnp")
 theme_override_styles/hover = ExtResource("7_btnh")
 text = "Выход"
 
-[node name="Framing" type="Sprite2D" parent="Pausemenu"]
+[node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=215228992]
 position = Vector2(575.99994, 324)
 scale = Vector2(3.9999993, 4)
 texture = ExtResource("8_framing")

@@ -481,9 +481,9 @@ func _hide_all_decorations(node: Node, should_hide: bool) -> void:
 		if child is Button:
 			for btn_child in child.get_children():
 				if btn_child.name == "Seaweed" or btn_child.name == "Rust":
-					btn_child.visible = not hide
+					btn_child.visible = not should_hide
 		elif child.name == "Seaweed" or child.name == "Rust":
-			child.visible = not hide
+			child.visible = not should_hide
 		else:
 			_hide_all_decorations(child, should_hide)
 
@@ -807,7 +807,7 @@ func _get_current_page() -> int:
 func _reset_controls_only() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
-		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"interact": KEY_F, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
 		"inspect": KEY_I, "journal": KEY_J
 	}
 	for action in defaults.keys():
@@ -999,6 +999,3 @@ func _make_menu_bubble() -> void:
 	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
-
-func _on_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")

@@ -1,21 +1,25 @@
-[gd_scene format=3 uid="uid://4keih0seijl"]
+[gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://c870m5wc456i5" path="res://GameScripts/EntityScripts/ShardEntityScripts/Shard_Entity_Script.gd" id="1_shard"]
+[ext_resource type="Script" uid="uid://du8e7k3n5q2vx" path="res://GameScripts/EntityScripts/ShardEntityScripts/Shard_Entity_Script.gd" id="1_shard"]
 [ext_resource type="Texture2D" uid="uid://dqgs8skcoul7h" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/EnemyShardTextures/Shard_MechaDog_Texture.png" id="2_blue"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_shard"]
-radius = 20.0
+radius = 40.0
 
-[node name="Shard" type="Area2D" unique_id=262531913]
+[node name="Shard" type="Area2D"]
 collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
 script = ExtResource("1_shard")
+shard_color = "blue"
 shard_texture = ExtResource("2_blue")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1170230754]
-scale = Vector2(4, 4)
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_blue")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1438958457]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_shard")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

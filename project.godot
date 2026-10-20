@@ -252,7 +252,7 @@ folder_colors={
 "res://GameScripts/EntityScripts/BubbleEntityScripts/": "blue",
 "res://GameScripts/EntityScripts/EnemyEntityScripts/": "purple",
 "res://GameScripts/EntityScripts/EnemyEntityScripts/MechaDogScripts/": "pink",
-"res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScript/": "gray",
+"res://GameScripts/EntityScripts/EnemyEntityScripts/MechaPigeonScripts/": "gray",
 "res://GameScripts/EntityScripts/PlayerEntityScripts/": "red",
 "res://GameScripts/EntityScripts/PlayerEntityScripts/FishPlayerScripts/": "orange",
 "res://GameScripts/EntityScripts/PlayerEntityScripts/FishPlayerScripts/FishPlayerScript/": "yellow",
