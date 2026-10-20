@@ -40,6 +40,10 @@ signal silent_line_hit(line: ChatterLine, index: int)
 ## Портрет механика для far-режима
 @export var portrait_mechanic: Texture2D = null
 
+@export_group("Sound")
+## Перетащи сюда ноду SoundManager из сцены
+@export var sound_manager: Node = null
+
 @export_group("Camera")
 ## Камера игрока (для определения near/far)
 @export var player_camera: NodePath = NodePath()
@@ -98,6 +102,7 @@ var _seg_char: int = 0
 var _typed_text: String = ""   # накопленный BBCode-текст
 var _full_text: String = ""    # чистый текст без BBCode
 
+var _sound_manager: Node = null
 var _timer: Timer = null
 var _current_line: ChatterLine = null
 
@@ -106,12 +111,15 @@ var _scientist: Node2D = null
 var _mechanic: Node2D = null
 var _camera: Camera2D = null
 
+
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	_scientist = get_node_or_null(scientist_node) as Node2D
-	_mechanic  = get_node_or_null(mechanic_node)  as Node2D
-	_camera    = get_node_or_null(player_camera)  as Camera2D
+	_scientist     = get_node_or_null(scientist_node) as Node2D
+	_mechanic      = get_node_or_null(mechanic_node)  as Node2D
+	_camera        = get_node_or_null(player_camera)  as Camera2D
+	_sound_manager = sound_manager
+
 	
 	_timer = Timer.new()
 	_timer.one_shot = false
@@ -312,6 +320,14 @@ func _on_timer() -> void:
 		# Время показа истекло — следующая реплика
 		_show_next_line()
 
+func _play_typing_sound() -> void:
+	if not _current_line or not _sound_manager:
+		return
+	if _current_line.speaker == ChatterLine.Speaker.MECHANIC:
+		_sound_manager.play_mechanic()
+	else:
+		_sound_manager.play_scientist()
+
 func _tick_typing() -> void:
 	if _seg_index >= _segments.size():
 		# Печать закончена
@@ -334,6 +350,9 @@ func _tick_typing() -> void:
 		var seg_text: String = seg["text"]
 		if _seg_char < seg_text.length():
 			_typed_text += seg_text[_seg_char]
+			# Звук печати — только на не-пробельных символах
+			if seg_text[_seg_char] != " " and seg_text[_seg_char] != "\n":
+				_play_typing_sound()
 			_seg_char += 1
 			_timer.start(typing_speed)
 		else:
