@@ -118,7 +118,6 @@ func _show_near(text: String) -> void:
 	_near_panel.z_index = 100
 	_current_phantom_offset = 0.0
 	
-	# Позиция — world-space, поэтому NearPanel должна быть в Node2D (не CanvasLayer)
 	_near_panel.position = _controller.get_near_panel_position()
 	
 	# Автовысота если не задана
@@ -135,15 +134,8 @@ func _show_near(text: String) -> void:
 	
 	if _near_label.text != text:
 		_near_label.text = text
-	
-	_clamp_near_to_viewport()
 
-func _clamp_near_to_viewport() -> void:
-	if not _near_panel:
-		return
-	var vp = get_viewport().get_visible_rect().size
-	_near_panel.position.x = clamp(_near_panel.position.x, 0.0, vp.x - _near_panel.size.x)
-	_near_panel.position.y = clamp(_near_panel.position.y, 0.0, vp.y - _near_panel.size.y)
+
 
 # ---------------------------------------------------------------------------
 # Far mode

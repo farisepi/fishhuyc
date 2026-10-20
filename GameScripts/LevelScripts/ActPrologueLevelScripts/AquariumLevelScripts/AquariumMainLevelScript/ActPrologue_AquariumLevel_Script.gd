@@ -13,10 +13,8 @@ const BORING_INTERVAL_MAX: float = 20.0
 func _ready():
 	GlobalMusic.play_level_music()
 	#animationtrack.play("INTRO")
-	chatter.start()
 	
 	_setup_character_animations()
-	
 
 func _schedule_boring(t: Timer) -> void:
 	t.start(randf_range(BORING_INTERVAL_MIN, BORING_INTERVAL_MAX))

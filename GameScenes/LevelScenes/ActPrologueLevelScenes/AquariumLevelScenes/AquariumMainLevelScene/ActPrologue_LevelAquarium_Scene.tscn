@@ -747,15 +747,24 @@ _data = {
 &"RESET": SubResource("Animation_j2tti")
 }
 
-[sub_resource type="Resource" id="Resource_hspax"]
-script = ExtResource("26_hykhb")
-text = "FHJAFHJAHFJKAHFJKHAJKFHAJKFHKAJFHJKF"
-display_time = 10.0
-
 [sub_resource type="Resource" id="Resource_t0kk6"]
 script = ExtResource("26_hykhb")
 speaker = 1
-text = "fj1211s"
+text = "Трещина увеличивается с каждым часом..."
+display_time = 10.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_hykhb"]
+script = ExtResource("26_hykhb")
+text = "Давление в третьем секторе падает."
+display_time = 7.5
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_1tjdl"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Если трещина дойдёт до силового кабеля, будет фейерверк."
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
@@ -1096,13 +1105,14 @@ texture = ExtResource("15_yijt6")
 libraries/ = SubResource("AnimationLibrary_0i8mc")
 
 [node name="ChatterController" parent="." unique_id=1209504675 instance=ExtResource("25_t0kk6")]
-position = Vector2(591, 425)
-lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_hspax"), SubResource("Resource_t0kk6")])
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl")])
 scientist_node = NodePath("../npc/Scientist/ScientistSprite")
 mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
 portrait_scientist = ExtResource("27_1tjdl")
 portrait_mechanic = ExtResource("28_nr1wi")
 player_camera = NodePath("../Player/PlayerCamera")
 autostart = true
+scientist_panel_offset = Vector2(-20, -50)
+mechanic_panel_offset = Vector2(20, -50)
 
 [editable path="Player"]

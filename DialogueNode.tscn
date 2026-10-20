@@ -5,6 +5,76 @@
 [ext_resource type="Texture2D" uid="uid://c7s6d8su6odi0" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/DialogBoxTextures/DialogBox_NinePath_Texture.png" id="3_tkml8"]
 [ext_resource type="FontFile" uid="uid://deaue7jmjg31r" path="res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf" id="4_hspax"]
 
+[sub_resource type="Image" id="Image_trtw5"]
+data = {
+"data": PackedByteArray(255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255),
+"format": "RGBA8",
+"height": 2,
+"mipmaps": false,
+"width": 2
+}
+
+[sub_resource type="ImageTexture" id="ImageTexture_r1q8v"]
+image = SubResource("Image_trtw5")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t2eni"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.75)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hhxli"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="Theme" id="Theme_xiltr"]
+default_font = ExtResource("4_hspax")
+RichTextLabel/colors/default_color = Color(0, 0, 0, 1)
+RichTextLabel/colors/font_outline_color = Color(0, 0, 0, 1)
+RichTextLabel/colors/font_selected_color = Color(0, 0, 0, 0)
+RichTextLabel/colors/font_shadow_color = Color(0, 0, 0, 0)
+RichTextLabel/colors/selection_color = Color(0.1, 0.1, 1, 0.8)
+RichTextLabel/colors/table_border = Color(0, 0, 0, 0)
+RichTextLabel/colors/table_even_row_bg = Color(0, 0, 0, 0)
+RichTextLabel/colors/table_odd_row_bg = Color(0, 0, 0, 0)
+RichTextLabel/constants/line_separation = 0
+RichTextLabel/constants/outline_size = 0
+RichTextLabel/constants/paragraph_separation = 0
+RichTextLabel/constants/shadow_offset_x = 1
+RichTextLabel/constants/shadow_offset_y = 1
+RichTextLabel/constants/shadow_outline_size = 1
+RichTextLabel/constants/strikethrough_alpha = 50
+RichTextLabel/constants/table_h_separation = 3
+RichTextLabel/constants/table_v_separation = 3
+RichTextLabel/constants/text_highlight_h_padding = 3
+RichTextLabel/constants/text_highlight_v_padding = 3
+RichTextLabel/constants/underline_alpha = 50
+RichTextLabel/font_sizes/bold_font_size = 13
+RichTextLabel/font_sizes/bold_italics_font_size = 16
+RichTextLabel/font_sizes/italics_font_size = 16
+RichTextLabel/font_sizes/mono_font_size = 16
+RichTextLabel/font_sizes/normal_font_size = 16
+RichTextLabel/icons/horizontal_rule = SubResource("ImageTexture_r1q8v")
+RichTextLabel/styles/focus = SubResource("StyleBoxFlat_t2eni")
+RichTextLabel/styles/normal = SubResource("StyleBoxEmpty_hhxli")
+
 [node name="ChatterController" type="Node2D" unique_id=1209504675]
 script = ExtResource("1_v6ru3")
 
@@ -26,7 +96,9 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+theme = SubResource("Theme_xiltr")
 bbcode_enabled = true
+horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="FarCanvas" type="CanvasLayer" parent="ChatterBox" unique_id=1078711243]
@@ -42,15 +114,12 @@ patch_margin_right = 10
 patch_margin_bottom = 10
 metadata/_edit_use_anchors_ = true
 
-[node name="RichTextLabel" type="RichTextLabel" parent="ChatterBox/FarCanvas/FarPanel" unique_id=1843405244]
-z_index = 1
-layout_mode = 1
-anchors_preset = -1
+[node name="FarLabel" type="RichTextLabel" parent="ChatterBox/FarCanvas/FarPanel" unique_id=1843405244]
+z_index = 3
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
-theme_override_colors/default_color = Color(0, 0, 0, 1)
-theme_override_fonts/normal_font = ExtResource("4_hspax")
-theme_override_font_sizes/normal_font_size = 12
+theme = SubResource("Theme_xiltr")
 bbcode_enabled = true
 metadata/_edit_use_anchors_ = true
 
@@ -58,6 +127,7 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="PhantomLeft" type="NinePatchRect" parent="ChatterBox/FarCanvas" unique_id=502422456]
@@ -74,12 +144,14 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
 [node name="PhantomLeftPortrait" type="TextureRect" parent="ChatterBox/FarCanvas/PhantomLeft" unique_id=31274259]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="PhantomRight" type="NinePatchRect" parent="ChatterBox/FarCanvas" unique_id=590151709]
@@ -96,10 +168,12 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
 [node name="PhantomRightPortrait" type="TextureRect" parent="ChatterBox/FarCanvas/PhantomRight" unique_id=1496373077]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true

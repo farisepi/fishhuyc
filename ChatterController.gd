@@ -57,10 +57,22 @@ signal silent_line_hit(line: ChatterLine, index: int)
 @export_group("Near Panel Settings")
 ## Ширина near-панели
 @export var near_panel_width: float = 120.0
-## Оффсет учёного (от его global_position)
-@export var scientist_panel_offset: Vector2 = Vector2(-120, -25)
-## Оффсет механика
-@export var mechanic_panel_offset: Vector2 = Vector2(22, -30)
+
+## --- Учёный ---
+## К какому персонажу привязана near-панель учёного
+@export_enum("Scientist", "Mechanic") var scientist_anchor: int = 0
+## Сторона панели учёного: LEFT — слева от персонажа, RIGHT — справа
+@export_enum("Left", "Right") var scientist_side: int = 0
+## Дополнительный оффсет учёного (добавляется поверх автоматического)
+@export var scientist_panel_offset: Vector2 = Vector2(0, -50)
+
+## --- Механик ---
+## К какому персонажу привязана near-панель механика
+@export_enum("Scientist", "Mechanic") var mechanic_anchor: int = 1
+## Сторона панели механика: LEFT — слева от персонажа, RIGHT — справа
+@export_enum("Left", "Right") var mechanic_side: int = 1
+## Дополнительный оффсет механика (добавляется поверх автоматического)
+@export var mechanic_panel_offset: Vector2 = Vector2(0, -50)
 
 @export_group("Far Panel Settings")
 ## Ширина far-панели
@@ -152,15 +164,36 @@ func get_current_speaker() -> ChatterLine.Speaker:
 		return _current_line.speaker
 	return ChatterLine.Speaker.SCIENTIST
 
-## Позиция панели в near-режиме (world-space)
+## Позиция панели в near-режиме (world-space).
+## Учитывает: к какому персонажу привязана панель (anchor),
+## с какой стороны она рисуется (side) и дополнительный оффсет.
 func get_near_panel_position() -> Vector2:
 	if not _current_line:
 		return Vector2.ZERO
-	if _current_line.speaker == ChatterLine.Speaker.MECHANIC and _mechanic:
-		return _mechanic.global_position + mechanic_panel_offset
-	elif _scientist:
-		return _scientist.global_position + scientist_panel_offset
-	return Vector2.ZERO
+	
+	var is_mechanic = (_current_line.speaker == ChatterLine.Speaker.MECHANIC)
+	var anchor_idx  = mechanic_anchor if is_mechanic else scientist_anchor
+	var side        = mechanic_side   if is_mechanic else scientist_side
+	var extra       = mechanic_panel_offset if is_mechanic else scientist_panel_offset
+	
+	# Нода-якорь: 0 = учёный, 1 = механик
+	var anchor_node: Node2D = null
+	if anchor_idx == 0:
+		anchor_node = _scientist
+	else:
+		anchor_node = _mechanic
+	
+	if not anchor_node:
+		return Vector2.ZERO
+	
+	# Горизонтальное смещение: LEFT — панель левее персонажа, RIGHT — правее
+	var h_offset: float
+	if side == 0:  # Left
+		h_offset = -near_panel_width - 4.0
+	else:           # Right
+		h_offset = 4.0
+	
+	return anchor_node.global_position + Vector2(h_offset, 0.0) + extra
 
 ## Портрет текущего спикера
 func get_current_portrait() -> Texture2D:
