@@ -19,7 +19,11 @@
 [ext_resource type="Texture2D" uid="uid://dfgw7jsbfbtib" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuAquaruimSprites/Menu_PauseMenu_Aquarium_Framing_Texture.png" id="15_yijt6"]
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://GameAssets/SharedMaterials/LevelCollisionMaterials/ActPrologueAquariumMaterials/ActPrologue_LevelAquarium_Collision_Material.tres" id="17_ccpdg"]
 [ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_AquariumLevel_Aquarium_Shader.gdshader" id="21_5vwn5"]
+[ext_resource type="PackedScene" uid="uid://cbvmk63sdhqs2" path="res://DialogueNode.tscn" id="25_t0kk6"]
+[ext_resource type="Script" uid="uid://bqxh1rrtbky61" path="res://ChatterLine.gd" id="26_hykhb"]
+[ext_resource type="Texture2D" uid="uid://bvlskt6yuygyw" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistPortaitTextures/NPC_Scientist_Portaint_Texture.png" id="27_1tjdl"]
 [ext_resource type="Texture2D" uid="uid://h0wvh3mf3l10" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicAnimationFrames/NPC_Mechanic_InstrumentBox_Texture.png" id="27_yijt6"]
+[ext_resource type="Texture2D" uid="uid://dg0pqdr0w2kkg" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicPortraitTextures/NPC_Mechanic_Portaint_Texture.png" id="28_nr1wi"]
 [ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png" id="31_m8hiw"]
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option1_Texture.webp" id="31_pudq7"]
 [ext_resource type="AudioStream" uid="uid://dm4u7jsr17sln" path="res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/WaterAmbienceSounds/ActPrologue_LevelAquarium_WaterAmbience_SoundEffect.mp3" id="34_p3tjk"]
@@ -698,7 +702,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(5, 5)]
+"values": [Vector2(2, 2)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -743,14 +747,23 @@ _data = {
 &"RESET": SubResource("Animation_j2tti")
 }
 
+[sub_resource type="Resource" id="Resource_hspax"]
+script = ExtResource("26_hykhb")
+text = "FHJAFHJAHFJKAHFJKHAJKFHAJKFHKAJFHJKF"
+display_time = 10.0
+
+[sub_resource type="Resource" id="Resource_t0kk6"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "fj1211s"
+
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
 
 [node name="Player" parent="." unique_id=294675082 instance=ExtResource("3_15cj8")]
-position = Vector2(646, 226)
+position = Vector2(640, 236)
 
 [node name="PlayerCamera" parent="Player" index="2" unique_id=675897869]
-zoom = Vector2(5, 5)
 limit_left = 363
 limit_top = 103
 limit_right = 914
@@ -801,14 +814,6 @@ z_index = 4
 position = Vector2(-306.42426, -6.3636475)
 scale = Vector2(0.48484847, 0.4545458)
 occluder = SubResource("OccluderPolygon2D_syf5m")
-
-[node name="ColorRect" type="ColorRect" parent="Visual/stuff" unique_id=1303046730]
-z_index = 10
-offset_left = -345.0
-offset_top = 166.0
-offset_right = 320.0
-offset_bottom = 215.0
-color = Color(0.9490196, 0.93333334, 0.8509804, 1)
 
 [node name="Fade" type="ColorRect" parent="Visual/stuff" unique_id=1848109362]
 modulate = Color(1, 1, 1, 0)
@@ -963,7 +968,7 @@ position = Vector2(93.2923, 118.4538)
 rotation = -3.1415925
 scale = Vector2(2.2304344, -2.090861)
 sprite_frames = SubResource("SpriteFrames_07ro5")
-animation = &"boring"
+animation = &"idle"
 autoplay = "idle"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="npc/Mechanic/MechanicSprite" unique_id=1263115147]
@@ -1089,5 +1094,15 @@ texture = ExtResource("15_yijt6")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=741486502]
 libraries/ = SubResource("AnimationLibrary_0i8mc")
+
+[node name="ChatterController" parent="." unique_id=1209504675 instance=ExtResource("25_t0kk6")]
+position = Vector2(591, 425)
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_hspax"), SubResource("Resource_t0kk6")])
+scientist_node = NodePath("../npc/Scientist/ScientistSprite")
+mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
+portrait_scientist = ExtResource("27_1tjdl")
+portrait_mechanic = ExtResource("28_nr1wi")
+player_camera = NodePath("../Player/PlayerCamera")
+autostart = true
 
 [editable path="Player"]

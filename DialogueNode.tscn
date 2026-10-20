@@ -1,0 +1,105 @@
+[gd_scene format=3 uid="uid://cbvmk63sdhqs2"]
+
+[ext_resource type="Script" uid="uid://ci3r67tfahyxc" path="res://ChatterController.gd" id="1_v6ru3"]
+[ext_resource type="Script" uid="uid://c8q5gdc54mxxa" path="res://ChatterBox.gd" id="2_tkml8"]
+[ext_resource type="Texture2D" uid="uid://c7s6d8su6odi0" path="res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/DialogBoxTextures/DialogBox_NinePath_Texture.png" id="3_tkml8"]
+[ext_resource type="FontFile" uid="uid://deaue7jmjg31r" path="res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf" id="4_hspax"]
+
+[node name="ChatterController" type="Node2D" unique_id=1209504675]
+script = ExtResource("1_v6ru3")
+
+[node name="ChatterBox" type="Node2D" parent="." unique_id=800340630]
+script = ExtResource("2_tkml8")
+controller_path = NodePath("..")
+
+[node name="NearPanel" type="NinePatchRect" parent="ChatterBox" unique_id=627027274]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("3_tkml8")
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="NearLabel" type="RichTextLabel" parent="ChatterBox/NearPanel" unique_id=538826377]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+bbcode_enabled = true
+metadata/_edit_use_anchors_ = true
+
+[node name="FarCanvas" type="CanvasLayer" parent="ChatterBox" unique_id=1078711243]
+
+[node name="FarPanel" type="NinePatchRect" parent="ChatterBox/FarCanvas" unique_id=399460649]
+anchors_preset = -1
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("3_tkml8")
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="ChatterBox/FarCanvas/FarPanel" unique_id=1843405244]
+z_index = 1
+layout_mode = 1
+anchors_preset = -1
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("4_hspax")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+metadata/_edit_use_anchors_ = true
+
+[node name="FarPortrait" type="TextureRect" parent="ChatterBox/FarCanvas/FarPanel" unique_id=2027399038]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomLeft" type="NinePatchRect" parent="ChatterBox/FarCanvas" unique_id=502422456]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("3_tkml8")
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomLeftLabel" type="RichTextLabel" parent="ChatterBox/FarCanvas/PhantomLeft" unique_id=268247016]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomLeftPortrait" type="TextureRect" parent="ChatterBox/FarCanvas/PhantomLeft" unique_id=31274259]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomRight" type="NinePatchRect" parent="ChatterBox/FarCanvas" unique_id=590151709]
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("3_tkml8")
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomRightLabel" type="RichTextLabel" parent="ChatterBox/FarCanvas/PhantomRight" unique_id=157642654]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true
+
+[node name="PhantomRightPortrait" type="TextureRect" parent="ChatterBox/FarCanvas/PhantomRight" unique_id=1496373077]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true

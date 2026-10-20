@@ -3,14 +3,19 @@ extends Node2D
 @onready var animationtrack = $AnimationPlayer
 @onready var scientistsprite = $npc/Scientist/ScientistSprite
 @onready var mechanicsprite = $npc/Mechanic/MechanicSprite
-const BORING_INTERVAL_MIN: float = 15.0
-const BORING_INTERVAL_MAX: float = 20.0
+@onready var chatter: ChatterController = $ChatterController
 var scientist_boring_timer: Timer
 var mechanic_boring_timer: Timer
 
+const BORING_INTERVAL_MIN: float = 15.0
+const BORING_INTERVAL_MAX: float = 20.0
+
 func _ready():
 	GlobalMusic.play_level_music()
-	animationtrack.play("INTRO")
+	#animationtrack.play("INTRO")
+	chatter.start()
+	
+	_setup_character_animations()
 	
 
 func _schedule_boring(t: Timer) -> void:
