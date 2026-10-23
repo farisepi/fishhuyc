@@ -265,7 +265,7 @@ script = ExtResource("1_dog")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=91510639]
 sprite_frames = SubResource("SpriteFrames_dog")
-animation = &"idle"
+animation = &"attack_left"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1913393317]
@@ -290,3 +290,7 @@ collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea" unique_id=1755851245]
 shape = SubResource("CircleShape2D_hit")
+
+[node name="FlashRect" type="ColorRect" parent="." unique_id=374675819]
+offset_right = 40.0
+offset_bottom = 40.0

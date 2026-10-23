@@ -1,6 +1,6 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://3kqafj5y14h6"]
 
-[ext_resource type="Script" uid="uid://b3n8v6k2m0q7r" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaMonkeyScripts/Enemy_MechaMonkey_Script.gd" id="1_monkey"]
+[ext_resource type="Script" uid="uid://bwyuw7q3qauqm" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaMonkeyScripts/Enemy_MechaMonkey_Script.gd" id="1_monkey"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
 radius = 20.0
@@ -12,34 +12,41 @@ radius = 400.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_tail"]
 radius = 40.0
 
-[node name="MechaMonkey" type="CharacterBody2D"]
+[node name="MechaMonkey" type="CharacterBody2D" unique_id=1372390887]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("1_monkey")
+max_hp = null
+speed = 88.648
+gravity = null
+shard_color = null
+shard_scene = null
+aggro_range = null
+deaggro_range = null
+min_distance = null
+patrol_range = null
+patrol_speed_mult = null
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1181744928]
 
-[node name="PlaceholderRect" type="ColorRect" parent="."]
+[node name="PlaceholderRect" type="ColorRect" parent="." unique_id=1259577142]
 offset_left = -22.0
 offset_top = -30.0
 offset_right = 22.0
 offset_bottom = 30.0
 color = Color(0.2, 0.9, 0.3, 1)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=678746304]
 shape = SubResource("CapsuleShape2D_body")
 
-[node name="DetectionArea" type="Area2D" parent="."]
+[node name="DetectionArea" type="Area2D" parent="." unique_id=2120993199]
 collision_layer = 0
-collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=2071631927]
 shape = SubResource("CircleShape2D_detect")
 
-[node name="TailArea" type="Area2D" parent="."]
+[node name="TailArea" type="Area2D" parent="." unique_id=1869959423]
 position = Vector2(45, 0)
 collision_layer = 0
-collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TailArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TailArea" unique_id=293745517]
 shape = SubResource("CircleShape2D_tail")
