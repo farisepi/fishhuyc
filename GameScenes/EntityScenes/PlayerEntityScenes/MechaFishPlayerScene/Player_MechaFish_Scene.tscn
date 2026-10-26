@@ -476,7 +476,7 @@ animations = [{
 }],
 "loop": 0,
 "name": &"Climb",
-"speed": 13.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -699,7 +699,7 @@ animations = [{
 }],
 "loop": 0,
 "name": &"Jump",
-"speed": 30.0
+"speed": 12.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1260,7 +1260,9 @@ camera_offset = Vector2(0, -72.57)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Landing"
+animation = &"Climb"
+frame = 4
+frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)

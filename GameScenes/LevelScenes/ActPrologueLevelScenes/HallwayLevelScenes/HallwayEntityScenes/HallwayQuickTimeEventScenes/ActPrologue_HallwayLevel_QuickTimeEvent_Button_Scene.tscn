@@ -23,10 +23,10 @@ color = Color(0, 0, 0, 0.015686275)
 
 [node name="ButtonBG" type="ColorRect" parent="Root" unique_id=910468569]
 layout_mode = 0
-offset_left = -60.0
-offset_top = -60.0
-offset_right = 60.0
-offset_bottom = 60.0
+offset_left = -37.724
+offset_top = -37.652
+offset_right = 36.276
+offset_bottom = 35.348
 mouse_filter = 2
 color = Color(0.05882353, 0.05882353, 0.05882353, 0.33333334)
 

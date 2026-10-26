@@ -1023,6 +1023,8 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if _input_locked:
+		if state == State.QTE_GRAB and event.is_action_pressed("interact"):
+			return
 		if event.is_action_pressed("interact") \
 		or event.is_action_pressed("jump") \
 		or event.is_action_pressed("Run") \

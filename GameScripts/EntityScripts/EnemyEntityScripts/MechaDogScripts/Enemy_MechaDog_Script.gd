@@ -1,6 +1,6 @@
 extends StorageEnemy
 
-@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var detection_area: Area2D = get_node_or_null("DetectionArea")
 @onready var bite_area: Area2D = get_node_or_null("BiteArea")
 @onready var hit_area: Area2D = get_node_or_null("HitArea")
