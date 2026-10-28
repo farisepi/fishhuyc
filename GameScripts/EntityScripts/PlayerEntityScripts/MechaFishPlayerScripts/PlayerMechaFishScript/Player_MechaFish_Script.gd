@@ -35,7 +35,10 @@ extends CharacterBody2D
 
 @export var climb_max_height: float = 400.0
 @export var climb_max_side_distance: float = 120.0
-@export var climb_target_offset: float = 5.0
+
+@export_group("Climb Settings")
+@export var climb_vertical_offset: float = 20.0
+@export var climb_horizontal_offset: float = 30.0
 
 var block_click_attack: bool = false
 
@@ -122,10 +125,10 @@ func _play_anim(anim_name: String, force_restart: bool = false) -> void:
 
 func _await_anim_finished(fallback: float = 1.0) -> void:
 	if sprite == null:
-		await get_tree().create_timer(fallback).timeout
+		await _safe_timer(fallback)
 		return
 	if not sprite.is_playing():
-		await get_tree().create_timer(0.05).timeout
+		await _safe_timer(0.05)
 		return
 	var t = 0.0
 	while sprite.is_playing() and t < fallback:
@@ -133,6 +136,14 @@ func _await_anim_finished(fallback: float = 1.0) -> void:
 		t += get_process_delta_time()
 	if not is_inside_tree():
 		return
+
+func _safe_timer(duration: float) -> void:
+	var timer = get_tree().create_timer(duration)
+	timer.timeout.connect(_on_safe_timer_timeout)
+	await timer.timeout
+
+func _on_safe_timer_timeout() -> void:
+	pass
 
 func _ready():
 	add_to_group("player")
@@ -445,7 +456,7 @@ func _physics_process(delta):
 			_slide_dir = 1.0 if facing_direction > 0 else -1.0
 		sprite.scale.x = 1 if _slide_dir > 0 else -1
 		_play_anim("Fall", true)
-		await get_tree().create_timer(0.3).timeout
+		await _safe_timer(0.3)
 		if not is_inside_tree():
 			return
 		if is_sliding:
@@ -460,7 +471,7 @@ func _physics_process(delta):
 			slide_timer = 0.0
 			_is_getting_up = true
 			_play_anim("GetUp", true)
-			await get_tree().create_timer(0.3).timeout
+			await _safe_timer(0.3)
 			if not is_inside_tree():
 				return
 			_is_getting_up = false
@@ -572,10 +583,13 @@ func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, 
 	last_climbed_obstacle = o
 	is_climbing_animation = true
 	velocity = Vector2.ZERO
-
+	
+	set_physics_process(false)
+	
 	var go_right = global_position.x < center.x
 	facing_direction = 1 if go_right else -1
-	sprite.scale.x = 1 if go_right else -1
+	if sprite:
+		sprite.scale.x = 1 if go_right else -1
 
 	_play_anim("Climb", true)
 
@@ -586,19 +600,31 @@ func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, 
 		if spd > 0 and count > 0:
 			climb_anim_len = float(count) / spd
 
-	var target_x: float = clamp(global_position.x, left_edge + climb_target_offset, right_edge - climb_target_offset)
-	var target_y = top_edge - 5.0
-	var target = Vector2(target_x, target_y)
+	var dir = 1.0 if go_right else -1.0
+	
+	var start_pos = global_position
+	var target_y = top_edge - climb_vertical_offset
+	var target_x = clamp(start_pos.x, left_edge + climb_horizontal_offset, right_edge - climb_horizontal_offset)
+	
+	if abs(target_x - start_pos.x) < 1.0:
+		target_x = start_pos.x + dir * climb_horizontal_offset
+		
+	var end_pos = Vector2(target_x + dir * climb_horizontal_offset, target_y)
 
 	var tw = create_tween()
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(self, "global_position", target, climb_anim_len)
+	
+	var mid_pos = Vector2(start_pos.x, target_y)
+	tw.tween_property(self, "global_position", mid_pos, climb_anim_len * 0.5)
+	tw.tween_property(self, "global_position", end_pos, climb_anim_len * 0.5)
+
 	await tw.finished
 
 	if not is_inside_tree():
 		return
 
 	is_climbing_animation = false
+	set_physics_process(true)
 	_play_anim("Idle")
 	velocity.y = 0
 
@@ -780,6 +806,8 @@ func _begin_death() -> void:
 	is_dying = true
 	die()
 
+var _death_anim_started: bool = false
+
 func die():
 	if is_dead:
 		return
@@ -799,24 +827,33 @@ func die():
 	is_dead = true
 	movement_blocked = true
 	velocity = Vector2.ZERO
-	if sprite:
-		if sprite.sprite_frames and sprite.sprite_frames.has_animation("Death"):
-			_play_anim("Death", true)
-			await _await_anim_finished(3.0)
-			if is_instance_valid(sprite):
-				sprite.stop()
-				if sprite.sprite_frames.has_animation("Death"):
-					var last_frame = sprite.sprite_frames.get_frame_count("Death") - 1
-					sprite.frame = last_frame
-		else:
-			await get_tree().create_timer(1.0).timeout
+
+	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("Death"):
+		if _death_anim_started:
+			return  
+		_death_anim_started = true
+
+		var last_frame = sprite.sprite_frames.get_frame_count("Death") - 1
+		sprite.stop()
+		sprite.animation = "Death"
+		sprite.frame = 0
+		sprite.play("Death")
+		
+		await sprite.animation_finished
+		if not is_inside_tree():
+			return
+			
+		sprite.stop()
+		sprite.frame = last_frame
 	else:
-		await get_tree().create_timer(1.0).timeout
-	if not is_inside_tree():
-		return
+		await _safe_timer(1.0)
+		if not is_inside_tree():
+			return
+
 	_show_death_screen()
 
 func _find_death_screen() -> Node:
+	return get_tree().get_first_node_in_group("death_screen")
 	var scene = get_tree().current_scene
 	if scene:
 		var direct = scene.get_node_or_null("DeathScreen")
@@ -938,7 +975,7 @@ func _jump_over(o: StaticBody2D, high: bool):
 	t.x = o.global_position.x + d * 50
 	t.y = o.global_position.y - 30 if high else global_position.y
 	create_tween().set_trans(Tween.TRANS_SINE).tween_property(self, "global_position", t, 0.3 if high else 0.15)
-	await get_tree().create_timer(0.3 if high else 0.15).timeout
+	await _safe_timer(0.3 if high else 0.15)
 	is_vaulting = false
 
 func _try_climb():

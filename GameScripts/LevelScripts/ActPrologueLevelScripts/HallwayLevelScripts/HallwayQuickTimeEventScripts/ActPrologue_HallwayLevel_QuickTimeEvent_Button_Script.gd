@@ -27,12 +27,37 @@ var _ring_size: float = 0.0
 var _bg_size: float = 0.0
 var _label_size: float = 0.0
 
+var _shake_tween: Tween = null
+
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	hide()
 	set_process(false)
 	set_process_input(false)
+	
+
+	var img = Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	
+
+	var center = Vector2(64, 64)
+	var outer_radius = 60
+	var inner_radius = 50
+	
+	for x in range(128):
+		for y in range(128):
+			var dist = Vector2(x, y).distance_to(center)
+			if dist <= outer_radius and dist >= inner_radius:
+				img.set_pixel(x, y, Color(0.2, 1.0, 0.5)) 
+				
+	var tex = ImageTexture.create_from_image(img)
+	
+	progress_ring.texture_progress = tex
+	progress_ring.fill_mode = TextureProgressBar.FILL_CLOCKWISE
+	progress_ring.tint_progress = Color(1, 1, 1, 1)
+	progress_ring.max_value = REQUIRED_PRESSES
+	progress_ring.value = 0
 
 func set_pressed_callback(cb: Callable):
 	pressed_callback = cb
@@ -51,10 +76,9 @@ func show_qte_at(world_pos: Vector2):
 
 	backdrop.color = Color(0, 0, 0, 0)
 
-	var cam = get_viewport().get_camera_2d()
-	var screen_pos = world_pos
-	if cam:
-		screen_pos = (world_pos - cam.global_position) * cam.zoom + get_viewport().get_visible_rect().size / 2.0
+
+	var canvas_transform = get_viewport().get_canvas_transform()
+	var screen_pos = canvas_transform * world_pos
 
 	_center = screen_pos
 	_ring_size = RING_SIZE
@@ -108,10 +132,17 @@ func _input(event):
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
 		press_count += 1
-		progress_ring.value = press_count
+		
+		# Плавное заполнение шкалы
+		var tween_prog = create_tween()
+		tween_prog.tween_property(progress_ring, "value", press_count, 0.1).set_trans(Tween.TRANS_SINE)
+		
+		# Добавляем вспышку цвета для наглядности
+		var tween_col = create_tween()
+		tween_col.tween_property(progress_ring, "modulate", Color(1.5, 1.5, 1.5, 1), 0.05)
+		tween_col.tween_property(progress_ring, "modulate", Color(1, 1, 1, 1), 0.15)
 
 		_shake_button()
-		_shake_ring()
 
 		if pressed_callback.is_valid():
 			pressed_callback.call()
@@ -120,20 +151,16 @@ func _input(event):
 			_finish(true)
 
 func _shake_button():
-	var t = create_tween()
-	t.set_trans(Tween.TRANS_LINEAR)
+	if _shake_tween and _shake_tween.is_valid():
+		_shake_tween.kill()
+		
+	_shake_tween = create_tween()
+	_shake_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	
 	var dirs = [SHAKE_OFFSET, -SHAKE_OFFSET, SHAKE_OFFSET * 0.6, -SHAKE_OFFSET * 0.6, 0.0]
 	for d in dirs:
-		t.tween_callback(_update_positions.bind(Vector2(d, 0)))
-		t.tween_interval(SHAKE_STEP_TIME)
-
-func _shake_ring():
-	var t = create_tween()
-	t.set_trans(Tween.TRANS_LINEAR)
-	var dirs = [-SHAKE_OFFSET, SHAKE_OFFSET, -SHAKE_OFFSET * 0.6, SHAKE_OFFSET * 0.6, 0.0]
-	for d in dirs:
-		t.tween_callback(_update_positions.bind(Vector2(d, 0)))
-		t.tween_interval(SHAKE_STEP_TIME)
+		_shake_tween.tween_callback(_update_positions.bind(Vector2(d, 0)))
+		_shake_tween.tween_interval(SHAKE_STEP_TIME)
 
 func _finish(success: bool):
 	if result_sent:

@@ -1,12 +1,12 @@
 extends Camera2D
 
-@export var follow_speed: float = 1.5
+@export var follow_speed: float = 5.0
 @export var look_ahead: float = 20.0
 @export var look_speed: float = 2.0
 @export var max_look_offset: float = 50.0
 @export var camera_zoom: Vector2 = Vector2(2.3, 2.3)
 @export var follow_enabled: bool = true
-@export var camera_offset: Vector2 = Vector2(0, -100)
+@export var camera_offset: Vector2 = Vector2(0, 48.112)
 
 var look_offset: Vector2 = Vector2.ZERO
 
@@ -15,8 +15,18 @@ func _ready():
 	top_level = true
 	enabled = true
 	zoom = camera_zoom
-	camera_offset = Vector2(0, -100)
 	position_smoothing_enabled = false
+	snap_to_target()
+
+func get_follow_target() -> Vector2:
+	var parent = get_parent()
+	if not parent:
+		return global_position
+	return parent.global_position + look_offset + camera_offset
+
+func snap_to_target() -> void:
+	global_position = get_follow_target()
+	reset_smoothing()
 
 func _process(delta):
 	if not follow_enabled:
@@ -37,4 +47,5 @@ func _process(delta):
 	look_offset.y = clamp(look_offset.y, -max_look_offset, max_look_offset)
 
 	var target = parent.global_position + look_offset + camera_offset
-	global_position = global_position.lerp(target, follow_speed * delta)
+	var weight = 1.0 - exp(-follow_speed * delta)
+	global_position = global_position.lerp(target, weight)

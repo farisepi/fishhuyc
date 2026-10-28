@@ -102,33 +102,34 @@ collision_layer = 15
 collision_mask = 15
 barriers_node = NodePath("../Barriers")
 enemies_node = NodePath("../Enemies")
+deathzone_scene = ExtResource("17_cu5p6")
 
 [node name="Enemies" type="Node2D" parent="." unique_id=1465954750]
 position = Vector2(-1256, 285.09)
 
 [node name="Enemy6" parent="Enemies" unique_id=240357402 instance=ExtResource("8_it0yu")]
-position = Vector2(-67, 0)
-speed = 168.63
+position = Vector2(-259, 15)
+speed = 141.85
 
 [node name="Enemy5" parent="Enemies" unique_id=1702902485 instance=ExtResource("8_it0yu")]
-position = Vector2(-16, 1)
-speed = 168.63
+position = Vector2(-283, 35)
+speed = 141.85
 
 [node name="Enemy4" parent="Enemies" unique_id=1713238819 instance=ExtResource("8_it0yu")]
-position = Vector2(76, 1)
-speed = 168.63
+position = Vector2(-268, 51)
+speed = 141.85
 
 [node name="Enemy3" parent="Enemies" unique_id=81114687 instance=ExtResource("8_it0yu")]
-position = Vector2(33, 0)
-speed = 168.63
+position = Vector2(-291, 63)
+speed = 141.85
 
 [node name="Enemy" parent="Enemies" unique_id=49493752 instance=ExtResource("8_it0yu")]
-position = Vector2(-162, -1)
-speed = 168.63
+position = Vector2(-207, 2)
+speed = 141.85
 
 [node name="Enemy2" parent="Enemies" unique_id=816239395 instance=ExtResource("8_it0yu")]
-position = Vector2(125, 1)
-speed = 168.63
+position = Vector2(-239, 121)
+speed = 141.85
 
 [node name="ForkliftScene" type="Node2D" parent="." unique_id=756149453]
 position = Vector2(3625, 263.09)
