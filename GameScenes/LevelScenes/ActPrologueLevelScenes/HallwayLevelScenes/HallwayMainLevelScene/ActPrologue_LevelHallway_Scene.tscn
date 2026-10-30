@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://r0jayxgnrq3u" path="res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayObstacleScene/ActPrologue_LevelHallway_Obstacle_Option2_Scene.tscn" id="16_it0yu"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="16_wos72"]
 [ext_resource type="PackedScene" uid="uid://8ssopim30utx" path="res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayDeathZoneScene/ActPrologue_LevelHallway_DeathZone_Scene.tscn" id="17_cu5p6"]
-[ext_resource type="PackedScene" uid="uid://bh1kqj46w0fet" path="res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayObstacleScene/ActPrologue_LevelHallway_Obstacle_Option1_Scene.tscn" id="17_wos72"]
 [ext_resource type="PackedScene" uid="uid://cje8vvh5n76qc" path="res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayQuickTimeEventScenes/ActPrologue_HallwayLevel_QuickTimeEvent_Scene.tscn" id="18_wos72"]
 [ext_resource type="PackedScene" uid="uid://bnyx5if20ylcq" path="res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayShiftBlockTutorialScene/ActPrologue_LevelHallway_ShiftBlockTutorial_Scene.tscn" id="19_mi470"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="19_u6mdv"]
@@ -91,13 +90,14 @@ color = Color(0, 0, 0, 1)
 metadata/_edit_use_anchors_ = true
 
 [node name="Balcony" type="StaticBody2D" parent="." unique_id=1315964761]
+position = Vector2(-0.515, 1.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Balcony" unique_id=517329581]
 position = Vector2(-1399.625, 235.0675)
 shape = SubResource("RectangleShape2D_bhunq")
 
 [node name="Mecha_Fish" parent="." unique_id=573579909 node_paths=PackedStringArray("barriers_node", "enemies_node") instance=ExtResource("2_cu5p6")]
-position = Vector2(-1088, 310.09)
+position = Vector2(-1114, 315.09)
 collision_layer = 15
 collision_mask = 15
 barriers_node = NodePath("../Barriers")
@@ -161,7 +161,7 @@ position = Vector2(89.75, 13.862488)
 shape = SubResource("RectangleShape2D_6f8o3")
 
 [node name="ParryingScene" type="Node2D" parent="." unique_id=1169206453]
-position = Vector2(8521, 200.09)
+position = Vector2(6856, 252.09)
 
 [node name="AttackParry" type="CharacterBody2D" parent="ParryingScene" unique_id=82372217]
 position = Vector2(191.27002, 49)
@@ -191,18 +191,17 @@ position = Vector2(91.75, -11.570007)
 shape = SubResource("RectangleShape2D_qr0ht")
 
 [node name="EndAct" type="Node2D" parent="." unique_id=71785109]
+position = Vector2(8079, 206.09)
 
 [node name="Elevator" type="ColorRect" parent="EndAct" unique_id=1219834248]
-visible = false
-offset_left = 4641.0
-offset_top = 209.09
-offset_right = 4756.0
-offset_bottom = 334.09
+offset_left = -114.0
+offset_top = 4.0
+offset_right = 1.0
+offset_bottom = 129.0
 color = Color(0.089935265, 0.20032638, 0.2420322, 1)
 
 [node name="ElevatorButton" type="Area2D" parent="EndAct" unique_id=457870847]
-visible = false
-position = Vector2(4341, 283.09)
+position = Vector2(-393, 69)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EndAct/ElevatorButton" unique_id=799656597]
 position = Vector2(268, 12)
@@ -216,6 +215,7 @@ offset_bottom = 19.0
 color = Color(0.87079287, 0.09582176, 0.35750067, 1)
 
 [node name="ForkliftTrigger" type="Area2D" parent="." unique_id=486803091]
+position = Vector2(1, 0.08999634)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ForkliftTrigger" unique_id=578691535]
 position = Vector2(3339, 281.09)
@@ -343,23 +343,23 @@ offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="CanvasLayer/TightPassageUI/KeyButton" unique_id=1594602010]
 layout_mode = 0
-offset_left = 8127.0
-offset_top = 448.0
-offset_right = 8140.0
-offset_bottom = 471.0
+offset_left = 4763.0
+offset_top = 502.0
+offset_right = 4776.0
+offset_bottom = 525.0
 text = "D"
 
 [node name="ProgressRing" type="TextureProgressBar" parent="CanvasLayer/TightPassageUI" unique_id=562805332]
 layout_mode = 0
-offset_left = 8112.0
-offset_top = 431.0
-offset_right = 8152.0
-offset_bottom = 471.0
+offset_left = 4748.0
+offset_top = 485.0
+offset_right = 4788.0
+offset_bottom = 525.0
 max_value = 10.0
 fill_mode = 4
 
 [node name="TightPassageTrigger" type="Area2D" parent="." unique_id=862275647]
-position = Vector2(8169.3, 240.09)
+position = Vector2(4805.3, 294.09)
 script = ExtResource("23_v16hl")
 move_distance = 26.0
 
@@ -368,14 +368,14 @@ position = Vector2(39.69995, -10)
 shape = SubResource("RectangleShape2D_x5kjr")
 
 [node name="EntranceGate" type="StaticBody2D" parent="." unique_id=1138146317]
-position = Vector2(8169.3, 219.09)
+position = Vector2(4805.3, 273.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceGate" unique_id=1135698694]
 position = Vector2(-85.30005, 11)
 shape = SubResource("RectangleShape2D_2r0jt")
 
 [node name="EntranceTrigger" type="Area2D" parent="." unique_id=313777073]
-position = Vector2(8049, 231.09)
+position = Vector2(4685, 285.09)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntranceTrigger" unique_id=782664805]
 position = Vector2(8, 6)
@@ -386,6 +386,9 @@ position = Vector2(1187, 262.09)
 
 [node name="DeathZone2" parent="." unique_id=248427837 instance=ExtResource("17_cu5p6")]
 position = Vector2(2555, 262.09)
+
+[node name="DeathZone3" parent="." unique_id=524675218 instance=ExtResource("17_cu5p6")]
+position = Vector2(5619, 262.09)
 
 [node name="Barriers" type="Node2D" parent="." unique_id=1037942512]
 position = Vector2(1088, 266.09)
@@ -410,16 +413,20 @@ collision_layer = 8
 position = Vector2(1447, 23)
 collision_layer = 8
 
-[node name="ObstacleSmall" parent="Barriers" unique_id=773640851 instance=ExtResource("17_wos72")]
-position = Vector2(212, 319.08997)
-collision_layer = 8
-
 [node name="Obstacle6" parent="Barriers" unique_id=35345097 instance=ExtResource("16_it0yu")]
 position = Vector2(1566, 23)
 collision_layer = 8
 
 [node name="Obstacle7" parent="Barriers" unique_id=1597786890 instance=ExtResource("16_it0yu")]
 position = Vector2(1669, 23)
+collision_layer = 8
+
+[node name="Obstacle8" parent="Barriers" unique_id=522337978 instance=ExtResource("16_it0yu")]
+position = Vector2(4518, 22)
+collision_layer = 8
+
+[node name="Obstacle9" parent="Barriers" unique_id=1345936914 instance=ExtResource("16_it0yu")]
+position = Vector2(4738, 22)
 collision_layer = 8
 
 [node name="ShiftQTE" parent="." unique_id=514358049 instance=ExtResource("18_wos72")]

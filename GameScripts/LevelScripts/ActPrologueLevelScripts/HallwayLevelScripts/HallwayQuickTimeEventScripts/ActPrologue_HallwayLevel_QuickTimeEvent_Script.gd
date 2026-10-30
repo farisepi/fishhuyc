@@ -6,7 +6,7 @@ signal qte_result(success: bool)
 @onready var outer_circle: ColorRect = $QTE/OuterCircle
 @onready var target_circle: ColorRect = $QTE/TargetCircle
 @onready var shift_label: Label = $QTE/ShiftLabel
-
+signal qte_hit
 const OUTER_START_SIZE: float = 220.0
 const OUTER_END_SIZE: float = 30.0
 const TARGET_SIZE: float = 70.0
@@ -80,6 +80,7 @@ func _input(event):
 		get_viewport().set_input_as_handled()
 		var current_size = outer_circle.size.x
 		if current_size >= HIT_WINDOW_MIN and current_size <= HIT_WINDOW_MAX:
+			qte_hit.emit()
 			_finish(true)
 		else:
 			_finish(false)

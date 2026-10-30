@@ -607,7 +607,12 @@ func _process(delta: float) -> void:
 		_update_intro_enemies()
 		return
 
-	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
+	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_QTE:
+		return
+
+	if state == State.FORKLIFT_CUTSCENE:
+		if is_instance_valid(player) and not player.is_dashing:
+			player.velocity.x = 400.0
 		return
 
 	if state == State.RUNNING and not is_game_over:
@@ -736,24 +741,16 @@ func _play_forklift_cutscene():
 
 	_disable_camera_for_cutscene()
 
-	var player_pos = player.global_position
 	var start_zoom = camera.zoom
 
 	camera.global_position = player_cam_pos
 	camera.reset_smoothing()
 
-	if player.sprite:
-		player.sprite.play("Run")
-
-	var start_x = player.global_position.x
-	var dist1 = 4000.0 - start_x
-	var dur1 = abs(dist1) / 400.0
-
-	var t1 = create_tween().set_parallel(true)
-	t1.set_trans(Tween.TRANS_LINEAR)
-	t1.tween_property(player, "global_position:x", 4000.0, dur1)
-	t1.tween_property(camera, "global_position", Vector2((start_x + 4000.0) / 2.0, cam_y), dur1)
-	await t1.finished
+	var t0 = create_tween().set_parallel(true)
+	t0.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t0.tween_property(camera, "global_position", Vector2(7000.0, cam_y), 1.4)
+	t0.tween_property(camera, "zoom", Vector2(1.4, 1.4), 1.4)
+	await t0.finished
 	if not is_inside_tree():
 		return
 
@@ -764,108 +761,127 @@ func _play_forklift_cutscene():
 	forklift.global_position = Vector2(8300.0, forklift_y)
 	falling_shelf.global_position = Vector2(8360.0, forklift_y)
 	forklift.set("active", true)
+	if "direction" in forklift:
+		forklift.direction = -1
+	if "move_dir" in forklift:
+		forklift.move_dir = -1
+	if "speed" in forklift:
+		forklift.speed = abs(forklift.speed)
 
-	var t2 = create_tween().set_parallel(true)
-	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t2.tween_property(camera, "global_position", Vector2(7500.0, cam_y), 1.4)
-	t2.tween_property(camera, "zoom", Vector2(1.4, 1.4), 1.4)
-	await t2.finished
+	await get_tree().create_timer(1.0).timeout
 	if not is_inside_tree():
 		return
 
-	var cam_x = (4700.0 + 6380.0) / 2.0
-	var t3 = create_tween().set_parallel(true)
-	t3.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t3.tween_property(camera, "global_position", Vector2(cam_x, cam_y), 1.2)
-	t3.tween_property(camera, "zoom", Vector2(0.55, 0.55), 1.2)
-	await t3.finished
+	var t1 = create_tween().set_parallel(true)
+	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t1.tween_property(camera, "global_position", Vector2(player.global_position.x, cam_y), 1.2)
+	t1.tween_property(camera, "zoom", start_zoom, 1.2)
+	await t1.finished
 	if not is_inside_tree():
 		return
+
+	_restore_camera_after_cutscene()
 
 	if player.sprite:
 		player.sprite.play("Run")
 
-	var player_dist = 4700.0 - player.global_position.x
-	var forklift_dist = 6380.0 - forklift.global_position.x
-	var travel_time = max(abs(player_dist), abs(forklift_dist)) / 500.0
+	forklift.set_physics_process(true)
 
-	_forklift_player_tween = create_tween()
-	_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_player_tween.tween_property(player, "global_position:x", 4700.0, travel_time)
-
-	_forklift_tween = create_tween()
-	_forklift_tween.set_trans(Tween.TRANS_LINEAR)
-	_forklift_tween.tween_property(forklift, "global_position:x", 6380.0, travel_time)
-
-	await _forklift_player_tween.finished
-	await _forklift_tween.finished
-	if not is_inside_tree():
+	var bullet = _spawn_fake_bullet()
+	if bullet == null:
+		_hide_cutscene_bars(0.4)
+		_resume_all_world()
+		_lock_player_input(false)
+		state = State.RUNNING
 		return
 
-	if not sniper or not is_instance_valid(sniper):
-		_spawn_sniper(false)
-		await get_tree().process_frame
-		if not is_inside_tree():
-			return
+	var bullet_speed = 2200.0
+	var bullet_start_x = bullet.global_position.x
+	var player_x = player.global_position.x
+	var hit_dist = abs(player_x - bullet_start_x)
+	var hit_time = hit_dist / bullet_speed
 
-	if sniper and is_instance_valid(sniper):
-		sniper.visible = true
-		sniper.set_physics_process(false)
-		sniper.set_process(true)
-		if sniper.has_method("activate"):
-			sniper.activate()
+	var qte_lead = 1.2
+	var qte_delay = max(hit_time - qte_lead, 0.15)
 
-	state = State.FORKLIFT_QTE
-
-	if player.sprite:
-		player.sprite.play("Run")
-
-	_qte_throw_dir = -1 if forklift.global_position.x < player.global_position.x else 1
-
-	var success = await _run_shift_qte_cutscene()
-
+	await get_tree().create_timer(qte_delay).timeout
 	if not is_inside_tree():
+		if is_instance_valid(bullet):
+			bullet.queue_free()
 		return
 
-	if _forklift_player_tween and _forklift_player_tween.is_valid():
-		_forklift_player_tween.kill()
-	if _forklift_tween and _forklift_tween.is_valid():
-		_forklift_tween.kill()
+	if shift_qte and shift_qte.has_signal("qte_hit"):
+		shift_qte.qte_hit.connect(_force_dash, CONNECT_ONE_SHOT)
 
-	if success:
-		_force_dash()
+	var qte_success = await _run_forklift_shift_qte()
+
+	if not is_inside_tree():
+		if is_instance_valid(bullet):
+			bullet.queue_free()
+		return
+
+	if qte_success:
+		if is_instance_valid(bullet):
+			var forklift_x = forklift.global_position.x
+			var remain_dist = abs(forklift_x - bullet.global_position.x)
+			var remain_time = remain_dist / bullet_speed
+			if remain_time < 0.05:
+				remain_time = 0.05
+			var bt = create_tween()
+			bt.set_trans(Tween.TRANS_LINEAR)
+			bt.tween_property(bullet, "global_position:x", forklift_x, remain_time)
+			await bt.finished
+			if not is_inside_tree():
+				if is_instance_valid(bullet):
+					bullet.queue_free()
+				return
+			if is_instance_valid(bullet):
+				bullet.queue_free()
 
 		forklift.velocity = Vector2.ZERO
 		forklift_stopped = true
 		forklift.set("active", false)
+		forklift.set_physics_process(false)
 
-		if sniper and is_instance_valid(sniper):
-			if sniper.has_method("deactivate"):
-				sniper.deactivate()
-			
-			var sniper_dist = abs(sniper.global_position.x - forklift.global_position.x)
-			var sniper_travel_time = sniper_dist / 3000.0
-			
-			if sniper_travel_time < 0.05:
-				sniper_travel_time = 0.05
-				
-			var bullet_tween = create_tween()
-			bullet_tween.set_trans(Tween.TRANS_LINEAR)
-			bullet_tween.tween_property(sniper, "global_position", forklift.global_position, sniper_travel_time)
-			bullet_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-			
-			if player.has_method("_play_anim"):
-				player._play_anim("Run", true)
+		var flash = ColorRect.new()
+		flash.color = Color(1, 1, 1, 0.7)
+		flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+		flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var flash_layer = CanvasLayer.new()
+		flash_layer.layer = 80
+		add_child(flash_layer)
+		flash_layer.add_child(flash)
+		var ft = create_tween()
+		ft.tween_property(flash, "modulate:a", 0.0, 0.3)
+		await ft.finished
+		if not is_inside_tree():
+			return
+		flash_layer.queue_free()
 
-			var tilt = create_tween().set_parallel(true)
-			tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
-			tilt.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 40.0, 0.6)
-			await tilt.finished
+		if player.has_method("_play_anim"):
+			player._play_anim("Run", true)
+
+		var tilt = create_tween().set_parallel(true)
+		tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
+		tilt.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 40.0, 0.6)
+		await tilt.finished
+		if not is_inside_tree():
+			return
+
+		await get_tree().create_timer(0.4).timeout
+		if not is_inside_tree():
+			return
 	else:
+		if is_instance_valid(bullet):
+			bullet.queue_free()
+		if shift_qte and shift_qte.has_signal("qte_hit") and shift_qte.qte_hit.is_connected(_force_dash):
+			shift_qte.qte_hit.disconnect(_force_dash)
 		_hide_cutscene_bars(0.4)
 		_restore_camera_after_cutscene()
 		_resume_all_world()
+		_lock_player_input(false)
 		player.die()
+		state = State.RUNNING
 		return
 
 	_hide_cutscene_bars(0.6)
@@ -874,20 +890,87 @@ func _play_forklift_cutscene():
 		player.sprite.stop()
 		player.sprite.play("Idle")
 
-	var t6 = create_tween().set_parallel(true)
-	t6.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t6.tween_property(camera, "global_position", _cam_original_position, 1.2)
-	t6.tween_property(camera, "zoom", start_zoom, 1.2)
-	await t6.finished
+	await get_tree().create_timer(0.3).timeout
 	if not is_inside_tree():
 		return
-
-	_restore_camera_after_cutscene()
 
 	_resume_all_world()
 	_lock_player_input(false)
 
 	state = State.RUNNING
+func _spawn_fake_bullet() -> Node2D:
+	var bullet = Node2D.new()
+	bullet.name = "FakeBullet"
+	bullet.z_index = 60
+
+	var glow = Polygon2D.new()
+	glow.polygon = PackedVector2Array([
+		Vector2(-30, -8), Vector2(30, -8),
+		Vector2(30, 8), Vector2(-30, 8)
+	])
+	glow.color = Color(1, 1, 0.6, 0.35)
+	bullet.add_child(glow)
+
+	var core = Polygon2D.new()
+	core.polygon = PackedVector2Array([
+		Vector2(-18, -4), Vector2(18, -4),
+		Vector2(18, 4), Vector2(-18, 4)
+	])
+	core.color = Color(1, 0.95, 0.3, 1.0)
+	bullet.add_child(core)
+
+	var tip = Polygon2D.new()
+	tip.polygon = PackedVector2Array([
+		Vector2(18, -4), Vector2(28, 0), Vector2(18, 4)
+	])
+	tip.color = Color(1, 1, 0.8, 1.0)
+	bullet.add_child(tip)
+
+	get_tree().current_scene.add_child(bullet)
+
+	var start_x = sniper_spawn_position.x
+	var start_y = player.global_position.y
+
+	if sniper and is_instance_valid(sniper):
+		start_x = sniper.global_position.x
+		start_y = sniper.global_position.y
+
+	bullet.global_position = Vector2(start_x, start_y)
+
+	var dir_x = player.global_position.x - start_x
+	var dir_y = player.global_position.y - start_y
+	bullet.rotation = atan2(dir_y, dir_x)
+
+	return bullet
+
+func _run_forklift_shift_qte() -> bool:
+	if not shift_qte or not shift_qte.has_method("show_qte"):
+		await get_tree().create_timer(1.2).timeout
+		return true
+
+	shift_qte.show_qte()
+
+	var result: bool = false
+	var received: bool = false
+
+	var callback = func(success: bool):
+		result = success
+		received = true
+
+	if not shift_qte.qte_result.is_connected(callback):
+		shift_qte.qte_result.connect(callback)
+
+	while not received:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			if shift_qte.qte_result.is_connected(callback):
+				shift_qte.qte_result.disconnect(callback)
+			return false
+
+	if shift_qte.qte_result.is_connected(callback):
+		shift_qte.qte_result.disconnect(callback)
+
+	return result
 
 func _force_dash():
 	if not player:
