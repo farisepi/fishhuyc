@@ -1,17 +1,18 @@
 [gd_scene format=3 uid="uid://r0jayxgnrq3u"]
 
+[ext_resource type="Texture2D" uid="uid://dpw2e6iyxxdux" path="res://GameAssets/LevelAssets/ActPrologue/HallwayLevelAssets/HallwayTilesetTextures/ActPrologue_LevelHallway_TileSet_Shelf_Option1_Texture.png" id="1_4wvj5"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bhunq"]
-size = Vector2(56, 90.88)
+size = Vector2(67, 90.88)
 
 [node name="Obstacle" type="StaticBody2D" unique_id=1967249374]
 position = Vector2(28, 29)
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1214397625]
-offset_left = -28.0
-offset_top = -45.0
-offset_right = 28.0
-offset_bottom = 45.0
-color = Color(0.28166944, 0.17562321, 0.02858803, 1)
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2130351891]
+position = Vector2(5.5, 0)
 shape = SubResource("RectangleShape2D_bhunq")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=526495237]
+position = Vector2(5.499997, 1.1324883e-06)
+scale = Vector2(1.0615385, 1.4603174)
+texture = ExtResource("1_4wvj5")
