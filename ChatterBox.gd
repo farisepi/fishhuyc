@@ -120,18 +120,31 @@ func _show_near(text: String) -> void:
 	
 	_near_panel.position = _controller.get_near_panel_position()
 	
+	const LABEL_PADDING_X := 4
+	const LABEL_PADDING_TOP := 6
+	const LABEL_PADDING_BOTTOM := 4
+	
+	var pw = _controller.near_panel_width
+	
 	# Автовысота если не задана
 	var line = _controller._current_line
 	if line and line.panel_height > 0:
-		_near_panel.size = Vector2(_controller.near_panel_width, line.panel_height)
+		_near_panel.size = Vector2(pw, line.panel_height)
 	else:
-		# Авто: ~15px на строку
-		var auto_h = max(28.0, ceil(text.length() / 11.0) * 15.0 + 15.0)
-		_near_panel.size = Vector2(_controller.near_panel_width, auto_h)
+		# Сначала даём label правильную ширину, чтобы get_content_height() считал перенос строк верно
+		_near_label.position = Vector2(LABEL_PADDING_X, LABEL_PADDING_TOP)
+		_near_label.size = Vector2(pw - LABEL_PADDING_X * 2, 200)
+		if _near_label.text != text:
+			_near_label.text = text
+		# Ждём один кадр не нужно — get_content_height работает сразу после смены текста
+		var content_h = _near_label.get_content_height()
+		var auto_h = content_h + LABEL_PADDING_TOP + LABEL_PADDING_BOTTOM
+		_near_panel.size = Vector2(pw, max(24.0, auto_h))
 	
-	_near_label.position = Vector2(4, 4)
-	_near_label.size = _near_panel.size - Vector2(8, 8)
+	_near_label.position = Vector2(LABEL_PADDING_X, LABEL_PADDING_TOP)
+	_near_label.size = _near_panel.size - Vector2(LABEL_PADDING_X * 2, LABEL_PADDING_TOP + LABEL_PADDING_BOTTOM)
 	
+	# Текст мог быть уже установлен выше (в ветке auto-height); ставим если ещё нет
 	if _near_label.text != text:
 		_near_label.text = text
 

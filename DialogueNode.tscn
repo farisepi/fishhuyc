@@ -98,6 +98,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 theme = SubResource("Theme_xiltr")
 bbcode_enabled = true
+tab_size = 6
 horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 

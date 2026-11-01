@@ -270,7 +270,6 @@ func _skip_intro() -> void:
 		intro_music.stop()
 	
 	Global.intro_completed = true
-	UISounds.start_factory_ambience()
 	
 	_cleanup_menus()
 	

@@ -22,6 +22,7 @@ func _ready():
 	
 	_setup_character_animations()
 	_spawn_bubbles()
+	UISounds.start_factory_ambience()
 
 func _schedule_boring(t: Timer) -> void:
 	t.start(randf_range(BORING_INTERVAL_MIN, BORING_INTERVAL_MAX))

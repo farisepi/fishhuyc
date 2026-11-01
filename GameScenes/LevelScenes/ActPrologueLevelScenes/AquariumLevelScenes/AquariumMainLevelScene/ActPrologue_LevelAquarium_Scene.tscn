@@ -762,6 +762,25 @@ text = "Если трещина дойдёт до силового кабеля,
 display_time = 3.0
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
+[sub_resource type="Resource" id="Resource_c6gkb"]
+script = ExtResource("26_hykhb")
+text = "Герметик не держит, нужно менять весь блок."
+display_time = 3.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_2fvow"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "В прошлый раз еле залатали, а она снова расходится."
+display_time = 3.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_j2tti"]
+script = ExtResource("26_hykhb")
+text = "Надо бы вызвать инженеров с поверхности."
+display_time = 3.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
 
@@ -924,25 +943,25 @@ texture_scale = 3.19
 position = Vector2(-639, -335)
 color = Color(0.27058825, 0.27058825, 0.27058825, 1)
 
-[node name="Music" type="Node2D" parent="." unique_id=1434165889]
+[node name="Sounds" type="Node2D" parent="." unique_id=1434165889]
 
-[node name="Ambience" type="Node2D" parent="Music" unique_id=1477851486]
+[node name="Ambience" type="Node2D" parent="Sounds" unique_id=1477851486]
 position = Vector2(639, 335)
 
-[node name="ambienceswim" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1148327141]
+[node name="ambienceswim" type="AudioStreamPlayer2D" parent="Sounds/Ambience" unique_id=1148327141]
 position = Vector2(10, -110)
 stream = ExtResource("34_p3tjk")
 volume_db = -22.0
 autoplay = true
 
-[node name="ambienceglitch" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1265385605]
-position = Vector2(313, 99)
+[node name="ambienceglitch" type="AudioStreamPlayer2D" parent="Sounds/Ambience" unique_id=1265385605]
+position = Vector2(220, 130)
 stream = ExtResource("34_sdbdi")
-volume_db = -27.0
+volume_db = -16.6
 autoplay = true
 max_distance = 300.0
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Music/Ambience" unique_id=1125747272]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Sounds/Ambience" unique_id=1125747272]
 
 [node name="npc" type="Node2D" parent="." unique_id=508626050]
 position = Vector2(640, 338)
@@ -997,7 +1016,8 @@ tile_set = ExtResource("17_ccpdg")
 libraries/ = SubResource("AnimationLibrary_0i8mc")
 
 [node name="ChatterController" parent="." unique_id=1209504675 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
-lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl")])
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl"), SubResource("Resource_c6gkb"), SubResource("Resource_2fvow"), SubResource("Resource_j2tti")])
+loop = false
 scientist_node = NodePath("../npc/Scientist/ScientistSprite")
 mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
 portrait_scientist = ExtResource("27_1tjdl")
