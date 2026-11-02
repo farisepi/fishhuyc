@@ -1280,6 +1280,7 @@ shape = SubResource("CircleShape2D_hvceo")
 script = ExtResource("10_2sw6b")
 
 [node name="UI_Container" type="Control" parent="GUI" unique_id=94013607]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1157.0

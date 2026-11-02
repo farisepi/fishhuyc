@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var player: CharacterBody2D = $Mecha_Fish
-@onready var elevator: ColorRect = $EndAct/Elevator
+@onready var elevator: AnimatedSprite2D = $EndAct/Elevator
 @onready var elevator_button: Area2D = $EndAct/ElevatorButton
 @onready var forklift: CharacterBody2D = $ForkliftScene/Forklift
 @onready var falling_shelf: StaticBody2D = $ForkliftScene/FallingShelf
@@ -660,21 +660,32 @@ func _process_gameplay(delta):
 		elevator_timer -= delta
 		if elevator_timer <= 0:
 			state = State.ELEVATOR_GO
-			elevator.color = Color.GREEN
+			
+			if elevator.sprite_frames.has_animation("Open"):
+				elevator.play("Open")
+			else:
+				elevator.modulate = Color.GREEN
+				
 			var t = create_tween()
-			t.tween_property(player, "global_position:x", elevator.global_position.x + 30, 0.5)
+			t.tween_property(player, "global_position:x", elevator.global_position.x, 0.5)
 			await t.finished
-			if not is_inside_tree():
-				return
+			if not is_inside_tree(): return
+			
 			player.visible = false
-			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.0)
-			await lt.finished
-			if not is_inside_tree():
-				return
+			
+			if elevator.sprite_frames.has_animation("Close"):
+				elevator.play("Close")
+			
 			await get_tree().create_timer(0.5).timeout
-			if not is_inside_tree():
-				return
+			if not is_inside_tree(): return
+			
+			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.5)
+			await lt.finished
+			if not is_inside_tree(): return
+			
+			await get_tree().create_timer(0.5).timeout
+			if not is_inside_tree(): return
 			_win()
 
 	if _shelf_climbing:
@@ -1093,6 +1104,20 @@ func _climb_shelf():
 
 func _on_parry_complete():
 	parry_done = true
+	var parrying_scene = get_node_or_null("ParryingScene")
+	if parrying_scene:
+		var enemy = parrying_scene.get_node_or_null("AttackParry")
+		if enemy:
+			enemy.visible = true
+			enemy.collision_layer = 1
+			enemy.collision_mask = 1
+			var col = enemy.get_node_or_null("CollisionShape2D")
+			if col:
+				col.disabled = false
+			var t = create_tween()
+			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			t.tween_property(enemy, "global_position:x", enemy.global_position.x + 300, 0.4)
+
 	if is_instance_valid(player):
 		_lock_player_input(false)
 		player.is_vaulting = false
