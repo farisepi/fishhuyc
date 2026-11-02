@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://bum2mnrwdyo5q" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishInGameInterfaceSprites/MechaIndicatorInterface/Player_Fish_InGameInterface_MechaIndicator_On_Texture.png" id="13_7xaar"]
 [ext_resource type="Texture2D" uid="uid://cqrw8w1p1odbt" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishLandingFrames/Player_MechaFish_Landing_SpriteList_Animation.png" id="13_i6bnd"]
 [ext_resource type="Texture2D" uid="uid://fs1v1bfh4nsu" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishInGameInterfaceSprites/AirBalloonInterface/Player_Fish_InGameInterface_AirBallon_SpriteList_Animation.png" id="14_7xaar"]
+[ext_resource type="Texture2D" uid="uid://bfprc01igdige" path="res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishRunSprites/Player_MechaFish_Run_SpriteList_Animation.png" id="14_xklf4"]
 [ext_resource type="Script" uid="uid://dlt08ccoaxk0g" path="res://GameScripts/EntityScripts/PlayerEntityScripts/MechaFishPlayerScripts/PlayerMechaFishCamera_Scripts/Player_MechaFish_Camera_LevelFactory_Script.gd" id="21_yp2my"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_x3y58"]
@@ -382,6 +383,38 @@ region = Rect2(450, 0, 75, 75)
 atlas = ExtResource("13_i6bnd")
 region = Rect2(525, 0, 75, 75)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_2jrky"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(0, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lvtwh"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(75, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q5m17"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(150, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fd7a3"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(225, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qy57t"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(300, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m8ujf"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(375, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lqmu4"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(450, 0, 75, 84)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5p1sd"]
+atlas = ExtResource("14_xklf4")
+region = Rect2(525, 0, 75, 84)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_tr0cb"]
 atlas = ExtResource("8_2sw6b")
 region = Rect2(0, 0, 128, 75)
@@ -732,40 +765,28 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_0r5gm")
+"texture": SubResource("AtlasTexture_2jrky")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_y0wxp")
+"texture": SubResource("AtlasTexture_lvtwh")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_keeu0")
+"texture": SubResource("AtlasTexture_q5m17")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_du8i8")
+"texture": SubResource("AtlasTexture_fd7a3")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_3eqjw")
+"texture": SubResource("AtlasTexture_qy57t")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_mww5d")
+"texture": SubResource("AtlasTexture_m8ujf")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_ugbvx")
+"texture": SubResource("AtlasTexture_lqmu4")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_5xjvg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_0qvag")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7rvv2")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_w6t4w")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_piyc6")
+"texture": SubResource("AtlasTexture_5p1sd")
 }],
 "loop": 1,
 "name": &"Run",
@@ -1263,7 +1284,7 @@ camera_offset = Vector2(0, -72.57)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1851055927]
 position = Vector2(-2, -7)
 sprite_frames = SubResource("SpriteFrames_70hpr")
-animation = &"Death"
+animation = &"Run"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096673050]
 position = Vector2(-1, -5)
