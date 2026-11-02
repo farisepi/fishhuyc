@@ -1255,7 +1255,7 @@ climb_horizontal_offset = 5.0
 
 [node name="MechaFishCamera" type="Camera2D" parent="." unique_id=1950259181]
 position = Vector2(49, 1.36)
-offset = Vector2(0, 48.112)
+offset = Vector2(0, -12.833)
 zoom = Vector2(2.5, 2.5)
 script = ExtResource("9_aikcy")
 camera_offset = Vector2(0, -72.57)

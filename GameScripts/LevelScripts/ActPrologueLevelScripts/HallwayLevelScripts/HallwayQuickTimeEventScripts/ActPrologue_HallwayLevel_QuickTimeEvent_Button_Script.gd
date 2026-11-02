@@ -99,14 +99,18 @@ func show_qte_at(world_pos: Vector2):
 func _update_positions(offset: Vector2):
 	var center = _center + offset
 	
+
 	button_bg.size = Vector2(_bg_size, _bg_size)
 	button_bg.position = center - Vector2(_bg_size / 2.0, _bg_size / 2.0)
 	
 	progress_ring.size = Vector2(_ring_size, _ring_size)
 	progress_ring.position = center - Vector2(_ring_size / 2.0, _ring_size / 2.0)
 	
+
 	e_label.size = Vector2(_label_size, _label_size)
 	e_label.position = center - Vector2(_label_size / 2.0, _label_size / 2.0)
+	e_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	e_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 
 func hide_qte():
 	visible = false
