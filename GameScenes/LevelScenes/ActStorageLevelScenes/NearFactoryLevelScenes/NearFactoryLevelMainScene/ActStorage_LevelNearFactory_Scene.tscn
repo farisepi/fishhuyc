@@ -1820,23 +1820,6 @@ energy = 0.9
 texture = ExtResource("fx_tx_round")
 texture_scale = 0.6
 
-[node name="Dust" type="CPUParticles2D" parent="." unique_id=970000122]
-z_index = 21
-position = Vector2(4000, 640)
-amount = 420
-lifetime = 12.0
-preprocess = 12.0
-emission_shape = 3
-emission_rect_extents = Vector2(4300, 420)
-direction = Vector2(1, 0.2)
-spread = 180.0
-gravity = Vector2(0, 1.5)
-initial_velocity_min = 3.0
-initial_velocity_max = 9.0
-scale_amount_min = 2.0
-scale_amount_max = 3.0
-color = Color(1, 0.9, 0.72, 0.3)
-
 [node name="PostFX" type="ColorRect" parent="." unique_id=970000123]
 z_index = 1000
 material = SubResource("M_Post")

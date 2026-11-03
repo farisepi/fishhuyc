@@ -18,9 +18,6 @@ var rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	rng.randomize()
 	
-	print("FactoryBackground ready")
-	print("box_scene = ", box_scene)
-	print("layer3 = ", layer3)
 	
 	if not layer3 or not layer3_clone or not layer3_clone2 or not layer3.texture:
 		print("FactoryBackground: отсутствуют ноды или текстура!")
@@ -29,8 +26,6 @@ func _ready() -> void:
 	layer_width = layer3.texture.get_width() * abs(layer3.scale.x)
 	start_x = layer3.position.x
 	
-	print("FactoryBackground: layer_width = ", layer_width)
-	print("FactoryBackground: start_x = ", start_x)
 	
 	layer3_clone.position.x = start_x + layer_width
 	layer3_clone2.position.x = start_x + layer_width * 2.0
@@ -67,4 +62,3 @@ func _spawn_box() -> void:
 	box.rotation = rng.randf_range(-0.2, 0.2)
 	box.conveyor_speed = layer3_speed
 	
-	print("Box spawned at ", box.global_position)

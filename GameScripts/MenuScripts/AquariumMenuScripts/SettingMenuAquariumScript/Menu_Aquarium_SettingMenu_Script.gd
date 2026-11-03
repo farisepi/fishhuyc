@@ -314,19 +314,8 @@ func _update_button_text(button: Button, items: Array[String], selected: int) ->
 		arrow.position = Vector2(button.size.x - 34, button.size.y / 2.0 - 12)
 
 func _create_brightness_layer_deferred() -> void:
-	if current_brightness_layer and is_instance_valid(current_brightness_layer):
-		return
-	current_brightness_layer = ColorRect.new()
-	current_brightness_layer.name = "BrightnessLayer"
-	current_brightness_layer.color = Color(0, 0, 0, 0)
-	current_brightness_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	current_brightness_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	current_brightness_layer.z_index = 1000
-	var canvas = CanvasLayer.new()
-	canvas.name = "BrightnessCanvas"
-	canvas.layer = 100
-	canvas.add_child(current_brightness_layer)
-	get_tree().root.add_child.call_deferred(canvas)
+	# shared overlay owned by Global (it used to stack a new layer on every visit)
+	current_brightness_layer = Global.ensure_brightness_layer()
 
 func _apply_brightness_deferred() -> void:
 	if not brightness_slider:

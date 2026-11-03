@@ -78,17 +78,7 @@ func _update_slot_text(slot: Button, index: int):
 	if config.load(save_path) == OK:
 		var scene = config.get_value("save", "scene", "???")
 		var time = config.get_value("save", "time", "???")
-		var location = ""
-		if "Act1" in scene or "Level_1" in scene:
-			location = "Аквариум"
-		elif "Act2" in scene or "Level_2" in scene:
-			location = "Завод"
-		elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
-			location = "Коридор к складовым помещениям"
-		elif "ActStorage" in scene or "Storage" in scene:
-			location = "Склад"
-		else:
-			location = scene
+		var location = Global.get_location_name(scene)
 		slot.text = location + "\n" + time
 		slot.add_theme_color_override("font_color", Color(0.831, 0.643, 0.09))
 		
@@ -124,6 +114,13 @@ func _on_slot_pressed(index: int):
 			_show_load_or_delete(index)
 		else:
 			Global.is_new_game = false
+			Global.save_slot = index
+			Global.shards_blue = 0
+			Global.shards_green = 0
+			Global.shards_cyan = 0
+			Global.autosave(Global.SCENE_AQUARIUM)
+			var new_slot = grid.get_child(index) as Button
+			if new_slot: _update_slot_text(new_slot, index)
 			if is_instance_valid(Fade):
 				Fade.fade_out()
 				await get_tree().create_timer(0.3).timeout
@@ -153,10 +150,7 @@ func _skip_intro():
 		intro_instance.queue_free()
 		intro_instance = null
 	
-	if is_instance_valid(Fade):
-		Fade.fade_out()
-		await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
+	Global.goto_scene(Global.SCENE_AQUARIUM)
 
 func _show_load_or_overwrite(index: int):
 	_close_current_popup()
@@ -269,13 +263,7 @@ func _save_game(index: int, scene_path: String = ""):
 	if current_scene == "" or "SavesMenu" in current_scene:
 		current_scene = "res://GameScenes/LevelScenes/ActPrologueLevelScenes/FactoryLevelScenes/FactoryMainLevelScene/ActPrologue_LevelFactory_Scene.tscn"
 	
-	var datetime = Time.get_datetime_dict_from_system()
-	var month = "%02d" % datetime.month
-	var day = "%02d" % datetime.day
-	var hour = "%02d" % datetime.hour
-	var minute = "%02d" % datetime.minute
-	var year = str(datetime.year).substr(2, 2)
-	var time = day + "." + month + "." + year + " " + hour + ":" + minute
+	var time = Global.format_save_time()
 	
 	config.set_value("save", "scene", current_scene)
 	config.set_value("save", "time", time)
@@ -301,14 +289,7 @@ func _save_game(index: int, scene_path: String = ""):
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
 	
-	if current_scene.contains("Act2") or current_scene.contains("Level_2"):
-		Global.last_save_level = 2
-	elif current_scene.contains("Act3") or current_scene.contains("Level_3"):
-		Global.last_save_level = 3
-	elif current_scene.contains("ActStorage") or current_scene.contains("Storage"):
-		Global.last_save_level = 4
-	else:
-		Global.last_save_level = 1
+	Global.last_save_level = max(1, Global.get_level_number(current_scene))
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
@@ -335,14 +316,7 @@ func _load_game(index: int):
 			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 			Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
 			
-			var level = 1
-			if "Act2" in scene or "Level_2" in scene:
-				level = 2
-			elif "Act3" in scene or "chase_level" in scene or "Level_3" in scene:
-				level = 3
-			elif "ActStorage" in scene or "Storage" in scene:
-				level = 4
-			Global.last_save_level = level
+			Global.last_save_level = max(1, Global.get_level_number(scene))
 			
 			Global.save_slot = index
 			Global.load_shards_from_slot()
@@ -355,7 +329,12 @@ func _delete_save(index: int):
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
 
+var _leaving: bool = false
+
 func _on_back_pressed() -> void:
+	if _leaving:
+		return
+	_leaving = true
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		GlobalMusic.resume_level_music()
@@ -374,6 +353,8 @@ func _on_back_pressed() -> void:
 	Global.goto_scene("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
+	if intro_active:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		if current_popup:
 			_close_current_popup()

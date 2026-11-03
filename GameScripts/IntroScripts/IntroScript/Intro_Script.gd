@@ -311,6 +311,11 @@ func _own_fade_and_change_scene() -> void:
 	await tween.finished
 	
 	_log_time("CHANGE SCENE -> Act1")
+	# the overlay is a child of the root and outlives this scene: fade it away afterwards
+	var t = black.create_tween()
+	t.tween_interval(0.35)
+	t.tween_property(black, "color:a", 0.0, 0.8)
+	t.tween_callback(black.queue_free)
 	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
 
 func _stop_main_menu_music() -> void:

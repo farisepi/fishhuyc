@@ -12,6 +12,9 @@ const NPC_PRESS_OFFSET_X: float = -40.0
 const PLAYER_TURN_X: float = 156.0
 const OBJECT_SPAWN_X: float = 900.0
 const OBJECT_DESPAWN_X: float = -700.0
+## y of the conveyor belt surface (objects stand on it, the press foot comes down to OBJECT top)
+const BELT_SURFACE_Y: float = 345.0
+const OBJECT_SIZE: Vector2 = Vector2(30.0, 24.0)
 
 const OBJECT_SPEED: float = 187.5
 const NPC_WALK_SPEED: float = 240.0
@@ -403,9 +406,8 @@ func _is_box_in_zone(index: int, box_pos: Vector2, box_size: Vector2) -> bool:
 	var col = z.get_node_or_null("CollisionShape2D")
 	if col and col.shape is RectangleShape2D:
 		zone_size = col.shape.size * col.scale
-	var zone_right = zone_pos.x + zone_size.x / 2.0
-	var box_right = box_pos.x + box_size.x / 2.0
-	return box_right >= zone_right
+	# objects move left along the belt: the box has arrived once its centre reaches the zone centre
+	return box_pos.x <= zone_pos.x
 
 func _add_sliced_frames(frames: SpriteFrames, anim_name: String, tex: Texture2D, total_in_sheet: int, start_index: int, count: int, loop: bool, speed: float) -> void:
 	if frames.has_animation(anim_name):
@@ -1120,6 +1122,8 @@ func _process_finished_boxes(delta: float) -> void:
 		if not is_instance_valid(box):
 			to_remove.append(box)
 			continue
+		if conveyor_paused and state != State.SHIFT_END:
+			continue
 		box.position.x -= OBJECT_SPEED * delta
 		if box.position.x < OBJECT_DESPAWN_X:
 			to_remove.append(box)
@@ -1133,6 +1137,8 @@ func _process_broken_boxes(delta: float) -> void:
 	for box in broken_boxes:
 		if not is_instance_valid(box):
 			to_remove.append(box)
+			continue
+		if conveyor_paused and state != State.SHIFT_END:
 			continue
 		box.position.x -= OBJECT_SPEED * delta
 		if box.position.x < OBJECT_DESPAWN_X:
@@ -1242,20 +1248,46 @@ func _process_working(delta: float) -> void:
 	if _is_box_in_zone(4, box_pos2, box_size2):
 		_reach_player()
 
+func _next_object_or_end() -> void:
+	if state == State.DEAD or state == State.SHIFT_END:
+		return
+	if current_object_index >= TOTAL_OBJECTS:
+		_end_shift()
+		return
+	if state != State.INSPECT:
+		state = State.WORKING
+	_spawn_next_object()
+
 func _spawn_next_object() -> void:
 	if current_object_index >= TOTAL_OBJECTS:
 		_end_shift()
 		return
 	current_object = Node2D.new()
 	current_object.name = "Object" + str(current_object_index)
+	# dark outline + coloured body, bottom edge resting on the belt surface
+	var outline = ColorRect.new()
+	outline.name = "Outline"
+	outline.color = Color(0.08, 0.06, 0.05)
+	outline.size = Vector2(OBJECT_SIZE.x + 4.0, OBJECT_SIZE.y + 4.0)
+	outline.position = Vector2(-OBJECT_SIZE.x / 2.0 - 2.0, -OBJECT_SIZE.y - 2.0)
+	outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	current_object.add_child(outline)
 	var rect = ColorRect.new()
 	rect.name = "Rect"
 	rect.color = Color(0.6, 0.4, 0.2)
-	rect.size = Vector2(40, 40)
-	rect.position = Vector2(-20, -20)
+	rect.size = OBJECT_SIZE
+	rect.position = Vector2(-OBJECT_SIZE.x / 2.0, -OBJECT_SIZE.y)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	current_object.add_child(rect)
+	var shine = ColorRect.new()
+	shine.name = "Shine"
+	shine.color = Color(1, 1, 1, 0.22)
+	shine.size = Vector2(OBJECT_SIZE.x, 3.0)
+	shine.position = Vector2(-OBJECT_SIZE.x / 2.0, -OBJECT_SIZE.y)
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	current_object.add_child(shine)
 	current_object.z_index = 15
-	current_object.position = Vector2(OBJECT_SPAWN_X, CONVEYOR_Y - 40.0)
+	current_object.position = Vector2(OBJECT_SPAWN_X, BELT_SURFACE_Y)
 	objects_layer.add_child(current_object)
 	object_x = OBJECT_SPAWN_X
 	object_progress = 0
@@ -1279,13 +1311,23 @@ func _set_object_texture(path: String) -> void:
 	if tex == null:
 		return
 	rect.visible = false
+	for n in ["Outline", "Shine"]:
+		var part = current_object.get_node_or_null(n)
+		if part:
+			part.visible = false
 	if current_object.has_node("Sprite"):
 		return
 	var spr = Sprite2D.new()
 	spr.name = "Sprite"
 	spr.texture = tex
-	spr.scale = Vector2(1.5, 1.5)
+	spr.scale = Vector2(2, 2)
+	spr.centered = false
+	spr.position = Vector2(-tex.get_width(), -tex.get_height() * 2.0)
 	current_object.add_child(spr)
+	# little "pop" when the blank becomes a finished box
+	spr.scale = Vector2(2.3, 1.7)
+	var tw = create_tween()
+	tw.tween_property(spr, "scale", Vector2(2, 2), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _play_press(press_index: int) -> void:
 	if press_index < 0 or press_index >= presses.size():
@@ -1321,13 +1363,11 @@ func _reach_fish(fish_index: int) -> void:
 		current_object_index += 1
 		conveyor_paused = false
 		await get_tree().create_timer(0.3).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
 	
+	if state == State.DEAD or state == State.SHIFT_END or current_object == null:
+		return
 	object_progress += 1
 	var stage_index = clamp(object_progress - 1, 0, STAGE_COLORS.size() - 1)
 	_set_object_color(STAGE_COLORS[stage_index])
@@ -1375,11 +1415,7 @@ func _reach_player() -> void:
 		_finish_current_object()
 		current_object_index += 1
 		await get_tree().create_timer(0.3).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
 	if current_shift == 1 and current_object_index == AUTO_OBJECTS:
 		wrong_count += 1
@@ -1391,11 +1427,7 @@ func _reach_player() -> void:
 		_guard_hit_player()
 		current_object_index += 1
 		await get_tree().create_timer(0.5).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
 	if not _is_player_in_zone():
 		wrong_count += 1
@@ -1405,19 +1437,17 @@ func _reach_player() -> void:
 		current_object_index += 1
 		conveyor_paused = false
 		await get_tree().create_timer(0.5).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
+	if state == State.INSPECT:
+		_exit_inspect()
 	if player_gui and not player_gui.visible:
 		_show_gui()
 	state = State.MINIGAME
 	minigame_active = true
 	minigame_panel.visible = true
 	hint_label.visible = true
-	hint_label.text = "НАЖМИ E В ЗЕЛЁНОЙ ЗОНЕ!"
+	hint_label.text = "НАЖМИ " + _key_name("interact") + " В ЗЕЛЁНОЙ ЗОНЕ!"
 	zone_center = randf_range(0.3, 0.7)
 	zone_width = randf_range(0.18, 0.28)
 	var zw = TRACK_WIDTH * zone_width
@@ -1426,7 +1456,7 @@ func _reach_player() -> void:
 	minigame_zone.position.x = zx
 	slider_pos = 0.0
 	slider_dir = 1.0
-	minigame_slider.position.x = 0
+	minigame_slider.position.x = 0.0
 
 func _show_gui() -> void:
 	if player_gui == null:
@@ -1452,6 +1482,11 @@ func _break_current_object() -> void:
 		current_object = null
 		return
 	_set_object_color(COLOR_RED)
+	# crushed: squash it and tilt it a bit so it reads as scrap
+	var obj = current_object
+	var tw = create_tween()
+	tw.tween_property(obj, "scale", Vector2(1.25, 0.6), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(obj, "rotation", randf_range(-0.25, 0.25), 0.12)
 	broken_boxes.append(current_object)
 	current_object = null
 
@@ -1469,7 +1504,7 @@ func _process_minigame(delta: float) -> void:
 		slider_dir = 1.0
 		_on_minigame_edge_fail()
 		return
-	minigame_slider.position.x = slider_pos * TRACK_WIDTH
+	minigame_slider.position.x = clamp(slider_pos * TRACK_WIDTH - minigame_slider.size.x / 2.0, 0.0, TRACK_WIDTH - minigame_slider.size.x)
 
 func _on_minigame_edge_fail() -> void:
 	if not minigame_active:
@@ -1484,11 +1519,7 @@ func _on_minigame_edge_fail() -> void:
 	current_object_index += 1
 	conveyor_paused = false
 	await get_tree().create_timer(0.5).timeout
-	if current_object_index >= TOTAL_OBJECTS:
-		_end_shift()
-	else:
-		state = State.WORKING
-		_spawn_next_object()
+	_next_object_or_end()
 
 func _press_button() -> void:
 	if not minigame_active:
@@ -1510,11 +1541,7 @@ func _press_button() -> void:
 		_guard_hit_player()
 		current_object_index += 1
 		await get_tree().create_timer(0.5).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
 	minigame_panel.visible = false
 	_play_player_attack()
@@ -1525,11 +1552,7 @@ func _press_button() -> void:
 		_guard_hit_player()
 		current_object_index += 1
 		await get_tree().create_timer(0.5).timeout
-		if current_object_index >= TOTAL_OBJECTS:
-			_end_shift()
-		else:
-			state = State.WORKING
-			_spawn_next_object()
+		_next_object_or_end()
 		return
 	var z_min = zone_center - zone_width / 2
 	var z_max = zone_center + zone_width / 2
@@ -1545,11 +1568,7 @@ func _press_button() -> void:
 		_guard_hit_player()
 	current_object_index += 1
 	await get_tree().create_timer(0.2).timeout
-	if current_object_index >= TOTAL_OBJECTS:
-		_end_shift()
-	else:
-		state = State.WORKING
-		_spawn_next_object()
+	_next_object_or_end()
 
 func _stress_miss_effect() -> void:
 	var original_pos = minigame_panel.position
@@ -1697,6 +1716,12 @@ func _sniper_kill_player() -> void:
 		player.die()
 
 func _end_shift() -> void:
+	if state == State.DEAD or state == State.SHIFT_END:
+		return
+	if state == State.INSPECT:
+		_exit_inspect()
+	if journal_open:
+		_on_journal_close()
 	state = State.SHIFT_END
 	conveyor_paused = true
 	shift_end_npc_timer = 0.0
@@ -1803,6 +1828,7 @@ func _start_new_shift() -> void:
 		elevator_front.frame = elevator_front.sprite_frames.get_frame_count("close") - 1
 		elevator_front.stop()
 	if current_shift >= 2:
+		_refresh_bind_hints()
 		bind_hint_i.visible = true
 		bind_hint_j.visible = true
 	else:
@@ -2017,7 +2043,7 @@ func _show_guard_dialog(text: String, duration: float) -> void:
 	is_dialog_active = false
 
 func _toggle_pause() -> void:
-	if pausemenu == null:
+	if pausemenu == null or state == State.DEAD:
 		return
 	if pausemenu.visible:
 		if pausemenu.has_method("hide_menu"):
@@ -2058,7 +2084,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 		if event is InputEventKey and event.pressed and not event.echo:
-			if event.keycode == KEY_I or event.keycode == KEY_ESCAPE:
+			if _is_action_key(event, "inspect") or event.keycode == KEY_ESCAPE:
 				_exit_inspect()
 				get_viewport().set_input_as_handled()
 				return
@@ -2073,17 +2099,22 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 	if event.is_action_pressed("ui_cancel"):
-		_toggle_pause()
 		get_viewport().set_input_as_handled()
+		if journal_open:
+			_on_journal_close()
+			return
+		if state == State.DEAD:
+			return
+		_toggle_pause()
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_I:
+		if _is_action_key(event, "inspect"):
 			if current_shift < 2:
 				return
 			if state == State.WORKING:
 				_enter_inspect()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_J:
+		elif _is_action_key(event, "journal"):
 			if current_shift < 2:
 				return
 			if journal_open:
@@ -2091,6 +2122,30 @@ func _input(event: InputEvent) -> void:
 			else:
 				_open_journal()
 			get_viewport().set_input_as_handled()
+
+## Works with rebinds (InputRebind) and falls back to the default keys.
+func _is_action_key(event: InputEventKey, action: String) -> bool:
+	if InputMap.has_action(action) and event.is_action(action):
+		return true
+	match action:
+		"inspect": return event.keycode == KEY_I and not InputMap.has_action(action)
+		"journal": return event.keycode == KEY_J and not InputMap.has_action(action)
+	return false
+
+func _key_name(action: String) -> String:
+	if has_node("/root/InputRebind"):
+		var t = InputRebind.get_key_text(action)
+		if t != "" and t != "Не назначено":
+			return t
+	return "E" if action == "interact" else action.to_upper()
+
+func _refresh_bind_hints() -> void:
+	var li = bind_hint_i.get_node_or_null("KeyButton/KeyLabel")
+	if li:
+		li.text = _key_name("inspect")
+	var lj = bind_hint_j.get_node_or_null("KeyButton/KeyLabel")
+	if lj:
+		lj.text = _key_name("journal")
 
 func _is_player_near_maintenance() -> bool:
 	if player == null or maintenance_door == null:
@@ -2122,7 +2177,8 @@ func _enter_elevator() -> void:
 	_show_dialog("ПОБЕГ...", 1.5)
 	await _await_elevator_anim("open")
 	await get_tree().create_timer(1.0).timeout
-	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayMainLevelScene/ActPrologue_LevelHallway_Scene.tscn")
+	Global.autosave(Global.SCENE_HALLWAY)
+	Global.goto_scene(Global.SCENE_HALLWAY)
 
 func _show_worker_of_month_achievement() -> void:
 	_show_achievement_banner("Работник месяца")

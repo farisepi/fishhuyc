@@ -124,6 +124,10 @@ func hide_menu() -> void:
 	_is_closing = false
 
 func _input(event: InputEvent) -> void:
+	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).
+	# While the menu is open the level is paused, so closing it with Esc is handled here.
+	if not visible or _transitioning:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		var level = get_tree().current_scene
@@ -170,6 +174,8 @@ func _on_continue_pressed() -> void:
 	hide_menu()
 
 func _on_save_pressed() -> void:
+	if _transitioning:
+		return
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
@@ -177,17 +183,29 @@ func _on_save_pressed() -> void:
 	_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
 func _on_settings_pressed() -> void:
+	if _transitioning:
+		return
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
 
 func _on_exit_pressed() -> void:
+	if _transitioning:
+		return
 	UISounds.play_click()
-	_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn")
+	# the aquarium belongs to the aquarium-styled menu, everything after it to the factory one
+	var cur = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
+	if Global.get_level_number(cur) == 1:
+		_transition_to(Global.SCENE_MAIN_MENU_AQUARIUM)
+	else:
+		_transition_to(Global.SCENE_MAIN_MENU_FACTORY)
 
 func _on_restart_pressed() -> void:
+	if _transitioning:
+		return
 	UISounds.play_click()
+	_transitioning = true
 	_load_last_save()
 
 func _load_last_save() -> void:
@@ -203,6 +221,11 @@ func _load_last_save() -> void:
 	
 	var latest_time = 0
 	var latest_path = ""
+	# prefer the slot the player is actually playing in
+	var own_slot = save_dir + "save_" + str(Global.save_slot) + ".cfg"
+	if FileAccess.file_exists(own_slot):
+		latest_path = own_slot
+		latest_time = 1 << 62
 	
 	dir.list_dir_begin()
 	var file_name = dir.get_next()

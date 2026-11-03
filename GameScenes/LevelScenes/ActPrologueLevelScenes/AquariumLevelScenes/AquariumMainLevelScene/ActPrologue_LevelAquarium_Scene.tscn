@@ -12,7 +12,6 @@
 [ext_resource type="Texture2D" uid="uid://b5wn0s61o2w3u" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/NPC_Scientist_Angry_SpriteList_Animation.png" id="9_kiyxu"]
 [ext_resource type="Texture2D" uid="uid://c3xbe6il34ftu" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicAnimationFrames/NPC_Mechanic_Boring_SpriteList_Animation.png" id="11_mjdn3"]
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://GameAssets/SharedMaterials/LevelCollisionMaterials/ActPrologueAquariumMaterials/ActPrologue_LevelAquarium_Collision_Material.tres" id="17_ccpdg"]
-[ext_resource type="Shader" uid="uid://cngn6o7qapl32" path="res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_AquariumLevel_Aquarium_Shader.gdshader" id="21_5vwn5"]
 [ext_resource type="PackedScene" uid="uid://cbvmk63sdhqs2" path="res://DialogueNode.tscn" id="25_t0kk6"]
 [ext_resource type="Script" uid="uid://bqxh1rrtbky61" path="res://ChatterLine.gd" id="26_hykhb"]
 [ext_resource type="Texture2D" uid="uid://bvlskt6yuygyw" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistPortaitTextures/NPC_Scientist_Portaint_Texture.png" id="27_1tjdl"]
@@ -23,19 +22,13 @@
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option1_Texture.webp" id="31_pudq7"]
 [ext_resource type="AudioStream" uid="uid://dm4u7jsr17sln" path="res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/WaterAmbienceSounds/ActPrologue_LevelAquarium_WaterAmbience_SoundEffect.mp3" id="34_p3tjk"]
 [ext_resource type="AudioStream" uid="uid://dlpyar3xo7lqh" path="res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/GlitсhAmbienceSounds/ActPrologue_LevelAquarium_GlithAmbience_SoundEffect.mp3" id="34_sdbdi"]
-[ext_resource type="Shader" path="res://GameShaders/LevelShaders/ActPrologueLevelShaders/AquariumLevelShaders/ActPrologue_LevelAquarium_Underwater_Shader.gdshader" id="fx_sh_under"]
 [ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
 [ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_2fvow"]
-shader = ExtResource("fx_sh_under")
-shader_parameter/rect_size = Vector2(640, 330)
-shader_parameter/pixel_size = 2.0
-shader_parameter/surface_y = 0.127
-shader_parameter/tint_alpha_top = 0.16
-shader_parameter/tint_alpha_bottom = 0.42
-shader_parameter/caustic_strength = 0.24
-shader_parameter/ray_strength = 0.15
+[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="pm_script"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="pm_btnn"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="pm_btnp"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="pm_btnh"]
+[ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="pm_framing"]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_syf5m"]
 polygon = PackedVector2Array(619, 26, 619, 24, 648, 24, 648, 26)
@@ -903,13 +896,6 @@ shader_parameter/flicker_amount = 0.05
 shader_parameter/dropout_chance = 0.0
 shader_parameter/dust_density = 0.0
 
-[sub_resource type="CanvasItemMaterial" id="M_Unshaded"]
-light_mode = 1
-
-[sub_resource type="Gradient" id="G_BubbleFade"]
-offsets = PackedFloat32Array(0, 0.15, 0.8, 1)
-colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
-
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
 
@@ -929,21 +915,6 @@ modulate = Color(1, 1, 1, 0)
 position = Vector2(639, 335)
 
 [node name="bg" type="Node2D" parent="Visual" unique_id=379618543]
-
-[node name="AquariumShader" type="ColorRect" parent="Visual/bg" unique_id=93878103]
-z_index = 10
-material = SubResource("ShaderMaterial_2fvow")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -320.0
-offset_top = -274.0
-offset_right = 320.0
-offset_bottom = 56.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0)
 
 [node name="ActPrologueLevelAquariumBackgroundAquariumPartOfBackgroundTexture" type="Sprite2D" parent="Visual/bg" unique_id=1934607913]
 position = Vector2(0, -109)
@@ -1152,82 +1123,6 @@ offset_bottom = 136.0
 mouse_filter = 2
 color = Color(1, 1, 1, 1.0)
 
-[node name="TankBubbles" type="CPUParticles2D" parent="Visual/bg" unique_id=990000009]
-z_index = 11
-material = SubResource("M_Unshaded")
-position = Vector2(0, 48)
-amount = 46
-lifetime = 6.0
-preprocess = 6.0
-emission_shape = 3
-emission_rect_extents = Vector2(270, 6)
-direction = Vector2(0, -1)
-spread = 8.0
-gravity = Vector2(0, -18)
-initial_velocity_min = 8.0
-initial_velocity_max = 22.0
-scale_amount_min = 1.0
-scale_amount_max = 2.0
-color = Color(0.75, 0.95, 1, 0.45)
-color_ramp = SubResource("G_BubbleFade")
-
-[node name="PumpBubbles0" type="CPUParticles2D" parent="Visual/bg" unique_id=990000010]
-z_index = 11
-material = SubResource("M_Unshaded")
-position = Vector2(-250, 52)
-amount = 22
-lifetime = 3.2
-preprocess = 3.2
-emission_shape = 3
-emission_rect_extents = Vector2(5, 2)
-direction = Vector2(0, -1)
-spread = 5.0
-gravity = Vector2(0, -40)
-initial_velocity_min = 35.0
-initial_velocity_max = 60.0
-scale_amount_min = 2.0
-scale_amount_max = 3.0
-color = Color(0.8, 0.97, 1, 0.55)
-color_ramp = SubResource("G_BubbleFade")
-
-[node name="PumpBubbles1" type="CPUParticles2D" parent="Visual/bg" unique_id=990000011]
-z_index = 11
-material = SubResource("M_Unshaded")
-position = Vector2(250, 52)
-amount = 22
-lifetime = 3.2
-preprocess = 3.2
-emission_shape = 3
-emission_rect_extents = Vector2(5, 2)
-direction = Vector2(0, -1)
-spread = 5.0
-gravity = Vector2(0, -40)
-initial_velocity_min = 35.0
-initial_velocity_max = 60.0
-scale_amount_min = 2.0
-scale_amount_max = 3.0
-color = Color(0.8, 0.97, 1, 0.55)
-color_ramp = SubResource("G_BubbleFade")
-
-[node name="Plankton" type="CPUParticles2D" parent="Visual/bg" unique_id=990000012]
-z_index = 11
-material = SubResource("M_Unshaded")
-position = Vector2(0, -110)
-amount = 40
-lifetime = 14.0
-preprocess = 14.0
-emission_shape = 3
-emission_rect_extents = Vector2(270, 130)
-direction = Vector2(1, 0)
-spread = 180.0
-gravity = Vector2(0, 0.6)
-initial_velocity_min = 1.0
-initial_velocity_max = 4.0
-scale_amount_min = 1.0
-scale_amount_max = 1.0
-color = Color(0.7, 1, 0.85, 0.3)
-color_ramp = SubResource("G_BubbleFade")
-
 [node name="PostFX" type="ColorRect" parent="." unique_id=990000013]
 z_index = 1000
 material = SubResource("M_Post")
@@ -1310,6 +1205,79 @@ tile_set = ExtResource("17_ccpdg")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=741486502]
 libraries/ = SubResource("AnimationLibrary_0i8mc")
 
+[node name="Pausemenu" type="CanvasLayer" parent="." unique_id=995000001]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("pm_script")
+
+[node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=995000002]
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+color = Color(0, 0, 0, 0.69803923)
+
+[node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=995000003]
+offset_left = 486.0
+offset_top = 176.5
+offset_right = 666.0
+offset_bottom = 231.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("pm_btnn")
+theme_override_styles/pressed = ExtResource("pm_btnp")
+theme_override_styles/hover = ExtResource("pm_btnh")
+text = "Продолжить"
+
+[node name="SaveButton" type="Button" parent="Pausemenu" unique_id=995000004]
+offset_left = 486.0
+offset_top = 236.5
+offset_right = 666.0
+offset_bottom = 291.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("pm_btnn")
+theme_override_styles/pressed = ExtResource("pm_btnp")
+theme_override_styles/hover = ExtResource("pm_btnh")
+text = "Сохраниться"
+
+[node name="RestartButton" type="Button" parent="Pausemenu" unique_id=995000005]
+offset_left = 486.0
+offset_top = 296.5
+offset_right = 666.0
+offset_bottom = 351.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("pm_btnn")
+theme_override_styles/pressed = ExtResource("pm_btnp")
+theme_override_styles/hover = ExtResource("pm_btnh")
+text = "Рестарт"
+
+[node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=995000006]
+offset_left = 486.0
+offset_top = 356.5
+offset_right = 666.0
+offset_bottom = 411.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("pm_btnn")
+theme_override_styles/pressed = ExtResource("pm_btnp")
+theme_override_styles/hover = ExtResource("pm_btnh")
+text = "Настройки"
+
+[node name="ExitButton" type="Button" parent="Pausemenu" unique_id=995000007]
+offset_left = 486.0
+offset_top = 416.5
+offset_right = 666.0
+offset_bottom = 471.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("pm_btnn")
+theme_override_styles/pressed = ExtResource("pm_btnp")
+theme_override_styles/hover = ExtResource("pm_btnh")
+text = "Выход"
+
+[node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=995000008]
+position = Vector2(575.99994, 324)
+scale = Vector2(3.9999993, 4)
+texture = ExtResource("pm_framing")
+
 [node name="ChatterController" parent="." unique_id=1209504675 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
 lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl"), SubResource("Resource_c6gkb"), SubResource("Resource_2fvow"), SubResource("Resource_j2tti")])
 loop = false
@@ -1323,5 +1291,11 @@ far_threshold = 10.0
 autostart = true
 scientist_panel_offset = Vector2(-20, -50)
 mechanic_panel_offset = Vector2(20, -50)
+
+[connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
+[connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]
+[connection signal="pressed" from="Pausemenu/RestartButton" to="Pausemenu" method="_on_restart_pressed"]
+[connection signal="pressed" from="Pausemenu/SettingsButton" to="Pausemenu" method="_on_settings_pressed"]
+[connection signal="pressed" from="Pausemenu/ExitButton" to="Pausemenu" method="_on_exit_pressed"]
 
 [editable path="Player"]

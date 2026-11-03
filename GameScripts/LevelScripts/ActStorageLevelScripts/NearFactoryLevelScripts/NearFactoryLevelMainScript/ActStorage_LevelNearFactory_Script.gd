@@ -17,6 +17,11 @@ const TITLE_SCENE = preload("res://GameScenes/UIScenes/ScreenScenes/HUDScenes/Ac
 var hud_instance: CanvasLayer = null
 var inventory_instance: CanvasLayer = null
 var title_instance: CanvasLayer = null
+var _level_finished: bool = false
+
+## The green-lit iron door at the end of the ground floor is the way out of this level.
+const EXIT_POSITION: Vector2 = Vector2(8000, 940)
+const EXIT_SIZE: Vector2 = Vector2(140, 140)
 
 func _ready() -> void:
 	randomize()
@@ -30,6 +35,7 @@ func _ready() -> void:
 	_spawn_inventory()
 	_show_title()
 	_spawn_enemies()
+	_create_exit_trigger()
 	
 	if death_screen and death_screen.has_method("hide_death"):
 		death_screen.hide_death()
@@ -80,10 +86,48 @@ func _spawn_enemies() -> void:
 func _process(_delta: float) -> void:
 	pass
 
+func _create_exit_trigger() -> void:
+	var area = Area2D.new()
+	area.name = "ExitTrigger"
+	area.position = EXIT_POSITION
+	area.collision_layer = 0
+	var shape = CollisionShape2D.new()
+	var rect = RectangleShape2D.new()
+	rect.size = EXIT_SIZE
+	shape.shape = rect
+	area.add_child(shape)
+	add_child(area)
+	area.body_entered.connect(_on_exit_entered)
+
+func _on_exit_entered(body: Node) -> void:
+	if _level_finished or body != player:
+		return
+	if player and "is_dead" in player and player.is_dead:
+		return
+	_level_finished = true
+	if player.has_method("set_movement_blocked"):
+		player.set_movement_blocked(true)
+	player.velocity = Vector2.ZERO
+	Global.autosave(scene_file_path, player.global_position)
+	var card = TITLE_SCENE.instantiate()
+	add_child(card)
+	await get_tree().process_frame
+	if card.has_method("show_title"):
+		card.show_title("ПРОДОЛЖЕНИЕ СЛЕДУЕТ", "склад ещё не закончен", 3.0)
+	await get_tree().create_timer(4.2).timeout
+	if not is_inside_tree():
+		return
+	get_tree().paused = false
+	Global.goto_scene(Global.SCENE_MAIN_MENU_FACTORY)
+
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		_toggle_pause()
 		get_viewport().set_input_as_handled()
+		if _level_finished:
+			return
+		if player and "is_dead" in player and player.is_dead:
+			return
+		_toggle_pause()
 
 func _toggle_pause() -> void:
 	if not pausemenu:

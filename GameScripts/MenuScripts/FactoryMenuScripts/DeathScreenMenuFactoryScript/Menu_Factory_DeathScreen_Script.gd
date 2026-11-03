@@ -90,6 +90,7 @@ func _process(delta):
 func _on_restart_button_pressed():
 	if not can_interact:
 		return
+	can_interact = false
 	print("рестарт нажат")
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -98,10 +99,11 @@ func _on_restart_button_pressed():
 func _on_main_menu_button_pressed():
 	if not can_interact:
 		return
+	can_interact = false
 	print("меню нажато")
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	_fade_out_and_goto("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
+	_fade_out_and_goto(Global.SCENE_MAIN_MENU_FACTORY)
 
 func _on_quit_button_pressed():
 	if not can_interact:
@@ -128,6 +130,7 @@ func _fade_out_and_reload():
 	await tween.finished
 	
 	var current_path = get_tree().current_scene.scene_file_path
+	_release_overlay_after_change(canvas, fade)
 	get_tree().paused = false
 	get_tree().change_scene_to_file(current_path)
 
@@ -148,5 +151,15 @@ func _fade_out_and_goto(path: String):
 	tween.tween_property(fade, "color:a", 1.0, 0.4)
 	await tween.finished
 	
+	_release_overlay_after_change(canvas, fade)
 	get_tree().paused = false
 	get_tree().change_scene_to_file(path)
+
+## The black overlay lives on the root and would survive the scene change forever (black screen).
+## Let it fade away by itself once the new scene is up.
+func _release_overlay_after_change(canvas: CanvasLayer, fade: ColorRect) -> void:
+	var t = canvas.create_tween()
+	t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	t.tween_interval(0.25)
+	t.tween_property(fade, "color:a", 0.0, 0.4)
+	t.tween_callback(canvas.queue_free)

@@ -1010,7 +1010,7 @@ func _try_ladder_climb():
 		var vertical = Input.get_axis("ui_up", "ui_down")
 		var top = nearby_ladder.get_top_y()
 		var bottom = nearby_ladder.get_bottom_y()
-		global_position.y += vertical * nearby_ladder.climb_speed * (1.0 / 60.0)
+		global_position.y += vertical * nearby_ladder.climb_speed * get_process_delta_time()
 		global_position.x = nearby_ladder.global_position.x
 		if global_position.y < top:
 			global_position.y = top

@@ -41,17 +41,18 @@ func _process(delta: float) -> void:
 	smooth_mouse_velocity = smooth_mouse_velocity.lerp(raw_vel, 0.3)
 	last_mouse_pos = current_mouse
 	
+	var view = get_viewport().get_visible_rect().size
 	if thrown:
 		velocity.y += fall_gravity * delta
-		position += velocity * delta
+		global_position += velocity * delta
 		rotation += angular_velocity * delta
-		if global_position.y > get_viewport().get_visible_rect().size.y + 200.0:
+		if global_position.y > view.y + 200.0 or global_position.x < -400.0 or global_position.x > view.x + 400.0:
 			queue_free()
 		return
 	
 	if held:
 		var mouse_pos = get_global_mouse_position()
-		position = position.lerp(mouse_pos + mouse_offset, 0.35)
+		global_position = global_position.lerp(mouse_pos + mouse_offset, 0.35)
 		
 		var target_amp = clamp(smooth_mouse_velocity.x * 0.0008, -0.35, 0.35)
 		swing_amplitude = lerp(swing_amplitude, target_amp, 0.08)
@@ -62,6 +63,13 @@ func _process(delta: float) -> void:
 	position.x -= conveyor_speed * delta
 	swing_phase += delta * 1.5
 	rotation = sin(swing_phase) * 0.03
+	# boxes that rode off the left edge were never removed and piled up forever
+	if global_position.x < -250.0:
+		queue_free()
+
+func _exit_tree() -> void:
+	if held:
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 
 func _on_mouse_entered() -> void:
 	if not held and not thrown:

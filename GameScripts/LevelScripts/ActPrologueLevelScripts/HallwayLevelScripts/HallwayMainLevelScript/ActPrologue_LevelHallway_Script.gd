@@ -1143,36 +1143,22 @@ func _win():
 	state = State.WIN
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
-	var black = ColorRect.new()
-	black.color = Color.BLACK
-	black.set_anchors_preset(Control.PRESET_FULL_RECT)
-	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	black.z_index = 200
-	add_child(black)
-
-	var tween = create_tween()
-	tween.tween_property(black, "modulate:a", 1.0, 0.5)
-	await tween.finished
-	if not is_inside_tree():
-		return
-
 	if player:
 		Global.player_position = player.global_position
-	var config = ConfigFile.new()
-	var save_path = "user://saves/save_" + str(Global.save_slot) + ".cfg"
-	if config.load(save_path) == OK:
-		config.set_value("save", "scene", "res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelMainScene/ActStorage_LevelNearFactory_Scene.tscn")
-		config.set_value("save", "time", Time.get_datetime_string_from_system())
-		if player:
-			config.set_value("save", "player_x", player.global_position.x)
-			config.set_value("save", "player_y", player.global_position.y)
-		config.save(save_path)
+	# progress is kept even if the player never saved manually
+	Global.autosave(Global.SCENE_STORAGE)
 
 	GlobalMusic.stop_music()
-	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelMainScene/ActStorage_LevelNearFactory_Scene.tscn")
+	Global.goto_scene(Global.SCENE_STORAGE)
 
 func _input(event: InputEvent) -> void:
 	if get_tree().paused:
+		return
+
+	# the pause menu only closes itself; opening it is up to the level
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_toggle_pause()
 		return
 
 	if _input_locked:

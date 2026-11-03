@@ -229,7 +229,7 @@ func _create_falling_catchable_box(canvas: CanvasLayer, box_texture: Texture2D, 
 	
 	var col = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
-	shape.size = Vector2(spr.texture.get_width() * s, spr.texture.get_height() * s)
+	shape.size = Vector2(spr.texture.get_width(), spr.texture.get_height()) * spr.scale
 	col.shape = shape
 	box.add_child(col)
 	
