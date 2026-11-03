@@ -16,6 +16,17 @@ const OBJECT_DESPAWN_X: float = -700.0
 const BELT_SURFACE_Y: float = 345.0
 const OBJECT_SIZE: Vector2 = Vector2(30.0, 24.0)
 
+## Sushi line: every press adds one step, the player's press packs the set into a box.
+##   0 bamboo mat on a board -> 1 nori -> 2 rice -> 3 rolled -> 4 cut -> 5 boxed
+const SUSHI_TEXTURE_DIR := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactorySushiTextures/"
+const SUSHI_STAGES: Array = ["Stage0_Mat", "Stage1_Nori", "Stage2_Rice", "Stage3_Roll", "Stage4_Cut", "Stage5_Box"]
+const SUSHI_STAGE_PACKED: int = 5
+const SUSHI_SCALE: float = 2.0
+const PRESS_HOLD_TIME: float = 0.16
+const COLOR_BROKEN_TINT := Color(1.0, 0.45, 0.4)
+var _sushi_textures: Array = []
+var _sushi_broken_textures: Array = []
+
 const OBJECT_SPEED: float = 187.5
 const NPC_WALK_SPEED: float = 240.0
 const NPC_WALK_DELAY_MIN: float = 0.5
@@ -197,6 +208,7 @@ var current_object: Node2D = null
 var object_x: float = 0.0
 var object_progress: int = 0
 var conveyor_paused: bool = false
+var _guard_busy: bool = false
 var current_object_index: int = 0
 var _box_processed_zones: Array = []
 
@@ -211,7 +223,12 @@ var action_move_timer: float = 0.0
 var slider_pos: float = 0.0
 var slider_dir: float = 1.0
 var minigame_active: bool = false
-const TRACK_WIDTH: float = 400.0
+const TRACK_WIDTH: float = 600.0
+const TRACK_HEIGHT: float = 24.0
+const MG_BAD_TEX_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryProgressbarTextures/ActPrologue_LevelFactory_Progressbar_Fullness_Bad_Texture.png"
+const MG_GOOD_TEX_PATH := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryProgressbarTextures/ActPrologue_LevelFactory_Progressbar_Fullness_Good_Texture.png"
+const MG_DIM := Color(0.5, 0.5, 0.55, 1.0)
+const STRESS_BAR_POS := Vector2(376, 166)
 var zone_center: float = 0.5
 var zone_width: float = 0.2
 
@@ -277,8 +294,16 @@ var journal_notes_full: Dictionary = {}
 var elevator_inspected: bool = false
 
 var stress_level: int = 0
-var stress_bar: ProgressBar = null
+var stress_bar: TextureProgressBar = null
 var stress_label: Label = null
+var stress_title: Label = null
+var _stress_shown_value: float = 0.0
+var _stress_tween: Tween = null
+var _stress_pulse_time: float = 0.0
+var _mg_fill_bad: Control = null
+var _mg_fill_good: Control = null
+var _mg_zone_good: TextureRect = null
+var _mg_fill_good_tex: TextureRect = null
 
 var npc_identities: Dictionary = {}
 var escape_info_shift: int = -1
@@ -315,6 +340,12 @@ func _ready() -> void:
 	_create_vignette()
 	_create_shift_bars()
 	_create_stress_bar()
+	_build_minigame_bar()
+	# characters stand in front of the presses (presses z 16 sit above the sushi z 15)
+	if player:
+		player.z_index = 17
+	if guard_sprite:
+		guard_sprite.z_index = 17
 	_assign_npc_identities()
 	_create_inspect_targets()
 	_create_inspect_text_panel()
@@ -743,44 +774,162 @@ func _create_shift_bars() -> void:
 	sniper_shift_bar.visible = false
 	sniper_shift_bar_label.visible = false
 
+## Stress bar: hazard frame + segmented fill whose colour goes green -> red with stress.
 func _create_stress_bar() -> void:
-	stress_bar = ProgressBar.new()
+	var frame_tex = load(PROGRESSBAR_BG_PATH)
+	stress_bar = TextureProgressBar.new()
 	stress_bar.name = "StressBar"
-	stress_bar.position = Vector2(376, 152)
-	stress_bar.size = Vector2(400, 12)
-	stress_bar.show_percentage = false
+	stress_bar.position = STRESS_BAR_POS
+	stress_bar.scale = Vector2(4.0 / 3.0, 4.0 / 3.0)
+	stress_bar.min_value = 0
 	stress_bar.max_value = 100
+	stress_bar.step = 0.1
 	stress_bar.value = 0
-	var sb_bg = StyleBoxFlat.new()
-	sb_bg.bg_color = Color(0.15, 0.15, 0.15, 0.8)
-	stress_bar.add_theme_stylebox_override("background", sb_bg)
-	var sb_fill = StyleBoxFlat.new()
-	sb_fill.bg_color = Color(0.85, 0.2, 0.2, 0.9)
-	stress_bar.add_theme_stylebox_override("fill", sb_fill)
+	stress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stress_bar.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if frame_tex:
+		stress_bar.texture_under = frame_tex
+	stress_bar.texture_progress = load(MG_GOOD_TEX_PATH)
 	$UI.add_child(stress_bar)
+	stress_title = Label.new()
+	stress_title.name = "StressTitle"
+	stress_title.position = STRESS_BAR_POS + Vector2(0, -22)
+	stress_title.size = Vector2(200, 20)
+	stress_title.add_theme_font_size_override("font_size", 16)
+	stress_title.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	stress_title.add_theme_color_override("font_outline_color", Color.BLACK)
+	stress_title.add_theme_constant_override("outline_size", 4)
+	stress_title.text = "СТРЕСС"
+	$UI.add_child(stress_title)
 	stress_label = Label.new()
 	stress_label.name = "StressLabel"
-	stress_label.position = Vector2(786, 148)
-	stress_label.size = Vector2(120, 20)
+	stress_label.position = STRESS_BAR_POS + Vector2(200, -22)
+	stress_label.size = Vector2(200, 20)
+	stress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	stress_label.add_theme_font_size_override("font_size", 16)
-	stress_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
-	stress_label.text = "СТРЕСС: 0%"
+	stress_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	stress_label.add_theme_constant_override("outline_size", 4)
+	stress_label.text = "0%"
 	$UI.add_child(stress_label)
+	_apply_stress_style(0)
 	stress_bar.visible = false
 	stress_label.visible = false
+	stress_title.visible = false
+
+func _stress_color(level: int) -> Color:
+	if level >= 60:
+		return Color(1.0, 0.35, 0.3)
+	if level >= 40:
+		return Color(1.0, 0.8, 0.25)
+	return Color(0.6, 1.0, 0.4)
+
+func _apply_stress_style(level: int) -> void:
+	if stress_bar == null:
+		return
+	stress_bar.texture_progress = load(MG_BAD_TEX_PATH if level >= 40 else MG_GOOD_TEX_PATH)
+	# yellow-ish tint in the middle zone, pure textures at the ends
+	stress_bar.tint_progress = Color(1.0, 0.85, 0.45) if (level >= 40 and level < 60) else Color.WHITE
+	stress_label.add_theme_color_override("font_color", _stress_color(level))
 
 func _update_stress_bar() -> void:
 	if stress_bar == null or stress_label == null:
 		return
 	var gui_visible = player_gui != null and player_gui.visible
-	if gui_visible:
-		stress_bar.visible = true
-		stress_bar.value = stress_level
-		stress_label.visible = true
-		stress_label.text = "СТРЕСС: " + str(stress_level) + "%"
+	stress_bar.visible = gui_visible
+	stress_label.visible = gui_visible
+	if stress_title:
+		stress_title.visible = gui_visible
+	if not gui_visible:
+		return
+	stress_label.text = str(stress_level) + "%"
+	_apply_stress_style(stress_level)
+	if not is_equal_approx(_stress_shown_value, float(stress_level)):
+		var grew = stress_level > _stress_shown_value
+		_stress_shown_value = float(stress_level)
+		if _stress_tween and _stress_tween.is_valid():
+			_stress_tween.kill()
+		_stress_tween = create_tween()
+		_stress_tween.tween_property(stress_bar, "value", float(stress_level), 0.45).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		if grew:
+			# short jolt so the player notices the stress went up
+			var base = STRESS_BAR_POS
+			var jt = create_tween()
+			for k in range(3):
+				jt.tween_property(stress_bar, "position", base + Vector2(randf_range(-4, 4), randf_range(-2, 2)), 0.04)
+			jt.tween_property(stress_bar, "position", base, 0.05)
+
+## Called every frame: a soft red pulse when stress is high.
+func _process_stress_pulse(delta: float) -> void:
+	if stress_bar == null or not stress_bar.visible:
+		return
+	if stress_level >= 60:
+		_stress_pulse_time += delta * (2.0 if stress_level < 80 else 3.5)
+		var p = 0.5 + 0.5 * sin(_stress_pulse_time * TAU)
+		stress_bar.modulate = Color(1.0 + p * 0.5, 1.0 - p * 0.25, 1.0 - p * 0.25)
 	else:
-		stress_bar.visible = false
-		stress_label.visible = false
+		_stress_pulse_time = 0.0
+		stress_bar.modulate = Color.WHITE
+
+## Minigame bar built from the level's progressbar textures:
+## hazard frame, dim red track, dim green zone, and a bright "fullness" that follows the slider.
+func _build_minigame_bar() -> void:
+	if minigame_panel == null or minigame_zone == null or minigame_slider == null:
+		return
+	var track = minigame_panel.get_node_or_null("Track") as Control
+	var bad = load(MG_BAD_TEX_PATH)
+	var good = load(MG_GOOD_TEX_PATH)
+	if track == null or bad == null or good == null:
+		return
+	track.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var base_bad = _mg_layer(bad, MG_DIM)
+	track.add_child(base_bad)
+	track.move_child(base_bad, minigame_zone.get_index())
+	minigame_zone.texture = null
+	minigame_zone.clip_contents = true
+	_mg_zone_good = _mg_layer(good, MG_DIM)
+	minigame_zone.add_child(_mg_zone_good)
+	_mg_fill_bad = _mg_clip()
+	track.add_child(_mg_fill_bad)
+	_mg_fill_bad.add_child(_mg_layer(bad, Color.WHITE))
+	_mg_fill_good = _mg_clip()
+	track.add_child(_mg_fill_good)
+	_mg_fill_good_tex = _mg_layer(good, Color.WHITE)
+	_mg_fill_good.add_child(_mg_fill_good_tex)
+	track.move_child(minigame_slider, track.get_child_count() - 1)
+
+func _mg_layer(tex: Texture2D, tint: Color) -> TextureRect:
+	var r = TextureRect.new()
+	r.texture = tex
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_SCALE
+	r.position = Vector2.ZERO
+	r.size = Vector2(TRACK_WIDTH, TRACK_HEIGHT)
+	r.modulate = tint
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
+
+func _mg_clip() -> Control:
+	var c = Control.new()
+	c.clip_contents = true
+	c.position = Vector2.ZERO
+	c.size = Vector2(0, TRACK_HEIGHT)
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return c
+
+func _update_minigame_fill() -> void:
+	if _mg_fill_bad == null or minigame_zone == null:
+		return
+	var px = clamp(slider_pos, 0.0, 1.0) * TRACK_WIDTH
+	var zx = minigame_zone.position.x
+	var zw = minigame_zone.size.x
+	_mg_fill_bad.size = Vector2(px, TRACK_HEIGHT)
+	if _mg_zone_good:
+		_mg_zone_good.position.x = -zx
+	_mg_fill_good.position.x = zx
+	_mg_fill_good.size = Vector2(clamp(px - zx, 0.0, zw), TRACK_HEIGHT)
+	_mg_fill_good_tex.position.x = -zx
+	var in_zone = px >= zx and px <= zx + zw
+	minigame_slider.modulate = Color(0.7, 1.7, 0.7) if in_zone else Color.WHITE
 
 func _update_stress_from_hp() -> void:
 	if player == null:
@@ -1015,6 +1164,7 @@ func _process(delta: float) -> void:
 	_process_clock(delta)
 	_process_shift_changes()
 	_process_conveyor_scroll(delta)
+	_process_stress_pulse(delta)
 	_process_finished_boxes(delta)
 	_process_broken_boxes(delta)
 	_process_shift_end_npcs(delta)
@@ -1264,28 +1414,13 @@ func _spawn_next_object() -> void:
 		return
 	current_object = Node2D.new()
 	current_object.name = "Object" + str(current_object_index)
-	# dark outline + coloured body, bottom edge resting on the belt surface
-	var outline = ColorRect.new()
-	outline.name = "Outline"
-	outline.color = Color(0.08, 0.06, 0.05)
-	outline.size = Vector2(OBJECT_SIZE.x + 4.0, OBJECT_SIZE.y + 4.0)
-	outline.position = Vector2(-OBJECT_SIZE.x / 2.0 - 2.0, -OBJECT_SIZE.y - 2.0)
-	outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	current_object.add_child(outline)
-	var rect = ColorRect.new()
-	rect.name = "Rect"
-	rect.color = Color(0.6, 0.4, 0.2)
-	rect.size = OBJECT_SIZE
-	rect.position = Vector2(-OBJECT_SIZE.x / 2.0, -OBJECT_SIZE.y)
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	current_object.add_child(rect)
-	var shine = ColorRect.new()
-	shine.name = "Shine"
-	shine.color = Color(1, 1, 1, 0.22)
-	shine.size = Vector2(OBJECT_SIZE.x, 3.0)
-	shine.position = Vector2(-OBJECT_SIZE.x / 2.0, -OBJECT_SIZE.y)
-	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	current_object.add_child(shine)
+	var spr = Sprite2D.new()
+	spr.name = "Sprite"
+	spr.centered = false
+	spr.scale = Vector2(SUSHI_SCALE, SUSHI_SCALE)
+	current_object.add_child(spr)
+	current_object.set_meta("sushi_stage", -1)
+	_set_object_stage(0, false)
 	current_object.z_index = 15
 	current_object.position = Vector2(OBJECT_SPAWN_X, BELT_SURFACE_Y)
 	objects_layer.add_child(current_object)
@@ -1294,12 +1429,47 @@ func _spawn_next_object() -> void:
 	conveyor_paused = false
 	_box_processed_zones.clear()
 
+func _load_sushi_textures() -> void:
+	if not _sushi_textures.is_empty():
+		return
+	for n in SUSHI_STAGES:
+		var path = SUSHI_TEXTURE_DIR + "Factory_Sushi_" + n + "_Texture.png"
+		_sushi_textures.append(load(path) if ResourceLoader.exists(path) else null)
+		var bpath = SUSHI_TEXTURE_DIR + "Factory_Sushi_" + n + "_Broken_Texture.png"
+		_sushi_broken_textures.append(load(bpath) if ResourceLoader.exists(bpath) else null)
+
+## Shows the given step of the sushi on the current object (with a small squash "pop").
+func _set_object_stage(stage: int, pop: bool = true) -> void:
+	if current_object == null or not is_instance_valid(current_object):
+		return
+	_load_sushi_textures()
+	stage = clamp(stage, 0, SUSHI_STAGES.size() - 1)
+	if int(current_object.get_meta("sushi_stage", -1)) == stage:
+		return
+	current_object.set_meta("sushi_stage", stage)
+	var spr = current_object.get_node_or_null("Sprite") as Sprite2D
+	if spr == null:
+		return
+	var tex: Texture2D = _sushi_textures[stage]
+	if tex == null:
+		return
+	spr.texture = tex
+	# bottom centre of the sprite sits on the belt
+	spr.position = Vector2(-tex.get_width() * SUSHI_SCALE / 2.0, -tex.get_height() * SUSHI_SCALE)
+	if pop:
+		current_object.scale = Vector2(1.18, 0.82)
+		var tw = create_tween()
+		tw.tween_property(current_object, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
 func _set_object_color(c: Color) -> void:
 	if current_object == null:
 		return
 	var rect = current_object.get_node_or_null("Rect")
 	if rect:
 		rect.color = c
+	var spr = current_object.get_node_or_null("Sprite")
+	if spr:
+		spr.modulate = c
 
 func _set_object_texture(path: String) -> void:
 	if current_object == null:
@@ -1329,19 +1499,52 @@ func _set_object_texture(path: String) -> void:
 	var tw = create_tween()
 	tw.tween_property(spr, "scale", Vector2(2, 2), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-func _play_press(press_index: int) -> void:
-	if press_index < 0 or press_index >= presses.size():
+## Safe "play and wait": waits by a timer computed from the animation length, so a looping
+## or missing animation can never freeze the caller (this used to stop the belt / the guard).
+func _play_and_wait(spr: AnimatedSprite2D, anim: StringName, max_time: float = 2.0) -> void:
+	if spr == null or not is_instance_valid(spr) or spr.sprite_frames == null:
 		return
-	var press = presses[press_index]
-	if press == null:
+	if not spr.sprite_frames.has_animation(anim):
+		await get_tree().create_timer(0.25, false).timeout
 		return
-	if not press.sprite_frames.has_animation("press_down"):
+	spr.play(anim)
+	var dur := 0.35
+	if not spr.sprite_frames.get_animation_loop(anim):
+		var spd = max(spr.sprite_frames.get_animation_speed(anim) * abs(spr.speed_scale), 0.01)
+		var total := 0.0
+		for i in range(spr.sprite_frames.get_frame_count(anim)):
+			total += spr.sprite_frames.get_frame_duration(anim, i)
+		dur = total / spd
+	await get_tree().create_timer(clamp(dur, 0.05, max_time), false).timeout
+
+## The press comes down, covers the sushi, and only while it is down `on_impact` is called
+## (that is where the sushi changes). Then the foot lifts and the sushi springs back up.
+func _play_press(press_index: int, on_impact: Callable = Callable()) -> void:
+	var press: AnimatedSprite2D = null
+	if press_index >= 0 and press_index < presses.size():
+		press = presses[press_index]
+	var obj = current_object
+	if press == null or press.sprite_frames == null or not press.sprite_frames.has_animation("press_down"):
+		if on_impact.is_valid():
+			on_impact.call()
 		return
-	press.play("press_down")
-	await press.animation_finished
+	await _play_and_wait(press, "press_down", 1.2)
+	if state == State.DEAD:
+		return
+	# foot is down: flatten the sushi under it and change it while it is hidden
+	if obj and is_instance_valid(obj):
+		obj.scale = Vector2(1.2, 0.5)
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.06)
+	if on_impact.is_valid():
+		on_impact.call()
+	await get_tree().create_timer(PRESS_HOLD_TIME, false).timeout
 	if press.sprite_frames.has_animation("press_up"):
 		press.play("press_up")
-		await press.animation_finished
+	if obj and is_instance_valid(obj):
+		var tw = create_tween()
+		tw.tween_property(obj, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await _play_and_wait(press, "press_up", 1.2)
 
 func _reach_fish(fish_index: int) -> void:
 	conveyor_paused = true
@@ -1352,31 +1555,35 @@ func _reach_fish(fish_index: int) -> void:
 		_box_processed_zones.append(fish_index)
 	var fish = npc_fishes[fish_index]
 	
+	# 1) the fish hits the button  2) the press comes down  3) under it the sushi changes
 	await _play_npc_attack(fish)
-	await _play_press(fish_index)
-	
+	if state == State.DEAD or state == State.SHIFT_END or current_object == null:
+		return
 	var mistake = randf() < NPC_MISTAKE_CHANCE
+	var on_impact = func():
+		if mistake:
+			_break_current_object(false, false)
+		else:
+			object_progress += 1
+			_set_object_stage(object_progress, false)
+	await _play_press(fish_index, on_impact)
+	if state == State.DEAD or state == State.SHIFT_END:
+		return
 	if mistake:
-		await get_tree().create_timer(0.3).timeout
-		_break_current_object()
 		await _guard_hit_npc(fish)
+		if state == State.DEAD or state == State.SHIFT_END:
+			return
 		current_object_index += 1
 		conveyor_paused = false
 		await get_tree().create_timer(0.3).timeout
 		_next_object_or_end()
 		return
-	
-	if state == State.DEAD or state == State.SHIFT_END or current_object == null:
-		return
-	object_progress += 1
-	var stage_index = clamp(object_progress - 1, 0, STAGE_COLORS.size() - 1)
-	_set_object_color(STAGE_COLORS[stage_index])
 	conveyor_paused = false
 
 func _play_npc_attack(fish: Node) -> void:
-	if fish == null:
+	if fish == null or not is_instance_valid(fish):
 		return
-	if fish is AnimatedSprite2D:
+	if fish is AnimatedSprite2D and fish.sprite_frames:
 		var has_left = fish.sprite_frames.has_animation("AttackLeft")
 		var has_right = fish.sprite_frames.has_animation("AttackRight")
 		var anim = ""
@@ -1387,10 +1594,11 @@ func _play_npc_attack(fish: Node) -> void:
 		elif has_right:
 			anim = "AttackRight"
 		if anim != "":
-			fish.play(anim)
-			await fish.animation_finished
-			if fish.sprite_frames.has_animation("idle"):
+			await _play_and_wait(fish, anim, 1.2)
+			if is_instance_valid(fish) and fish.sprite_frames.has_animation("idle"):
 				fish.play("idle")
+			return
+	await get_tree().create_timer(0.3, false).timeout
 
 func _play_player_attack() -> void:
 	if player_sprite == null:
@@ -1404,40 +1612,22 @@ func _reach_player() -> void:
 	conveyor_paused = true
 	if not _box_processed_zones.has(4):
 		_box_processed_zones.append(4)
-	await _play_press(4)
 	if current_shift == 1 and current_object_index < AUTO_OBJECTS:
+		# tutorial boxes: the player hits automatically, then the press packs
 		_play_player_attack()
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(0.35).timeout
 		if player_sprite and player_sprite.sprite_frames.has_animation("Idle"):
 			player_sprite.play("Idle")
-		correct_count += 1
-		_mark_progress(current_object_index, true)
-		_finish_current_object()
-		current_object_index += 1
-		await get_tree().create_timer(0.3).timeout
-		_next_object_or_end()
+		await _player_press_result(true, false)
 		return
 	if current_shift == 1 and current_object_index == AUTO_OBJECTS:
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
 		if player and player.has_method("set_movement_blocked"):
 			player.set_movement_blocked(false)
 		_show_gui()
-		_break_current_object()
-		_guard_hit_player()
-		current_object_index += 1
-		await get_tree().create_timer(0.5).timeout
-		_next_object_or_end()
+		await _player_press_result(false)
 		return
 	if not _is_player_in_zone():
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
-		_break_current_object()
-		_guard_hit_player()
-		current_object_index += 1
-		conveyor_paused = false
-		await get_tree().create_timer(0.5).timeout
-		_next_object_or_end()
+		await _player_press_result(false)
 		return
 	if state == State.INSPECT:
 		_exit_inspect()
@@ -1457,6 +1647,27 @@ func _reach_player() -> void:
 	slider_pos = 0.0
 	slider_dir = 1.0
 	minigame_slider.position.x = 0.0
+	_update_minigame_fill()
+
+## Player's station result: the press comes down AFTER the minigame and at the moment of
+## impact either packs the roll into a box or crushes it.
+func _player_press_result(success: bool, punish: bool = true) -> void:
+	if success:
+		correct_count += 1
+		_mark_progress(current_object_index, true)
+		await _play_press(4, _finish_current_object)
+	else:
+		wrong_count += 1
+		_mark_progress(current_object_index, false)
+		await _play_press(4, func(): _break_current_object(true, false))
+		if punish and state != State.DEAD:
+			_guard_hit_player()
+	if state == State.DEAD or state == State.SHIFT_END:
+		return
+	current_object_index += 1
+	conveyor_paused = false
+	await get_tree().create_timer(0.3).timeout
+	_next_object_or_end()
 
 func _show_gui() -> void:
 	if player_gui == null:
@@ -1473,20 +1684,38 @@ func _finish_current_object() -> void:
 	if current_object == null or not is_instance_valid(current_object):
 		current_object = null
 		return
-	_set_object_texture(BOX_TEXTURE_PATH)
+	_set_object_stage(SUSHI_STAGE_PACKED, false)
 	finished_boxes.append(current_object)
 	current_object = null
 
-func _break_current_object() -> void:
+## packing = true: the player's press failed, so the box itself gets crushed.
+func _break_current_object(packing: bool = false, animate: bool = true) -> void:
 	if current_object == null or not is_instance_valid(current_object):
 		current_object = null
 		return
-	_set_object_color(COLOR_RED)
-	# crushed: squash it and tilt it a bit so it reads as scrap
+	_load_sushi_textures()
+	var stage = SUSHI_STAGE_PACKED if packing else clamp(int(current_object.get_meta("sushi_stage", 0)), 0, SUSHI_STAGES.size() - 1)
+	var spr = current_object.get_node_or_null("Sprite") as Sprite2D
+	var tex: Texture2D = _sushi_broken_textures[stage] if stage < _sushi_broken_textures.size() else null
 	var obj = current_object
-	var tw = create_tween()
-	tw.tween_property(obj, "scale", Vector2(1.25, 0.6), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(obj, "rotation", randf_range(-0.25, 0.25), 0.12)
+	if spr and tex:
+		spr.texture = tex
+		spr.position = Vector2(-tex.get_width() * SUSHI_SCALE / 2.0, -tex.get_height() * SUSHI_SCALE)
+		current_object.set_meta("sushi_stage", stage)
+		current_object.set_meta("sushi_broken", true)
+		# short hit: flash red, little squash, then settle as ruined food
+		spr.modulate = Color(1.0, 0.55, 0.5)
+		var tw = create_tween()
+		if animate:
+			tw.tween_property(obj, "scale", Vector2(1.2, 0.8), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.tween_property(obj, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(spr, "modulate", Color(1, 0.85, 0.82), 0.4)
+	else:
+		# no broken sprite available (not imported yet): old squash fallback
+		_set_object_color(COLOR_BROKEN_TINT)
+		var tw2 = create_tween()
+		tw2.tween_property(obj, "scale", Vector2(1.25, 0.6), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw2.parallel().tween_property(obj, "rotation", randf_range(-0.25, 0.25), 0.12)
 	broken_boxes.append(current_object)
 	current_object = null
 
@@ -1505,21 +1734,15 @@ func _process_minigame(delta: float) -> void:
 		_on_minigame_edge_fail()
 		return
 	minigame_slider.position.x = clamp(slider_pos * TRACK_WIDTH - minigame_slider.size.x / 2.0, 0.0, TRACK_WIDTH - minigame_slider.size.x)
+	_update_minigame_fill()
 
 func _on_minigame_edge_fail() -> void:
 	if not minigame_active:
 		return
 	minigame_active = false
 	hint_label.visible = false
-	minigame_panel.visible = false
-	wrong_count += 1
-	_mark_progress(current_object_index, false)
-	_break_current_object()
-	_guard_hit_player()
-	current_object_index += 1
-	conveyor_paused = false
-	await get_tree().create_timer(0.5).timeout
-	_next_object_or_end()
+	_flash_minigame(false)
+	await _player_press_result(false)
 
 func _press_button() -> void:
 	if not minigame_active:
@@ -1527,48 +1750,36 @@ func _press_button() -> void:
 	UISounds.play_click()
 	minigame_active = false
 	hint_label.visible = false
-	conveyor_paused = false
-	var miss_chance = _get_miss_chance()
-	var rolled = randf() * 100.0
-	var missed = rolled < miss_chance
-	if missed:
-		_play_player_attack()
-		await _stress_miss_effect()
-		minigame_panel.visible = false
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
-		_break_current_object()
-		_guard_hit_player()
-		current_object_index += 1
-		await get_tree().create_timer(0.5).timeout
-		_next_object_or_end()
-		return
-	minigame_panel.visible = false
 	_play_player_attack()
+	var missed = randf() * 100.0 < _get_miss_chance()
+	if missed:
+		# stress: the fin slips even if the timing was right
+		await _stress_miss_effect()
+		_flash_minigame(false)
+		await _player_press_result(false)
+		return
 	if not _is_player_in_zone():
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
-		_break_current_object()
-		_guard_hit_player()
-		current_object_index += 1
-		await get_tree().create_timer(0.5).timeout
-		_next_object_or_end()
+		_flash_minigame(false)
+		await _player_press_result(false)
 		return
 	var z_min = zone_center - zone_width / 2
 	var z_max = zone_center + zone_width / 2
 	var is_correct = slider_pos >= z_min and slider_pos <= z_max
-	if is_correct:
-		correct_count += 1
-		_mark_progress(current_object_index, true)
-		_finish_current_object()
-	else:
-		wrong_count += 1
-		_mark_progress(current_object_index, false)
-		_break_current_object()
-		_guard_hit_player()
-	current_object_index += 1
-	await get_tree().create_timer(0.2).timeout
-	_next_object_or_end()
+	_flash_minigame(is_correct)
+	await _player_press_result(is_correct)
+
+## Hides the minigame bar after a short green / red flash.
+func _flash_minigame(good: bool) -> void:
+	if minigame_panel == null:
+		return
+	var panel = minigame_panel
+	panel.modulate = Color(0.6, 1.6, 0.6) if good else Color(1.8, 0.5, 0.5)
+	var tw = create_tween()
+	tw.tween_property(panel, "modulate", Color(1, 1, 1, 0), 0.35).set_delay(0.15)
+	var hide_panel = func():
+		panel.visible = false
+		panel.modulate = Color.WHITE
+	tw.tween_callback(hide_panel)
 
 func _stress_miss_effect() -> void:
 	var original_pos = minigame_panel.position
@@ -1585,6 +1796,8 @@ func _guard_hit_player() -> void:
 		return
 	if guard_changing:
 		return
+	await _guard_wait_free()
+	_guard_busy = true
 	var orig_pos = guard_sprite.position
 	var orig_flip = guard_sprite.scale.x
 	var target = player.global_position + Vector2(-40, -20)
@@ -1597,21 +1810,43 @@ func _guard_hit_player() -> void:
 		if guard_sprite.sprite_frames.has_animation("attack_left"):
 			guard_sprite.play("attack_left")
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
+	_guard_lunge()
 	await get_tree().create_timer(0.15).timeout
 	UISounds.play_hit()
 	if player.has_method("take_damage"):
 		player.take_damage(1)
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.15)
-	await guard_sprite.animation_finished
+	await get_tree().create_timer(0.35, false).timeout
 	await _guard_walk_to(orig_pos)
 	guard_sprite.scale.x = orig_flip
 	if guard_sprite.sprite_frames.has_animation("idle"):
 		guard_sprite.play("idle")
+	_guard_busy = false
 	_update_stress_from_hp()
 	if player.has_method("get_hp"):
 		if player.get_hp() <= 0:
 			player.die()
+
+## Guard hits are queued: one at a time, so two tweens never fight over his position.
+func _guard_wait_free() -> void:
+	var waited := 0.0
+	while _guard_busy and waited < 4.0:
+		await get_tree().create_timer(0.1, false).timeout
+		waited += 0.1
+	_guard_busy = false
+
+## The guard has no attack sheet, so the hit is a quick lunge toward the facing side.
+func _guard_lunge() -> void:
+	if guard_sprite == null:
+		return
+	var base = guard_sprite.position
+	var dir = sign(guard_sprite.scale.x)
+	if dir == 0:
+		dir = 1
+	var tw = create_tween()
+	tw.tween_property(guard_sprite, "position:x", base.x + 12.0 * dir, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(guard_sprite, "position:x", base.x, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 
 func _guard_hit_npc(fish: Node) -> void:
 	if fish == null or guard_sprite == null:
@@ -1620,6 +1855,8 @@ func _guard_hit_npc(fish: Node) -> void:
 		return
 	if not is_instance_valid(fish):
 		return
+	await _guard_wait_free()
+	_guard_busy = true
 	var orig_pos = guard_sprite.position
 	var orig_flip = guard_sprite.scale.x
 	var fish_pos = fish.global_position
@@ -1633,24 +1870,25 @@ func _guard_hit_npc(fish: Node) -> void:
 		if guard_sprite.sprite_frames.has_animation("attack_left"):
 			guard_sprite.play("attack_left")
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
+	_guard_lunge()
 	await get_tree().create_timer(0.15).timeout
 	UISounds.play_hit()
 	if fish is AnimatedSprite2D:
 		var tw = create_tween()
 		tw.tween_property(fish, "modulate", Color(1, 0.4, 0.4), 0.1)
 		tw.tween_property(fish, "modulate", Color(1, 1, 1, 1), 0.25)
-		if fish.sprite_frames.has_animation("hit"):
-			fish.play("hit")
-			await fish.animation_finished
-			if fish.sprite_frames.has_animation("idle"):
+		if fish.sprite_frames and fish.sprite_frames.has_animation("hit"):
+			await _play_and_wait(fish, "hit", 1.0)
+			if is_instance_valid(fish) and fish.sprite_frames.has_animation("idle"):
 				fish.play("idle")
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.1)
-	await guard_sprite.animation_finished
+	await get_tree().create_timer(0.35, false).timeout
 	await _guard_walk_to(orig_pos)
 	guard_sprite.scale.x = orig_flip
 	if guard_sprite.sprite_frames.has_animation("idle"):
 		guard_sprite.play("idle")
+	_guard_busy = false
 
 func _mark_progress(index: int, correct: bool) -> void:
 	if index < 0 or index >= progress_bar.get_child_count():
