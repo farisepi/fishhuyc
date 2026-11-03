@@ -20,7 +20,7 @@ var bite_cooldown: float = 2.2
 var alert_timer: float = 0.0
 var alert_duration: float = 0.3
 var windup_timer: float = 0.0
-var hurt_stun_time: float = 0.2
+var hurt_stun_time: float = 0.35
 var retreat_after_stun_time: float = 0.45
 var retreat_after_stun_grace: float = 0.0
 
@@ -71,12 +71,17 @@ func _on_detection_exit(body: Node2D) -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
+		# keep the corpse on the ground while the death animation plays
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
+		move_and_slide()
 		return
 	super._physics_process(delta)
 
 	if is_stunned:
 		stun_timer -= delta
-		velocity.x = 0
+		velocity.x = move_toward(velocity.x, 0.0, 1100.0 * delta)
 		move_and_slide()
 		if stun_timer <= 0:
 			is_stunned = false
@@ -319,9 +324,12 @@ func _play_anim(name: String) -> void:
 		return
 	if not sprite.sprite_frames:
 		return
-	if sprite.sprite_frames.has_animation(name):
-		if sprite.animation != name:
-			sprite.play(name)
+	if sprite.animation == "hit" and sprite.is_playing():
+		return
+	if not sprite.sprite_frames.has_animation(name):
+		name = "idle"
+	if sprite.animation != name or not sprite.is_playing():
+		sprite.play(name)
 
 
 func _reset_quad_visual() -> void:
@@ -368,10 +376,20 @@ func _on_hurt() -> void:
 	state = State.STUN
 	is_stunned = true
 	stun_timer = hurt_stun_time
+	# small knockback away from the player
+	if player:
+		var away = sign(global_position.x - player.global_position.x)
+		if away == 0:
+			away = -facing_dir
+		velocity.x = away * 160.0
 	if sprite:
+		if sprite.sprite_frames and sprite.sprite_frames.has_animation("hit"):
+			sprite.play("hit")
+		var base_scale = Vector2(abs(sprite.scale.x), abs(sprite.scale.y))
+		var dir = sign(sprite.scale.x) if sprite.scale.x != 0 else 1.0
 		var t = create_tween()
-		t.tween_property(sprite, "modulate", Color(1.5, 0.6, 0.6, 1.0), 0.05)
-		t.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.15)
+		t.tween_property(sprite, "scale", Vector2(base_scale.x * 0.9 * dir, base_scale.y * 1.08), 0.05)
+		t.tween_property(sprite, "scale", Vector2(base_scale.x * dir, base_scale.y), 0.12)
 
 
 func _on_death() -> void:
@@ -379,4 +397,22 @@ func _on_death() -> void:
 	state = State.DEAD
 	is_attacking = false
 	attack_buffer = false
-	_play_anim("death")
+	# stop being hittable / blocking the player, but keep standing on the floor
+	collision_layer = 0
+	for a in [detection_area, bite_area, hit_area]:
+		if a:
+			a.set_deferred("monitoring", false)
+			a.set_deferred("monitorable", false)
+	var anim_len := 0.5
+	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("death"):
+		sprite.modulate = Color(1, 1, 1, 1)
+		sprite.play("death")
+		var frames = sprite.sprite_frames.get_frame_count("death")
+		var spd = sprite.sprite_frames.get_animation_speed("death")
+		if spd > 0:
+			anim_len = frames / spd
+	death_free_delay = anim_len + 1.4
+	if sprite:
+		var t = create_tween()
+		t.tween_interval(anim_len + 0.6)
+		t.tween_property(sprite, "modulate:a", 0.0, 0.7)

@@ -27,6 +27,8 @@ var is_aggro: bool = false
 var patrol_origin: Vector2 = Vector2.ZERO
 var patrol_dir: int = 1
 var repath_timer: float = 0.0
+## How long the body stays on screen after death (subclasses with a death animation raise it).
+var death_free_delay: float = 0.5
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -86,7 +88,7 @@ func die() -> void:
 	velocity = Vector2.ZERO
 	_on_death()
 	_drop_shard()
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(death_free_delay).timeout
 	queue_free()
 
 func _on_death() -> void:

@@ -7,6 +7,8 @@ const AUTO_OBJECTS: int = 3
 const CONVEYOR_Y: float = 386.0
 const FISH_START_X: float = 285.0
 const FISH_SPACING: float = 125.0
+## NPC workers stand this far left of their stop zone, so the press foot (above the box) does not overlap them.
+const NPC_PRESS_OFFSET_X: float = -40.0
 const PLAYER_TURN_X: float = 156.0
 const OBJECT_SPAWN_X: float = 900.0
 const OBJECT_DESPAWN_X: float = -700.0
@@ -1732,7 +1734,7 @@ func _randomize_npc_positions() -> void:
 		var fish = npc_fishes[i]
 		if fish == null:
 			continue
-		var x: float = _get_stop_zone_x(i)
+		var x: float = _get_stop_zone_x(i) + NPC_PRESS_OFFSET_X
 		var y: float = CONVEYOR_Y - 42.0
 		fish.position = Vector2(x, y)
 		if fish is AnimatedSprite2D and fish.sprite_frames and fish.sprite_frames.has_animation("idle"):

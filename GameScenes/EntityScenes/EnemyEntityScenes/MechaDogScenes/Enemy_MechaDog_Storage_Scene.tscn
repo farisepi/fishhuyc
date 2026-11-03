@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://dg4uldxg256yl" path="res://GameScripts/EntityScripts/EnemyEntityScripts/MechaDogScripts/Enemy_MechaDog_Script.gd" id="1_dog"]
 [ext_resource type="Texture2D" uid="uid://b0w8biklaccuw" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogIdleFrames/Enemy_MechaDog_Idle_SpriteList_Animation.png" id="2_idle"]
 [ext_resource type="Texture2D" uid="uid://h7tsldwcxqvq" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogAttackFrames/Enemy_MechaDog_Attack_SpriteList_Animation.png" id="3_attack"]
+[ext_resource type="Texture2D" uid="uid://b2mis5ph7yef0" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogHitFrames/Enemy_MechaDog_Hit_SpriteList_Animation.png" id="4_hit"]
+[ext_resource type="Texture2D" uid="uid://b61pckdlwabwr" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogDeathFrames/Enemy_MechaDog_Death_SpriteList_Animation.png" id="5_death"]
 
 [sub_resource type="AtlasTexture" id="Atk_8"]
 atlas = ExtResource("3_attack")
@@ -132,6 +134,111 @@ region = Rect2(1050, 0, 75, 75)
 atlas = ExtResource("2_idle")
 region = Rect2(1125, 0, 75, 75)
 
+[sub_resource type="AtlasTexture" id="Hit_0"]
+atlas = ExtResource("4_hit")
+region = Rect2(0, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_1"]
+atlas = ExtResource("4_hit")
+region = Rect2(75, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_2"]
+atlas = ExtResource("4_hit")
+region = Rect2(150, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_3"]
+atlas = ExtResource("4_hit")
+region = Rect2(225, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_4"]
+atlas = ExtResource("4_hit")
+region = Rect2(300, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_5"]
+atlas = ExtResource("4_hit")
+region = Rect2(375, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_6"]
+atlas = ExtResource("4_hit")
+region = Rect2(450, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_7"]
+atlas = ExtResource("4_hit")
+region = Rect2(525, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_8"]
+atlas = ExtResource("4_hit")
+region = Rect2(600, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Hit_9"]
+atlas = ExtResource("4_hit")
+region = Rect2(675, 0, 75, 75)
+
+[sub_resource type="AtlasTexture" id="Death_0"]
+atlas = ExtResource("5_death")
+region = Rect2(0, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_1"]
+atlas = ExtResource("5_death")
+region = Rect2(160, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_2"]
+atlas = ExtResource("5_death")
+region = Rect2(320, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_3"]
+atlas = ExtResource("5_death")
+region = Rect2(480, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_4"]
+atlas = ExtResource("5_death")
+region = Rect2(640, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_5"]
+atlas = ExtResource("5_death")
+region = Rect2(800, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_6"]
+atlas = ExtResource("5_death")
+region = Rect2(960, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_7"]
+atlas = ExtResource("5_death")
+region = Rect2(1120, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_8"]
+atlas = ExtResource("5_death")
+region = Rect2(1280, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_9"]
+atlas = ExtResource("5_death")
+region = Rect2(1440, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_10"]
+atlas = ExtResource("5_death")
+region = Rect2(1600, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_11"]
+atlas = ExtResource("5_death")
+region = Rect2(1760, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
+[sub_resource type="AtlasTexture" id="Death_12"]
+atlas = ExtResource("5_death")
+region = Rect2(1920, 0, 160, 96)
+margin = Rect2(0, 0, 85, 21)
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_dog"]
 animations = [{
 "frames": [{
@@ -244,6 +351,85 @@ animations = [{
 "loop": 1,
 "name": &"idle",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Hit_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_8")
+}, {
+"duration": 1.0,
+"texture": SubResource("Hit_9")
+}],
+"loop": 0,
+"name": &"hit",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Death_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_8")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_9")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_10")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_11")
+}, {
+"duration": 1.0,
+"texture": SubResource("Death_12")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 12.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
