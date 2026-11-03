@@ -235,9 +235,7 @@ func _on_reset_pressed() -> void:
 	menu.popup_centered()
 
 func _on_back_button_pressed() -> void:
-	Fade.fade_out()
-	await get_tree().create_timer(0.3).timeout
-	get_tree().change_scene_to_file("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
+	Global.goto_scene("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

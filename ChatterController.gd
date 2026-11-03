@@ -19,6 +19,8 @@ signal line_finished(line: ChatterLine, index: int)
 signal chatter_stopped()
 ## Срабатывает на is_silent реплике
 signal silent_line_hit(line: ChatterLine, index: int)
+## A swear word was just printed (the box shakes)
+signal swear_typed()
 
 # ---------------------------------------------------------------------------
 # Инспектор — контент
@@ -342,6 +344,7 @@ func _tick_typing() -> void:
 	if seg["swear"]:
 		# Ругательство — добавляем целиком с цветом, без посимвольной печати
 		_typed_text += "[color=#FF3333]" + seg["text"] + "[/color]"
+		swear_typed.emit()
 		_seg_index += 1
 		_seg_char = 0
 		# Небольшая пауза после ругательства

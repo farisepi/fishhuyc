@@ -7,7 +7,4 @@ func _on_play_button_pressed() -> void:
 	if music:
 		music.stop()
 	
-	await Fade.fade_out()
-	var tree = get_tree()
-	if tree:
-		tree.change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
+	Global.goto_scene("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")

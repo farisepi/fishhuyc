@@ -519,8 +519,7 @@ func goto_scene(scene_path: String) -> void:
 	print(">>> goto_scene: ", scene_path)
 	
 	if is_instance_valid(Fade) and Fade.has_method("fade_out"):
-		Fade.fade_out()
-		await get_tree().create_timer(0.35).timeout
+		await Fade.fade_out()
 	
 	get_tree().change_scene_to_file(scene_path)
 	

@@ -18,7 +18,9 @@
 [ext_resource type="Texture2D" uid="uid://bnjcnr8xarmcg" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Elevator_Front_Close_SpriteList_Animation.png" id="24_efc"]
 [ext_resource type="Texture2D" uid="uid://b0w8biklaccuw" path="res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/MechaDogIdleFrames/Enemy_MechaDog_Idle_SpriteList_Animation.png" id="25_dog"]
 [ext_resource type="Texture2D" uid="uid://dx3oktm8jpjt6" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_HydraulicPress_Down_SpriteList_Animation.png" id="26_pdown"]
-[ext_resource type="Texture2D" uid="uid://xeh65yebsxhd" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuUITextures/FactoryProgressbarTextures/Menu_Factory_Progressbar_Empty_Texture.png" id="30_mg_frame"]
+[ext_resource type="Texture2D" uid="uid://bkn77yoat4ah8" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Window_Texture.png" id="30_mg_window"]
+[ext_resource type="Texture2D" uid="uid://drklf34ic6ixs" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Zone_Texture.png" id="31_mg_zone"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_ClockFace_Texture.png" id="fx_tx_clockface"]
 [ext_resource type="Texture2D" uid="uid://cghyeyawqqo0t" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Slider_Texture.png" id="32_mg_slider"]
 [ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_IndustrialWall_Shader.gdshader" id="fx_sh_wall"]
 [ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_IndustrialFloor_Shader.gdshader" id="fx_sh_floor"]
@@ -27,7 +29,6 @@
 [ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_HangingLamp_Texture.png" id="fx_tx_lamp"]
 [ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_WallLamp_Texture.png" id="fx_tx_walllamp"]
 [ext_resource type="Texture2D" uid="uid://52jrlyi5kq18" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png" id="fx_tx_door"]
-[ext_resource type="Texture2D" uid="uid://c54uubrtl60pk" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Clock_Texture.png" id="fx_tx_clock"]
 [ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png" id="fx_tx_cone"]
 [ext_resource type="Texture2D" uid="uid://deqs8kq7hgy18" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option10_Texture.png" id="fx_tx_round"]
 [ext_resource type="Texture2D" uid="uid://52iambft5nuq" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option12_Texture.png" id="fx_tx_spot"]
@@ -735,12 +736,18 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("pdown_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("pdown_8")
 }],
 "loop": false,
 "name": &"press_down",
-"speed": 20.0
+"speed": 22.0
 }, {
 "frames": [{
+"duration": 1.0,
+"texture": SubResource("pdown_8")
+}, {
 "duration": 1.0,
 "texture": SubResource("pdown_7")
 }, {
@@ -767,7 +774,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"press_up",
-"speed": 14.0
+"speed": 15.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stopzone"]
@@ -1031,7 +1038,7 @@ color = Color(0.1, 0.1, 0.11, 1.0)
 [node name="WallClock" type="Sprite2D" parent="Decor" unique_id=960000015]
 position = Vector2(576, 100)
 scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_clock")
+texture = ExtResource("fx_tx_clockface")
 
 [node name="BalconyRail" type="ColorRect" parent="Decor" unique_id=960000016]
 z_index = 7
@@ -1479,48 +1486,38 @@ autoplay = "idle"
 
 [node name="Press1" type="AnimatedSprite2D" parent="." unique_id=900000011]
 z_index = 16
-position = Vector2(311, 336.25)
-scale = Vector2(2.5, 2.5)
+position = Vector2(357.5, 327.5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_press")
-animation = &"press_up"
-frame = 7
-frame_progress = 1.0
+animation = &"press_down"
 
 [node name="Press2" type="AnimatedSprite2D" parent="." unique_id=900000012]
 z_index = 16
-position = Vector2(434, 336.25)
-scale = Vector2(2.5, 2.5)
+position = Vector2(527.5, 327.5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_press")
-animation = &"press_up"
-frame = 7
-frame_progress = 1.0
+animation = &"press_down"
 
 [node name="Press3" type="AnimatedSprite2D" parent="." unique_id=900000013]
 z_index = 16
-position = Vector2(556, 336.25)
-scale = Vector2(2.5, 2.5)
+position = Vector2(697.5, 327.5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_press")
-animation = &"press_up"
-frame = 7
-frame_progress = 1.0
+animation = &"press_down"
 
 [node name="Press4" type="AnimatedSprite2D" parent="." unique_id=900000014]
 z_index = 16
-position = Vector2(687, 336.25)
-scale = Vector2(2.5, 2.5)
+position = Vector2(867.5, 327.5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_press")
-animation = &"press_up"
-frame = 7
-frame_progress = 1.0
+animation = &"press_down"
 
 [node name="PressPlayer" type="AnimatedSprite2D" parent="." unique_id=900000015]
 z_index = 16
-position = Vector2(182, 336.25)
-scale = Vector2(2.5, 2.5)
+position = Vector2(187.5, 327.5)
+scale = Vector2(3, 3)
 sprite_frames = SubResource("SF_press")
-animation = &"press_up"
-frame = 7
-frame_progress = 1.0
+animation = &"press_down"
 
 [node name="ConveyorSprite3" type="Sprite2D" parent="." unique_id=1664677221]
 z_index = 30
@@ -1561,40 +1558,44 @@ texture = ExtResource("3_conveyor")
 [node name="NPCParent" type="Node2D" parent="." unique_id=1000813928]
 
 [node name="Fish1" type="AnimatedSprite2D" parent="NPCParent" unique_id=1789915601]
-z_index = 17
-position = Vector2(245, 344)
+z_index = 25
+position = Vector2(406.5, 344)
+flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="Fish2" type="AnimatedSprite2D" parent="NPCParent" unique_id=1235570946]
-z_index = 17
-position = Vector2(368, 344)
+z_index = 25
+position = Vector2(576.5, 344)
+flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="Fish3" type="AnimatedSprite2D" parent="NPCParent" unique_id=2003939102]
-z_index = 17
-position = Vector2(490, 344)
+z_index = 25
+position = Vector2(746.5, 344)
+flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="Fish4" type="AnimatedSprite2D" parent="NPCParent" unique_id=523706984]
-z_index = 17
-position = Vector2(621, 344)
+z_index = 25
+position = Vector2(916.5, 344)
+flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
 
 [node name="Mecha_Fish" parent="." unique_id=221706649 instance=ExtResource("4_vhxde")]
-position = Vector2(174, 350)
+position = Vector2(236.5, 350)
 
 [node name="Objects" type="Node2D" parent="." unique_id=2006886263]
 
 [node name="StopZone1" type="Area2D" parent="." unique_id=900000021]
-position = Vector2(285, 344)
+position = Vector2(326, 344)
 monitoring = false
 monitorable = false
 
@@ -1602,7 +1603,7 @@ monitorable = false
 shape = SubResource("RectangleShape2D_stopzone")
 
 [node name="StopZone2" type="Area2D" parent="." unique_id=900000023]
-position = Vector2(408, 344)
+position = Vector2(496, 344)
 monitoring = false
 monitorable = false
 
@@ -1610,7 +1611,7 @@ monitorable = false
 shape = SubResource("RectangleShape2D_stopzone")
 
 [node name="StopZone3" type="Area2D" parent="." unique_id=900000025]
-position = Vector2(530, 344)
+position = Vector2(666, 344)
 monitoring = false
 monitorable = false
 
@@ -1618,7 +1619,7 @@ monitorable = false
 shape = SubResource("RectangleShape2D_stopzone")
 
 [node name="StopZone4" type="Area2D" parent="." unique_id=900000027]
-position = Vector2(661, 344)
+position = Vector2(836, 344)
 monitoring = false
 monitorable = false
 
@@ -1866,39 +1867,43 @@ horizontal_alignment = 1
 
 [node name="MinigamePanel" type="Control" parent="UI" unique_id=1147386805]
 visible = false
+texture_filter = 1
 layout_mode = 3
 anchors_preset = 0
-offset_left = 276.0
-offset_top = 260.0
-offset_right = 876.0
-offset_bottom = 340.0
+offset_left = 476.0
+offset_top = 270.0
+offset_right = 676.0
+offset_bottom = 320.0
 
 [node name="Track" type="Control" parent="UI/MinigamePanel" unique_id=207594382]
 anchors_preset = 0
-offset_top = 40.0
-offset_right = 600.0
-offset_bottom = 64.0
+offset_right = 200.0
+offset_bottom = 50.0
 
 [node name="TrackBG" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=1078518628]
 layout_mode = 0
-offset_right = 600.0
-offset_bottom = 24.0
-texture = ExtResource("30_mg_frame")
+offset_right = 200.0
+offset_bottom = 50.0
+texture = ExtResource("30_mg_window")
 expand_mode = 1
 
-[node name="Zone" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=435318423]
+[node name="Zone" type="NinePatchRect" parent="UI/MinigamePanel/Track" unique_id=435318423]
 layout_mode = 0
-clip_contents = true
-offset_left = 225.0
-offset_right = 375.0
-offset_bottom = 24.0
-expand_mode = 1
+offset_left = 80.0
+offset_top = 5.0
+offset_right = 130.0
+offset_bottom = 45.0
+texture = ExtResource("31_mg_zone")
+patch_margin_left = 2
+patch_margin_top = 2
+patch_margin_right = 2
+patch_margin_bottom = 2
 
 [node name="Slider" type="TextureRect" parent="UI/MinigamePanel/Track" unique_id=1125588118]
 layout_mode = 0
-offset_top = -5.0
-offset_right = 6.0
-offset_bottom = 29.0
+offset_left = 3.0
+offset_right = 18.0
+offset_bottom = 50.0
 texture = ExtResource("32_mg_slider")
 expand_mode = 1
 

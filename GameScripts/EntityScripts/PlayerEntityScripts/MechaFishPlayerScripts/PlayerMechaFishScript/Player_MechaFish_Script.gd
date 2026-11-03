@@ -853,7 +853,6 @@ func die():
 	_show_death_screen()
 
 func _find_death_screen() -> Node:
-	return get_tree().get_first_node_in_group("death_screen")
 	var scene = get_tree().current_scene
 	if scene:
 		var direct = scene.get_node_or_null("DeathScreen")
