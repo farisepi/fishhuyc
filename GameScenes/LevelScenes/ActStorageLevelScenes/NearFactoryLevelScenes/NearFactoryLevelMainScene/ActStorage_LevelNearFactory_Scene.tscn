@@ -1853,6 +1853,7 @@ metadata/enemy_type = "dog"
 [node name="SpawnMonkey1" type="Marker2D" parent="SpawnPoints" unique_id=454351932]
 position = Vector2(2100, 960)
 metadata/enemy_type = "monkey"
+metadata/has_forklift = true
 
 [node name="SpawnMonkey2" type="Marker2D" parent="SpawnPoints" unique_id=1534680470]
 position = Vector2(3200, 640)
@@ -1861,6 +1862,7 @@ metadata/enemy_type = "monkey"
 [node name="SpawnMonkey3" type="Marker2D" parent="SpawnPoints" unique_id=1571012030]
 position = Vector2(4430, 640)
 metadata/enemy_type = "monkey"
+metadata/has_forklift = true
 
 [node name="SpawnMonkey4" type="Marker2D" parent="SpawnPoints" unique_id=2017920154]
 position = Vector2(5850, 208)
@@ -1869,6 +1871,7 @@ metadata/enemy_type = "monkey"
 [node name="SpawnMonkey5" type="Marker2D" parent="SpawnPoints" unique_id=1993999855]
 position = Vector2(6600, 960)
 metadata/enemy_type = "monkey"
+metadata/has_forklift = true
 
 [node name="SpawnPigeon1" type="Marker2D" parent="SpawnPoints" unique_id=1055674269]
 position = Vector2(4800, 320)

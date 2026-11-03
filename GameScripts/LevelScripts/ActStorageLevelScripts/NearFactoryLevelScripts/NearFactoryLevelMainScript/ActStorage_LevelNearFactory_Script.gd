@@ -80,6 +80,11 @@ func _spawn_enemies() -> void:
 		if scene == null:
 			continue
 		var enemy = scene.instantiate()
+		# every other metadata key on the spawn point is passed to the enemy
+		# (e.g. has_forklift = true on a monkey, fur_variant = 2 ...)
+		for key in point.get_meta_list():
+			if key != "enemy_type" and key in enemy:
+				enemy.set(key, point.get_meta(key))
 		enemy.global_position = point.global_position
 		enemies_parent.add_child(enemy)
 

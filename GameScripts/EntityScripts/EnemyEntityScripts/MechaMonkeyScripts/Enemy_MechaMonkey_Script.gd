@@ -1,559 +1,549 @@
 extends StorageEnemy
+## Storage mecha-monkey (green).
+## Clever and springy: keeps just outside the fish's reach and pokes with its long mech tail,
+## bounces over a blocking fish on the tail and lands behind it (hits from behind break the
+## block), slams the floor when it lands, and when things go badly it runs to its forklift,
+## climbs in and tries to run the fish over. Smash the forklift: it breaks, the monkey is
+## baffled and the airbag knocks it out.
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var placeholder: ColorRect = get_node_or_null("PlaceholderRect")
 @onready var detection_area: Area2D = get_node_or_null("DetectionArea")
-@onready var tail_area: Area2D = get_node_or_null("TailArea")
+@onready var forklift: Sprite2D = get_node_or_null("Forklift")
 
-enum State { PATROL, ALERT, CHASE, RETREAT, TAIL_JUMP, FLIP_TAIL, FALL, LAND, TAIL_ATTACK, STUN, DEAD }
+enum State { PATROL, ALERT, SPACING, ATTACK, TAIL_ATTACK, TAIL_JUMP, AIR, LAND, STUN,
+	GOTO_FORKLIFT, FORKLIFT_ENTER, DRIVE, FORKLIFT_BRAKE, FORKLIFT_BREAK, DEAD }
 var state: State = State.PATROL
 
-var run_speed: float = 215.0
-var jump_velocity: float = -400.0
-var alert_timer: float = 0.0
-var alert_duration: float = 0.3
+var FUR_SOURCE := [Color8(152, 102, 64), Color8(120, 78, 48), Color8(84, 52, 34)]
+var FUR_VARIANTS := [
+	[Color8(124, 124, 130), Color8(92, 92, 100), Color8(60, 60, 68)],     # grey langur
+	[Color8(214, 130, 70), Color8(176, 96, 46), Color8(120, 62, 30)],     # orangutan ginger
+	[Color8(70, 62, 60), Color8(48, 42, 42), Color8(30, 26, 28)],         # black
+	[Color8(206, 180, 140), Color8(170, 142, 104), Color8(124, 100, 72)], # sandy
+]
+
+const FORK_W := 128.0
+
+@export var run_speed: float = 225.0
+@export var poke_range: float = 112.0       # tail reach - longer than the fish's fists
+@export var punch_range: float = 66.0
+@export var keep_distance: float = 100.0
+@export var pogo_velocity: float = -540.0
+@export var slam_radius: float = 58.0
+@export var has_forklift: bool = false
+@export var forklift_offset_x: float = 170.0
+@export var forklift_hp: int = 7
+@export var drive_speed: float = 340.0
+
+var t: float = 0.0
+var cooldown: float = 0.0
 var tail_cooldown: float = 0.0
-var tail_cooldown_max: float = 2.6
-var tail_damage: int = 2
-var tail_range: float = 85.0
-var jump_range: float = 230.0
-var flip_range: float = 160.0
-var flip_cooldown: float = 0.0
-var flip_cooldown_max: float = 3.4
-var flip_duration: float = 0.45
-var flip_hit_time: float = 0.18
-var flip_jump_velocity: float = -330.0
-var flip_triangle_width_mult: float = 0.7
-var show_flip_zone: bool = false
-var vertical_tolerance: float = 70.0
-var fall_grace: float = 0.05
-var attack_windup: float = 0.12
-var attack_recover: float = 0.20
-var attack_decision_cooldown: float = 0.0
-var attack_decision_gap: float = 0.45
-var retreat_distance: float = 55.0
-var retreat_speed_mult: float = 0.9
-var leap_cancel_mult: float = 1.8
-var hurt_stun_time: float = 0.22
-var retreat_after_stun_time: float = 0.4
-
-var _base_y: float = 0.0
-var _air_timer: float = 0.0
-var _attack_timer: float = 0.0
-var _flip_timer: float = 0.0
-var _flip_hit_done: bool = false
-var _jump_tween: Tween = null
-var _attack_tween: Tween = null
-var _flip_tween: Tween = null
-var _damage_dealt_this_attack: bool = false
-var _is_attacking: bool = false
-var _attack_buffer: bool = false
-var _retreat_after_stun: bool = false
-var _player_prev_pos: Vector2 = Vector2.ZERO
-var _player_velocity_est: Vector2 = Vector2.ZERO
-var _flip_zone_node: Polygon2D = null
-var _last_attack_kind: String = ""
-
-const BODY_COLOR: Color = Color(0.2, 0.9, 0.3, 1.0)
-const ALERT_COLOR: Color = Color(1.0, 0.85, 0.2, 1.0)
-const JUMP_COLOR: Color = Color(0.4, 0.7, 1.0, 1.0)
-const FLIP_COLOR: Color = Color(0.8, 0.4, 1.0, 1.0)
-const ATTACK_COLOR: Color = Color(1.0, 0.35, 0.2, 1.0)
-const STUN_COLOR: Color = Color(1.0, 0.2, 0.2, 1.0)
-const DEAD_COLOR: Color = Color(0.3, 0.3, 0.3, 1.0)
-const RETREAT_COLOR: Color = Color(0.9, 0.75, 0.4, 1.0)
-const FLIP_ZONE_COLOR: Color = Color(0.8, 0.4, 1.0, 0.35)
+var pogo_cooldown: float = 0.8
+var hit_done: bool = false
+var combo_left: int = 0
+var _alerted: bool = false
+var _aggro_time: float = 0.0
+var _fork_hp: int = 0
+var _fork_used: bool = false
+var _ram_cooldown: float = 0.0
+var _drive_dir: int = 1
+var _passed_player: bool = false
+var _ko_finish: bool = false
+var _pogo_target_x: float = 0.0
 
 
 func _ready() -> void:
 	super._ready()
-	_base_y = position.y
-	shard_color = "blue"
+	shard_color = "green"
 	max_hp = 6
-	hp = 6
+	hp = max_hp
 	can_be_parried = true
-	aggro_range = 400.0
-	deaggro_range = 700.0
-	min_distance = 60.0
-	if detection_area:
-		detection_area.body_entered.connect(_on_detection)
-		detection_area.body_exited.connect(_on_detection_exit)
+	aggro_range = 420.0
+	deaggro_range = 760.0
 	if placeholder:
-		placeholder.color = BODY_COLOR
-	_play_anim("idle")
+		placeholder.visible = sprite == null or sprite.sprite_frames == null
+	if sprite:
+		_base_sprite_offset = sprite.offset
+		apply_fur_variant(sprite, FUR_SOURCE, FUR_VARIANTS)
+	if detection_area:
+		detection_area.body_entered.connect(func(b):
+			if b.is_in_group("player") and player == null:
+				player = b
+		)
+	_fork_hp = forklift_hp
+	_setup_forklift.call_deferred()
+	_play("idle")
 
 
-func _on_detection(body: Node2D) -> void:
-	if body.is_in_group("player") and player == null:
-		player = body
-		_player_prev_pos = player.global_position
+func _setup_forklift() -> void:
+	if forklift == null:
+		return
+	if not has_forklift:
+		forklift.queue_free()
+		forklift = null
+		return
+	# park it on the floor next to the monkey (forklift frame is 80 px, the monkey 75 px);
+	# it belongs to the level from now on, so it stays even if the monkey never uses it
+	var pos = global_position + Vector2(forklift_offset_x, -(80.0 - 75.0) / 2.0 - 2.0)
+	var floor_hit = _ray(pos + Vector2(0, -20), pos + Vector2(0, 200))
+	if not floor_hit.is_empty():
+		pos.y = floor_hit.position.y - 40.0   # 80 px frame, wheels on the floor
+	forklift.reparent(get_parent())
+	forklift.global_position = pos
+	forklift.z_index = -1
+	forklift.visible = true
 
 
-func _on_detection_exit(body: Node2D) -> void:
-	if body == player and body.is_in_group("player"):
-		player = null
+func _play(anim_name: String, restart: bool = false) -> void:
+	_play_on(sprite, anim_name, Vector2.ZERO, restart)
+	if sprite:
+		sprite.speed_scale = 1.0
 
 
+# ------------------------------------------------------------------ main loop
 func _physics_process(delta: float) -> void:
 	if is_dead:
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
+		move_and_slide()
 		return
 	super._physics_process(delta)
-
-	if is_stunned:
-		stun_timer -= delta
-		velocity.x = 0
-		_apply_gravity(delta)
-		move_and_slide()
-		if stun_timer <= 0:
-			is_stunned = false
-			_on_stun_end()
-		return
-
-	if tail_cooldown > 0:
-		tail_cooldown -= delta
-	if flip_cooldown > 0:
-		flip_cooldown -= delta
-	if attack_decision_cooldown > 0:
-		attack_decision_cooldown -= delta
-
 	if player == null:
 		_find_player()
-	elif player.is_queued_for_deletion():
+	if not _player_ok():
 		player = null
+		is_aggro = false
+	_observe_player(delta)
 
-	var dist = 99999.0
-	var vertical_diff = 0.0
-	if player != null:
-		dist = global_position.distance_to(player.global_position)
-		vertical_diff = abs(player.global_position.y - global_position.y)
-		_update_aggro(dist)
-		_update_player_velocity(delta)
+	if is_stunned and state != State.FORKLIFT_BREAK:
+		_stun_logic(delta)
+		move_and_slide()
+		return
 
-	_sync_tail_area()
-	if sprite and sprite.visible:
-		sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
+	t += delta
+	cooldown = max(0.0, cooldown - delta)
+	tail_cooldown = max(0.0, tail_cooldown - delta)
+	pogo_cooldown = max(0.0, pogo_cooldown - delta)
+	_ram_cooldown = max(0.0, _ram_cooldown - delta)
+
+	var dx := 0.0
+	var dy := 0.0
+	var dist := 99999.0
+	if _player_ok():
+		dx = player.global_position.x - global_position.x
+		dy = player.global_position.y - global_position.y
+		dist = abs(dx)
+		_update_aggro(global_position.distance_to(player.global_position))
+	if is_aggro:
+		_aggro_time += delta
 
 	match state:
-		State.PATROL:
-			if is_aggro:
-				state = State.ALERT
-				alert_timer = 0.0
-				velocity.x = 0
-				_set_color(ALERT_COLOR)
-			else:
-				_patrol_step(delta)
-				_apply_gravity(delta)
-				move_and_slide()
-				return
-		State.ALERT:
-			alert_timer += delta
-			velocity.x = 0
-			_clamp_facing_to_player()
-			if alert_timer >= alert_duration:
-				_set_color(BODY_COLOR)
-				state = State.CHASE
-		State.CHASE:
-			_chase_logic(dist, vertical_diff)
-		State.RETREAT:
-			_retreat_logic(dist, delta)
-		State.TAIL_JUMP:
-			_tail_jump_logic(delta, dist)
-		State.FLIP_TAIL:
-			_flip_tail_logic(delta, dist)
-		State.FALL:
-			_fall_logic(delta)
-		State.LAND:
-			velocity.x = 0
-			if is_on_floor() and _air_timer <= 0:
-				_set_color(BODY_COLOR)
-				state = State.CHASE
-		State.TAIL_ATTACK:
-			_tail_attack_logic(delta)
-		State.DEAD:
-			velocity.x = 0
+		State.PATROL: _patrol(delta)
+		State.ALERT: _alert_logic(dx)
+		State.SPACING: _spacing_logic(dist, dx, dy)
+		State.ATTACK: _attack_logic(dist)
+		State.TAIL_ATTACK: _tail_attack_logic()
+		State.TAIL_JUMP: _tail_jump_logic()
+		State.AIR: _air_logic()
+		State.LAND: _land_logic()
+		State.GOTO_FORKLIFT: _goto_forklift_logic()
+		State.FORKLIFT_ENTER: _forklift_enter_logic()
+		State.DRIVE: _drive_logic(dist, dx, dy)
+		State.FORKLIFT_BRAKE: _brake_logic(delta)
+		State.FORKLIFT_BREAK: _forklift_break_logic()
 
-	_apply_gravity(delta)
+	if sprite:
+		sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
 	move_and_slide()
 
 
-func _on_stun_end() -> void:
-	if is_dead:
+func _face(dx: float) -> void:
+	if dx != 0.0:
+		facing_dir = 1 if dx > 0 else -1
+
+
+func _go(s: State) -> void:
+	state = s
+	t = 0.0
+	hit_done = false
+
+
+# ------------------------------------------------------------------ on foot
+func _patrol(delta: float) -> void:
+	if is_aggro:
+		velocity.x = 0
+		_go(State.ALERT)
 		return
-	if _retreat_after_stun:
-		_retreat_after_stun = false
-		state = State.RETREAT
-		attack_decision_cooldown = retreat_after_stun_time
-		_set_color(RETREAT_COLOR)
-		return
-	_set_color(BODY_COLOR)
-	state = State.CHASE if is_aggro else State.PATROL
+	if _ledge_ahead(patrol_dir) or _wall_ahead(patrol_dir):
+		patrol_dir = -patrol_dir
+	_patrol_step(delta)
+	_play("run_fast" if abs(velocity.x) > 5 else "idle")
+	if sprite and abs(velocity.x) > 5:
+		sprite.speed_scale = 0.5
 
 
-func _apply_gravity(delta: float) -> void:
-	if not is_on_floor():
-		velocity.y += gravity * delta
+func _alert_logic(dx: float) -> void:
+	velocity.x = 0
+	_face(dx)
+	_play("idle")
+	if not _alerted:
+		_alerted = true
+		_alert_allies()
+	if t > 0.3:
+		_go(State.SPACING)
 
 
-func _sync_tail_area() -> void:
-	if tail_area:
-		tail_area.position.x = abs(tail_area.position.x) * facing_dir
-
-
-func _chase_logic(dist: float, vertical_diff: float) -> void:
+## The monkey's brain: stay just outside the fish's reach and choose the right trick.
+func _spacing_logic(dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
-		state = State.PATROL
+		_release_token()
+		_go(State.PATROL)
 		return
-	_clamp_facing_to_player()
-
-	if _is_attacking:
+	_face(dx)
+	# time for the forklift?
+	if _should_use_forklift():
+		_release_token()
+		_go(State.GOTO_FORKLIFT)
 		return
+	var on_floor = is_on_floor()
+	# fish swings at us: bounce away on the tail (or over it when cornered)
+	if on_floor and pogo_cooldown <= 0.0 and _player_threatens(105.0) and randf() < 0.6:
+		var behind_free = not _ledge_ahead(-facing_dir, 60.0) and not _wall_ahead(-facing_dir, 70.0)
+		_start_pogo(not behind_free)
+		return
+	# a blocking fish gets jumped over: hits from behind go through the block
+	if on_floor and pogo_cooldown <= 0.0 and (_player_flag("is_blocking") or player_block_habit > 0.4) and dist < 220.0 and abs(dy) < 70.0:
+		_start_pogo(true)
+		return
+	# whiff punish
+	if _whiff_window > 0.0 and cooldown <= 0.0 and dist < poke_range and _request_token():
+		if dist < punch_range + 10.0:
+			_start_combo()
+		else:
+			_start_tail()
+		return
+	# keep the sweet spot: inside tail reach, outside fist reach
+	var want = keep_distance
+	var move = 0.0
+	if dist > want + 18.0:
+		move = 1.0
+	elif dist < want - 22.0:
+		move = -1.0
+	var dir = int(sign(dx)) * int(move)
+	if dir != 0 and (_ledge_ahead(dir) or _wall_ahead(dir)):
+		dir = 0
+		# cornered at a ledge with the fish close: go over it
+		if move < 0.0 and pogo_cooldown <= 0.0 and dist < 90.0:
+			_start_pogo(true)
+			return
+	velocity.x = dir * run_speed * (0.65 if move < 0.0 else 1.0) + _separation() * 120.0
+	_play("run_fast" if abs(velocity.x) > 10 else "idle")
+	if cooldown > 0.0 or abs(dy) > 70.0 or not on_floor:
+		return
+	if not _request_token():
+		return
+	if dist < punch_range and not _player_flag("is_parrying"):
+		_start_combo()
+	elif dist < poke_range and tail_cooldown <= 0.0:
+		_start_tail()
+	elif dist < 260.0 and dist > 150.0 and pogo_cooldown <= 0.0 and randf() < 0.012:
+		_start_pogo(true)   # surprise leap over the fish
 
-	if dist < retreat_distance:
-		state = State.RETREAT
-		_set_color(RETREAT_COLOR)
+
+func _start_combo() -> void:
+	combo_left = 2 if randf() < 0.5 else 1
+	_go(State.ATTACK)
+	_play("attack_right", true)
+
+
+func _attack_logic(dist: float) -> void:
+	velocity.x = 0
+	if not hit_done and t >= 0.22:
+		hit_done = true
+		if dist < punch_range + 14.0 and _same_level():
+			_hurt_player_smart(1)
+	if t >= 0.52:
+		combo_left -= 1
+		if combo_left > 0 and dist < punch_range + 16.0:
+			_go(State.ATTACK)
+			_play("attack_left", true)
+			return
+		cooldown = randf_range(0.5, 0.9)
+		_release_token()
+		_go(State.SPACING)
+
+
+func _start_tail() -> void:
+	tail_cooldown = randf_range(1.6, 2.4)
+	_go(State.TAIL_ATTACK)
+	_play("tail_attack", true)
+
+
+func _tail_attack_logic() -> void:
+	velocity.x = 0
+	# the tail sweeps through frames 3-5
+	if not hit_done and t >= 0.2:
+		hit_done = true
+		if _player_ok() and _same_level():
+			var rel = player.global_position.x - global_position.x
+			if rel * facing_dir > -20.0 and abs(rel) < poke_range + 8.0:
+				_hurt_player_smart(2)
+				_shake(0.12)
+	if t >= _anim_length(sprite, "tail_attack"):
+		cooldown = 0.45
+		_release_token()
+		_go(State.SPACING)
+
+
+func _same_level() -> bool:
+	return _player_ok() and abs(player.global_position.y - global_position.y) < 60.0
+
+
+# ------------------------------------------------------------------ tail pogo
+## over = true: land on the far side of the fish; false: bounce back away from it.
+func _start_pogo(over: bool) -> void:
+	pogo_cooldown = randf_range(2.2, 3.2)
+	_go(State.TAIL_JUMP)
+	velocity.x = 0
+	_play("tail_jump", true)
+	if _player_ok():
+		var px = _predict_player(0.6).x
+		if over:
+			_pogo_target_x = px + facing_dir * 70.0
+		else:
+			_pogo_target_x = global_position.x - facing_dir * 170.0
+	else:
+		_pogo_target_x = global_position.x - facing_dir * 120.0
+
+
+func _tail_jump_logic() -> void:
+	# crouch + coil, then launch on the 4th frame
+	if t < 0.22:
 		velocity.x = 0
 		return
-
-	if vertical_diff > vertical_tolerance * 2.0:
-		velocity.x = facing_dir * run_speed * 0.7
-		return
-
-	velocity.x = facing_dir * run_speed
-
-	if vertical_diff > vertical_tolerance:
-		return
-
-	if attack_decision_cooldown > 0:
-		return
-
-	if is_on_floor():
-		if dist < tail_range and tail_cooldown <= 0 and _last_attack_kind != "tail":
-			_start_tail_attack()
-			return
-		if dist < flip_range and flip_cooldown <= 0 and _last_attack_kind != "flip":
-			_start_flip_tail()
-			return
-		if dist < jump_range:
-			_start_tail_jump()
-			return
-		if dist < tail_range and tail_cooldown <= 0:
-			_start_tail_attack()
-			return
-		if dist < flip_range and flip_cooldown <= 0:
-			_start_flip_tail()
-			return
+	if not hit_done:
+		hit_done = true
+		var air_time = 2.0 * abs(pogo_velocity) / gravity
+		velocity.y = pogo_velocity
+		velocity.x = clamp((_pogo_target_x - global_position.x) / air_time, -420.0, 420.0)
+	if t > 0.42:
+		_go(State.AIR)
+		_play("fall", true)
 
 
-func _retreat_logic(dist: float, delta: float) -> void:
-	if player == null:
-		state = State.CHASE
-		return
-	var away = -1 if facing_dir > 0 else 1
-	velocity.x = away * run_speed * retreat_speed_mult
-	if dist > retreat_distance * 2.0:
-		_set_color(BODY_COLOR)
-		state = State.CHASE
+func _air_logic() -> void:
+	# turn toward the fish in the air so it lands facing it
+	if _player_ok():
+		_face(player.global_position.x - global_position.x)
+	if is_on_floor() and t > 0.08:
+		_go(State.LAND)
+		_play("land", true)
+		_slam()
+	elif t > 2.5:
+		_go(State.LAND)
 
 
-func _start_flip_tail() -> void:
-	if _is_attacking:
-		_attack_buffer = true
-		return
-	_is_attacking = true
-	_attack_buffer = false
-	_last_attack_kind = "flip"
-	state = State.FLIP_TAIL
-	_flip_timer = 0.0
-	_flip_hit_done = false
-	flip_cooldown = flip_cooldown_max
-	velocity.y = flip_jump_velocity
-	velocity.x = facing_dir * run_speed * 0.4
-	_set_color(FLIP_COLOR)
-	_play_anim("flip")
-	if placeholder:
-		_kill_flip_tween()
-		placeholder.rotation = 0.0
-		_flip_tween = create_tween()
-		_flip_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		_flip_tween.tween_property(placeholder, "rotation", TAU * facing_dir, flip_duration)
-	if show_flip_zone:
-		_spawn_flip_zone()
-
-
-func _flip_tail_logic(delta: float, dist: float) -> void:
-	_flip_timer += delta
-	if dist > jump_range * leap_cancel_mult:
-		_end_flip_tail()
-		return
-	if not _flip_hit_done and _flip_timer >= flip_hit_time:
-		_flip_hit_done = true
-		_apply_triangle_damage()
-	if _flip_timer >= flip_duration:
-		_end_flip_tail()
-
-
-func _end_flip_tail() -> void:
-	_is_attacking = false
-	_flip_timer = 0.0
-	if placeholder:
-		placeholder.rotation = 0.0
-		placeholder.scale = Vector2(1, 1)
-	_despawn_flip_zone()
-	_set_color(BODY_COLOR)
-	_play_anim("idle")
-	if is_stunned:
-		return
-	if _attack_buffer:
-		_attack_buffer = false
-		_start_tail_attack()
-		return
-	state = State.FALL
-
-
-func _get_triangle_points() -> PackedVector2Array:
-	var forward = Vector2(facing_dir, 0)
-	var up = Vector2(0, -1)
-	var tip = global_position + forward * (tail_range * 0.2) + up * 8.0
-	var base_center = global_position + forward * tail_range
-	var half_width = tail_range * flip_triangle_width_mult * 0.5
-	var left = base_center + up * half_width
-	var right = base_center - up * half_width
-	return PackedVector2Array([tip, left, right])
-
-
-func _point_in_triangle(p: Vector2, a: Vector2, b: Vector2, c: Vector2) -> bool:
-	var d1 = (p - a).cross(b - a)
-	var d2 = (p - b).cross(c - b)
-	var d3 = (p - c).cross(a - c)
-	var has_neg = d1 < 0.0 or d2 < 0.0 or d3 < 0.0
-	var has_pos = d1 > 0.0 or d2 > 0.0 or d3 > 0.0
-	return not (has_neg and has_pos)
-
-
-func _apply_triangle_damage() -> void:
-	if player == null:
-		return
-	var predicted = _predict_player_pos()
-	var tri = _get_triangle_points()
-	if _point_in_triangle(predicted, tri[0], tri[1], tri[2]):
-		_hurt_player(tail_damage)
-	elif _point_in_triangle(player.global_position, tri[0], tri[1], tri[2]):
-		_hurt_player(tail_damage)
-
-
-func _spawn_flip_zone() -> void:
-	_despawn_flip_zone()
-	var poly = Polygon2D.new()
-	poly.polygon = _get_triangle_points()
-	poly.color = FLIP_ZONE_COLOR
-	poly.z_index = -1
-	get_parent().add_child(poly)
-	_flip_zone_node = poly
-
-
-func _despawn_flip_zone() -> void:
-	if _flip_zone_node and is_instance_valid(_flip_zone_node):
-		_flip_zone_node.queue_free()
-	_flip_zone_node = null
-
-
-func _start_tail_jump() -> void:
-	if _is_attacking:
-		return
-	_is_attacking = true
-	_last_attack_kind = "jump"
-	state = State.TAIL_JUMP
-	_air_timer = 0.0
-	velocity.y = jump_velocity
-	velocity.x = facing_dir * run_speed * 0.9
-	_set_color(JUMP_COLOR)
-	_play_anim("jump")
-	if placeholder:
-		_kill_jump_tween()
-		_jump_tween = create_tween()
-		_jump_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_jump_tween.tween_property(placeholder, "scale", Vector2(0.85, 1.15), 0.12)
-		_jump_tween.set_ease(Tween.EASE_IN)
-		_jump_tween.tween_property(placeholder, "scale", Vector2(1, 1), 0.18)
-
-
-func _tail_jump_logic(delta: float, dist: float) -> void:
-	_air_timer += delta
-	if dist > jump_range * leap_cancel_mult:
-		_is_attacking = false
-		state = State.FALL
-		return
-	if velocity.y >= 0.0 or _air_timer > 0.6:
-		state = State.FALL
-		_play_anim("fall")
-		if placeholder:
-			_kill_jump_tween()
-			_jump_tween = create_tween()
-			_jump_tween.tween_property(placeholder, "scale", Vector2(1.1, 0.9), 0.15)
-
-
-func _fall_logic(delta: float) -> void:
-	_air_timer += delta
-	if is_on_floor() and _air_timer >= fall_grace:
-		_start_land()
-		return
-	if _air_timer > 2.0:
-		_start_land()
-
-
-func _start_land() -> void:
-	state = State.LAND
-	_air_timer = 0.0
-	_is_attacking = false
+func _slam() -> void:
 	velocity.x = 0
-	_set_color(BODY_COLOR)
-	_play_anim("land")
-	if placeholder:
-		_kill_jump_tween()
-		_jump_tween = create_tween()
-		_jump_tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_jump_tween.tween_property(placeholder, "scale", Vector2(1.2, 0.8), 0.08)
-		_jump_tween.tween_property(placeholder, "scale", Vector2(1, 1), 0.14)
+	_shake(0.1)
+	if _player_ok() and global_position.distance_to(player.global_position) < slam_radius and player.is_on_floor():
+		_hurt_player_smart(1)
 
 
-func _start_tail_attack() -> void:
-	if _is_attacking:
-		_attack_buffer = true
-		return
-	_is_attacking = true
-	_attack_buffer = false
-	_last_attack_kind = "tail"
-	state = State.TAIL_ATTACK
-	_attack_timer = 0.0
-	_damage_dealt_this_attack = false
-	tail_cooldown = tail_cooldown_max
-	attack_decision_cooldown = attack_decision_gap
-	velocity.x = 0
-	_set_color(ATTACK_COLOR)
-	_play_anim("tail_attack")
-	if placeholder:
-		var base_scale = Vector2(1, 1)
-		_kill_attack_tween()
-		_attack_tween = create_tween()
-		_attack_tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		_attack_tween.tween_property(placeholder, "scale", Vector2(1.3, 0.85), 0.08)
-		_attack_tween.tween_property(placeholder, "scale", base_scale, 0.15)
-	if tail_area:
-		tail_area.monitoring = true
-
-
-func _tail_attack_logic(delta: float) -> void:
-	velocity.x = 0
-	_attack_timer += delta
-	if not _damage_dealt_this_attack and _attack_timer >= attack_windup:
-		_damage_dealt_this_attack = true
-		if _is_player_in_tail_zone():
-			_hurt_player(tail_damage)
-	if _attack_timer >= attack_windup + attack_recover:
-		_end_tail_attack()
-
-
-func _end_tail_attack() -> void:
-	_is_attacking = false
-	_attack_timer = 0.0
-	_set_color(BODY_COLOR)
-	_play_anim("idle")
-	if is_stunned:
-		return
-	if _attack_buffer:
-		_attack_buffer = false
-		if tail_cooldown <= 0:
-			_start_tail_attack()
+func _land_logic() -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 40.0)
+	if t >= 0.3:
+		# landed behind a fish that was guarding: punish its back right away
+		if _player_ok() and abs(player.global_position.x - global_position.x) < poke_range and tail_cooldown <= 0.0 and _request_token():
+			_face(player.global_position.x - global_position.x)
+			_start_tail()
 			return
-	state = State.CHASE
+		_go(State.SPACING)
 
 
-func _is_player_in_tail_zone() -> bool:
-	if player == null:
+func _stun_logic(delta: float) -> void:
+	stun_timer -= delta
+	velocity.x = move_toward(velocity.x, 0.0, 1100.0 * delta)
+	if stun_timer <= 0.0:
+		is_stunned = false
+		if sprite:
+			sprite.modulate = Color.WHITE
+		if state in [State.DRIVE, State.FORKLIFT_BRAKE]:
+			_play("forklift_drive")
+			return
+		cooldown = 0.2
+		_go(State.SPACING if is_aggro else State.PATROL)
+
+
+# ------------------------------------------------------------------ forklift
+func _should_use_forklift() -> bool:
+	if forklift == null or _fork_used or not is_instance_valid(forklift):
 		return false
-	var tail_origin = global_position + Vector2(facing_dir * tail_range * 0.5, 0)
-	return tail_origin.distance_to(player.global_position) < tail_range
+	if abs(forklift.global_position.y - global_position.y) > 70.0:
+		return false
+	if abs(forklift.global_position.x - global_position.x) > 900.0:
+		return false
+	# hurt, or the fight drags on
+	return hp <= max_hp - 2 or _aggro_time > 7.0
 
 
-func _update_player_velocity(delta: float) -> void:
-	if player == null:
+func _goto_forklift_logic() -> void:
+	if forklift == null or not is_instance_valid(forklift):
+		_go(State.SPACING)
 		return
-	var current = player.global_position
-	if delta > 0.0:
-		_player_velocity_est = (current - _player_prev_pos) / delta
-	_player_prev_pos = current
+	var dx = forklift.global_position.x - global_position.x
+	_face(dx)
+	if abs(dx) < 10.0:
+		velocity.x = 0
+		_fork_used = true
+		global_position.x = forklift.global_position.x
+		forklift.visible = false
+		if _player_ok():
+			_face(player.global_position.x - global_position.x)
+		_go(State.FORKLIFT_ENTER)
+		_play("forklift_enter", true)
+		return
+	var dir = int(sign(dx))
+	if _ledge_ahead(dir) or _wall_ahead(dir):
+		_fork_used = true
+		_go(State.SPACING)
+		return
+	velocity.x = dir * run_speed * 1.15
+	_play("run_fast")
 
 
-func _predict_player_pos() -> Vector2:
-	if player == null:
-		return global_position
-	return player.global_position + _player_velocity_est * 0.2
+func _forklift_enter_logic() -> void:
+	velocity.x = 0
+	if t >= _anim_length(sprite, "forklift_enter"):
+		_fork_hp = forklift_hp
+		_go(State.DRIVE)
+		_drive_dir = facing_dir
+		_passed_player = false
+		_play("forklift_drive", true)
+		_shake(0.08)
 
 
-func _set_color(c: Color) -> void:
-	if placeholder:
-		placeholder.color = c
+func _drive_logic(_dist: float, dx: float, dy: float) -> void:
+	facing_dir = _drive_dir
+	_play("forklift_drive")
+	# ledge / wall in front: brake and turn around
+	if _ledge_ahead(_drive_dir, 64.0) or _wall_ahead(_drive_dir, 70.0):
+		_go(State.FORKLIFT_BRAKE)
+		return
+	velocity.x = move_toward(velocity.x, _drive_dir * drive_speed, 18.0)
+	if not _player_ok():
+		return
+	# ram the fish with the forks
+	var rel = dx * _drive_dir
+	if rel > -10.0 and rel < 70.0 and abs(dy) < 60.0 and _ram_cooldown <= 0.0:
+		_ram_cooldown = 0.9
+		if _hurt_player_smart(2):
+			_shake(0.3)
+			player.velocity.x = _drive_dir * 320.0
+	# overshot the fish: brake and come back
+	if rel < -140.0:
+		_go(State.FORKLIFT_BRAKE)
+
+
+func _brake_logic(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
+	_play("forklift_drive")
 	if sprite:
-		sprite.modulate = c
+		sprite.speed_scale = 0.4
+	if t > 0.45:
+		_drive_dir = -_drive_dir
+		if _player_ok():
+			var want = int(sign(player.global_position.x - global_position.x))
+			if want != 0:
+				_drive_dir = want
+		# never drive back off the same ledge
+		if _ledge_ahead(_drive_dir, 64.0) or _wall_ahead(_drive_dir, 70.0):
+			_drive_dir = -_drive_dir
+		_go(State.DRIVE)
 
 
-func _kill_jump_tween() -> void:
-	if _jump_tween and _jump_tween.is_valid():
-		_jump_tween.kill()
+func _forklift_break_logic() -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 30.0)
+	if t >= _anim_length(sprite, "forklift_break") + 0.3:
+		_leave_wreck()
+		_ko_finish = true
+		hp = 0
+		die()
 
 
-func _kill_attack_tween() -> void:
-	if _attack_tween and _attack_tween.is_valid():
-		_attack_tween.kill()
-
-
-func _kill_flip_tween() -> void:
-	if _flip_tween and _flip_tween.is_valid():
-		_flip_tween.kill()
-
-
-func _play_anim(name: String) -> void:
-	if not sprite:
+func _leave_wreck() -> void:
+	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("forklift_break"):
 		return
-	if not sprite.sprite_frames:
+	var n = sprite.sprite_frames.get_frame_count("forklift_break")
+	var w = Sprite2D.new()
+	w.texture = sprite.sprite_frames.get_frame_texture("forklift_break", n - 1)
+	w.flip_h = facing_dir < 0
+	w.global_position = global_position + Vector2(0, sprite.offset.y)
+	w.modulate = Color(0.75, 0.75, 0.78)
+	w.z_index = -1
+	get_parent().add_child(w)
+	sprite.visible = false
+
+
+# ------------------------------------------------------------------ damage
+func take_damage(amount: int) -> void:
+	if is_dead:
 		return
-	if sprite.sprite_frames.has_animation(name):
-		if sprite.animation != name:
-			sprite.play(name)
+	if state in [State.FORKLIFT_ENTER, State.FORKLIFT_BREAK]:
+		return
+	if state in [State.DRIVE, State.FORKLIFT_BRAKE]:
+		# the forklift takes the hits for the monkey
+		_fork_hp -= amount
+		_play("forklift_shake", true)
+		_flash_damage()
+		_shake(0.06)
+		if _fork_hp <= 0:
+			velocity.x *= 0.3
+			_go(State.FORKLIFT_BREAK)
+			_play("forklift_break", true)
+		else:
+			_shake_then_drive()
+		return
+	super.take_damage(amount)
+
+
+func _shake_then_drive() -> void:
+	await get_tree().create_timer(_anim_length(sprite, "forklift_shake"), false).timeout
+	if is_instance_valid(self) and not is_dead and state in [State.DRIVE, State.FORKLIFT_BRAKE]:
+		_play("forklift_drive", true)
 
 
 func _on_hurt() -> void:
-	_kill_jump_tween()
-	_kill_attack_tween()
-	_kill_flip_tween()
-	_despawn_flip_zone()
-	if placeholder:
-		placeholder.scale = Vector2(1, 1)
-		placeholder.rotation = 0.0
-	_is_attacking = false
-	_attack_buffer = false
-	_attack_timer = 0.0
-	_flip_timer = 0.0
-	_retreat_after_stun = true
+	# springy: often bounces out instead of taking a combo
+	if is_on_floor() and pogo_cooldown <= 0.0 and randf() < 0.4:
+		_start_pogo(randf() < 0.3)
+		return
+	_release_token()
 	state = State.STUN
 	is_stunned = true
-	stun_timer = hurt_stun_time
-	_set_color(STUN_COLOR)
-	if sprite:
-		_play_anim("hit")
+	stun_timer = 0.28
+	if _player_ok():
+		var away = sign(global_position.x - player.global_position.x)
+		velocity.x = (away if away != 0 else float(-facing_dir)) * 150.0
+	_play("hit", true)
 
 
 func _on_death() -> void:
-	_kill_jump_tween()
-	_kill_attack_tween()
-	_kill_flip_tween()
-	_despawn_flip_zone()
-	if placeholder:
-		placeholder.scale = Vector2(1, 1)
-		placeholder.rotation = 0.0
 	state = State.DEAD
-	is_stunned = false
-	_is_attacking = false
-	_attack_buffer = false
-	_set_color(DEAD_COLOR)
-	_play_anim("death")
+	collision_layer = 0
+	if detection_area:
+		detection_area.set_deferred("monitoring", false)
+	var anim_len := 0.6
+	if not _ko_finish and sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("death"):
+		sprite.modulate = Color.WHITE
+		_play("death", true)
+		anim_len = _anim_length(sprite, "death")
+	elif sprite:
+		sprite.stop()
+	death_free_delay = anim_len + 1.4
+	if sprite and sprite.visible:
+		var tw = create_tween()
+		tw.tween_interval(anim_len + 0.6)
+		tw.tween_property(sprite, "modulate:a", 0.0, 0.7)
