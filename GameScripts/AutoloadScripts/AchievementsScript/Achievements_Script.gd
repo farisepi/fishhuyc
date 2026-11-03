@@ -11,8 +11,259 @@ var worker_of_month_unlocked: bool = false
 var scout_unlocked: bool = false
 var freedom_unlocked: bool = false
 
+const TITLES := {
+	"coffee": "Кофе бы...",
+	"flashback": "Флешбек",
+	"pop_star": "Поп-звезда",
+	"rebel": "Бунтарь",
+	"acrobat": "Акробат",
+	"worker_of_month": "Работник месяца",
+	"scout": "Разведчик",
+	"freedom": "Свобода",
+}
+# these already play the sound inside unlock_*()
+const SOUND_IN_UNLOCK := ["worker_of_month", "scout", "freedom"]
+
+var _queue: Array = []
+var _showing: bool = false
+
 func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_achievements()
+	achievement_unlocked.connect(_on_unlocked)
+
+
+## Every new achievement gets the same pretty popup, wherever it was earned (scenes only
+## add their own extras now - falling boxes, bubbles).
+func _on_unlocked(id: String) -> void:
+	_queue_popup.call_deferred(id)
+
+
+func _queue_popup(id: String) -> void:
+	_queue.append(id)
+	if not _showing:
+		_show_next()
+
+
+func _show_next() -> void:
+	_showing = true
+	while not _queue.is_empty():
+		var id: String = _queue.pop_front()
+		if not (id in SOUND_IN_UNLOCK) and has_node("/root/UISounds"):
+			UISounds.play_achievement()
+		await _popup(TITLES.get(id, id), id)
+	_showing = false
+
+
+const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
+const ICON_DIR := "res://GameAssets/Sprites/UserInterfaceSprites/AchievementMenuSprites/AchievementIconTextures/"
+const ICONS := {
+	"coffee": "Menu_AchivementMenu_Icon_Coffee.png",
+	"flashback": "Menu_AchivementMenu_Icon_FlashBack.png",
+	"pop_star": "Menu_AchivementMenu_Icon_PopStar.png",
+	"rebel": "Menu_AchivementMenu_Icon_Rebel.png",
+	"acrobat": "Menu_AchivementMenu_Icon_Acrobat.png",
+	"worker_of_month": "Menu_AchivementMenu_Icon_EmployeeOfTheMonth.png",
+	"scout": "Menu_AchivementMenu_Icon_Scout.png",
+	"freedom": "Menu_AchivementMenu_Icon_Freedom.png",
+}
+const C_GOLD := Color(1.0, 0.78, 0.3)
+const C_GOLD_D := Color(0.62, 0.38, 0.1)
+const C_CARD := Color(0.07, 0.075, 0.1, 0.97)
+
+## Popup: a dark card with a gold frame slides in from the right, a gold badge with a star
+## pops in and glows, sparkles fly out of it, a shine runs across the card, the title types
+## in, and a thin gold line at the bottom shows how long it stays.
+func _popup(title: String, id: String = "") -> void:
+	var font: Font = load(FONT_PATH)
+	var canvas = CanvasLayer.new()
+	canvas.layer = 1100   # above the global fade, so it is visible even on a black screen
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(canvas)
+	var vp = get_viewport().get_visible_rect().size
+	var card_size = Vector2(380, 86)
+
+	var card = Panel.new()
+	card.size = card_size
+	card.clip_contents = true
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = C_CARD
+	sb.border_color = C_GOLD
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(4)
+	sb.shadow_color = Color(0, 0, 0, 0.55)
+	sb.shadow_size = 10
+	sb.shadow_offset = Vector2(0, 4)
+	card.add_theme_stylebox_override("panel", sb)
+	canvas.add_child(card)
+	# inner thin line
+	var inner = Panel.new()
+	inner.position = Vector2(6, 6)
+	inner.size = card_size - Vector2(12, 12)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb2 = StyleBoxFlat.new()
+	sb2.bg_color = Color(0, 0, 0, 0)
+	sb2.border_color = Color(C_GOLD_D, 0.6)
+	sb2.set_border_width_all(1)
+	sb2.set_corner_radius_all(2)
+	inner.add_theme_stylebox_override("panel", sb2)
+	card.add_child(inner)
+
+	# badge with glow and star
+	var badge_c = Vector2(46, card_size.y * 0.5)
+	var glow = Control.new()
+	glow.position = badge_c
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glow.draw.connect(func():
+		var tt = Time.get_ticks_msec() / 1000.0
+		var p = 0.5 + 0.5 * sin(tt * 4.0)
+		for i in range(4):
+			glow.draw_circle(Vector2.ZERO, 34.0 - i * 6.0, Color(C_GOLD, (0.05 + 0.04 * i) * (0.6 + 0.4 * p)))
+		# rays
+		for r in range(8):
+			var a = tt * 0.8 + r * TAU / 8.0
+			glow.draw_line(Vector2.from_angle(a) * 22.0, Vector2.from_angle(a) * (30.0 + 4.0 * p), Color(C_GOLD, 0.35), 2.0)
+	)
+	card.add_child(glow)
+	var badge = Panel.new()
+	badge.size = Vector2(46, 46)
+	badge.position = badge_c - badge.size * 0.5
+	badge.pivot_offset = badge.size * 0.5
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_tex: Texture2D = null
+	if ICONS.has(id) and ResourceLoader.exists(ICON_DIR + ICONS[id]):
+		icon_tex = load(ICON_DIR + ICONS[id])
+	var sb3 = StyleBoxFlat.new()
+	sb3.bg_color = Color(0.13, 0.11, 0.08) if icon_tex else C_GOLD
+	sb3.border_color = C_GOLD if icon_tex else Color(0.25, 0.14, 0.03)
+	sb3.set_border_width_all(3)
+	sb3.border_width_bottom = 5
+	sb3.set_corner_radius_all(6)
+	badge.add_theme_stylebox_override("panel", sb3)
+	card.add_child(badge)
+	var shine = ColorRect.new()
+	shine.color = Color(1, 1, 1, 0.45)
+	shine.position = Vector2(6, 5)
+	shine.size = Vector2(34, 3)
+	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(shine)
+	if icon_tex:
+		# the achievement's own icon (the same one as in the achievements menu), pixel-crisp
+		var ic = TextureRect.new()
+		ic.texture = icon_tex
+		ic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.size = Vector2(40, 40)
+		ic.position = (badge.size - ic.size) * 0.5
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.add_child(ic)
+		shine.color = Color(1, 1, 1, 0.12)
+	var star = Label.new()
+	star.visible = icon_tex == null
+	star.text = "★"
+	star.size = badge.size
+	star.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	star.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	star.add_theme_font_size_override("font_size", 30)
+	star.add_theme_color_override("font_color", Color(0.35, 0.18, 0.02))
+	star.add_theme_color_override("font_shadow_color", Color(1, 0.95, 0.7, 0.8))
+	star.add_theme_constant_override("shadow_offset_y", 2)
+	star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_child(star)
+
+	# texts
+	var header = Label.new()
+	header.text = "ДОСТИЖЕНИЕ ПОЛУЧЕНО"
+	header.position = Vector2(84, 14)
+	if font:
+		header.add_theme_font_override("font", font)
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", C_GOLD)
+	header.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(header)
+	var line = ColorRect.new()
+	line.color = Color(C_GOLD_D, 0.8)
+	line.position = Vector2(84, 34)
+	line.size = Vector2(card_size.x - 100, 1)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(line)
+	var name_l = Label.new()
+	name_l.text = title
+	name_l.position = Vector2(84, 40)
+	if font:
+		name_l.add_theme_font_override("font", font)
+	name_l.add_theme_font_size_override("font_size", 24)
+	name_l.add_theme_color_override("font_color", Color(1, 1, 1))
+	name_l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	name_l.add_theme_constant_override("shadow_offset_x", 2)
+	name_l.add_theme_constant_override("shadow_offset_y", 2)
+	name_l.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	name_l.visible_ratio = 0.0
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(name_l)
+	# shine sweeping across the card
+	var sweep = ColorRect.new()
+	sweep.color = Color(1, 1, 1, 0.12)
+	sweep.size = Vector2(26, card_size.y * 2.0)
+	sweep.rotation = 0.35
+	sweep.position = Vector2(-60, -card_size.y * 0.5)
+	sweep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(sweep)
+	# time bar
+	var bar = ColorRect.new()
+	bar.color = C_GOLD
+	bar.position = Vector2(3, card_size.y - 6)
+	bar.size = Vector2(card_size.x - 6, 3)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(bar)
+
+	var show_time := 3.6
+	var x_in = vp.x - card_size.x - 16
+	card.position = Vector2(vp.x + 30, 16)
+	badge.scale = Vector2(0.2, 0.2)
+	badge.rotation = -0.6
+	var tw = canvas.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(card, "position:x", x_in, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(badge, "scale", Vector2(1.15, 1.15), 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tw.parallel().tween_property(badge, "rotation", 0.0, 0.25).set_ease(Tween.EASE_OUT)
+	tw.tween_property(badge, "scale", Vector2.ONE, 0.12)
+	tw.parallel().tween_property(name_l, "visible_ratio", 1.0, 0.45)
+	tw.parallel().tween_property(sweep, "position:x", card_size.x + 40, 0.7).set_delay(0.1)
+	tw.parallel().tween_property(bar, "size:x", 0.0, show_time).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(card, "position:x", vp.x + 30, 0.35).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+	# sparkles out of the badge, glow redraw
+	var t := 0.0
+	var spark_t := 0.0
+	while is_instance_valid(card) and tw.is_running():
+		var dt = get_process_delta_time()
+		t += dt
+		spark_t -= dt
+		glow.queue_redraw()
+		if spark_t <= 0.0 and t < show_time:
+			spark_t = 0.09 if t < 1.0 else 0.3
+			_spark(card, badge_c)
+		await get_tree().process_frame
+	canvas.queue_free()
+
+
+func _spark(parent: Control, at: Vector2) -> void:
+	var s = ColorRect.new()
+	s.size = Vector2(3, 3)
+	s.color = C_GOLD.lightened(randf_range(0.0, 0.5))
+	s.position = at
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(s)
+	var dir = Vector2.from_angle(randf() * TAU) * randf_range(24.0, 48.0)
+	var tw = s.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(s, "position", at + dir, randf_range(0.4, 0.7)).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(s, "modulate:a", 0.0, 0.7)
+	tw.parallel().tween_property(s, "scale", Vector2(0.3, 0.3), 0.7)
+	tw.tween_callback(s.queue_free)
 
 func load_achievements() -> void:
 	var config = ConfigFile.new()

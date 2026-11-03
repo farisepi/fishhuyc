@@ -53,6 +53,29 @@ var _shadow: NinePatchRect = null
 var _tail_outline: Polygon2D = null
 var _tail_fill: Polygon2D = null
 var _name_tag: Label = null
+const PAD_X := 7
+const PAD_TOP := 7          # the name sits a bit lower, clear of the frame
+const PAD_BOTTOM := 6
+const NAME_H := 12
+const NEAR_FONT := 8
+const NEAR_MAX_W := 150.0
+var _measured_w: float = 120.0
+var _near_fonts_set: bool = false
+const SWEAR_SHAKE := 0.45
+const REF_ZOOM := 2.3         # at this camera zoom the bubble has its normal size
+## Size of the bubbles; the aquarium sets 1.0 for its cutscene.
+var bubble_scale: float = 0.67
+var _scale_cur: float = 0.0
+## true in a cutscene: always the full "near" bubble, no shrinking with distance
+var force_near: bool = false
+var _side: float = 1.0
+const SIDE_GAP := 4.0
+var _far_k: float = 0.0       # 0 = the speakers are on screen, 1 = far away
+var _measured_line = null
+var _measured_h: float = 30.0
+var _measured_shift: float = 0.0
+var _far_measured_line = null
+var _far_measured_h: float = 0.0
 var _pop: float = 1.0
 var _shake: float = 0.0
 var _time: float = 0.0
@@ -89,6 +112,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	# the size glides to its target instead of jumping (line change, zoom, distance, cutscene)
+	var st = _bubble_scale_target()
+	if _scale_cur <= 0.0:
+		_scale_cur = st
+	_scale_cur = lerp(_scale_cur, st, 1.0 - exp(-7.0 * delta))
 	_pop = move_toward(_pop, 1.0, delta * 7.0)
 	_shake = max(0.0, _shake - delta)
 	if _controller == null or not _controller.is_active():
@@ -100,7 +128,7 @@ func _process(delta: float) -> void:
 func _make_decorations() -> void:
 	if not _near_panel:
 		return
-	var parent = _near_panel.get_parent()
+	# shadow and tail are children of the panel, so they scale / shake together with it
 	_shadow = NinePatchRect.new()
 	_shadow.texture = _near_panel.texture
 	_shadow.patch_margin_left = _near_panel.patch_margin_left
@@ -109,20 +137,26 @@ func _make_decorations() -> void:
 	_shadow.patch_margin_bottom = _near_panel.patch_margin_bottom
 	_shadow.modulate = Color(0, 0, 0, 0.35)
 	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(_shadow)
-	parent.move_child(_shadow, _near_panel.get_index())
+	_shadow.show_behind_parent = true
+	_shadow.position = Vector2(2, 2)
+	_near_panel.add_child(_shadow)
 	_tail_outline = Polygon2D.new()
 	_tail_outline.color = Color(0.06, 0.07, 0.1)
-	parent.add_child(_tail_outline)
+	_tail_outline.show_behind_parent = true
+	_near_panel.add_child(_tail_outline)
 	_tail_fill = Polygon2D.new()
 	_tail_fill.color = Color(0.96, 0.97, 0.98)
-	parent.add_child(_tail_fill)
+	_near_panel.add_child(_tail_fill)
+	# имя говорящего — внутри окна, первой строкой (тот же шрифт, что и у текста)
 	_name_tag = Label.new()
-	_name_tag.add_theme_font_size_override("font_size", 10)
-	_name_tag.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
-	_name_tag.add_theme_constant_override("outline_size", 4)
+	if _near_label:
+		var f = _near_label.get_theme_font("normal_font")
+		if f:
+			_name_tag.add_theme_font_override("font", f)
+		_name_tag.add_theme_font_size_override("font_size", _near_label.get_theme_font_size("normal_font_size"))
+	_name_tag.position = Vector2(PAD_X, PAD_TOP - 1)
 	_name_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(_name_tag)
+	_near_panel.add_child(_name_tag)
 
 
 func _on_line_shown(_line: ChatterLine, _index: int) -> void:
@@ -130,7 +164,7 @@ func _on_line_shown(_line: ChatterLine, _index: int) -> void:
 
 
 func _on_swear() -> void:
-	_shake = 0.35
+	_shake = SWEAR_SHAKE
 
 # ---------------------------------------------------------------------------
 # Публичный API
@@ -149,6 +183,8 @@ func bind(controller: ChatterController) -> void:
 # ---------------------------------------------------------------------------
 
 func _on_stopped() -> void:
+	_measured_line = null
+	_far_measured_line = null
 	_hide_all()
 
 func _update_display() -> void:
@@ -157,15 +193,18 @@ func _update_display() -> void:
 	
 	_current_phantom_offset = lerp(_current_phantom_offset, mode["fade"], 0.03)
 	
-	if mode["near"]:
-		_show_near(text)
-	else:
-		_show_far(text, mode["fade"], mode["phantom_alpha"])
+	# Same bubble near and far (like in the factory): when the speakers are off screen the
+	# bubble stays at the screen edge on their side and its tail points at them. No portrait.
+	_show_near(text)
 
 # ---------------------------------------------------------------------------
 # Near mode
 # ---------------------------------------------------------------------------
 
+## Near mode looks like the factory bubbles: crisp 8 px pixel font, the box hugs the text
+## (up to NEAR_MAX_W wide), the name sits inside on the first line, left-aligned text.
+## The size is measured once per line on the FULL text, so the box never jumps while typing
+## and every phrase fits. The box keeps its bottom where the old one had it (over the speaker).
 func _show_near(text: String) -> void:
 	_hide_far()
 	
@@ -175,87 +214,229 @@ func _show_near(text: String) -> void:
 	_near_panel.visible = true
 	_near_panel.z_index = 100
 	_current_phantom_offset = 0.0
+	_apply_near_fonts()
 	
-	_near_panel.position = _controller.get_near_panel_position()
-	
-	const LABEL_PADDING_X := 4
-	const LABEL_PADDING_TOP := 6
-	const LABEL_PADDING_BOTTOM := 4
-	
-	var pw = _controller.near_panel_width
-	
-	# Автовысота если не задана
 	var line = _controller._current_line
-	if line and line.panel_height > 0:
-		_near_panel.size = Vector2(pw, line.panel_height)
-	else:
-		# Сначала даём label правильную ширину, чтобы get_content_height() считал перенос строк верно
-		_near_label.position = Vector2(LABEL_PADDING_X, LABEL_PADDING_TOP)
-		_near_label.size = Vector2(pw - LABEL_PADDING_X * 2, 200)
-		if _near_label.text != text:
-			_near_label.text = text
-		# Ждём один кадр не нужно — get_content_height работает сразу после смены текста
-		var content_h = _near_label.get_content_height()
-		var auto_h = content_h + LABEL_PADDING_TOP + LABEL_PADDING_BOTTOM
-		_near_panel.size = Vector2(pw, max(24.0, auto_h))
+	var is_mech = _controller.get_current_speaker() == ChatterLine.Speaker.MECHANIC
+	_near_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	
-	_near_label.position = Vector2(LABEL_PADDING_X, LABEL_PADDING_TOP)
-	_near_label.size = _near_panel.size - Vector2(LABEL_PADDING_X * 2, LABEL_PADDING_TOP + LABEL_PADDING_BOTTOM)
+	if line != _measured_line:
+		_measured_line = line
+		var full = line.text if line else text
+		var f: Font = _near_label.get_theme_font("normal_font")
+		var plain = _strip_bbcode(full)
+		var tw = NEAR_MAX_W - PAD_X * 2
+		var name_w = 30.0
+		if f:
+			var ts = f.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, tw - 8.0, NEAR_FONT)
+			tw = min(tw, ts.x + 8.0)
+			name_w = f.get_string_size(NAME_MECHANIC if is_mech else NAME_SCIENTIST, HORIZONTAL_ALIGNMENT_LEFT, -1, NEAR_FONT).x
+		_measured_w = ceil(max(max(tw, name_w) + PAD_X * 2, 46.0))
+		var th = _text_height(_near_label, full, _measured_w - PAD_X * 2)
+		_measured_h = ceil(th + PAD_TOP + NAME_H + PAD_BOTTOM)
 	
-	# Текст мог быть уже установлен выше (в ветке auto-height); ставим если ещё нет
+	# The bubble stands BESIDE the speaker at head height: the scientist's on his left,
+	# the mechanic's on his right; the tail comes out of the inner side towards the face.
+	# The inner bottom corner is the anchor (and the pivot for scaling), so the bubble
+	# never drifts away from its speaker when it grows or shrinks.
+	var sz = Vector2(_measured_w, _measured_h)
+	var s = _bubble_scale()
+	var speaker: Node2D = _controller._mechanic if is_mech else _controller._scientist
+	var side = 1.0 if is_mech else -1.0
+	_side = side
+	var anchor: Vector2 = _controller.get_near_panel_position()
+	if speaker:
+		var hh = _head_height(speaker)
+		anchor = speaker.global_position + Vector2(side * (_half_width(speaker) + SIDE_GAP), -hh * 0.15)
+	anchor = _clamp_corner(anchor, sz * s, side)
+	_near_panel.size = sz
+	_near_panel.pivot_offset = Vector2(0.0 if side > 0.0 else sz.x, sz.y)
+	_near_panel.position = (anchor - _near_panel.pivot_offset).round()
+	_near_label.position = Vector2(PAD_X, PAD_TOP + NAME_H)
+	_near_label.size = _near_panel.size - Vector2(PAD_X * 2, PAD_TOP + NAME_H + PAD_BOTTOM)
+	
 	if _near_label.text != text:
 		_near_label.text = text
 	_decorate_near()
 
 
-## Появление с «пружинкой», лёгкое покачивание, тряска на ругательствах,
-## тень, хвостик к говорящему и табличка с его именем.
+## Height from the node's origin to the top of the head (sprite frame height, a bit of the
+## transparent top of the frame is skipped).
+func _head_height(n: Node2D) -> float:
+	if n is AnimatedSprite2D and n.sprite_frames and n.sprite_frames.has_animation(n.animation):
+		var tex = n.sprite_frames.get_frame_texture(n.animation, n.frame)
+		if tex:
+			return tex.get_height() * abs(n.global_scale.y) * 0.36
+	if n is Sprite2D and n.texture:
+		return n.texture.get_height() * abs(n.global_scale.y) * 0.36
+	return 28.0
+
+
+## Where the camera looks, WITHOUT its shake / look-around offset - so a shaking camera
+## does not make the bubbles twitch or change size.
+func _cam_center(cam: Camera2D) -> Vector2:
+	return cam.global_position
+
+
+func _bubble_scale() -> float:
+	return _scale_cur
+
+
+func _half_width(n: Node2D) -> float:
+	if n is AnimatedSprite2D and n.sprite_frames and n.sprite_frames.has_animation(n.animation):
+		var tex = n.sprite_frames.get_frame_texture(n.animation, n.frame)
+		if tex:
+			return tex.get_width() * abs(n.global_scale.x) * 0.28
+	return 18.0
+
+
+## Keeps the scaled bubble inside the view; anchor = its inner bottom corner.
+func _clamp_corner(a: Vector2, vis: Vector2, side: float) -> Vector2:
+	var cam = get_viewport().get_camera_2d()
+	if cam == null:
+		return a
+	var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
+	var c = _cam_center(cam)
+	var l = c.x - half.x + 4.0
+	var r = c.x + half.x - 4.0
+	if side > 0.0:
+		a.x = clamp(a.x, l, max(l, r - vis.x))
+	else:
+		a.x = clamp(a.x, min(r, l + vis.x), r)
+	var t = c.y - half.y + 4.0 + vis.y
+	var b = c.y + half.y - 6.0
+	a.y = clamp(a.y, t, max(t, b))
+	return a
+
+
+## Same size on screen at any zoom, smaller when the speakers are far away.
+func _bubble_scale_target() -> float:
+	var cam = get_viewport().get_camera_2d()
+	var zoom_k := 1.0
+	if cam:
+		zoom_k = clamp(REF_ZOOM / max(0.01, cam.zoom.x), 0.3, 1.4) * bubble_scale
+	return zoom_k * lerp(1.0, 0.5, _far_k)
+
+
+## Keeps the whole (scaled) bubble, given by its bottom centre, inside the camera view.
+func _clamp_bottom_center(bc: Vector2, vis: Vector2) -> Vector2:
+	var cam = get_viewport().get_camera_2d()
+	if cam == null:
+		return bc
+	var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
+	var c = _cam_center(cam)
+	var lo_x = c.x - half.x + 4.0 + vis.x * 0.5
+	var hi_x = c.x + half.x - 4.0 - vis.x * 0.5
+	var lo_y = c.y - half.y + 4.0 + vis.y
+	var hi_y = c.y + half.y - 10.0
+	bc.x = clamp(bc.x, lo_x, max(lo_x, hi_x))
+	bc.y = clamp(bc.y, lo_y, max(lo_y, hi_y))
+	return bc
+
+
+func _clamp_to_view(pos: Vector2, sz: Vector2) -> Vector2:
+	var cam = get_viewport().get_camera_2d()
+	if cam == null:
+		return pos
+	var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
+	var c = _cam_center(cam)
+	pos.x = clamp(pos.x, c.x - half.x + 6.0, max(c.x - half.x + 6.0, c.x + half.x - sz.x - 6.0))
+	pos.y = clamp(pos.y, c.y - half.y + 8.0, max(c.y - half.y + 8.0, c.y + half.y - sz.y - 14.0))
+	return pos
+
+
+func _apply_near_fonts() -> void:
+	if _near_fonts_set:
+		return
+	_near_fonts_set = true
+	for key in ["normal_font_size", "bold_font_size", "italics_font_size", "bold_italics_font_size", "mono_font_size"]:
+		_near_label.add_theme_font_size_override(key, NEAR_FONT)
+	_near_label.add_theme_constant_override("line_separation", 2)
+	_near_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if _name_tag:
+		_name_tag.add_theme_font_size_override("font_size", NEAR_FONT)
+		_name_tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
+func _strip_bbcode(s: String) -> String:
+	var re = RegEx.new()
+	re.compile("\\[[^\\]]*\\]")
+	return re.sub(s, "", true)
+
+## Pop-in, a slight bob, a hard jolt on swear words; the bubble keeps the same size on
+## screen whatever the zoom (no giant bubble during the intro zoom), and when the speakers
+## are far away it shrinks and its text fades out (and comes back when you swim closer).
 func _decorate_near() -> void:
 	var p = _near_panel
 	var e = 1.0 - pow(1.0 - _pop, 3.0)
+	var cam = get_viewport().get_camera_2d()
+	var is_mech = _controller.get_current_speaker() == ChatterLine.Speaker.MECHANIC
+	var speaker: Node2D = _controller._mechanic if is_mech else _controller._scientist
+	var target_far := 0.0
+	if cam:
+		if speaker:
+			var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
+			var d = speaker.global_position - _cam_center(cam)
+			var r = max(abs(d.x) / max(1.0, half.x), abs(d.y) / max(1.0, half.y))
+			target_far = clamp((r - 0.85) / 0.6, 0.0, 1.0)
+	if force_near:
+		target_far = 0.0
+	_far_k = move_toward(_far_k, target_far, get_process_delta_time() * 2.5)
+	var text_a = 1.0 - smoothstep(0.25, 0.7, _far_k)
+
 	var base = p.position
 	base.y += round(sin(_time * 2.2) * 1.0) - (1.0 - e) * 6.0
+	var rot := 0.0
+	var jolt := 0.0
 	if _shake > 0.0:
-		base.x += round(sin(_time * 80.0) * 3.0 * (_shake / 0.35))
+		var s = _shake / SWEAR_SHAKE
+		base.x += round(sin(_time * 90.0) * 5.0 * s)
+		base.y += round(cos(_time * 70.0) * 2.0 * s)
+		rot = sin(_time * 60.0) * 0.08 * s
+		jolt = 0.15 * s
 	p.position = base
-	p.pivot_offset = Vector2(p.size.x * 0.5, p.size.y)
-	p.scale = Vector2.ONE * (0.8 + 0.2 * e)
-	p.modulate.a = e
-	var is_mech = _controller.get_current_speaker() == ChatterLine.Speaker.MECHANIC
+	p.rotation = rot
+	p.scale = Vector2.ONE * (0.8 + 0.2 * e + jolt) * _bubble_scale()
+	p.modulate.a = e * lerp(1.0, 0.85, _far_k)
+	_near_label.modulate.a = text_a
 	if _shadow:
 		_shadow.visible = true
-		_shadow.z_index = p.z_index - 1
 		_shadow.size = p.size
-		_shadow.pivot_offset = p.pivot_offset
-		_shadow.scale = p.scale
-		_shadow.position = p.position + Vector2(2, 2)
-		_shadow.modulate.a = 0.35 * e
-	# хвостик к персонажу
-	var speaker: Node2D = _controller._mechanic if is_mech else _controller._scientist
+		_shadow.position = Vector2(2, 2)
+	# tail toward the speaker (in panel space, so it follows the scale)
 	if _tail_fill and _tail_outline:
-		var tx = p.size.x * 0.5
-		if speaker:
-			tx = clamp(speaker.global_position.x - p.position.x, 10.0, p.size.x - 10.0)
-		var top = p.position + Vector2(tx, p.size.y - 2.0)
-		_tail_outline.polygon = PackedVector2Array([top + Vector2(-6, 0), top + Vector2(6, 0), top + Vector2(0, 8)])
-		_tail_fill.polygon = PackedVector2Array([top + Vector2(-4, -1), top + Vector2(4, -1), top + Vector2(0, 5)])
-		for t in [_tail_outline, _tail_fill]:
-			t.visible = true
-			t.z_index = p.z_index
-			t.modulate.a = e
+		# out of the inner side, low on the box, pointing at the speaker's face
+		var ty = p.size.y - 10.0
+		var ex = 2.0 if _side > 0.0 else p.size.x - 2.0
+		var d = -_side
+		_tail_outline.polygon = PackedVector2Array([Vector2(ex, ty - 5), Vector2(ex, ty + 3), Vector2(ex + d * 9.0, ty + 2)])
+		_tail_fill.polygon = PackedVector2Array([Vector2(ex - d * 1.0, ty - 3), Vector2(ex - d * 1.0, ty + 1), Vector2(ex + d * 5.0, ty + 1)])
+		_tail_outline.visible = true
+		_tail_fill.visible = true
 	if _name_tag:
 		_name_tag.visible = true
-		_name_tag.z_index = p.z_index + 1
 		_name_tag.text = NAME_MECHANIC if is_mech else NAME_SCIENTIST
-		_name_tag.add_theme_color_override("font_color", COLOR_MECHANIC if is_mech else COLOR_SCIENTIST)
-		_name_tag.position = p.position + Vector2(4, -13)
-		_name_tag.modulate.a = e
+		_name_tag.add_theme_color_override("font_color", (COLOR_MECHANIC if is_mech else COLOR_SCIENTIST).darkened(0.45))
+		_name_tag.position = Vector2(PAD_X, PAD_TOP - 1)
+		_name_tag.size = Vector2(_near_panel.size.x - PAD_X * 2, NEAR_FONT + 2)
+		_name_tag.modulate.a = lerp(1.0, 0.0, smoothstep(0.5, 0.9, _far_k))
 
+func _text_height(lbl: RichTextLabel, full: String, width: float) -> float:
+	var plain = full
+	var re = RegEx.new()
+	re.compile("\\[[^\\]]*\\]")
+	plain = re.sub(plain, "", true)
+	lbl.size = Vector2(width, 400)
+	lbl.text = full
+	var h = lbl.get_content_height()
+	var f: Font = lbl.get_theme_font("normal_font")
+	var fs: int = lbl.get_theme_font_size("normal_font_size")
+	if f:
+		var m = f.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, width - 6.0, fs)
+		h = max(h, m.y)
+		h += f.get_height(fs) * 0.35
+	return ceil(h)
 
-
-# ---------------------------------------------------------------------------
-# Far mode
-# ---------------------------------------------------------------------------
 
 func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 	if _near_panel:
@@ -270,6 +451,13 @@ func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 	var ph = _controller.far_panel_height
 	var margin = _controller.far_panel_margin_bottom
 	
+	if _far_label:
+		var line = _controller._current_line
+		if line != _far_measured_line:
+			_far_measured_line = line
+			_far_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			_far_measured_h = _text_height(_far_label, line.text if line else text, pw - 80) + 22.0
+		ph = max(ph, _far_measured_h)
 	var target_x = vp.x * 0.5 - pw * 0.5
 	var target_y = vp.y - margin - ph
 	
@@ -390,4 +578,4 @@ func apply_glitch(intensity: float) -> void:
 # ---------------------------------------------------------------------------
 
 func shake_panel() -> void:
-	_shake = 0.35
+	_shake = SWEAR_SHAKE

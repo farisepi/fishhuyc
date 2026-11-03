@@ -5,7 +5,10 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 	if not btn or not is_instance_valid(btn):
 		return
 	
+	stabilize_text(btn)
 	var original_alpha = btn.modulate.a
+	if original_alpha < 0.05:
+		original_alpha = 1.0
 	
 	if btn is Button:
 		btn.pivot_offset = btn.size / 2.0
@@ -16,6 +19,32 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 		btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
 	if not btn.mouse_exited.is_connected(_on_unhover.bind(btn, original_alpha)):
 		btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))
+
+## Menu text sometimes vanished: the glyph cache of the dynamic font was rebuilt (window
+## resize / resolution change re-rasterizes glyphs at a new oversampling) and some glyphs
+## came back empty. Fixed oversampling keeps one stable glyph cache. Also: no stray
+## line breaks in button texts and no odd per-button system font.
+static func stabilize_text(btn: Control) -> void:
+	if btn is Button:
+		var t: String = btn.text.strip_edges()
+		if t != btn.text:
+			btn.text = t
+		if btn.has_theme_font_override("font"):
+			var own = btn.get_theme_font("font")
+			if own is SystemFont and (own as SystemFont).font_names.is_empty():
+				btn.remove_theme_font_override("font")
+	fix_font(btn.get_theme_font("font"))
+
+
+static func fix_font(f: Font) -> void:
+	if f == null:
+		return
+	if f is FontVariation and (f as FontVariation).base_font:
+		fix_font((f as FontVariation).base_font)
+		return
+	if "oversampling" in f and float(f.get("oversampling")) == 0.0:
+		f.set("oversampling", 2.0)
+
 
 static func _on_hover(control: Control, original_alpha: float) -> void:
 	if not control or not is_instance_valid(control):
