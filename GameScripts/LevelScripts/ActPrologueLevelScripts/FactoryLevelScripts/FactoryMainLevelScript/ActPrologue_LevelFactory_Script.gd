@@ -3692,10 +3692,10 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	if font:
 		ts = font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, BUBBLE_MAX_W - pad.x * 2.0 - 8.0, BUBBLE_FONT)
 		ts.x += 8.0   # the label gets more width than was measured -> it never wraps into an extra line
-		name_w = font.get_string_size(who, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT).x
+		name_w = 0.0   # no names in the bubbles
 	# lines: name, then the text; extra room per wrapped line so nothing gets cut off
 	var lines = max(1, int(ceil(ts.y / max(1.0, font.get_height(BUBBLE_FONT) if font else float(BUBBLE_FONT)))))
-	var name_h = BUBBLE_FONT + 3.0
+	var name_h = 0.0
 	var sz = Vector2(max(max(ts.x, name_w) + pad.x * 2.0 + 2.0, 46.0), ts.y + lines * 2.0 + name_h + pad.y * 2.0 + 3.0).round()
 
 	var b = Node2D.new()
@@ -3753,6 +3753,7 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	tag.add_theme_color_override("font_color", who_color.darkened(0.45))
 	tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.visible = false
 	panel.add_child(tag)
 
 	# pop in

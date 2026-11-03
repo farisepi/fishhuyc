@@ -54,9 +54,9 @@ var _tail_outline: Polygon2D = null
 var _tail_fill: Polygon2D = null
 var _name_tag: Label = null
 const PAD_X := 7
-const PAD_TOP := 7          # the name sits a bit lower, clear of the frame
+const PAD_TOP := 6
 const PAD_BOTTOM := 6
-const NAME_H := 12
+const NAME_H := 0           # no speaker names in the boxes
 const NEAR_FONT := 8
 const NEAR_MAX_W := 150.0
 var _measured_w: float = 120.0
@@ -230,7 +230,7 @@ func _show_near(text: String) -> void:
 		if f:
 			var ts = f.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, tw - 8.0, NEAR_FONT)
 			tw = min(tw, ts.x + 8.0)
-			name_w = f.get_string_size(NAME_MECHANIC if is_mech else NAME_SCIENTIST, HORIZONTAL_ALIGNMENT_LEFT, -1, NEAR_FONT).x
+			name_w = 0.0
 		_measured_w = ceil(max(max(tw, name_w) + PAD_X * 2, 46.0))
 		var th = _text_height(_near_label, full, _measured_w - PAD_X * 2)
 		_measured_h = ceil(th + PAD_TOP + NAME_H + PAD_BOTTOM)
@@ -414,7 +414,7 @@ func _decorate_near() -> void:
 		_tail_outline.visible = true
 		_tail_fill.visible = true
 	if _name_tag:
-		_name_tag.visible = true
+		_name_tag.visible = false
 		_name_tag.text = NAME_MECHANIC if is_mech else NAME_SCIENTIST
 		_name_tag.add_theme_color_override("font_color", (COLOR_MECHANIC if is_mech else COLOR_SCIENTIST).darkened(0.45))
 		_name_tag.position = Vector2(PAD_X, PAD_TOP - 1)
