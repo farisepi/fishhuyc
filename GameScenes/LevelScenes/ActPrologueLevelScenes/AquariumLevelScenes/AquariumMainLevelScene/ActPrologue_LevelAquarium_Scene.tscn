@@ -872,25 +872,362 @@ _data = {
 script = ExtResource("26_hykhb")
 speaker = 1
 text = "Трещина увеличивается с каждым часом..."
+display_time = 2.1
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_yadfl"]
 script = ExtResource("26_hykhb")
 text = "Давление в третьем секторе падает."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_cend7"]
+script = ExtResource("26_hykhb")
+text = "Если трещина дойдёт до силового кабеля, будет фейерверк."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_5jnxf"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "В прошлый раз еле залатали, а она снова расходится."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_jhnb1"]
+script = ExtResource("26_hykhb")
+text = "Надо бы вызвать инженеров с поверхности."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_tnxwv"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Погода сегодня хорошая... наверное."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_urqch"]
+script = ExtResource("26_hykhb")
+text = "А я гнию тут, в этом бетонном мешке."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_r84xs"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Кофе бы... горячего, чёрного."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_5n8oj"]
+script = ExtResource("26_hykhb")
+text = "Хочу спать. Просто спать часов двенадцать."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_cokv0"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Сколько мы уже тут? Месяц? Два?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_wwg34"]
+script = ExtResource("26_hykhb")
+text = "Обещали же перевод в другой сектор."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_4o0tx"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Скорей бы смена кончилась."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_r4ydo"]
+script = ExtResource("26_hykhb")
+text = "Опять этот гул... уже в ушах звенит."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_6lapn"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Не наступи на кабель, он искрит."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_v1tx0"]
+script = ExtResource("26_hykhb")
+text = "Помнишь, когда трещина в прошлом году дошла до реактора?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_846u1"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Не напоминай. Я тогда чуть не поседел."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_j564j"]
+script = ExtResource("26_hykhb")
+text = "Надо доложить начальству, но они опять скажут «ждите»."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_vtsi3"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Ждите... вечно мы ждём."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_gfih4"]
+script = ExtResource("26_hykhb")
+text = "А если вода хлынет? Ты об этом подумал?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_88ql8"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Вода не хлынет, там тройное стекло."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_qthnw"]
+script = ExtResource("26_hykhb")
+text = "Тройное стекло, которое уже трещит по швам."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_8jvx6"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Ладно, давай просто закроем эту тему."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_qp72c"]
+script = ExtResource("26_hykhb")
+text = "У тебя сигареты есть? А, точно, мы же под водой."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_df2ov"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Ненавижу эту работу."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_ycube"]
+script = ExtResource("26_hykhb")
+text = "Зато платят хорошо."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_g2n3j"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Платят? Ты про эти копейки?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_5pqj8"]
+script = ExtResource("26_hykhb")
+text = "Ну, на жизнь хватает."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_exn1o"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "На жизнь... тут не жизнь, а существование."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_lj50l"]
+script = ExtResource("26_hykhb")
+text = "Смотри, опять датчик моргает."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_qo0qh"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Который? Красный?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_2jhie"]
+script = ExtResource("26_hykhb")
+text = "Ага. Тот самый, что в прошлый раз сбоил."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_isq8m"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Может, просто провод отошёл?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_sm6mh"]
+script = ExtResource("26_hykhb")
+text = "Провод... ага, конечно. Всё у нас «провод отошёл»."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_kucvf"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Ну а что ты предлагаешь?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_3m71o"]
+script = ExtResource("26_hykhb")
+text = "Я предлагаю свалить отсюда."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_oi8rc"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Куда? Кругом вода и бетон."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_cjikk"]
+script = ExtResource("26_hykhb")
+text = "Вода и бетон... и мы тут торчим."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_r07ec"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Эх, сейчас бы на пляж..."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_ux07e"]
+script = ExtResource("26_hykhb")
+text = "Солнце, песок, коктейль..."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_x5uvn"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Заткнись, а? И так тошно."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_h025k"]
+script = ExtResource("26_hykhb")
+text = "Ладно, молчу. Работаем."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_6qgb8"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Трещина-то реально увеличивается."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_0l4f3"]
+script = ExtResource("26_hykhb")
+text = "Я заметил. Миллиметра на три с утра."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_5on3q"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Три миллиметра — это много?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_8yo7i"]
+script = ExtResource("26_hykhb")
+text = "Для этого стекла — критично."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_bsq4d"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Значит, скоро рванёт?"
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_fx5ll"]
+script = ExtResource("26_hykhb")
+text = "Если главный механик ничего не будет делать — да."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_1w7pu"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "БЛЯТЬ, ты ЗАЕБАЛ. Ходишь тут, строит из себя гения"
+swear_words = Array[String](["БЛЯТЬ", "ЗАЕБАЛ"])
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_yjf2q"]
+script = ExtResource("26_hykhb")
+text = "А ты тут НАХУЙ вообще нужен? Варить стекло без мозгов?"
+swear_words = Array[String](["НАХУЙ"])
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_tpn4v"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Да пошёл ты НАХУЙ. Без меня твой ЕБАНЫЙ реактор — груда металла."
+swear_words = Array[String](["НАХУЙ", "ЕБАНЫЙ"])
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_qqbfu"]
+script = ExtResource("26_hykhb")
+text = "Да если бы не я, ты бы дальше харчи с пола ел."
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_amyov"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "Да заткнись НАХУЙ уже. Надо меньше ПИЗДЕТЬ и работать."
+swear_words = Array[String](["НАХУЙ", "ПИЗДЕТЬ"])
+display_time = 2.1
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_2nnud"]
+script = ExtResource("26_hykhb")
+text = "..."
+display_time = 2.1
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_kc22o"]
 script = ExtResource("26_hykhb")
 text = "Проснулся БЛЯТЬ наконец..."
 swear_words = Array[String](["БЛЯТЬ"])
-display_time = 2.0
+display_time = 1.5
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_t0kk6"]
 script = ExtResource("26_hykhb")
 text = "Пол комплекса чуть не РАЗЪЕБАЛ"
 swear_words = Array[String](["РАЗЪЕБАЛ"])
-display_time = 1.6
+display_time = 1.5
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_hykhb"]
@@ -910,17 +1247,20 @@ metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 [sub_resource type="Resource" id="Resource_nr1wi"]
 script = ExtResource("26_hykhb")
 text = "ЕБАНЫЙ РОТ, ОПЯТЬ НАЧАЛОСЬ"
+display_time = 0.4
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_s0imd"]
 script = ExtResource("26_hykhb")
 speaker = 1
 text = "ОНО СИЛЬНЕЕ ВСЕХ, ЧТО БЫЛИ ЗА ПОСЛЕДНИЙ ГОД"
+display_time = 0.4
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_6ufow"]
 script = ExtResource("26_hykhb")
 text = "БЫСТРЕЕ ЭВАКУИРУЙ ПЕРСОНАЛ И ЗАКЛЮЧЕННЫХ"
+display_time = 0.4
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_7hxmq"]
@@ -1307,7 +1647,7 @@ scale = Vector2(3.9999993, 4)
 texture = ExtResource("pm_framing")
 
 [node name="ChatterController" parent="." unique_id=1209504675 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
-lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_5ob50"), SubResource("Resource_yadfl")])
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_5ob50"), SubResource("Resource_yadfl"), SubResource("Resource_cend7"), SubResource("Resource_5jnxf"), SubResource("Resource_jhnb1"), SubResource("Resource_tnxwv"), SubResource("Resource_urqch"), SubResource("Resource_r84xs"), SubResource("Resource_5n8oj"), SubResource("Resource_cokv0"), SubResource("Resource_wwg34"), SubResource("Resource_4o0tx"), SubResource("Resource_r4ydo"), SubResource("Resource_6lapn"), SubResource("Resource_v1tx0"), SubResource("Resource_846u1"), SubResource("Resource_j564j"), SubResource("Resource_vtsi3"), SubResource("Resource_gfih4"), SubResource("Resource_88ql8"), SubResource("Resource_qthnw"), SubResource("Resource_8jvx6"), SubResource("Resource_qp72c"), SubResource("Resource_df2ov"), SubResource("Resource_ycube"), SubResource("Resource_g2n3j"), SubResource("Resource_5pqj8"), SubResource("Resource_exn1o"), SubResource("Resource_lj50l"), SubResource("Resource_qo0qh"), SubResource("Resource_2jhie"), SubResource("Resource_isq8m"), SubResource("Resource_sm6mh"), SubResource("Resource_kucvf"), SubResource("Resource_3m71o"), SubResource("Resource_oi8rc"), SubResource("Resource_cjikk"), SubResource("Resource_r07ec"), SubResource("Resource_ux07e"), SubResource("Resource_x5uvn"), SubResource("Resource_h025k"), SubResource("Resource_6qgb8"), SubResource("Resource_0l4f3"), SubResource("Resource_5on3q"), SubResource("Resource_8yo7i"), SubResource("Resource_bsq4d"), SubResource("Resource_fx5ll"), SubResource("Resource_1w7pu"), SubResource("Resource_yjf2q"), SubResource("Resource_tpn4v"), SubResource("Resource_qqbfu"), SubResource("Resource_amyov"), SubResource("Resource_2nnud")])
 loop = false
 scientist_node = NodePath("../npc/Scientist/ScientistSprite")
 mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
