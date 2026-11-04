@@ -14,24 +14,156 @@
 [ext_resource type="TileSet" uid="uid://bia86f3j05nyq" path="res://GameAssets/SharedMaterials/LevelCollisionMaterials/ActPrologueAquariumMaterials/ActPrologue_LevelAquarium_Collision_Material.tres" id="17_ccpdg"]
 [ext_resource type="PackedScene" uid="uid://cbvmk63sdhqs2" path="res://DialogueNode.tscn" id="25_t0kk6"]
 [ext_resource type="Script" uid="uid://bqxh1rrtbky61" path="res://ChatterLine.gd" id="26_hykhb"]
-[ext_resource type="Texture2D" uid="uid://bvlskt6yuygyw" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistPortaitTextures/NPC_Scientist_Portaint_Texture.png" id="27_1tjdl"]
 [ext_resource type="Texture2D" uid="uid://h0wvh3mf3l10" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicAnimationFrames/NPC_Mechanic_InstrumentBox_Texture.png" id="27_yijt6"]
-[ext_resource type="Texture2D" uid="uid://dg0pqdr0w2kkg" path="res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicPortraitTextures/NPC_Mechanic_Portaint_Texture.png" id="28_nr1wi"]
 [ext_resource type="PackedScene" uid="uid://daub0wx4q03i" path="res://GameScenes/SystemScenes/SoundManagerScene/SoundManager_Scene.tscn" id="29_hykhb"]
 [ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png" id="31_m8hiw"]
 [ext_resource type="Texture2D" uid="uid://cjgnc2j00j4ma" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option1_Texture.webp" id="31_pudq7"]
 [ext_resource type="AudioStream" uid="uid://dm4u7jsr17sln" path="res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/WaterAmbienceSounds/ActPrologue_LevelAquarium_WaterAmbience_SoundEffect.mp3" id="34_p3tjk"]
 [ext_resource type="AudioStream" uid="uid://dlpyar3xo7lqh" path="res://GameAssets/Audio/SoundEffects/LevelAmbienceSounds/ActPrologueAquariumAmbienceSounds/GlitсhAmbienceSounds/ActPrologue_LevelAquarium_GlithAmbience_SoundEffect.mp3" id="34_sdbdi"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
-[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="pm_script"]
+[ext_resource type="Shader" uid="uid://d1rnprj64sac6" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
+[ext_resource type="Shader" uid="uid://oycp5pyns0mn" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="pm_btnh"]
 [ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="pm_btnn"]
 [ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="pm_btnp"]
-[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="pm_btnh"]
 [ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="pm_framing"]
+[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="pm_script"]
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam0"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 0.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam1"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 5.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam2"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 10.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam3"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 15.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam4"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 20.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam5"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.02
+shader_parameter/seed = 25.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam6"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 30.0
+shader_parameter/dust_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="M_LabBeam7"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.92, 0.6, 1)
+shader_parameter/intensity = 0.22
+shader_parameter/top_width = 0.3
+shader_parameter/bottom_width = 1.0
+shader_parameter/falloff = 1.1
+shader_parameter/rect_size = Vector2(64, 52)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.05
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.0
+shader_parameter/seed = 35.0
+shader_parameter/dust_density = 0.0
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_syf5m"]
 polygon = PackedVector2Array(619, 26, 619, 24, 648, 24, 648, 26)
+
+[sub_resource type="ShaderMaterial" id="M_Post"]
+shader = ExtResource("fx_sh_post")
+shader_parameter/vignette_strength = 0.5
+shader_parameter/vignette_radius = 0.78
+shader_parameter/shadow_tint = Color(0.06, 0.16, 0.24, 1)
+shader_parameter/highlight_tint = Color(0.92, 0.97, 1, 1)
+shader_parameter/grade_amount = 0.5
+shader_parameter/contrast = 1.12
+shader_parameter/saturation = 0.92
+shader_parameter/aberration = 0.0022
+shader_parameter/grain_amount = 0.04
+shader_parameter/grain_pixel = 3.0
+shader_parameter/scanline_amount = 0.035
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icw3l"]
 atlas = ExtResource("9_kiyxu")
@@ -736,173 +868,76 @@ _data = {
 &"RESET": SubResource("Animation_j2tti")
 }
 
-[sub_resource type="Resource" id="Resource_t0kk6"]
+[sub_resource type="Resource" id="Resource_5ob50"]
 script = ExtResource("26_hykhb")
 speaker = 1
 text = "Трещина увеличивается с каждым часом..."
-display_time = 3.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_yadfl"]
+script = ExtResource("26_hykhb")
+text = "Давление в третьем секторе падает."
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_kc22o"]
+script = ExtResource("26_hykhb")
+text = "Проснулся БЛЯТЬ наконец..."
+swear_words = Array[String](["БЛЯТЬ"])
+display_time = 2.0
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
+
+[sub_resource type="Resource" id="Resource_t0kk6"]
+script = ExtResource("26_hykhb")
+text = "Пол комплекса чуть не РАЗЪЕБАЛ"
+swear_words = Array[String](["РАЗЪЕБАЛ"])
+display_time = 1.6
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_hykhb"]
 script = ExtResource("26_hykhb")
-text = "Давление в третьем секторе падает."
-display_time = 3.0
+speaker = 1
+text = "Во-во...."
+display_time = 1.0
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_1tjdl"]
 script = ExtResource("26_hykhb")
 speaker = 1
-text = "Если трещина дойдёт до силового кабеля, будет фейерверк."
-display_time = 3.0
+text = "А простым работагям это всё чинить..."
+display_time = 1.2
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
-[sub_resource type="Resource" id="Resource_c6gkb"]
+[sub_resource type="Resource" id="Resource_nr1wi"]
 script = ExtResource("26_hykhb")
-text = "Герметик не держит, нужно менять весь блок."
-display_time = 3.0
+text = "ЕБАНЫЙ РОТ, ОПЯТЬ НАЧАЛОСЬ"
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
-[sub_resource type="Resource" id="Resource_2fvow"]
+[sub_resource type="Resource" id="Resource_s0imd"]
 script = ExtResource("26_hykhb")
 speaker = 1
-text = "В прошлый раз еле залатали, а она снова расходится."
-display_time = 3.0
+text = "ОНО СИЛЬНЕЕ ВСЕХ, ЧТО БЫЛИ ЗА ПОСЛЕДНИЙ ГОД"
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
-[sub_resource type="Resource" id="Resource_j2tti"]
+[sub_resource type="Resource" id="Resource_6ufow"]
 script = ExtResource("26_hykhb")
-text = "Надо бы вызвать инженеров с поверхности."
-display_time = 3.0
+text = "БЫСТРЕЕ ЭВАКУИРУЙ ПЕРСОНАЛ И ЗАКЛЮЧЕННЫХ"
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
-[sub_resource type="ShaderMaterial" id="M_Post"]
-shader = ExtResource("fx_sh_post")
-shader_parameter/vignette_strength = 0.5
-shader_parameter/grade_amount = 0.5
-shader_parameter/grain_amount = 0.04
-shader_parameter/aberration = 0.0022
-shader_parameter/shadow_tint = Color(0.06, 0.16, 0.24, 1.0)
-shader_parameter/highlight_tint = Color(0.92, 0.97, 1.0, 1.0)
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam0"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 0.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam1"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 5.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam2"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 10.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam3"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 15.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam4"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 20.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam5"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 25.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.02
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam6"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 30.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
-
-[sub_resource type="ShaderMaterial" id="M_LabBeam7"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(64, 52)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.22
-shader_parameter/seed = 35.0
-shader_parameter/light_color = Color(1, 0.92, 0.6, 1.0)
-shader_parameter/top_width = 0.3
-shader_parameter/bottom_width = 1.0
-shader_parameter/falloff = 1.1
-shader_parameter/flicker_amount = 0.05
-shader_parameter/dropout_chance = 0.0
-shader_parameter/dust_density = 0.0
+[sub_resource type="Resource" id="Resource_7hxmq"]
+script = ExtResource("26_hykhb")
+speaker = 1
+text = "МЫ НЕ УСПЕ..."
+display_time = 0.3
+metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [node name="levelprolog" type="Node2D" unique_id=233668304]
 script = ExtResource("1_u46od")
 
 [node name="Player" parent="." unique_id=294675082 instance=ExtResource("3_15cj8")]
-position = Vector2(640, 236)
+position = Vector2(643, 235)
 
 [node name="PlayerCamera" parent="Player" index="2" unique_id=675897869]
+position = Vector2(5, 0)
 limit_left = 363
 limit_top = 103
 limit_right = 914
@@ -925,6 +960,78 @@ texture = ExtResource("4_whdfm")
 position = Vector2(0, 111)
 scale = Vector2(2, 2)
 texture = ExtResource("5_k3j2e")
+
+[node name="LabBeam0" type="ColorRect" parent="Visual/bg" unique_id=990000001]
+z_index = 11
+material = SubResource("M_LabBeam0")
+offset_left = -310.1
+offset_top = 84.0
+offset_right = -246.1
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam1" type="ColorRect" parent="Visual/bg" unique_id=990000002]
+z_index = 11
+material = SubResource("M_LabBeam1")
+offset_left = -232.1
+offset_top = 84.0
+offset_right = -168.1
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam2" type="ColorRect" parent="Visual/bg" unique_id=990000003]
+z_index = 11
+material = SubResource("M_LabBeam2")
+offset_left = -152.1
+offset_top = 84.0
+offset_right = -88.1
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam3" type="ColorRect" parent="Visual/bg" unique_id=990000004]
+z_index = 11
+material = SubResource("M_LabBeam3")
+offset_left = -72.1
+offset_top = 84.0
+offset_right = -8.1
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam4" type="ColorRect" parent="Visual/bg" unique_id=990000005]
+z_index = 11
+material = SubResource("M_LabBeam4")
+offset_left = 6.9
+offset_top = 84.0
+offset_right = 70.9
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam5" type="ColorRect" parent="Visual/bg" unique_id=990000006]
+z_index = 11
+material = SubResource("M_LabBeam5")
+offset_left = 87.9
+offset_top = 84.0
+offset_right = 151.9
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam6" type="ColorRect" parent="Visual/bg" unique_id=990000007]
+z_index = 11
+material = SubResource("M_LabBeam6")
+offset_left = 167.9
+offset_top = 84.0
+offset_right = 231.9
+offset_bottom = 136.0
+mouse_filter = 2
+
+[node name="LabBeam7" type="ColorRect" parent="Visual/bg" unique_id=990000008]
+z_index = 11
+material = SubResource("M_LabBeam7")
+offset_left = 246.9
+offset_top = 84.0
+offset_right = 310.9
+offset_bottom = 136.0
+mouse_filter = 2
 
 [node name="stuff" type="Node2D" parent="Visual" unique_id=924137414]
 
@@ -1039,99 +1146,20 @@ energy = 1.14
 texture = ExtResource("31_pudq7")
 texture_scale = 3.19
 
+[node name="Shaders" type="Node2D" parent="Visual" unique_id=655291887]
+
+[node name="PostFX" type="ColorRect" parent="Visual/Shaders" unique_id=990000013]
+z_index = 1000
+material = SubResource("M_Post")
+offset_left = -5639.0
+offset_top = -5335.0
+offset_right = 5361.0
+offset_bottom = 4665.0
+mouse_filter = 2
+
 [node name="CanvasModulate" type="CanvasModulate" parent="Visual" unique_id=1586707718]
 position = Vector2(-639, -335)
 color = Color(0.27058825, 0.27058825, 0.27058825, 1)
-
-[node name="LabBeam0" type="ColorRect" parent="Visual/bg" unique_id=990000001]
-z_index = 11
-material = SubResource("M_LabBeam0")
-offset_left = -310.1
-offset_top = 84.0
-offset_right = -246.1
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam1" type="ColorRect" parent="Visual/bg" unique_id=990000002]
-z_index = 11
-material = SubResource("M_LabBeam1")
-offset_left = -232.1
-offset_top = 84.0
-offset_right = -168.1
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam2" type="ColorRect" parent="Visual/bg" unique_id=990000003]
-z_index = 11
-material = SubResource("M_LabBeam2")
-offset_left = -152.1
-offset_top = 84.0
-offset_right = -88.1
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam3" type="ColorRect" parent="Visual/bg" unique_id=990000004]
-z_index = 11
-material = SubResource("M_LabBeam3")
-offset_left = -72.1
-offset_top = 84.0
-offset_right = -8.1
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam4" type="ColorRect" parent="Visual/bg" unique_id=990000005]
-z_index = 11
-material = SubResource("M_LabBeam4")
-offset_left = 6.9
-offset_top = 84.0
-offset_right = 70.9
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam5" type="ColorRect" parent="Visual/bg" unique_id=990000006]
-z_index = 11
-material = SubResource("M_LabBeam5")
-offset_left = 87.9
-offset_top = 84.0
-offset_right = 151.9
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam6" type="ColorRect" parent="Visual/bg" unique_id=990000007]
-z_index = 11
-material = SubResource("M_LabBeam6")
-offset_left = 167.9
-offset_top = 84.0
-offset_right = 231.9
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="LabBeam7" type="ColorRect" parent="Visual/bg" unique_id=990000008]
-z_index = 11
-material = SubResource("M_LabBeam7")
-offset_left = 246.9
-offset_top = 84.0
-offset_right = 310.9
-offset_bottom = 136.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
-
-[node name="PostFX" type="ColorRect" parent="." unique_id=990000013]
-z_index = 1000
-material = SubResource("M_Post")
-offset_left = -5000.0
-offset_top = -5000.0
-offset_right = 6000.0
-offset_bottom = 5000.0
-mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="Sounds" type="Node2D" parent="." unique_id=1434165889]
 
@@ -1279,18 +1307,29 @@ scale = Vector2(3.9999993, 4)
 texture = ExtResource("pm_framing")
 
 [node name="ChatterController" parent="." unique_id=1209504675 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
-lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl"), SubResource("Resource_c6gkb"), SubResource("Resource_2fvow"), SubResource("Resource_j2tti")])
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_5ob50"), SubResource("Resource_yadfl")])
 loop = false
 scientist_node = NodePath("../npc/Scientist/ScientistSprite")
 mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
-portrait_scientist = ExtResource("27_1tjdl")
-portrait_mechanic = ExtResource("28_nr1wi")
 sound_manager = NodePath("../stuff/UISounds")
 player_camera = NodePath("../Player/PlayerCamera")
 far_threshold = 10.0
-autostart = true
 scientist_panel_offset = Vector2(-20, -50)
 mechanic_panel_offset = Vector2(20, -50)
+
+[node name="CutsceneController" parent="." unique_id=497435083 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_kc22o"), SubResource("Resource_t0kk6"), SubResource("Resource_hykhb"), SubResource("Resource_1tjdl")])
+loop = false
+scientist_node = NodePath("../npc/Scientist/ScientistSprite")
+mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
+sound_manager = NodePath("../stuff/UISounds")
+
+[node name="QuakeController" parent="." unique_id=216853540 node_paths=PackedStringArray("sound_manager") instance=ExtResource("25_t0kk6")]
+lines = Array[ExtResource("26_hykhb")]([SubResource("Resource_nr1wi"), SubResource("Resource_s0imd"), SubResource("Resource_6ufow"), SubResource("Resource_7hxmq")])
+loop = false
+scientist_node = NodePath("../npc/Scientist/ScientistSprite")
+mechanic_node = NodePath("../npc/Mechanic/MechanicSprite")
+sound_manager = NodePath("../stuff/UISounds")
 
 [connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
 [connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]

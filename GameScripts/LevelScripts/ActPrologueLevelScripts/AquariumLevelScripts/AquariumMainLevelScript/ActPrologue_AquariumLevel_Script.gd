@@ -8,6 +8,8 @@ const WATER_RECT: Rect2 = Rect2(363, 103, 551, 288)
 @onready var scientistsprite = $npc/Scientist/ScientistSprite
 @onready var mechanicsprite = $npc/Mechanic/MechanicSprite
 @onready var chatter: ChatterController = $ChatterController
+@onready var cutscene_chatter: ChatterController = $CutsceneController
+@onready var quake_chatter: ChatterController = $QuakeController
 @onready var pausemenu: CanvasLayer = get_node_or_null("Pausemenu")
 @onready var player: CharacterBody2D = $Player
 @onready var lights_root: Node = get_node_or_null("Visual/Light")
@@ -30,7 +32,7 @@ var _panicking: bool = false
 var _box_shadow: Dictionary = {}
 var _jolt_rot: float = 0.0
 const BG_RECT := Rect2(319, 61, 640, 440)
-const LETTERBOX_K := 0.08   # height of the cinema bars, part of the screen   # the whole lab + tank picture
+const LETTERBOX_K := 0.08   # height of the cinema bars, part of the screen
 const PANIC_FRAMES := {
 	"Scientist": ["res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/NPC_Scientist_Panic_Sprite1_Animation.png",
 		"res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/NPC_Scientist_Panic_Sprite2_Animation.png"],
@@ -39,79 +41,8 @@ const PANIC_FRAMES := {
 		"res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicAnimationFrames/NPC_Mechanic_Panic_Sprite3_Animation.png",
 		"res://GameAssets/Sprites/EntitySprites/NPCSprites/MechanicNpcSprites/MechanicAnimationFrames/NPC_Mechanic_Panic_Sprite4_Animation.png"],
 }
-const NPC_FEET_Y := {"Scientist": 154.0, "Mechanic": 152.0}   # local y of the feet (from the old occluders)
+const NPC_FEET_Y := {"Scientist": 154.0, "Mechanic": 152.0}
 
-## Background talk of the scientist and the mechanic (from the old aquarium script).
-const CHATTER_PHRASES: Array = [
-	{"speaker": "mechanic", "text": "Трещина увеличивается с каждым часом...", "height": 56},
-	{"speaker": "scientist", "text": "Давление в третьем секторе падает.", "height": 56},
-	{"speaker": "mechanic", "text": "Если трещина дойдёт до силового кабеля, будет фейерверк.", "height": 70},
-	{"speaker": "scientist", "text": "Герметик не держит, нужно менять весь блок.", "height": 56},
-	{"speaker": "mechanic", "text": "В прошлый раз еле залатали, а она снова расходится.", "height": 70},
-	{"speaker": "scientist", "text": "Надо бы вызвать инженеров с поверхности.", "height": 56},
-	{"speaker": "mechanic", "text": "Погода сегодня хорошая... наверное.", "height": 56},
-	{"speaker": "scientist", "text": "А я гнию тут, в этом бетонном мешке.", "height": 56},
-	{"speaker": "mechanic", "text": "Кофе бы... горячего, чёрного.", "height": 56},
-	{"speaker": "scientist", "text": "Хочу спать. Просто спать часов двенадцать.", "height": 70},
-	{"speaker": "mechanic", "text": "Сколько мы уже тут? Месяц? Два?", "height": 42},
-	{"speaker": "scientist", "text": "Обещали же перевод в другой сектор.", "height": 56},
-	{"speaker": "mechanic", "text": "Скорей бы смена кончилась.", "height": 42},
-	{"speaker": "scientist", "text": "Опять этот гул... уже в ушах звенит.", "height": 56},
-	{"speaker": "mechanic", "text": "Не наступи на кабель, он искрит.", "height": 56},
-	{"speaker": "scientist", "text": "Помнишь, когда трещина в прошлом году дошла до реактора?", "height": 84},
-	{"speaker": "mechanic", "text": "Не напоминай. Я тогда чуть не поседел.", "height": 56},
-	{"speaker": "scientist", "text": "Надо доложить начальству, но они опять скажут «ждите».", "height": 70},
-	{"speaker": "mechanic", "text": "Ждите... вечно мы ждём.", "height": 42},
-	{"speaker": "scientist", "text": "А если вода хлынет? Ты об этом подумал?", "height": 56},
-	{"speaker": "mechanic", "text": "Вода не хлынет, там тройное стекло.", "height": 56},
-	{"speaker": "scientist", "text": "Тройное стекло, которое уже трещит по швам.", "height": 56},
-	{"speaker": "mechanic", "text": "Ладно, давай просто закроем эту тему.", "height": 56},
-	{"speaker": "scientist", "text": "У тебя сигареты есть? А, точно, мы же под водой.", "height": 56},
-	{"speaker": "mechanic", "text": "Ненавижу эту работу.", "height": 42},
-	{"speaker": "scientist", "text": "Зато платят хорошо.", "height": 42},
-	{"speaker": "mechanic", "text": "Платят? Ты про эти копейки?", "height": 42},
-	{"speaker": "scientist", "text": "Ну, на жизнь хватает.", "height": 42},
-	{"speaker": "mechanic", "text": "На жизнь... тут не жизнь, а существование.", "height": 56},
-	{"speaker": "scientist", "text": "Смотри, опять датчик моргает.", "height": 42},
-	{"speaker": "mechanic", "text": "Который? Красный?", "height": 42},
-	{"speaker": "scientist", "text": "Ага. Тот самый, что в прошлый раз сбоил.", "height": 56},
-	{"speaker": "mechanic", "text": "Может, просто провод отошёл?", "height": 42},
-	{"speaker": "scientist", "text": "Провод... ага, конечно. Всё у нас «провод отошёл».", "height": 70},
-	{"speaker": "mechanic", "text": "Ну а что ты предлагаешь?", "height": 42},
-	{"speaker": "scientist", "text": "Я предлагаю свалить отсюда.", "height": 42},
-	{"speaker": "mechanic", "text": "Куда? Кругом вода и бетон.", "height": 42},
-	{"speaker": "scientist", "text": "Вода и бетон... и мы тут торчим.", "height": 42},
-	{"speaker": "mechanic", "text": "Эх, сейчас бы на пляж...", "height": 42},
-	{"speaker": "scientist", "text": "Солнце, песок, коктейль...", "height": 42},
-	{"speaker": "mechanic", "text": "Заткнись, а? И так тошно.", "height": 42},
-	{"speaker": "scientist", "text": "Ладно, молчу. Работаем.", "height": 42},
-	{"speaker": "mechanic", "text": "Трещина-то реально увеличивается.", "height": 56},
-	{"speaker": "scientist", "text": "Я заметил. Миллиметра на три с утра.", "height": 56},
-	{"speaker": "mechanic", "text": "Три миллиметра — это много?", "height": 42},
-	{"speaker": "scientist", "text": "Для этого стекла — критично.", "height": 42},
-	{"speaker": "mechanic", "text": "Значит, скоро рванёт?", "height": 42},
-	{"speaker": "scientist", "text": "Если главный механик ничего не будет делать — да.", "height": 70},
-	{"speaker": "mechanic", "parts": ["БЛЯТЬ", ", ты ", "ЗАЕБАЛ", ". Ходишь тут, строит из себя гения."], "height": 70},
-	{"speaker": "scientist", "parts": ["А ты тут ", "НАХУЙ", " вообще нужен? Варить стекло без мозгов?"], "height": 70},
-	{"speaker": "mechanic", "parts": ["Да пошёл ты ", "НАХУЙ", ". Без меня твой ", "ЕБАННЫЙ", " реактор — груда металла."], "height": 84},
-	{"speaker": "scientist", "text": "Да если бы не я, ты бы дальше харчи с пола ел.", "height": 56},
-	{"speaker": "mechanic", "parts": ["Да заткнись ", "НАХУЙ", " уже. Надо меньше ", "ПИЗДЕТЬ", " и работать."], "height": 84},
-	{"speaker": "scientist", "text": "...", "height": 42},
-]
-
-## The glass-hit cutscene (same lines as in the old script).
-const CUTSCENE_LINES: Array = [
-	{"speaker": "scientist", "parts": ["Проснулся ", "БЛЯТЬ", " наконец..."], "swear": ["БЛЯТЬ"], "time": 1.2},
-	{"speaker": "scientist", "parts": ["Пол комплекса чуть не ", "РАЗЪЕБАЛ"], "swear": ["РАЗЪЕБАЛ"], "time": 1.2},
-	{"speaker": "mechanic", "text": "Во-во...", "time": 1.0},
-	{"speaker": "mechanic", "text": "А простым работягам это все чинить...", "time": 1.4},
-]
-const QUAKE_LINES: Array = [
-	{"speaker": "scientist", "parts": ["ЕБАНЫЙ", " РОТ, ОПЯТЬ НАЧАЛОСЬ"], "swear": ["ЕБАНЫЙ"], "time": 0.9},
-	{"speaker": "mechanic", "text": "ОНО СИЛЬНЕЕ ВСЕХ, ЧТО БЫЛИ ЗА ПОСЛЕДНИЙ ГОД", "time": 0.9},
-	{"speaker": "scientist", "parts": ["БЫСТРЕЕ", " ЭВАКУИРУЙ ПЕРСОНАЛ И ЗАКЛЮЧЕННЫХ"], "swear": ["БЫСТРЕЕ"], "time": 0.9},
-	{"speaker": "mechanic", "text": "МЫ НЕ УСПЕ...", "time": 0.5},
-]
 ## Where the fish has to be to hit the glass (bottom of the tank, in front of the two).
 const GLASS_ZONE: Rect2 = Rect2(560, 320, 240, 72)
 
@@ -125,7 +56,6 @@ var _hint_key_text: String = "F"
 var _hint_font: Font = null
 var _hint_alpha: float = 0.0
 var _glow_power: float = 0.0
-# where the fish has to hit: the glass strip at the bottom of the tank, over the two of them
 const GLASS_HIT_X: float = 680.0
 const GLASS_TOP_Y: float = 391.0
 const GLASS_BOTTOM_Y: float = 400.0
@@ -181,10 +111,6 @@ func _make_boring_timer(callback: Callable) -> Timer:
 	return t
 
 func _on_scientist_boring_timer() -> void:
-	
-	#if cutscene_active or not scientistsprite or scientistsprite.animation != "idle":
-		#_schedule_boring(scientist_boring_timer)
-		#return
 	scientistsprite.play("boring")
 
 func _on_scientist_animation_finished() -> void:
@@ -193,11 +119,9 @@ func _on_scientist_animation_finished() -> void:
 			scientistsprite.play("idle")
 			_schedule_boring(scientist_boring_timer)
 		"angry":
-			
 			scientistsprite.play("idle")
 			
 func _on_mechanic_boring_timer() -> void:
-	
 	if not mechanicsprite or mechanicsprite.animation != "idle":
 		_schedule_boring(mechanic_boring_timer)
 		return
@@ -282,38 +206,6 @@ func _wait_dialog() -> void:
 # Chatter
 # ---------------------------------------------------------------------------
 
-func _make_line(d: Dictionary) -> ChatterLine:
-	var l := ChatterLine.new()
-	l.speaker = ChatterLine.Speaker.MECHANIC if d.get("speaker", "") == "mechanic" else ChatterLine.Speaker.SCIENTIST
-	if d.has("parts"):
-		var text := ""
-		var swears: Array[String] = []
-		for p in d["parts"]:
-			text += p
-			if d.has("swear"):
-				continue
-			# old chatter: the words written in CAPS are the swears
-			var letters = p.strip_edges().replace(",", "").replace(".", "").replace(" ", "")
-			if letters.length() > 1 and letters == letters.to_upper() and letters != letters.to_lower():
-				swears.append(p)
-		if d.has("swear"):
-			for w in d["swear"]:
-				swears.append(w)
-		l.text = text
-		l.swear_words = swears
-	else:
-		l.text = d.get("text", "")
-	l.display_time = float(d.get("time", 0.0))
-	return l
-
-
-func _lines_from(arr: Array) -> Array[ChatterLine]:
-	var out: Array[ChatterLine] = []
-	for d in arr:
-		out.append(_make_line(d))
-	return out
-
-
 func _start_chatter_after_intro() -> void:
 	if animationtrack and animationtrack.is_playing():
 		await animationtrack.animation_finished
@@ -328,29 +220,27 @@ func _start_background_chatter() -> void:
 		return
 	if chatter.is_active():
 		chatter.stop()
-	chatter.lines = _lines_from(CHATTER_PHRASES)
-	chatter.loop = true
 	chatter.start()
 
 
-## Plays a list of lines through the same chatter boxes and waits until they are done.
-func _say_lines(arr: Array) -> void:
-	if chatter == null:
+## Plays a list of lines through a given controller and waits until they are done.
+func _run_controller(ctrl: ChatterController) -> void:
+	if ctrl == null:
 		return
-	if chatter.is_active():
+	# Stop the background chatter while this controller runs
+	if chatter and chatter.is_active():
 		chatter.stop()
-	chatter.lines = _lines_from(arr)
-	chatter.loop = false
-	chatter.start()
-	while chatter.is_active():
-		# angry scientist on the lines that ask for it
+	if ctrl.is_active():
+		ctrl.stop()
+	ctrl.start()
+	while ctrl.is_active():
 		await get_tree().process_frame
 		if not is_inside_tree():
 			return
 
 
 # ---------------------------------------------------------------------------
-# Lab lights: they hum and flicker a little; the scientist and the mechanic cast shadows
+# Lab lights
 # ---------------------------------------------------------------------------
 
 func _setup_lab_lights() -> void:
@@ -376,7 +266,6 @@ func _process_lab_lights(dt: float) -> void:
 	if _lamps.is_empty() or _quake_on:
 		return
 	_light_t += dt
-	# every few seconds one lamp stutters
 	_next_blink -= dt
 	if _next_blink <= 0.0:
 		_next_blink = randf_range(2.5, 7.0)
@@ -387,7 +276,6 @@ func _process_lab_lights(dt: float) -> void:
 		if _blink_time <= 0.0:
 			_blink_lamp = -1
 	for i in range(_lamps.size()):
-		# a soft electric hum: tiny, uneven
 		var hum = 1.0 + 0.035 * sin(_light_t * 7.3 + i * 1.9) + 0.025 * sin(_light_t * 17.1 + i * 4.3)
 		if i == _blink_lamp:
 			hum *= 0.25 if randf() < 0.5 else randf_range(0.6, 1.05)
@@ -398,9 +286,6 @@ func _process_lab_lights(dt: float) -> void:
 			(beam.material as ShaderMaterial).set_shader_parameter("intensity", _beam_base[i] * hum)
 
 
-## Shadows: for each lamp on the left and on the right a dark copy of the character, shifted
-## away from that lamp (closer lamp = shorter, darker shadow), plus a soft blob under the feet.
-## They follow the animation frame and get weaker when their lamp flickers.
 func _setup_npc_shadows() -> void:
 	for spr in [scientistsprite, mechanicsprite]:
 		if spr == null or not (spr is AnimatedSprite2D):
@@ -418,7 +303,7 @@ func _setup_npc_shadows() -> void:
 			sh.modulate = Color(0, 0, 0, 0.0)
 			sh.texture_filter = spr.texture_filter
 			holder.add_child(sh)
-			holder.move_child(sh, 0)   # drawn after the background, before the character
+			holder.move_child(sh, 0)
 			copies.append(sh)
 		var feet_y = NPC_FEET_Y.get(String(holder.name), spr.position.y + 34.0)
 		var blob = Polygon2D.new()
@@ -434,7 +319,6 @@ func _setup_npc_shadows() -> void:
 		_npc_shadows.append({"sprite": spr, "holder": holder, "shadows": copies, "blob": blob, "feet": feet_y})
 
 
-## The mechanic's tool box: shadows from the two nearest lamps + a contact shadow.
 func _setup_toolbox_shadow() -> void:
 	var box = get_node_or_null("Visual/stuff/MechanicInstrumentBox1") as Sprite2D
 	if box == null or box.texture == null:
@@ -508,7 +392,6 @@ func _update_box_shadow() -> void:
 		sh.modulate = Color(0, 0, 0, clamp(0.32 - dist * 0.0012, 0.12, 0.3) * lamp_k)
 
 
-## The fish can not leave the camera view (it used to swim off behind the screen edge).
 func _keep_fish_on_screen() -> void:
 	if player == null or _cutscene:
 		return
@@ -518,9 +401,8 @@ func _keep_fish_on_screen() -> void:
 	if cam == null:
 		return
 	var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
-	var c = cam.get_screen_center_position()
+	var c = cam.global_position
 	var m = 14.0
-	c = cam.global_position   # without the shake / look-around offset
 	var p = player.global_position
 	var lo = c - half + Vector2(m, m)
 	var hi = c + half - Vector2(m, m)
@@ -544,7 +426,6 @@ func _update_npc_shadows() -> void:
 		if not is_instance_valid(spr):
 			continue
 		var x = spr.global_position.x
-		# nearest lamp on each side
 		var li = -1
 		var ri = -1
 		for i in range(_lamps.size()):
@@ -566,10 +447,8 @@ func _update_npc_shadows() -> void:
 			sh.frame = spr.frame
 			sh.flip_h = spr.flip_h
 			var dist = abs(x - _lamps[i].global_position.x)
-			var away = 1.0 if k == 0 else -1.0   # a lamp on the left throws the shadow right
+			var away = 1.0 if k == 0 else -1.0
 			var shift = clamp(dist * 0.16, 2.0, 11.0) * away
-			var feet: float = d["feet"]
-			# leans away from the lamp, feet stay on the floor
 			sh.position = spr.position + Vector2(shift, 1.0)
 			sh.skew = clamp(-shift * 0.03, -0.3, 0.3)
 			var lamp_k = _lamp_k[i] if i < _lamp_k.size() else 1.0
@@ -580,8 +459,7 @@ func _update_npc_shadows() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Panic during the earthquake (there is no panic sheet: frantic idle + running around,
-# hopping, turning, sweat drops and "!" over the heads)
+# Panic during the earthquake
 # ---------------------------------------------------------------------------
 
 func _start_panic() -> void:
@@ -612,29 +490,26 @@ func _panic(spr: AnimatedSprite2D, idx: int) -> void:
 	var sweat := 0.6
 	var vx := 0.0
 	var hop_t := 0.0
-	# the panic grows: first they freeze and look around, then start running faster and faster
 	var delay = 0.35 + 0.25 * idx
 	while _panicking and is_inside_tree() and is_instance_valid(spr):
 		var dt = get_process_delta_time()
 		t += dt
 		retarget -= dt
 		var ramp = clamp((t - delay) / 2.0, 0.0, 1.0)
-		ramp = ramp * ramp * (3.0 - 2.0 * ramp)   # smoothstep
+		ramp = ramp * ramp * (3.0 - 2.0 * ramp)
 		if spr.animation != anim:
-			spr.play(anim)   # no "boring" / "angry" while panicking
+			spr.play(anim)
 		if anim != "panic":
 			spr.speed_scale = lerp(1.0, 3.2, ramp)
 		if retarget <= 0.0:
 			retarget = randf_range(0.35, 0.8) * lerp(1.6, 1.0, ramp)
 			target_x = base_pos.x + randf_range(-1.0, 1.0) * lerp(6.0, 24.0, ramp) + (6.0 if idx == 0 else -6.0) * ramp
-		# accelerate / brake smoothly instead of jumping to full speed
 		var dx = target_x - holder.position.x
 		var want = clamp(dx * 6.0, -1.0, 1.0) * lerp(20.0, 85.0, ramp)
 		vx = lerp(vx, want, 1.0 - exp(-5.0 * dt))
 		holder.position.x += vx * dt
 		if abs(vx) > 6.0:
 			spr.flip_h = (vx < 0.0) != (idx == 1)
-		# little hops, growing with the panic
 		hop_t += dt * lerp(8.0, 16.0, ramp)
 		holder.position.y = base_pos.y - round(abs(sin(hop_t + idx)) * 3.0 * ramp)
 		sweat -= dt
@@ -646,8 +521,6 @@ func _panic(spr: AnimatedSprite2D, idx: int) -> void:
 		spr.speed_scale = 1.0
 
 
-## Scared faces: a "panic" animation built from the panic frames (wide eyes, open mouth).
-## If the frames are not imported yet, falls back to a frantic idle.
 func _ensure_panic_anim(spr: AnimatedSprite2D, who: String) -> String:
 	var sf = spr.sprite_frames
 	if sf == null:
@@ -687,9 +560,6 @@ func _sweat_drop(holder: Node2D, at: Vector2) -> void:
 # Hitting the glass
 # ---------------------------------------------------------------------------
 
-## The interact key, drawn as a little pixel keyboard key, stands on the glass right where
-## the fish has to hit; the glass there softly glows. Both live on their own canvas layer
-## that follows the camera, so the level's dark CanvasModulate does not swallow them.
 func _make_glass_hint() -> void:
 	_hint_layer = CanvasLayer.new()
 	_hint_layer.layer = 3
@@ -717,20 +587,16 @@ func _draw_glass_glow() -> void:
 	var pulse = 0.5 + 0.5 * sin(t * 2.4)
 	var a = (0.10 + 0.06 * pulse) * (0.6 + 1.4 * _glow_power)
 	var c = Color(0.62, 0.9, 1.0)
-	# the glass strip itself, fading out to the sides
 	var steps = 8
 	for i in range(steps):
 		var k = float(i) / steps
 		var w = GLASS_HALF_W * (1.0 - k)
 		_glass_glow.draw_rect(Rect2(GLASS_HIT_X - w, GLASS_TOP_Y, w * 2.0, GLASS_BOTTOM_Y - GLASS_TOP_Y), Color(c, a * 0.35))
-	# soft light rising into the water from the glass
 	for i in range(5):
 		var h = 3.0 + i * 3.0
 		var w2 = GLASS_HALF_W * (0.75 - i * 0.12)
 		_glass_glow.draw_rect(Rect2(GLASS_HIT_X - w2, GLASS_TOP_Y - h, w2 * 2.0, h), Color(c, a * 0.18))
-	# bright edge of the glass
 	_glass_glow.draw_rect(Rect2(GLASS_HIT_X - GLASS_HALF_W * 0.8, GLASS_TOP_Y, GLASS_HALF_W * 1.6, 1), Color(1, 1, 1, a * 1.4))
-	# a shine sliding along the glass every few seconds
 	var s = fmod(t, 3.2) / 1.2
 	if s < 1.0:
 		var sx = GLASS_HIT_X - GLASS_HALF_W + s * GLASS_HALF_W * 2.0
@@ -747,30 +613,26 @@ func _draw_key() -> void:
 	var y0 = -8.0
 	var pulse = 0.5 + 0.5 * sin(t * 4.0)
 	var glow = Color(0.55, 0.88, 1.0)
-	# soft halo
 	for i in range(3):
 		_hint.draw_circle(Vector2(0, 0), 15.0 - i * 3.0, Color(glow, (0.05 + 0.03 * i) * (0.6 + 0.4 * pulse)))
-	# a ring that keeps rolling outwards
 	var rt = fmod(t, 1.4) / 1.4
 	_hint.draw_arc(Vector2(0, 0), 9.0 + rt * 12.0, 0.0, TAU, 40, Color(0.7, 0.93, 1.0, 0.55 * (1.0 - rt)), 1.0)
-	# key: dark outline with rounded corners, side (depth), two-tone face, highlights
 	var o = Color(0.08, 0.09, 0.12)
 	_hint.draw_rect(Rect2(x0, y0 + 1, w, 15), o)
 	_hint.draw_rect(Rect2(x0 + 1, y0, w - 2, 17), o)
-	_hint.draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 15), Color(0.35, 0.39, 0.48))      # side
+	_hint.draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 15), Color(0.35, 0.39, 0.48))
 	_hint.draw_rect(Rect2(x0 + 1, y0 + 15, w - 2, 1), Color(0.24, 0.27, 0.34))
-	_hint.draw_rect(Rect2(x0 + 1, y0 + 1 + dip, w - 2, 6), Color(0.95, 0.96, 0.98))  # face top
-	_hint.draw_rect(Rect2(x0 + 1, y0 + 7 + dip, w - 2, 5), Color(0.83, 0.86, 0.91))  # face bottom
-	_hint.draw_rect(Rect2(x0 + 2, y0 + 2 + dip, w - 4, 1), Color(1, 1, 1))             # shine
+	_hint.draw_rect(Rect2(x0 + 1, y0 + 1 + dip, w - 2, 6), Color(0.95, 0.96, 0.98))
+	_hint.draw_rect(Rect2(x0 + 1, y0 + 7 + dip, w - 2, 5), Color(0.83, 0.86, 0.91))
+	_hint.draw_rect(Rect2(x0 + 2, y0 + 2 + dip, w - 4, 1), Color(1, 1, 1))
 	_hint.draw_rect(Rect2(x0 + 2, y0 + 3 + dip, 1, 3), Color(1, 1, 1, 0.8))
-	_hint.draw_rect(Rect2(x0 + 1, y0 + 12 + dip, w - 2, 1), Color(0.65, 0.69, 0.77))  # face edge
+	_hint.draw_rect(Rect2(x0 + 1, y0 + 12 + dip, w - 2, 1), Color(0.65, 0.69, 0.77))
 	if _hint_font:
 		var tw = _hint_font.get_string_size(_hint_key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 		var base_y = y0 + 3 + dip + _hint_font.get_ascent(8)
 		var lx = round(-tw / 2.0)
 		_hint.draw_string(_hint_font, Vector2(lx, base_y + 1), _hint_key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.6))
 		_hint.draw_string(_hint_font, Vector2(lx, base_y), _hint_key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.16, 0.18, 0.25))
-	# sparkles circling the key
 	for i in range(3):
 		var a = t * 1.3 + i * 2.1
 		var s = 0.5 + 0.5 * sin(t * 6.0 + i * 2.0)
@@ -780,7 +642,6 @@ func _draw_key() -> void:
 		if s > 0.6:
 			for dv in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
 				_hint.draw_rect(Rect2(p + dv, Vector2.ONE), Color(sc, s * 0.6))
-	# bouncing arrow down to the glass
 	var ay = y0 + 20.0 + round(sin(t * 5.0))
 	var widths = [7, 5, 3, 1]
 	for i in range(widths.size()):
@@ -797,7 +658,7 @@ func _process(_delta: float) -> void:
 	_update_box_shadow()
 	_keep_fish_on_screen()
 	if player and _cutscene and "can_move" in player and player.can_move:
-		player.can_move = false   # hit_glass() would let the fish swim off in the middle of the scene
+		player.can_move = false
 	var dt = get_process_delta_time()
 	if player == null or _cutscene:
 		_in_glass_zone = false
@@ -807,7 +668,6 @@ func _process(_delta: float) -> void:
 			_glass_glow.queue_redraw()
 		return
 	_in_glass_zone = GLASS_ZONE.has_point(player.global_position)
-	# the key fades in when the fish is close; the glass glows a bit stronger then
 	_hint_alpha = move_toward(_hint_alpha, 1.0 if _in_glass_zone else 0.0, dt * 5.0)
 	_glow_power = move_toward(_glow_power, 1.0 if _in_glass_zone else 0.0, dt * 3.0)
 	if _hint:
@@ -818,9 +678,6 @@ func _process(_delta: float) -> void:
 		_glass_glow.queue_redraw()
 
 
-## E at the glass: the fish hits it, black cinema bars slide in, the camera glides over to
-## the scientist and the mechanic (the player camera script owns `offset`, so the pan goes
-## through its external offset), then the dialog.
 func _start_glass_cutscene() -> void:
 	if _cutscene or _ending:
 		return
@@ -836,13 +693,12 @@ func _start_glass_cutscene() -> void:
 		player.hit_glass()
 	var cam = _get_player_camera()
 	if cam and cam.has_method("begin_cutscene"):
-		cam.begin_cutscene()   # freeze the camera exactly where it is - no slide back
+		cam.begin_cutscene()
 	elif cam and "look_amount" in cam:
 		cam.look_amount = 0.0
 	await get_tree().create_timer(0.25).timeout
 	if not is_inside_tree():
 		return
-	# the knock on the glass
 	if cam and cam.has_method("add_trauma"):
 		cam.add_trauma(0.45)
 	UISounds.play_hit()
@@ -851,7 +707,6 @@ func _start_glass_cutscene() -> void:
 	await get_tree().create_timer(0.5).timeout
 	if not is_inside_tree():
 		return
-	# the fish's own hit shake also drives the camera offset: let it finish first
 	var waited := 0.0
 	while player and "shake_amount" in player and float(player.shake_amount) > 0.0 and waited < 1.0:
 		await get_tree().process_frame
@@ -859,9 +714,8 @@ func _start_glass_cutscene() -> void:
 	if player and "shake_amount" in player:
 		player.shake_amount = 0.0
 	if player and "can_move" in player:
-		player.can_move = false   # hit_glass() turns movement back on when its animation ends
+		player.can_move = false
 	if cam:
-		# the camera leaves the fish and flies to the scientist and the mechanic
 		var npc_pos = (scientistsprite.global_position + mechanicsprite.global_position) * 0.5 if scientistsprite and mechanicsprite else cam.global_position
 		if not cam.has_method("begin_cutscene"):
 			var gp = cam.global_position
@@ -870,32 +724,34 @@ func _start_glass_cutscene() -> void:
 		var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		var z = cam.zoom * 1.7
 		if "limit_bottom" in cam:
-			# down to the floor of the lab, plus the height of the black bar - the bar covers
-			# what is below the picture, so their feet stay in view
 			var bar_world = round(get_viewport().get_visible_rect().size.y * LETTERBOX_K) / z.y
 			cam.limit_bottom = int(BG_RECT.end.y + bar_world)
-		# end point inside the limits (so the camera does not stop early on one axis), with a
-		# little room below for the earthquake shake
 		var half_y = get_viewport().get_visible_rect().size.y / z.y / 2.0
 		var end_pos = npc_pos + Vector2(0, 26)
 		if "limit_bottom" in cam:
 			end_pos.y = min(end_pos.y, cam.limit_bottom - half_y - 5.0)
 		tw.tween_property(cam, "global_position", end_pos, 1.6)
 		tw.parallel().tween_property(cam, "zoom", z, 1.6)
-	# the dialog boxes keep their full size in the cutscene
-	# ...and grow to it together with the camera move, no jump
-	var cbox = chatter.find_child("ChatterBox", true, false) if chatter else null
+	# Bubble scale: cutscene controller uses full size bubbles
+	var cbox = cutscene_chatter.find_child("ChatterBox", true, false) if cutscene_chatter else null
 	if cbox and "bubble_scale" in cbox:
 		if "force_near" in cbox:
 			cbox.force_near = true
 		var bt = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		bt.tween_property(cbox, "bubble_scale", 1.0, 1.6)
+	# Also scale the main chatter box to 1.0 (it's being stopped, but just in case)
+	var cbox2 = chatter.find_child("ChatterBox", true, false) if chatter else null
+	if cbox2 and "bubble_scale" in cbox2:
+		if "force_near" in cbox2:
+			cbox2.force_near = true
+		var bt2 = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		bt2.tween_property(cbox2, "bubble_scale", 1.0, 1.6)
 	if scientistsprite and scientistsprite.sprite_frames and scientistsprite.sprite_frames.has_animation("angry"):
 		scientistsprite.play("angry")
 	await get_tree().create_timer(0.7).timeout
 	if not is_inside_tree():
 		return
-	await _say_lines(CUTSCENE_LINES)
+	await _run_controller(cutscene_chatter)
 	if not is_inside_tree():
 		return
 	if player and "can_move" in player:
@@ -905,7 +761,6 @@ func _start_glass_cutscene() -> void:
 	_play_earthquake()
 
 
-## The fish's HUD (HP, air...) softly fades out for the cutscene.
 func _hide_player_ui() -> void:
 	if player == null:
 		return
@@ -913,14 +768,13 @@ func _hide_player_ui() -> void:
 	if gui == null:
 		return
 	if animationtrack and animationtrack.is_playing():
-		animationtrack.stop(true)   # the intro track also drives the HUD alpha
+		animationtrack.stop(true)
 	for c in gui.get_children():
 		if c is CanvasItem and c.visible:
 			var tw = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			tw.tween_property(c, "modulate:a", 0.0, 0.6)
 
 
-## Black cinema bars at the top and bottom of the screen.
 func _letterbox(on: bool) -> void:
 	if _bars == null:
 		_bars = CanvasLayer.new()
@@ -967,27 +821,22 @@ func _quake_shake(duration: float, lights: Array, base_energy: Array) -> void:
 		var dt = get_process_delta_time()
 		t += dt
 		var kk = clamp(t / duration, 0.0, 1.0)
-		# heavy jolts: the whole lab is hit from below every second or so
 		jolt_timer -= dt
 		if jolt_timer <= 0.0:
 			jolt_timer = randf_range(0.55, 1.2) * lerp(1.0, 0.6, kk)
 			jolts += 1
 			_quake_jolt(cam, kk, jolts)
 		_jolt_rot = move_toward(_jolt_rot, 0.0, dt * 0.25)
-		# dust and little stones keep raining from the ceiling
 		dust_timer -= dt
 		if dust_timer <= 0.0:
 			dust_timer = lerp(0.12, 0.04, kk)
 			_spawn_dust(cam, 1 + int(kk * 2.0))
-		# red emergency light pulsing
 		if alarm:
 			alarm.color.a = (0.05 + 0.1 * kk) * (0.5 + 0.5 * sin(t * 7.0))
 		var k = clamp(t / duration, 0.0, 1.0)
-		# fast but smooth start: from nothing to full strength in ~0.7 s (smoothstep)
 		var onset = clamp(t / 0.3, 0.0, 1.0)
 		onset = onset * onset * (3.0 - 2.0 * onset)
 		if cam:
-			# strong, growing shake: keep the camera trauma high the whole time
 			if "trauma" in cam:
 				cam.trauma = max(float(cam.trauma), lerp(0.45, 0.8, k) * onset)
 			elif cam.has_method("add_trauma"):
@@ -1019,8 +868,6 @@ func _make_alarm_overlay() -> ColorRect:
 	return r
 
 
-## One heavy hit: a spike of shake, a kick of the camera angle, a short zoom punch,
-## a burst of dust and all lamps blink.
 func _quake_jolt(cam: Camera2D, k: float, n: int) -> void:
 	if cam:
 		if "trauma" in cam:
@@ -1064,37 +911,39 @@ func _play_earthquake() -> void:
 		if "shake_mult" in qcam:
 			qcam.shake_mult = 1.7
 		if "shake_bounds" in qcam:
-			qcam.shake_bounds = BG_RECT   # the shake may reach the edge of the picture
+			qcam.shake_bounds = BG_RECT
 	var lights: Array = _lamps.duplicate()
 	var base_energy: Array = _lamp_base.duplicate()
 	_start_panic()
 	_quake_shake(QUAKE_DURATION + 6.0, lights, base_energy)
+	# Track the last quake line to know when to trigger the debris
 	var hit := [false]
-	var last = QUAKE_LINES.size() - 1
+	var last = quake_chatter.lines.size() - 1
 	var on_line = func(_l, i):
 		if i >= last:
 			hit[0] = true
-	if chatter and chatter.has_signal("line_shown"):
-		chatter.line_shown.connect(on_line)
-	_say_lines(QUAKE_LINES)
-	while not hit[0] and chatter and chatter.is_active():
+	if quake_chatter and quake_chatter.has_signal("line_shown"):
+		quake_chatter.line_shown.connect(on_line)
+	_run_controller(quake_chatter)
+	while not hit[0] and quake_chatter and quake_chatter.is_active():
 		await get_tree().process_frame
 		if not is_inside_tree():
 			return
-	# "МЫ НЕ УСПЕ..." - cut off mid-word by the falling slab
+	# "МЫ НЕ УСПЕ..." — cut off mid-word by the falling slab
 	await get_tree().create_timer(0.45).timeout
 	if not is_inside_tree():
 		return
-	if chatter and chatter.line_shown.is_connected(on_line):
-		chatter.line_shown.disconnect(on_line)
+	if quake_chatter and quake_chatter.line_shown.is_connected(on_line):
+		quake_chatter.line_shown.disconnect(on_line)
 	_knockout_fish()
 	_spawn_falling_debris()
 	_panicking = false
 	await get_tree().create_timer(0.7).timeout
 	if not is_inside_tree():
 		return
-	if chatter and chatter.is_active():
-		chatter.stop()
+	for ctrl in [chatter, cutscene_chatter, quake_chatter]:
+		if ctrl and ctrl.is_active():
+			ctrl.stop()
 	await get_tree().create_timer(0.1).timeout
 	if not is_inside_tree():
 		return
@@ -1136,7 +985,6 @@ func _knockout_fish() -> void:
 	tw.tween_property(spr, "modulate", Color(0.4, 0.4, 0.5, 1.0), 1.2)
 
 
-## A slab of the ceiling falls over the screen (from the old script).
 func _spawn_falling_debris() -> void:
 	var layer = CanvasLayer.new()
 	layer.layer = 90
@@ -1183,7 +1031,6 @@ func _spawn_falling_debris() -> void:
 		cam.add_trauma(0.8)
 
 
-## "Пару дней назад..." over black (from the old script), with the Flashback achievement.
 func _show_flashback_title() -> void:
 	var layer = CanvasLayer.new()
 	layer.layer = 100
@@ -1208,7 +1055,7 @@ func _show_flashback_title() -> void:
 	label.modulate.a = 0.0
 	layer.add_child(label)
 	if has_node("/root/Achievements") and Achievements.has_method("unlock_flashback"):
-		Achievements.unlock_flashback()   # the popup + sound come from the Achievements autoload
+		Achievements.unlock_flashback()
 	var tw = create_tween()
 	tw.tween_property(label, "modulate:a", 1.0, 1.0)
 	tw.tween_interval(1.4)
@@ -1238,8 +1085,9 @@ func _toggle_pause() -> void:
 		get_tree().paused = false
 		GlobalMusic.restore_volume()
 		UISounds.restore_ambience()
-		if chatter:
-			chatter.resume_chatter()
+		for ctrl in [chatter, cutscene_chatter, quake_chatter]:
+			if ctrl:
+				ctrl.resume_chatter()
 		if pausemenu.has_method("hide_menu"):
 			pausemenu.hide_menu()
 		else:
@@ -1249,13 +1097,10 @@ func _toggle_pause() -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		GlobalMusic.lower_volume()
 		UISounds.lower_ambience()
-		if chatter:
-			chatter.pause_chatter()
+		for ctrl in [chatter, cutscene_chatter, quake_chatter]:
+			if ctrl:
+				ctrl.pause_chatter()
 		if pausemenu.has_method("show_menu"):
 			pausemenu.show_menu()
 		else:
 			pausemenu.visible = true
-
-func _resume_after_pause() -> void:
-	if chatter:
-		chatter.resume_chatter()
