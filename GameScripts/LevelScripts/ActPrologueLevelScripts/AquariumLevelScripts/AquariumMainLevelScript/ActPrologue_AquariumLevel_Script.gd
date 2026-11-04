@@ -71,9 +71,16 @@ var mechanic_boring_timer: Timer
 const BORING_INTERVAL_MIN: float = 15.0
 const BORING_INTERVAL_MAX: float = 20.0
 
+const TUTORIAL := preload("res://GameScripts/UIScripts/TutorialScripts/Tutorial_Hints.gd")
+var _tut = null
+var _tut_t := 0.0
+
 func _ready():
 	GlobalMusic.play_level_music()
 	animationtrack.play("INTRO")
+	_tut = TUTORIAL.new()
+	_tut.style = "aquarium"
+	add_child(_tut)
 	
 	_setup_character_animations()
 	_spawn_bubbles()
@@ -666,6 +673,22 @@ func _draw_key() -> void:
 		var wd2 = inner[i]
 		_hint.draw_rect(Rect2(-floor(wd2 / 2.0), ay + i, wd2, 1), Color(1.0, 0.84, 0.35))
 
+## Mini tutorial: swim -> go listen at the glass -> hit the crack.
+func _tutorial_tick(dt: float) -> void:
+	if _tut == null:
+		return
+	if animationtrack and animationtrack.is_playing() and animationtrack.current_animation == "INTRO":
+		return
+	_tut_t += dt
+	_tut.hint("a_swim", "ПЛАВАТЬ", ["ui_up", "ui_left", "ui_down", "ui_right"],
+		func(): return player.get("velocity") is Vector2 and (player.get("velocity") as Vector2).length() > 30.0, 2.0, 8.0)
+	if _tut_t > 6.0:
+		_tut.hint("a_listen", "ВНИЗУ, ЗА СТЕКЛОМ, ЛЮДИ О ЧЁМ-ТО СПОРЯТ. ПОДПЛЫВИ ПОСЛУШАТЬ", [],
+			func(): return player.global_position.y > GLASS_ZONE.position.y - 40.0, 2.5, 12.0)
+	if _in_glass_zone:
+		_tut.hint("a_hit", "ТРЕЩИНА В СТЕКЛЕ. УДАРЬ ПО НЕЙ", ["interact"], func(): return _cutscene, 1.0, 20.0)
+
+
 func _process(_delta: float) -> void:
 	_process_lab_lights(get_process_delta_time())
 	_update_npc_shadows()
@@ -682,6 +705,7 @@ func _process(_delta: float) -> void:
 			_glass_glow.queue_redraw()
 		return
 	_in_glass_zone = GLASS_ZONE.has_point(player.global_position)
+	_tutorial_tick(dt)
 	_hint_alpha = move_toward(_hint_alpha, 1.0 if _in_glass_zone else 0.0, dt * 5.0)
 	_glow_power = move_toward(_glow_power, 1.0 if _in_glass_zone else 0.0, dt * 3.0)
 	if _hint:

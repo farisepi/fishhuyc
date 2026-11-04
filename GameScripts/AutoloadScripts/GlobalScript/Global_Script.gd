@@ -225,6 +225,9 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	)
 	
 	var fullscreen = config.get_value("graphics", "fullscreen", false)
+	# started from the Godot editor (debug): always a window, whatever the settings say
+	if OS.has_feature("editor"):
+		fullscreen = false
 	if fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:

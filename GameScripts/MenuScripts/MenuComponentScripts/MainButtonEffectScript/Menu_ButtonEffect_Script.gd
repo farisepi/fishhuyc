@@ -6,9 +6,13 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 		return
 	
 	stabilize_text(btn)
-	var original_alpha = btn.modulate.a
-	if original_alpha < 0.05:
-		original_alpha = 1.0
+	complete_styles(btn)
+	add_shimmer(btn)
+	# buttons are always fully opaque at rest (the alpha used to be taken from the moment of
+	# setup - if a menu was still fading in, the button stayed half transparent / invisible)
+	var original_alpha = 1.0
+	if btn.modulate.a < 0.99 and not btn.has_meta("fx_keep_alpha"):
+		btn.modulate.a = 1.0
 	
 	if btn is Button:
 		btn.pivot_offset = btn.size / 2.0
@@ -19,6 +23,62 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 		btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
 	if not btn.mouse_exited.is_connected(_on_unhover.bind(btn, original_alpha)):
 		btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))
+
+## A light band sweeps over the menu buttons now and then (buttons further down the screen
+## get it a bit later, so it runs down the menu like a wave).
+static func add_shimmer(btn: Control) -> void:
+	if btn.material != null or not Global.button_effects_enabled:
+		return
+	var sh = load("res://GameShaders/SharedShaders/Shared_UIShimmer_Shader.gdshader")
+	if sh == null:
+		return
+	var m = ShaderMaterial.new()
+	m.shader = sh
+	m.set_shader_parameter("rect_min", Vector2.ZERO)
+	m.set_shader_parameter("rect_size", btn.size if btn.size.x > 1.0 else Vector2(200, 40))
+	m.set_shader_parameter("pixel", 2.0)
+	m.set_shader_parameter("period", 4.5)
+	m.set_shader_parameter("strength", 0.16)
+	m.set_shader_parameter("phase", -clamp(btn.global_position.y / 2000.0, 0.0, 0.4))
+	btn.material = m
+	if not btn.resized.is_connected(_on_shimmer_resized.bind(btn)):
+		btn.resized.connect(_on_shimmer_resized.bind(btn))
+
+
+static func _on_shimmer_resized(btn: Control) -> void:
+	if is_instance_valid(btn) and btn.material is ShaderMaterial:
+		btn.material.set_shader_parameter("rect_size", btn.size)
+
+
+## A button only had normal / hover / pressed boxes: in the other states (keyboard focus,
+## hovered while pressed, disabled) Godot fell back to the default grey theme box, so the
+## button suddenly "lost" its look. Every state now has a box from the button's own set.
+static func complete_styles(btn: Control) -> void:
+	if not (btn is Button):
+		return
+	var b: Button = btn
+	if not b.has_theme_stylebox_override("normal"):
+		return
+	var normal = b.get_theme_stylebox("normal")
+	var hover = b.get_theme_stylebox("hover") if b.has_theme_stylebox_override("hover") else normal
+	var pressed = b.get_theme_stylebox("pressed") if b.has_theme_stylebox_override("pressed") else hover
+	if not b.has_theme_stylebox_override("hover"):
+		b.add_theme_stylebox_override("hover", normal)
+	if not b.has_theme_stylebox_override("pressed"):
+		b.add_theme_stylebox_override("pressed", hover)
+	if not b.has_theme_stylebox_override("hover_pressed"):
+		b.add_theme_stylebox_override("hover_pressed", pressed)
+	if not b.has_theme_stylebox_override("disabled"):
+		b.add_theme_stylebox_override("disabled", normal)
+	if not b.has_theme_stylebox_override("focus"):
+		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	# same text colour in every state unless the scene set its own
+	if b.has_theme_color_override("font_color"):
+		var c = b.get_theme_color("font_color")
+		for k in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+			if not b.has_theme_color_override(k):
+				b.add_theme_color_override(k, c)
+
 
 ## Menu text sometimes vanished: the glyph cache of the dynamic font was rebuilt (window
 ## resize / resolution change re-rasterizes glyphs at a new oversampling) and some glyphs

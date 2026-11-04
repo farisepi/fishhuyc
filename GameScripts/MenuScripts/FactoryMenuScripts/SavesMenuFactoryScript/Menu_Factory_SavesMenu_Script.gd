@@ -1,4 +1,5 @@
 extends Control
+const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Menu_StyledDialog.gd")
 
 @onready var back_btn: Button = $BackButton
 @onready var grid: VBoxContainer = $ScrollContainer/SaveGrid
@@ -13,7 +14,7 @@ const FULL_NORMAL = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMateri
 const FULL_HOVER = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/FactorySaveMenuMaterials/Menu_SaveMenu_Factory_Button_Huge_Fullness_Hover_Material.tres"
 const FULL_PRESSED = "res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/FactorySaveMenuMaterials/Menu_SaveMenu_Factory_Button_Huge_Fullness_Pressed_Material.tres"
 
-var current_popup: AcceptDialog = null
+var current_popup = null
 var intro_active: bool = false
 var intro_instance: CanvasLayer = null
 
@@ -155,7 +156,8 @@ func _skip_intro():
 func _show_load_or_overwrite(index: int):
 	_close_current_popup()
 	
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "factory"
 	menu.title = "Сохранение " + str(index + 1)
 	menu.dialog_text = "Загрузить или перезаписать?"
 	menu.add_button("Загрузить", true, "load")
@@ -190,7 +192,8 @@ func _show_load_or_overwrite(index: int):
 func _show_load_or_delete(index: int):
 	_close_current_popup()
 	
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "factory"
 	menu.title = "Сохранение " + str(index + 1)
 	menu.dialog_text = "Загрузить или удалить?"
 	menu.add_button("Загрузить", true, "load")
@@ -225,7 +228,8 @@ func _show_load_or_delete(index: int):
 func _show_delete_confirm(index: int):
 	_close_current_popup()
 	
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "factory"
 	menu.title = "Удаление"
 	menu.dialog_text = "Удалить сохранение " + str(index + 1) + "?"
 	menu.add_button("Да", true, "yes")

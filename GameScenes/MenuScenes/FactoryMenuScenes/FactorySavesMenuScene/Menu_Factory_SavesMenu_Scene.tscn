@@ -181,7 +181,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("7_btnn")
 theme_override_styles/pressed = ExtResource("8_btnp")
 theme_override_styles/hover = ExtResource("9_btnh")
-text = "Закрыть"
+text = "Назад"
 
 [node name="Rust" type="Sprite2D" parent="BackButton" unique_id=1840574675]
 position = Vector2(115.999985, 23.500006)

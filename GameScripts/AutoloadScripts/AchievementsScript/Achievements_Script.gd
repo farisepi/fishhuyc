@@ -68,14 +68,23 @@ const ICONS := {
 	"freedom": "Menu_AchivementMenu_Icon_Freedom.png",
 }
 const C_GOLD := Color(1.0, 0.78, 0.3)
+const POPUP_SCALE := 0.5
 const C_GOLD_D := Color(0.62, 0.38, 0.1)
 const C_CARD := Color(0.07, 0.075, 0.1, 0.97)
 
 ## Popup: a dark card with a gold frame slides in from the right, a gold badge with a star
 ## pops in and glows, sparkles fly out of it, a shine runs across the card, the title types
 ## in, and a thin gold line at the bottom shows how long it stays.
+var _popup_font: FontFile = null
+
 func _popup(title: String, id: String = "") -> void:
-	var font: Font = load(FONT_PATH)
+	# own copy of the pixel font: the shared one is forced to a fixed size by Global, which
+	# would ignore the sizes here (and the card is drawn at half scale)
+	if _popup_font == null:
+		_popup_font = ResourceLoader.load(FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
+		if _popup_font:
+			_popup_font.fixed_size = 0
+	var font: Font = _popup_font
 	var canvas = CanvasLayer.new()
 	canvas.layer = 1100   # above the global fade, so it is visible even on a black screen
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -179,7 +188,7 @@ func _popup(title: String, id: String = "") -> void:
 	header.position = Vector2(84, 14)
 	if font:
 		header.add_theme_font_override("font", font)
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", 12)
 	header.add_theme_color_override("font_color", C_GOLD)
 	header.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -195,7 +204,7 @@ func _popup(title: String, id: String = "") -> void:
 	name_l.position = Vector2(84, 40)
 	if font:
 		name_l.add_theme_font_override("font", font)
-	name_l.add_theme_font_size_override("font_size", 24)
+	name_l.add_theme_font_size_override("font_size", 20)
 	name_l.add_theme_color_override("font_color", Color(1, 1, 1))
 	name_l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	name_l.add_theme_constant_override("shadow_offset_x", 2)
@@ -221,8 +230,10 @@ func _popup(title: String, id: String = "") -> void:
 	card.add_child(bar)
 
 	var show_time := 3.6
-	var x_in = vp.x - card_size.x - 16
-	card.position = Vector2(vp.x + 30, 16)
+	# half size: the whole card is drawn at 0.5 (same look, smaller on screen)
+	card.scale = Vector2(POPUP_SCALE, POPUP_SCALE)
+	var x_in = vp.x - card_size.x * POPUP_SCALE - 12
+	card.position = Vector2(vp.x + 30, 12)
 	badge.scale = Vector2(0.2, 0.2)
 	badge.rotation = -0.6
 	var tw = canvas.create_tween()

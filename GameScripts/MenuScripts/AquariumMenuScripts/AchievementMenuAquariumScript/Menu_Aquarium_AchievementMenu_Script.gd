@@ -1,4 +1,5 @@
 extends Control
+const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Menu_StyledDialog.gd")
 
 @onready var back_btn: Button = $BackButton
 @onready var reset_btn: Button = $ResetButton
@@ -209,7 +210,8 @@ func _on_reset_pressed() -> void:
 		and not Achievements.scout_unlocked and not Achievements.freedom_unlocked:
 		return
 	
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "aquarium"
 	menu.title = "Сброс достижений"
 	menu.dialog_text = "Весь прогресс достижений будет сброшен. Восстановить нельзя. Придётся начинать сначала."
 	menu.add_button("Да", true, "yes")

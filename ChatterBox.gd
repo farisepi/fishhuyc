@@ -50,6 +50,9 @@ var _current_phantom_offset: float = 0.0
 
 # Украшения near-панели: тень, хвостик к говорящему, табличка с именем
 var _shadow: NinePatchRect = null
+const TYPEIN_EFFECT := preload("res://GameScripts/UIScripts/DialogScripts/Dialog_TypeIn_Effect.gd")
+var _typein = null
+var _typein_line = null
 var _tail_outline: Polygon2D = null
 var _tail_fill: Polygon2D = null
 var _name_tag: Label = null
@@ -255,8 +258,18 @@ func _show_near(text: String) -> void:
 	_near_label.position = Vector2(PAD_X, PAD_TOP + NAME_H)
 	_near_label.size = _near_panel.size - Vector2(PAD_X * 2, PAD_TOP + NAME_H + PAD_BOTTOM)
 	
-	if _near_label.text != text:
-		_near_label.text = text
+	# type-in: each new letter drops in as it is printed
+	if _typein == null:
+		_typein = TYPEIN_EFFECT.new()
+		_near_label.custom_effects = [_typein]
+		_near_label.bbcode_enabled = true
+	if line != _typein_line:
+		_typein_line = line
+		_typein.clear()
+	var wrapped = "[typein]" + text + "[/typein]"
+	if _near_label.text != wrapped:
+		_near_label.text = wrapped
+		_typein.grow_to(_strip_bbcode(text).length())
 	_decorate_near()
 
 
@@ -408,12 +421,31 @@ func _decorate_near() -> void:
 		_shadow.position = Vector2(2, 2)
 	# tail toward the speaker (in panel space, so it follows the scale)
 	if _tail_fill and _tail_outline:
-		# out of the inner side, low on the box, pointing at the speaker's face
-		var ty = p.size.y - 10.0
-		var ex = 2.0 if _side > 0.0 else p.size.x - 2.0
-		var d = -_side
-		_tail_outline.polygon = PackedVector2Array([Vector2(ex, ty - 5), Vector2(ex, ty + 3), Vector2(ex + d * 9.0, ty + 2)])
-		_tail_fill.polygon = PackedVector2Array([Vector2(ex - d * 1.0, ty - 3), Vector2(ex - d * 1.0, ty + 1), Vector2(ex + d * 5.0, ty + 1)])
+		# the tail comes out of whichever edge faces the speaker (side, top or bottom - the box
+		# can be pushed to a screen edge when he is off screen) and points at his face
+		var face = speaker.global_position + Vector2(_side * _half_width(speaker) * 0.6, -_head_height(speaker) * 0.15) if speaker else p.global_position
+		var lf = p.get_global_transform().affine_inverse() * face
+		var tb: Vector2
+		var dir: Vector2
+		var dx = -lf.x if lf.x < 0.0 else max(0.0, lf.x - p.size.x)
+		var dy = -lf.y if lf.y < 0.0 else max(0.0, lf.y - p.size.y)
+		var go_side = dx >= dy
+		if dx == 0.0 and dy == 0.0:
+			go_side = true
+		if go_side:
+			var left = lf.x < p.size.x * 0.5 if dx > 0.0 else _side > 0.0
+			tb = Vector2(2.0 if left else p.size.x - 2.0, clamp(lf.y, 6.0, p.size.y - 6.0))
+			dir = Vector2(-1, 0) if left else Vector2(1, 0)
+		elif lf.y > p.size.y * 0.5:
+			tb = Vector2(clamp(lf.x, 8.0, p.size.x - 8.0), p.size.y - 2.0)
+			dir = Vector2(0, 1)
+		else:
+			tb = Vector2(clamp(lf.x, 8.0, p.size.x - 8.0), 2.0)
+			dir = Vector2(0, -1)
+		var sd = Vector2(-dir.y, dir.x)
+		var lean = clamp((lf - tb).dot(sd) * 0.12, -3.0, 3.0)
+		_tail_outline.polygon = PackedVector2Array([tb + sd * 5.0, tb - sd * 5.0, tb + dir * 9.0 + sd * lean])
+		_tail_fill.polygon = PackedVector2Array([tb + sd * 3.0 - dir, tb - sd * 3.0 - dir, tb + dir * 5.0 + sd * lean * 0.7])
 		_tail_outline.visible = true
 		_tail_fill.visible = true
 	if _name_tag:

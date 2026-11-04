@@ -1,4 +1,5 @@
 extends Control
+const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Menu_StyledDialog.gd")
 
 @onready var graphics_tab: Button = $GeneralTab
 @onready var audio_tab: Button = $AudioTab
@@ -63,7 +64,7 @@ var master_percent_label: Label = null
 var ui_percent_label: Label = null
 
 var has_unsaved_changes: bool = false
-var current_popup: AcceptDialog = null
+var current_popup = null
 
 var resolution_items: Array[String] = []
 var language_items: Array[String] = []
@@ -709,7 +710,8 @@ func _show_reset_confirm() -> void:
 			title = "Сброс управления"
 			text = "Сбросить управление по умолчанию?"
 	
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "aquarium"
 	menu.title = title
 	menu.dialog_text = text
 	menu.add_button("Сбросить", true, "yes")
@@ -760,7 +762,8 @@ func _show_reset_confirm() -> void:
 
 func _show_unsaved_confirm() -> void:
 	_close_current_popup()
-	var menu = AcceptDialog.new()
+	var menu = STYLED_DIALOG.new()
+	menu.style = "aquarium"
 	menu.title = "Несохранённые изменения"
 	menu.dialog_text = "Вы действительно хотите выйти, не сохранив изменения?"
 	menu.add_button("Да", true, "yes")

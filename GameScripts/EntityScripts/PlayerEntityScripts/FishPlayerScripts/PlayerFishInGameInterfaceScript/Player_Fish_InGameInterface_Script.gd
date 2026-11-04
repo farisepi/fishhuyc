@@ -67,6 +67,23 @@ func _ready():
 	glow.material.set_shader_parameter("glow_color", Color(1, 0, 0, 0.15))
 	glow.material.set_shader_parameter("pulse", 0.0)
 	add_child(glow)
+	_add_shimmer(suit_icon, 0.35)
+
+## The same sweeping light as on the HP bar, on the suit indicator.
+func _add_shimmer(spr: Sprite2D, phase: float) -> void:
+	if spr == null or spr.texture == null:
+		return
+	var sh = load("res://GameShaders/SharedShaders/Shared_UIShimmer_Shader.gdshader")
+	if sh == null:
+		return
+	var m = ShaderMaterial.new()
+	m.shader = sh
+	var sz = spr.texture.get_size()
+	m.set_shader_parameter("rect_min", -sz * 0.5 if spr.centered else Vector2.ZERO)
+	m.set_shader_parameter("rect_size", sz)
+	m.set_shader_parameter("pixel", 1.0)
+	m.set_shader_parameter("phase", phase)
+	spr.material = m
 
 func _process(delta):
 	if get_tree().paused:

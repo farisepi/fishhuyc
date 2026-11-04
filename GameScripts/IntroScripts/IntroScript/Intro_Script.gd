@@ -152,7 +152,9 @@ func _create_ui() -> void:
 	image_display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image_display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image_display.modulate = Color.WHITE
+	image_display.pivot_offset = image_display.size * 0.5
 	add_child(image_display)
+	_setup_intro_fx(screen_size)
 	
 	text_label = Label.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -218,6 +220,7 @@ func _setup_skip_ui(screen_size: Vector2) -> void:
 
 func _process(delta: float) -> void:
 	_enforce_label_font()
+	_process_intro_fx()
 	
 	if final_fade_started:
 		return
@@ -372,6 +375,117 @@ func _target_time_for_slide_start(index: int) -> float:
 	else:
 		return SLIDES_TOTAL_BEFORE_7
 
+## ---------------------------------------------------------------- intro effects
+## Old-film look: every slide slowly pushes in (Ken Burns), a slide change comes with a short
+## colour-split glitch, a soft vignette, flickering film grain, a thin frame around the
+## picture and dust drifting in the projector light.
+const IMAGE_FX := """
+shader_type canvas_item;
+uniform float split = 0.0;
+uniform float flicker = 0.0;
+void fragment() {
+	vec2 off = vec2(0.006 * split, 0.0);
+	vec4 c = texture(TEXTURE, UV);
+	c.r = texture(TEXTURE, UV + off).r;
+	c.b = texture(TEXTURE, UV - off).b;
+	vec2 cc = UV - 0.5;
+	c.rgb *= 1.0 - 0.45 * smoothstep(0.3, 0.75, length(cc));
+	c.rgb *= 1.0 - flicker;
+	COLOR = c * COLOR;
+}
+"""
+const FILM_FX := """
+shader_type canvas_item;
+uniform float strength = 1.0;
+float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void fragment() {
+	vec2 cc = UV - 0.5;
+	float vig = smoothstep(0.35, 0.85, length(cc * vec2(1.2, 1.0)));
+	vec2 gp = floor(FRAGCOORD.xy / 3.0);
+	float g = h(gp + floor(TIME * 18.0) * 7.31);
+	float scratch = step(0.997, h(vec2(floor(UV.x * 300.0), floor(TIME * 9.0))));
+	float a = vig * 0.75 + (g - 0.5) * 0.08 + scratch * 0.12;
+	COLOR = vec4(vec3(scratch > 0.5 ? 0.85 : 0.0), clamp(a, 0.0, 1.0) * strength);
+}
+"""
+var _img_mat: ShaderMaterial = null
+var _kb_tw: Tween = null
+var _frame: Control = null
+
+func _setup_intro_fx(screen_size: Vector2) -> void:
+	_img_mat = ShaderMaterial.new()
+	var s1 = Shader.new()
+	s1.code = IMAGE_FX
+	_img_mat.shader = s1
+	image_display.material = _img_mat
+	image_display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# thin frame behind the picture
+	_frame = Control.new()
+	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var frame_draw = func():
+		var r = Rect2(Vector2(-6, -6), image_display.size + Vector2(12, 12))
+		_frame.draw_rect(r.grow(4), Color(0, 0, 0, 0.6))
+		_frame.draw_rect(r, Color(0.55, 0.55, 0.6, 0.35), false, 1.0)
+	_frame.draw.connect(frame_draw)
+	_frame.show_behind_parent = true
+	image_display.add_child(_frame)
+	# drifting dust in the projector light
+	var dust = CPUParticles2D.new()
+	var img = Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	dust.texture = ImageTexture.create_from_image(img)
+	dust.amount = 40
+	dust.lifetime = 7.0
+	dust.preprocess = 7.0
+	dust.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	dust.emission_rect_extents = screen_size * 0.5
+	dust.position = screen_size * 0.5
+	dust.direction = Vector2(0.3, -1)
+	dust.spread = 180.0
+	dust.gravity = Vector2.ZERO
+	dust.initial_velocity_min = 3.0
+	dust.initial_velocity_max = 10.0
+	var g = Gradient.new()
+	g.set_color(0, Color(1, 1, 1, 0))
+	g.add_point(0.5, Color(1, 0.95, 0.85, 0.35))
+	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0))
+	dust.color_ramp = g
+	add_child(dust)
+	# grain + vignette + scratches over everything (the skip bar is added later, stays on top)
+	var film = ColorRect.new()
+	film.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	film.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var fm = ShaderMaterial.new()
+	var s2 = Shader.new()
+	s2.code = FILM_FX
+	fm.shader = s2
+	film.material = fm
+	add_child(film)
+
+
+func _process_intro_fx() -> void:
+	if _img_mat:
+		# projector flicker
+		_img_mat.set_shader_parameter("flicker", 0.04 * (0.5 + 0.5 * sin(Time.get_ticks_msec() / 37.0)) * randf())
+	if _frame:
+		_frame.queue_redraw()
+
+
+func _slide_fx() -> void:
+	if image_display == null:
+		return
+	image_display.pivot_offset = image_display.size * 0.5
+	if _kb_tw and _kb_tw.is_valid():
+		_kb_tw.kill()
+	image_display.scale = Vector2.ONE
+	_kb_tw = create_tween().set_parallel(true)
+	_kb_tw.tween_property(image_display, "scale", Vector2(1.07, 1.07), 4.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if _img_mat:
+		_img_mat.set_shader_parameter("split", 1.0)
+		var g = create_tween()
+		g.tween_method(func(v): _img_mat.set_shader_parameter("split", v), 1.0, 0.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
 func _show_slide(index: int) -> void:
 	if index >= slides.size() or final_fade_started:
 		return
@@ -395,6 +509,7 @@ func _show_slide(index: int) -> void:
 	
 	if slide["image"] != null:
 		image_display.texture = slide["image"]
+	_slide_fx()
 	
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()

@@ -5,7 +5,7 @@ shader_type canvas_item;
 uniform float active = 0.0;
 uniform vec4 outline_color : source_color = vec4(1.0, 0.85, 0.3, 1.0);
 uniform float width = 1.0;      // in texture pixels
-uniform float glow = 0.12;      // how much the sprite itself brightens
+uniform float glow = 0.24;      // how much the sprite itself brightens
 
 float alpha_at(sampler2D tex, vec2 uv) {
 	if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
@@ -30,7 +30,7 @@ void fragment() {
 			a = max(a, alpha_at(TEXTURE, UV + vec2(px.x, -px.y)));
 			a = max(a, alpha_at(TEXTURE, UV + vec2(-px.x, px.y)));
 			if (a > 0.1) {
-				COLOR = vec4(outline_color.rgb * (1.2 + 0.6 * pulse), outline_color.a * pulse);
+				COLOR = vec4(outline_color.rgb * (1.6 + 0.8 * pulse), min(1.0, outline_color.a * (0.75 + 0.25 * pulse)));
 			}
 		} else {
 			COLOR.rgb += outline_color.rgb * glow * pulse;

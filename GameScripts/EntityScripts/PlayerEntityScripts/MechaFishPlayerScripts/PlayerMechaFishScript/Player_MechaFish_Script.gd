@@ -650,13 +650,7 @@ func _end_slide():
 
 func _input(event: InputEvent) -> void:
 	if only_basic_moves:
-		# only the attack (left mouse) goes through; walking and jumping are read in physics
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			if not is_dead and not is_hurt and not is_stunned and not is_landing:
-				if is_attacking:
-					attack_buffer = true
-				else:
-					_do_attack()
+		# factory: only walking and jumping (read in physics) - no attacks, blocks, parries, dashes
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 		if is_on_floor():

@@ -1277,7 +1277,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("pm_btnn")
 theme_override_styles/pressed = ExtResource("pm_btnp")
 theme_override_styles/hover = ExtResource("pm_btnh")
-text = "Рестарт"
+text = "Заново"
 
 [node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=995000006]
 offset_left = 486.0
@@ -1299,7 +1299,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("pm_btnn")
 theme_override_styles/pressed = ExtResource("pm_btnp")
 theme_override_styles/hover = ExtResource("pm_btnh")
-text = "Выход"
+text = "В главное меню"
 
 [node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=995000008]
 position = Vector2(575.99994, 324)

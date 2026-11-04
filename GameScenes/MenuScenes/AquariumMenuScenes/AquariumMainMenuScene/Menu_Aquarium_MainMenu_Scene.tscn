@@ -250,8 +250,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_qtcvm")
 theme_override_styles/pressed = ExtResource("4_y6eke")
 theme_override_styles/hover = ExtResource("5_b484i")
-text = "Начать игру
-"
+text = "Начать игру"
 script = ExtResource("6_3h1qo")
 
 [node name="Seaweed" type="Sprite2D" parent="PlayButton" unique_id=227390764]
@@ -283,8 +282,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_qtcvm")
 theme_override_styles/pressed = ExtResource("4_y6eke")
 theme_override_styles/hover = ExtResource("5_b484i")
-text = "Настройки
-"
+text = "Настройки"
 
 [node name="Seaweed" type="Sprite2D" parent="SettingsButton" unique_id=89901388]
 visible = false
@@ -302,9 +300,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_qtcvm")
 theme_override_styles/pressed = ExtResource("4_y6eke")
 theme_override_styles/hover = ExtResource("5_b484i")
-text = "Достижения
-
-"
+text = "Достижения"
 
 [node name="Seaweed" type="Sprite2D" parent="AchivmentsButton" unique_id=1652517943]
 visible = false
@@ -322,10 +318,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("3_qtcvm")
 theme_override_styles/pressed = ExtResource("4_y6eke")
 theme_override_styles/hover = ExtResource("5_b484i")
-text = "Выход
-
-
-"
+text = "Выход"
 
 [node name="Seaweed" type="Sprite2D" parent="QuitButton" unique_id=497475525]
 visible = false

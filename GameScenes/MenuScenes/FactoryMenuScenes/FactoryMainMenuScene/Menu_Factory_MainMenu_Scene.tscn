@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://cd3ovrwgkbuxl" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/BigButtonMaterials/Menu_Factory_Button_Big_Hover_Material.tres" id="4_l6i1u"]
 [ext_resource type="StyleBox" uid="uid://d31h6g1lst1ed" path="res://GameAssets/SharedMaterials/UIMaterials/AquariumMenuMaterials/BigButtonMaterials/Menu_Aquarium_Button_Big_Hover_Material.tres" id="5_qps51"]
 [ext_resource type="Script" uid="uid://mkq572lg6l57" path="res://GameScripts/MenuScripts/MainMenuScripts/MainMenuPlayButtonScript/Menu_MainMenu_PlayButton_Script.gd" id="6_2in4n"]
-[ext_resource type="Texture2D" uid="uid://bunabxhfm6aag" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/BigButtonTextures/Menu_Factory_Button_Big_Texture.png" id="6_8nuso"]
+[ext_resource type="Texture2D" uid="uid://c8lonjho0w18h" path="res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuButtonTextures/SmallButtonTextures/Menu_Factory_Button_Small_ButtonAttribute_Texture.png" id="6_8nuso"]
 [ext_resource type="StyleBox" uid="uid://c0m2d7w2nvlr5" path="res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Normal_Material.tres" id="8_er5pt"]
 [ext_resource type="StyleBox" uid="uid://csjyi7n70eaoj" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/ShareButtonMaterials/Menu_Factory_Button_Share_Normal_Material.tres" id="9_0w4o0"]
 [ext_resource type="StyleBox" uid="uid://bvw32iyxcpi0t" path="res://GameAssets/SharedMaterials/UIMaterials/SaveMenuMaterials/AquariumSaveMenuMaterials/Menu_SaveMenu_Aquarium_Button_Huge_Empty_Pressed_Material.tres" id="9_gw61p"]
@@ -72,14 +72,13 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("2_sxqd3")
 theme_override_styles/pressed = ExtResource("3_8nuso")
 theme_override_styles/hover = ExtResource("4_l6i1u")
-text = "Начать игру
-"
+text = "Начать игру"
 script = ExtResource("6_2in4n")
 
 [node name="Rust" type="Sprite2D" parent="PlayButton" unique_id=1854087076]
 visible = false
 position = Vector2(130, 21.999996)
-scale = Vector2(2.1666663, 1.8333342)
+scale = Vector2(3.7142856, 2.4444444)
 texture = ExtResource("6_8nuso")
 
 [node name="SaveButton" type="Button" parent="." unique_id=112604908]
@@ -105,13 +104,12 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("2_sxqd3")
 theme_override_styles/pressed = ExtResource("3_8nuso")
 theme_override_styles/hover = ExtResource("4_l6i1u")
-text = "Настройки
-"
+text = "Настройки"
 
 [node name="Rust" type="Sprite2D" parent="SettingsButton" unique_id=526235553]
 visible = false
 position = Vector2(130, 21.999996)
-scale = Vector2(2.1666663, 1.8333342)
+scale = Vector2(3.7142856, 2.4444444)
 texture = ExtResource("6_8nuso")
 
 [node name="AchivmentsButton" type="Button" parent="." unique_id=2008761553]
@@ -124,14 +122,12 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("2_sxqd3")
 theme_override_styles/pressed = ExtResource("3_8nuso")
 theme_override_styles/hover = ExtResource("4_l6i1u")
-text = "Достижения
-
-"
+text = "Достижения"
 
 [node name="Rust" type="Sprite2D" parent="AchivmentsButton" unique_id=1006000548]
 visible = false
 position = Vector2(130, 21.999996)
-scale = Vector2(2.1666663, 1.8333342)
+scale = Vector2(3.7142856, 2.4444444)
 texture = ExtResource("6_8nuso")
 
 [node name="QuitButton" type="Button" parent="." unique_id=1075697719]
@@ -144,15 +140,12 @@ theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = ExtResource("2_sxqd3")
 theme_override_styles/pressed = ExtResource("3_8nuso")
 theme_override_styles/hover = ExtResource("4_l6i1u")
-text = "Выход
-
-
-"
+text = "Выход"
 
 [node name="Rust" type="Sprite2D" parent="QuitButton" unique_id=1562272871]
 visible = false
 position = Vector2(130, 21.999996)
-scale = Vector2(2.1666663, 1.8333342)
+scale = Vector2(3.7142856, 2.4444444)
 texture = ExtResource("6_8nuso")
 
 [node name="DiscordButton" type="Button" parent="." unique_id=1533523719]
