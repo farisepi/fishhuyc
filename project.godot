@@ -28,6 +28,15 @@ UISounds="*uid://daub0wx4q03i"
 Achievements="*uid://bsns7txmyx4di"
 SeaweedState="*uid://bdx133or6hcja"
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
 [file_customization]
 
 folder_colors={

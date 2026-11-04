@@ -124,6 +124,7 @@ func apply_brightness(value: float) -> void:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	setup_scaling()
 	
 	print("=== CREATING SEAWEEDSTATE ===")
 	var seaweed_path = "res://GameScripts/MenuScripts/MainMenuScripts/MainMenuButtonsAttributesStateScript/Menu_MainMenu_ButtonsAttributesState_Script.gd"
@@ -159,6 +160,44 @@ func _ready() -> void:
 	_detect_last_save_level()
 	load_shards_from_slot()
 
+# =============================================================================
+# Window / UI scaling
+# =============================================================================
+## The whole game (world, HUD, menus) is laid out for 1152x648 and scaled to the window:
+## every window size and fullscreen look the same, only bigger or smaller; other aspect
+## ratios get black bars instead of a stretched or cut interface.
+const BASE_SIZE := Vector2i(1152, 648)
+const RESOLUTIONS: Array[Vector2i] = [Vector2i(1920, 1080), Vector2i(1280, 720), Vector2i(854, 480)]
+
+func setup_scaling() -> void:
+	var w = get_window()
+	if w == null:
+		return
+	w.content_scale_size = BASE_SIZE
+	w.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	w.min_size = Vector2i(640, 360)
+
+
+## Sets the window size from the settings index; a size bigger than the screen is shrunk
+## (keeping 16:9) so the window never goes off screen. Always centred.
+func apply_resolution(index: int) -> void:
+	var w = get_window()
+	if w == null:
+		return
+	if w.mode == Window.MODE_FULLSCREEN or w.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
+		return
+	var want: Vector2i = RESOLUTIONS[clampi(index, 0, RESOLUTIONS.size() - 1)]
+	var usable: Vector2i = DisplayServer.screen_get_usable_rect(w.current_screen).size
+	if usable.x > 0 and usable.y > 0:
+		var k = min(1.0, min(float(usable.x) * 0.96 / want.x, float(usable.y) * 0.92 / want.y))
+		if k < 1.0:
+			want = Vector2i(int(want.x * k), int(want.y * k))
+	if w.size != want:
+		w.size = want
+		w.move_to_center()
+
+
 func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") != OK:
@@ -191,16 +230,7 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	
-	var resolution = config.get_value("graphics", "resolution", 0)
-	match resolution:
-		0: DisplayServer.window_set_size(Vector2i(1920, 1080))
-		1: DisplayServer.window_set_size(Vector2i(1280, 720))
-		2: DisplayServer.window_set_size(Vector2i(854, 480))
-	
-	if not fullscreen:
-		var screen_size: Vector2i = DisplayServer.screen_get_size()
-		var window_size: Vector2i = DisplayServer.window_get_size()
-		DisplayServer.window_set_position(DisplayServer.screen_get_position() + (screen_size - window_size) / 2)
+	apply_resolution(int(config.get_value("graphics", "resolution", 0)))
 
 func _apply_audio_bus(bus_name: String, value: float) -> void:
 	var bus_index = AudioServer.get_bus_index(bus_name)

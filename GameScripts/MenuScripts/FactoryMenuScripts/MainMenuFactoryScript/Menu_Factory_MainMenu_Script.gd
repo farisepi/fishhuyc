@@ -36,12 +36,7 @@ func _ready() -> void:
 	if config.load("user://settings.cfg") == OK:
 		Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 		if config.has_section_key("graphics", "resolution"):
-			var res = config.get_value("graphics", "resolution", 1)
-			match res:
-				0: get_window().size = Vector2i(1920, 1080)
-				1: get_window().size = Vector2i(1280, 720)
-				2: get_window().size = Vector2i(854, 480)
-			get_window().move_to_center()
+			Global.apply_resolution(int(config.get_value("graphics", "resolution", 0)))
 		if config.has_section_key("language", "locale"):
 			var locale = config.get_value("language", "locale", "ru")
 			TranslationServer.set_locale(locale)

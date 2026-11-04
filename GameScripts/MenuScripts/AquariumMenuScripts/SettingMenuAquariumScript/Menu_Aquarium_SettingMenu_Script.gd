@@ -850,16 +850,12 @@ func apply_audio_volumes() -> void:
 	if ui_slider: _apply_volume("UI", ui_slider.value)
 
 func apply_graphics_settings() -> void:
-	match resolution_selected:
-		0: get_window().size = Vector2i(1920, 1080)
-		1: get_window().size = Vector2i(1280, 720)
-		2: get_window().size = Vector2i(854, 480)
-	get_window().move_to_center()
 	if fullscreen_check:
 		if fullscreen_check.button_pressed:
 			get_window().mode = Window.MODE_FULLSCREEN
 		else:
 			get_window().mode = Window.MODE_WINDOWED
+	Global.apply_resolution(resolution_selected)
 	if vsync_check:
 		DisplayServer.window_set_vsync_mode(
 			DisplayServer.VSYNC_ENABLED if vsync_check.button_pressed else DisplayServer.VSYNC_DISABLED

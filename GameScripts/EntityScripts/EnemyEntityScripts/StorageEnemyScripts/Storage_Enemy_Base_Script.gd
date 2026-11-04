@@ -35,6 +35,19 @@ func _ready() -> void:
 	hp = max_hp
 	patrol_origin = global_position
 
+## All enemies, fetched once per physics frame and shared by every enemy (separation,
+## attack tokens and alerts used to build this list several times per enemy per frame).
+static var _enemy_cache: Array = []
+static var _enemy_cache_frame: int = -1
+
+func _enemies() -> Array:
+	var f = Engine.get_physics_frames()
+	if f != _enemy_cache_frame:
+		_enemy_cache_frame = f
+		_enemy_cache = get_tree().get_nodes_in_group("enemies")
+	return _enemy_cache
+
+
 func _find_player() -> void:
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
@@ -261,7 +274,7 @@ func _player_threatens(reach: float = 95.0) -> bool:
 func _alert_allies(radius: float = 520.0) -> void:
 	if not _player_ok():
 		return
-	for e in get_tree().get_nodes_in_group("enemies"):
+	for e in _enemies():
 		if e == self or not is_instance_valid(e):
 			continue
 		if e.global_position.distance_to(global_position) > radius:
@@ -282,7 +295,7 @@ func _request_token() -> bool:
 	if holding_token:
 		return true
 	var used := 0
-	for e in get_tree().get_nodes_in_group("enemies"):
+	for e in _enemies():
 		if e != self and is_instance_valid(e) and bool(e.get("holding_token")) and not bool(e.get("is_dead")):
 			used += 1
 	if used >= MAX_ATTACK_TOKENS:
@@ -298,7 +311,7 @@ func _release_token() -> void:
 ## Pushes enemies apart so they do not stack into one blob.
 func _separation(radius: float = 42.0) -> float:
 	var push := 0.0
-	for e in get_tree().get_nodes_in_group("enemies"):
+	for e in _enemies():
 		if e == self or not is_instance_valid(e) or bool(e.get("is_dead")):
 			continue
 		var d = global_position.x - e.global_position.x

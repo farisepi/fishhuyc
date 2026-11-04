@@ -102,7 +102,7 @@ const MISS_CHANCE_BY_STRESS: Dictionary = {
 	100: 50.0,
 }
 
-const NPC_MISTAKE_CHANCE: float = 0.06
+const NPC_MISTAKE_CHANCE: float = 0.015
 
 const STAGE_COLORS: Array = [
 	Color(0.75, 0.55, 0.25),
@@ -237,6 +237,21 @@ var _resolved: int = 0
 var _jobs_left: int = 0
 var _jobs_total: int = 0
 var _player_item = null
+## ---- grading and streak ----
+const PERFECT_Q: float = 0.6          # how close to the centre of the window counts as "ИДЕАЛЬНО"
+const STREAK_REWARD: int = 5          # every 5 good jobs in a row: a reward
+var _streak: int = 0
+var _best_streak: int = 0
+var _last_quality: float = 0.5
+var _streak_label: Label = null
+## ---- guard inspections ----
+var _inspection_cycles: Array = []
+var _inspection_active: bool = false
+var _inspection_jobs_left: int = 0
+var _inspection_bad: int = 0
+## Before the accident on the 4th box (first shift) the fish can not do anything at all:
+## no walking, no jumping, no attacks, no blocking, no dashing.
+var _pre_accident_lock: bool = true
 const MGE_NONE: int = 0
 const MGE_FIRE: int = 1
 const MGE_JAM: int = 2
@@ -269,10 +284,10 @@ var _strike_forgive: float = 0.0
 ## ---- speech bubbles (same look as the aquarium dialogs) ----
 const DIALOG_BOX_PATH := "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/DialogBoxTextures/DialogBox_NinePath_Texture.png"
 const DIALOG_FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
-const BUBBLE_MAX_W: float = 150.0
+const BUBBLE_MAX_W: float = 124.0
 const BUBBLE_FONT: int = 8
 const BUBBLE_CPS: float = 38.0
-const BUBBLE_SCALE: float = 1.0
+const BUBBLE_SCALE: float = 0.9
 const NAME_GUARD := "ОХРАНА"
 const NAME_PLAYER := "ТЫ"
 const COLOR_NAME_GUARD := Color(1.0, 0.45, 0.35)
@@ -375,6 +390,8 @@ var sniper_last_checked_hour: float = -1.0
 var guard_is_dog: bool = true
 
 var conveyor_sprites: Array = []
+var conveyor_legs: Array = []   # static lower part of the conveyor (legs / frame)
+const CONVEYOR_BELT_ROWS: int = 126   # texture rows 0..125 = the moving belt, below = the legs
 var conveyor_tile_width: float = 0.0
 var conveyor_scroll_offset: float = 0.0
 var conveyor_base_x: float = 0.0
@@ -425,9 +442,11 @@ var _clock_hands: Array = []   # [hour_hand, minute_hand]
 var _hud_on: bool = true
 var _hud_nodes: Array = []
 var _clock_lcd: Control = null
-var _clock_text: String = "08:00"
+var _clock_text: String = ""
+var _wall_clock_hour: float = -1.0
 var _stress_shown: float = 0.0
-var _outline_nodes: Dictionary = {}   # inspect area -> Array of CanvasItems with the outline shader
+var _outline_nodes: Dictionary = {}
+var _outlines_off: bool = false   # inspect area -> Array of CanvasItems with the outline shader
 var _guard_frames_dog: SpriteFrames = null
 var _guard_frames_monkey: SpriteFrames = null
 
@@ -536,6 +555,8 @@ func _ready() -> void:
 	
 	await get_tree().process_frame
 	
+	if player and "only_basic_moves" in player:
+		player.only_basic_moves = true   # in the factory: walk, jump and attack only
 	if player and player.has_method("set_movement_blocked"):
 		player.set_movement_blocked(true)
 	
@@ -782,8 +803,30 @@ func _collect_conveyor_sprites() -> void:
 	conveyor_tile_width = s.texture.get_width() * abs(s.scale.x)
 	conveyor_sprites.sort_custom(func(a, b): return a.position.x < b.position.x)
 	conveyor_base_x = conveyor_sprites[0].position.x
-	for sp in conveyor_sprites:
+	var tex_sz = s.texture.get_size()
+	var belt_h = min(float(CONVEYOR_BELT_ROWS), tex_sz.y)
+	for i in range(conveyor_sprites.size()):
+		var sp: Sprite2D = conveyor_sprites[i]
 		sp.z_index = 30
+		# the legs: a still copy of the lower part, on the tile's original place
+		var legs = Sprite2D.new()
+		legs.name = "ConveyorLegs%d" % i
+		legs.texture = sp.texture
+		legs.texture_filter = sp.texture_filter
+		legs.scale = sp.scale
+		legs.position = Vector2(conveyor_base_x + i * conveyor_tile_width, sp.position.y)
+		legs.z_index = 30
+		legs.centered = false
+		legs.region_enabled = true
+		legs.region_rect = Rect2(0, belt_h, tex_sz.x, tex_sz.y - belt_h)
+		legs.offset = Vector2(-tex_sz.x * 0.5, belt_h - tex_sz.y * 0.5)
+		add_child(legs)
+		conveyor_legs.append(legs)
+		# the belt itself: only the upper rows, it keeps scrolling
+		sp.centered = false
+		sp.region_enabled = true
+		sp.region_rect = Rect2(0, 0, tex_sz.x, belt_h)
+		sp.offset = -tex_sz * 0.5
 
 func _create_conveyor_floor() -> void:
 	conveyor_floor_rect = ColorRect.new()
@@ -1252,6 +1295,27 @@ func _start_minigame(station: int = STATION_PACK) -> void:
 	_mg_canvas.queue_redraw()
 
 
+## 0..1: how close to the centre of the green the hit was (1 = dead centre).
+func _mg_quality() -> float:
+	match mg_kind:
+		MG.LOCK:
+			if mg_pin_index >= mg_pins.size():
+				return 0.0
+			return 1.0 - clamp(abs(wrapf(mg_angle - mg_pins[mg_pin_index], -PI, PI)) / max(0.01, mg_pin_half), 0.0, 1.0)
+		MG.GAUGE:
+			var c = (mg_band.x + mg_band.y) * 0.5
+			return 1.0 - clamp(abs(mg_level - c) / max(0.01, (mg_band.y - mg_band.x) * 0.5), 0.0, 1.0)
+		MG.RING:
+			return 1.0 - clamp(abs(mg_ring_r - RING_TARGET) / 7.0, 0.0, 1.0)
+		MG.CUT:
+			if mg_hits >= mg_marks.size():
+				return 0.0
+			return 1.0 - clamp(abs(mg_knife - mg_marks[mg_hits]) / CUT_TOL, 0.0, 1.0)
+	var px = TRACK_X0 + slider_pos * TRACK_WIDTH
+	var zc = minigame_zone.position.x + minigame_zone.size.x * 0.5
+	return 1.0 - clamp(abs(px - zc) / max(1.0, minigame_zone.size.x * 0.5), 0.0, 1.0)
+
+
 ## Is the pointer / level in the green right now?
 func _mg_hit_now() -> bool:
 	match mg_kind:
@@ -1472,6 +1536,7 @@ const HUD_C_SKIP := Color8(110, 114, 124)
 
 var _hud_panel: Control = null
 var _box_states: Array = []
+var _box_fill: int = 0   # next free cell of the shift progress bar (cells fill in order)
 
 
 func _hud_rect(c: Control, x: float, y: float, w: float, h: float, col: Color) -> void:
@@ -1511,6 +1576,8 @@ func _pix_seg_digit(c: Control, ch: String, x: int, y: int, on: Color, off: Colo
 
 
 var _hud_texts: Dictionary = {}
+var _hud_dirty: bool = true
+var _hud_text_state: Dictionary = {}
 
 ## Real text (the game's font) on top of the pixel panel.
 func _hud_text(key: String, text: String, x_px: float, y_px: float, w_px: float, align: int, col: Color, size: int = 13) -> void:
@@ -1525,6 +1592,11 @@ func _hud_text(key: String, text: String, x_px: float, y_px: float, w_px: float,
 		_hud_panel.add_child(l)
 		_hud_texts[key] = l
 	l.visible = true
+	# only touch the label when something changed (theme overrides force a relayout)
+	var sig = [text, x_px, y_px, w_px, align, col]
+	if _hud_text_state.get(key, []) == sig:
+		return
+	_hud_text_state[key] = sig
 	l.text = text
 	l.position = Vector2(x_px, y_px)
 	l.size = Vector2(w_px, 18)
@@ -1652,7 +1724,12 @@ func _create_stress_bar() -> void:
 
 
 func _update_stress_bar() -> void:
-	_stress_shown = move_toward(_stress_shown, float(stress_level), 60.0 * get_process_delta_time())
+	# called every frame: does nothing unless the stress value moves or the HUD was marked dirty
+	var target = float(stress_level)
+	if is_equal_approx(_stress_shown, target) and not _hud_dirty:
+		return
+	_stress_shown = move_toward(_stress_shown, target, 60.0 * get_process_delta_time())
+	_hud_dirty = false
 	if _hud_panel:
 		_update_hud_texts()
 		_hud_panel.queue_redraw()
@@ -1682,6 +1759,7 @@ func _process_stress_pulse(_delta: float) -> void:
 	pass
 
 func _update_shift_bars() -> void:
+	_hud_dirty = true
 	_layout_hud()
 	if _hud_panel:
 		_hud_panel.queue_redraw()
@@ -1850,6 +1928,8 @@ func _outline_targets_for(id: String) -> Array:
 	elif id == "conveyor":
 		for c in conveyor_sprites:
 			out.append(c)
+		for c in conveyor_legs:
+			out.append(c)
 	elif id.begins_with("npc_"):
 		var identity = id.substr(4)
 		for f in npc_fishes:
@@ -1874,7 +1954,12 @@ func _ensure_outline(node: CanvasItem, color: Color) -> void:
 
 
 ## Turns the sprite outlines on/off to match the (invisible) highlight flags.
+var _outline_state: Dictionary = {}
+
 func _sync_inspect_outlines() -> void:
+	if state != State.INSPECT and _outlines_off:
+		return
+	_outlines_off = state != State.INSPECT
 	var on_nodes: Dictionary = {}
 	for area in _outline_nodes.keys():
 		var hl = inspect_highlight_rects.get(area, null)
@@ -1885,7 +1970,10 @@ func _sync_inspect_outlines() -> void:
 	for area in _outline_nodes.keys():
 		for n in _outline_nodes[area]:
 			if is_instance_valid(n) and n.material is ShaderMaterial:
-				n.material.set_shader_parameter("active", 1.0 if on_nodes.has(n) else 0.0)
+				var v = 1.0 if on_nodes.has(n) else 0.0
+				if _outline_state.get(n, -1.0) != v:
+					_outline_state[n] = v
+					n.material.set_shader_parameter("active", v)
 
 func _create_inspect_text_panel() -> void:
 	inspect_text_panel = Panel.new()
@@ -1947,6 +2035,7 @@ func _is_player_in_zone() -> bool:
 	return pos.x >= left and pos.x <= right and pos.y >= top and pos.y <= bottom
 
 func _process(delta: float) -> void:
+	_apply_pre_accident_lock()
 	if state == State.DEAD:
 		return
 	if get_tree().paused:
@@ -1984,6 +2073,183 @@ func _process(delta: float) -> void:
 				pass
 	if not is_dialog_active and state != State.SHIFT_END and state != State.DEAD and state != State.INSPECT:
 		_process_guard_talk(delta)
+
+# ---------------------------------------------------------------- streak / grades
+## Minigame speed: +3.5% per job in the streak (up to +28%), +10% while the guard inspects.
+func _mg_pace() -> float:
+	return 1.0 + min(_streak, 8) * 0.035 + (0.1 if _inspection_active else 0.0)
+
+
+func _register_success(q: float) -> void:
+	var perfect = q >= PERFECT_Q
+	_streak += 1
+	_best_streak = max(_best_streak, _streak)
+	var txt = ("ИДЕАЛЬНО!" if perfect else "ХОРОШО") + ("  x" + str(_streak) if _streak >= 2 else "")
+	_float_text(txt, Color(1.0, 0.86, 0.35) if perfect else Color(0.6, 1.0, 0.6))
+	if camera and camera.has_method("add_trauma") and perfect:
+		camera.add_trauma(0.06)
+	if _streak % STREAK_REWARD == 0:
+		_streak_reward()
+	if _inspection_active:
+		_inspection_step()
+	_update_streak_label()
+
+
+func _register_fail() -> void:
+	if _streak >= 3:
+		_float_text("СЕРИЯ ПРЕРВАНА", Color(1.0, 0.45, 0.4))
+	_streak = 0
+	if _inspection_active:
+		_inspection_bad += 1
+		_inspection_step()
+	_update_streak_label()
+
+
+## Every 5 good jobs in a row: the suit repairs itself a bit (+1 HP), at full HP the guard
+## forgets one violation instead.
+func _streak_reward() -> void:
+	var hp = player.get_hp() if player and player.has_method("get_hp") else 5
+	if hp < 5 and player.has_method("set_hp"):
+		player.set_hp(hp + 1)
+		_float_text("+1 ПРОЧНОСТЬ", Color(0.45, 1.0, 0.55), -14.0)
+		_update_stress_from_hp()
+	else:
+		_float_text("ОТЛИЧНЫЙ ТЕМП!", Color(1.0, 0.86, 0.35), -14.0)
+	UISounds.play_switch_on()
+
+
+func _update_streak_label() -> void:
+	if _hud_panel == null:
+		return
+	if _streak_label == null:
+		_streak_label = Label.new()
+		_streak_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_streak_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_streak_label.add_theme_font_size_override("font_size", 13)
+		_streak_label.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
+		_streak_label.add_theme_constant_override("outline_size", 4)
+		_hud_panel.add_child(_streak_label)
+	_streak_label.size = Vector2(_hud_panel.size.x - 6, 18)
+	_streak_label.position = Vector2(0, _hud_panel.size.y + 2)
+	_streak_label.visible = _streak >= 2
+	_streak_label.text = "СЕРИЯ x" + str(_streak) + ("   ПРОВЕРКА!" if _inspection_active else "")
+	var hot = _streak >= STREAK_REWARD
+	_streak_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35) if hot else Color(0.8, 0.9, 1.0))
+	if _inspection_active:
+		_streak_label.visible = true
+
+
+## A short text rising over the player's head.
+func _float_text(t: String, col: Color, dy: float = 0.0) -> void:
+	if player == null:
+		return
+	var l = Label.new()
+	l.text = t
+	var f = load(DIALOG_FONT_PATH)
+	if f:
+		l.add_theme_font_override("font", f)
+	l.add_theme_font_size_override("font_size", 8)
+	l.add_theme_color_override("font_color", col)
+	l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
+	l.add_theme_constant_override("outline_size", 3)
+	l.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.z_as_relative = false
+	l.z_index = 210
+	add_child(l)
+	var w = (f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x if f else 60.0)
+	l.position = (player.global_position + Vector2(-w * 0.5, -78 + dy)).round()
+	l.scale = Vector2(0.6, 0.6)
+	l.pivot_offset = Vector2(w * 0.5, 4)
+	var tw = create_tween()
+	tw.tween_property(l, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(l, "position:y", l.position.y - 18.0, 1.1).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.5).set_delay(0.6)
+	tw.tween_callback(l.queue_free)
+
+
+# ---------------------------------------------------------------- guard inspections
+## From the 2nd shift the guard comes twice a shift to stand behind the player and watch
+## the next 3 jobs. The minigames are a bit faster meanwhile. All 3 done right: +1 HP and
+## praise; any mistake: a second, extra hit when he leaves.
+func _maybe_start_inspection() -> void:
+	if current_shift < 2 or _inspection_active or guard_changing or _guard_busy:
+		return
+	if not (_cycles_done in _inspection_cycles):
+		return
+	_inspection_cycles.erase(_cycles_done)
+	_start_inspection()
+
+
+func _start_inspection() -> void:
+	_inspection_active = true
+	_inspection_jobs_left = 3
+	_inspection_bad = 0
+	_update_streak_label()
+	_show_guard_dialog(["ПРОВЕРКА! ПОСМОТРИМ, КАК ТЫ РАБОТАЕШЬ.", "ТАК, ПОКАЖИ-КА МНЕ СВОЮ РАБОТУ.", "НЕ ОТВЛЕКАТЬСЯ. Я СМОТРЮ."][randi() % 3], 2.2)
+	_guard_busy = true
+	await _guard_walk_to(Vector2(player_turn_x - 64.0, GUARD_POSITION.y))
+	if guard_sprite:
+		guard_sprite.scale.x = abs(guard_sprite.scale.x)   # looks at the player
+		if guard_sprite.sprite_frames and guard_sprite.sprite_frames.has_animation("idle"):
+			guard_sprite.play("idle")
+	_guard_busy = false
+
+
+func _inspection_step() -> void:
+	_inspection_jobs_left -= 1
+	if _inspection_jobs_left <= 0:
+		_end_inspection()
+
+
+func _end_inspection() -> void:
+	if not _inspection_active:
+		return
+	_inspection_active = false
+	_update_streak_label()
+	if state == State.DEAD or state == State.SHIFT_END:
+		return
+	if _inspection_bad == 0:
+		_show_guard_dialog("НЕПЛОХО. ТАК И ПРОДОЛЖАЙ.", 2.0)
+		var hp = player.get_hp() if player and player.has_method("get_hp") else 5
+		if hp < 5 and player.has_method("set_hp"):
+			player.set_hp(hp + 1)
+			_float_text("+1 ПРОЧНОСТЬ", Color(0.45, 1.0, 0.55), -14.0)
+			_update_stress_from_hp()
+	else:
+		_show_guard_dialog("ПЛОХО РАБОТАЕШЬ. ЭТО ТЕБЕ НА ПАМЯТЬ.", 2.0)
+		await get_tree().create_timer(0.6, false).timeout
+		await _guard_hit_player()
+	if guard_changing or state == State.DEAD:
+		return
+	_guard_busy = true
+	await _guard_walk_to(GUARD_POSITION)
+	if guard_sprite and guard_sprite.sprite_frames and guard_sprite.sprite_frames.has_animation("idle"):
+		guard_sprite.play("idle")
+	_guard_busy = false
+
+
+func _apply_pre_accident_lock() -> void:
+	if player == null:
+		return
+	var lock = _pre_accident_lock and current_shift == 1 and state != State.DEAD
+	if lock:
+		if player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(true)
+		if "velocity" in player:
+			player.velocity = Vector2.ZERO
+	# the player's own input handler does attacks, blocking, parry and dash
+	if lock and player.is_processing_input():
+		player.set_process_input(false)
+
+
+func _unlock_player_after_accident() -> void:
+	_pre_accident_lock = false
+	if player:
+		player.set_process_input(true)
+		if player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(false)
+
 
 func _process_inspect_notice(delta: float) -> void:
 	if inspect_notice_timer > 0:
@@ -2195,6 +2461,9 @@ func _update_wall_clock() -> void:
 	if _clock_hands.size() < 2:
 		return
 	var hour = _current_hour()
+	if absf(hour - _wall_clock_hour) < 0.004:
+		return
+	_wall_clock_hour = hour
 	var minutes = (hour - floor(hour)) * 60.0
 	_clock_hands[0].rotation = TAU * fmod(hour, 12.0) / 12.0
 	_clock_hands[1].rotation = TAU * minutes / 60.0
@@ -2207,9 +2476,12 @@ func _update_clock_label() -> void:
 	var h = int(hour)
 	var m = int((hour - h) * 60)
 	m = int(floor(float(m) / 15.0)) * 15
+	var txt = "%02d:%02d" % [h, m]
+	if txt == _clock_text:
+		return   # the clock only changes every 15 game minutes
 	if clock_label:
-		clock_label.text = "%02d:%02d" % [h, m]
-	_clock_text = "%02d:%02d" % [h, m]
+		clock_label.text = txt
+	_clock_text = txt
 	if _hud_panel:
 		_hud_panel.queue_redraw()
 
@@ -2257,6 +2529,8 @@ func _guard_shift_sequence() -> void:
 	if guard_sprite == null:
 		guard_changing = false
 		return
+	_inspection_active = false
+	_update_streak_label()
 	_show_guard_dialog(GUARD_LEAVE_LINES[randi() % GUARD_LEAVE_LINES.size()], 2.0)
 	await _guard_walk_to(elevator_button.position if elevator_button else GUARD_POSITION)
 	await get_tree().create_timer(0.5).timeout
@@ -2352,12 +2626,17 @@ func _start_belt() -> void:
 	_belt_move_left = 0.0
 	current_object_index = 0
 	conveyor_paused = true
+	_streak = 0
+	_inspection_active = false
+	_inspection_cycles = [randi_range(8, 20), randi_range(28, 44)] if current_shift >= 2 else []
+	_update_streak_label()
 	while _resolved < TOTAL_OBJECTS:
 		if _belt_stopped(gen):
 			return
 		if _spawned < TOTAL_OBJECTS and _cycles_done % SPAWN_EVERY == 0:
 			_spawn_item()
 		_begin_clock_cycle()
+		_maybe_start_inspection()
 		# the belt moves one press forward
 		_jobs_total = 0
 		conveyor_paused = false
@@ -2536,7 +2815,7 @@ func _electric_accident(it: Dictionary) -> void:
 	flash.queue_free()
 	if player_sprite:
 		player_sprite.modulate = Color.WHITE
-	_break_item(it, player_station == STATION_PACK, true, false)
+	_break_item(it, player_station == STATION_PACK, true, true)   # counts as our mistake (red)
 	var obj: Node2D = it["node"]
 	if is_instance_valid(obj):
 		var spr = obj.get_node_or_null("Sprite") as Sprite2D
@@ -2545,8 +2824,7 @@ func _electric_accident(it: Dictionary) -> void:
 	if player and player.has_method("take_damage"):
 		player.take_damage(1)
 	_update_stress_from_hp()
-	if player and player.has_method("set_movement_blocked"):
-		player.set_movement_blocked(false)
+	_unlock_player_after_accident()
 	_set_hud_visible(true)
 	_show_gui()
 	_show_guard_dialog("ЧТО, ТОКОМ ДЁРНУЛО? НИЧЕГО, РАБОТАЙ ДАЛЬШЕ!", 2.5)
@@ -2927,6 +3205,12 @@ func _player_press_result(success: bool, punish: bool = true) -> void:
 	if it == null or not is_instance_valid(it["node"]):
 		player_job_finished.emit()
 		return
+	if not (current_shift == 1 and _pre_accident_lock):
+		if success:
+			_register_success(_last_quality)
+		else:
+			_register_fail()
+	_last_quality = 0.5
 	if _is_player_in_zone():
 		await _player_punch()
 	else:
@@ -2975,6 +3259,7 @@ func _process_minigame(delta: float) -> void:
 	mg_time += delta
 	if _mg_event_label and _mg_event_label.visible:
 		_mg_event_label.modulate.a = 0.55 + 0.45 * abs(sin(mg_time * 7.0))
+	delta *= _mg_pace()
 	if _mg_event == MGE_JAM:
 		# the belt jams: the pointer stalls, then jerks forward
 		_jam_timer -= delta
@@ -3091,6 +3376,7 @@ func _press_button() -> void:
 			return
 	minigame_active = false
 	hint_label.visible = false
+	_last_quality = _mg_quality() if hit else 0.0
 	var missed = randf() * 100.0 < _get_miss_chance()
 	if missed:
 		# stress: the fin slips even if the timing was right
@@ -3228,31 +3514,32 @@ func _guard_hit_npc(fish: Node) -> void:
 		guard_sprite.play("idle")
 	_guard_busy = false
 
-func _mark_progress(index: int, correct: bool) -> void:
-	if index < 0 or index >= progress_bar.get_child_count():
-		return
-	var cell = progress_bar.get_child(index) as ColorRect
-	if cell:
-		cell.color = COLOR_GREEN if correct else COLOR_RED
-	if index < _box_states.size():
-		_box_states[index] = 1 if correct else 2
-	if _hud_panel:
-		_hud_panel.queue_redraw()
-
-func _mark_skipped(index: int) -> void:
-	if index >= 0 and index < progress_bar.get_child_count():
+## The shift bar fills strictly in order, whatever box was finished: green = the box went
+## through, red = our fish failed it (the accident counts too), grey = another fish failed it.
+func _push_result(kind: int) -> void:
+	var index = _box_fill
+	_box_fill += 1
+	if index < progress_bar.get_child_count():
 		var cell = progress_bar.get_child(index) as ColorRect
 		if cell:
-			cell.color = Color(0.45, 0.45, 0.45)
-	if index >= 0 and index < _box_states.size():
-		_box_states[index] = 3
+			cell.color = COLOR_GREEN if kind == 1 else (COLOR_RED if kind == 2 else Color(0.45, 0.45, 0.45))
+	if index < _box_states.size():
+		_box_states[index] = kind
 	if _hud_panel:
 		_hud_panel.queue_redraw()
 
+func _mark_progress(_index: int, correct: bool) -> void:
+	_push_result(1 if correct else 2)
+
+func _mark_skipped(_index: int) -> void:
+	_push_result(3)
+
+## "Работник месяца": every box of the shift is green or grey, not a single red one.
 func _is_progress_bar_perfect() -> bool:
-	for i in range(progress_bar.get_child_count()):
-		var cell = progress_bar.get_child(i) as ColorRect
-		if cell and cell.color.is_equal_approx(COLOR_RED):
+	if _box_states.is_empty():
+		return false
+	for st in _box_states:
+		if st != 1 and st != 3:
 			return false
 	return true
 
@@ -3420,6 +3707,7 @@ func _start_new_shift() -> void:
 	current_object_index = 0
 	correct_count = 0
 	wrong_count = 0
+	_box_fill = 0
 	action_strike_count = 0
 	action_move_timer = 0.0
 	follow_strike_timer = 0.0
@@ -3445,8 +3733,7 @@ func _start_new_shift() -> void:
 		player.position = _get_player_shift_spawn()
 		_face_player_to_press()
 		if current_shift >= 2:
-			if player.has_method("set_movement_blocked"):
-				player.set_movement_blocked(false)
+			_unlock_player_after_accident()
 		else:
 			if player.has_method("set_movement_blocked"):
 				player.set_movement_blocked(true)
@@ -3686,17 +3973,29 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	is_dialog_active = true
 	var font: Font = load(DIALOG_FONT_PATH)
 	var box_tex: Texture2D = load(DIALOG_BOX_PATH)
-	var pad = Vector2(7, 6)
-	var ts = Vector2(60, 10)
-	var name_w = 30.0
+	var pad = Vector2(6, 5)
+	var name_h = 0.0   # no names in the bubbles
+	# The box is sized by the label itself (same font, same wrapping), so the text can never
+	# end up bigger than the box. Short lines get a narrow box, long ones wrap at BUBBLE_MAX_W.
+	var max_inner = BUBBLE_MAX_W - pad.x * 2.0
+	var inner_w = max_inner
 	if font:
-		ts = font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, BUBBLE_MAX_W - pad.x * 2.0 - 8.0, BUBBLE_FONT)
-		ts.x += 8.0   # the label gets more width than was measured -> it never wraps into an extra line
-		name_w = 0.0   # no names in the bubbles
-	# lines: name, then the text; extra room per wrapped line so nothing gets cut off
-	var lines = max(1, int(ceil(ts.y / max(1.0, font.get_height(BUBBLE_FONT) if font else float(BUBBLE_FONT)))))
-	var name_h = 0.0
-	var sz = Vector2(max(max(ts.x, name_w) + pad.x * 2.0 + 2.0, 46.0), ts.y + lines * 2.0 + name_h + pad.y * 2.0 + 3.0).round()
+		var one_line = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT).x + 4.0
+		inner_w = clamp(ceil(one_line), 34.0, max_inner)
+	var meas = Label.new()
+	meas.text = text
+	meas.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if font:
+		meas.add_theme_font_override("font", font)
+	meas.add_theme_font_size_override("font_size", BUBBLE_FONT)
+	meas.add_theme_constant_override("line_spacing", 1)
+	meas.size = Vector2(inner_w, 0)
+	add_child(meas)
+	meas.visible = false
+	var line_count = max(1, meas.get_line_count())
+	var text_h = line_count * meas.get_line_height() + (line_count - 1) * 1 + 2
+	meas.queue_free()
+	var sz = Vector2(inner_w + pad.x * 2.0, text_h + pad.y * 2.0).round()
 
 	var b = Node2D.new()
 	b.name = "SpeechBubble"
@@ -3735,6 +4034,8 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	lbl.position = pad + Vector2(0, name_h)
 	lbl.size = sz - pad * 2.0 - Vector2(0, name_h)
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# wrap the whole line up front, so words don't jump to the next line while typing
+	lbl.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING
 	lbl.visible_characters = 0
 	if font:
 		lbl.add_theme_font_override("font", font)
@@ -3813,6 +4114,18 @@ func _place_bubble(b: Node2D, sz: Vector2, speaker: Node2D, tail_o: Polygon2D, t
 		var c = cam.get_screen_center_position()
 		pos.x = clamp(pos.x, c.x - half.x + 6.0, c.x + half.x - sz.x - 6.0)
 		pos.y = clamp(pos.y, c.y - half.y + 14.0, c.y + half.y - sz.y - 14.0)
+		# the shift HUD (top right) is drawn over the world: keep the bubble out of it
+		if _hud_panel and _hud_panel.is_visible_in_tree():
+			var inv = get_viewport().get_canvas_transform().affine_inverse()
+			var r = _hud_panel.get_global_rect().grow_individual(6, 6, 6, 24)   # + the streak line under it
+			var hud = Rect2(inv * r.position, Vector2.ZERO).expand(inv * r.end)
+			if Rect2(pos, sz).intersects(hud):
+				var left_x = hud.position.x - sz.x - 4.0
+				var below_y = hud.end.y + 4.0
+				if left_x >= c.x - half.x + 6.0 and abs(left_x - pos.x) <= abs(below_y - pos.y) + 40.0:
+					pos.x = left_x
+				else:
+					pos.y = below_y
 	pos.y += round(sin(t * 2.2) * 1.0)
 	if shake > 0.0:
 		pos.x += round(sin(t * 80.0) * 2.0)
