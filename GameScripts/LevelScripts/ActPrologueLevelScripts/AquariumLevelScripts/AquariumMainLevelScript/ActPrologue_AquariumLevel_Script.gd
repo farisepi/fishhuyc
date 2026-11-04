@@ -19,13 +19,15 @@ var _ending: bool = false
 # ---- lab lights: soft flicker, NPC shadows, panic ----
 var _lamps: Array = []          # PointLight2D
 var _lamp_base: Array = []
-var _lamp_k: Array = []          # current brightness factor per lamp (1 = normal)
+var _lamp_k: Array = []
+var _lamp_x: Array = []          # current brightness factor per lamp (1 = normal)
 var _beams: Array = []           # LabBeam ColorRects (fake light cones), same order as the lamps
 var _beam_base: Array = []
 var _blink_lamp: int = -1
 var _blink_time: float = 0.0
 var _next_blink: float = 3.0
 var _light_t: float = 0.0
+var _light_acc: float = 0.0
 var _quake_on: bool = false
 var _npc_shadows: Array = []     # [{sprite, holder, shadows:[AnimatedSprite2D, AnimatedSprite2D], blob}]
 var _panicking: bool = false
@@ -266,6 +268,13 @@ func _process_lab_lights(dt: float) -> void:
 	if _lamps.is_empty() or _quake_on:
 		return
 	_light_t += dt
+	# 30 updates a second are plenty for a lamp hum (8 lamps + 8 shader params per update)
+	_light_acc += dt
+	if _light_acc < 1.0 / 30.0:
+		return
+	dt = _light_acc
+	_light_acc = 0.0
+	# every few seconds one lamp stutters
 	_next_blink -= dt
 	if _next_blink <= 0.0:
 		_next_blink = randf_range(2.5, 7.0)
@@ -426,13 +435,18 @@ func _update_npc_shadows() -> void:
 		if not is_instance_valid(spr):
 			continue
 		var x = spr.global_position.x
+		# nearest lamp on each side (lamp x positions are cached, the lamps never move)
+		if _lamp_x.size() != _lamps.size():
+			_lamp_x.clear()
+			for l in _lamps:
+				_lamp_x.append(l.global_position.x)
 		var li = -1
 		var ri = -1
-		for i in range(_lamps.size()):
-			var lx = _lamps[i].global_position.x
-			if lx <= x and (li == -1 or lx > _lamps[li].global_position.x):
+		for i in range(_lamp_x.size()):
+			var lx = _lamp_x[i]
+			if lx <= x and (li == -1 or lx > _lamp_x[li]):
 				li = i
-			if lx > x and (ri == -1 or lx < _lamps[ri].global_position.x):
+			if lx > x and (ri == -1 or lx < _lamp_x[ri]):
 				ri = i
 		var sides = [li, ri]
 		for k in range(2):
@@ -446,8 +460,8 @@ func _update_npc_shadows() -> void:
 				sh.animation = spr.animation
 			sh.frame = spr.frame
 			sh.flip_h = spr.flip_h
-			var dist = abs(x - _lamps[i].global_position.x)
-			var away = 1.0 if k == 0 else -1.0
+			var dist = abs(x - _lamp_x[i])
+			var away = 1.0 if k == 0 else -1.0   # a lamp on the left throws the shadow right
 			var shift = clamp(dist * 0.16, 2.0, 11.0) * away
 			sh.position = spr.position + Vector2(shift, 1.0)
 			sh.skew = clamp(-shift * 0.03, -0.3, 0.3)

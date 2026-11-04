@@ -63,6 +63,9 @@ var held_icon: Sprite2D
 var held_item_icon: Sprite2D
 var can_throw: bool = false
 var movement_blocked: bool = false
+## Set by a level (the factory): the fish can ONLY walk, jump and attack there -
+## no block, no parry, no dash, no climbing / ladders. Off everywhere else.
+var only_basic_moves: bool = false
 var dash_cooldown: float = 0.0
 var is_dashing: bool = false
 var is_shift_held: bool = false
@@ -486,7 +489,7 @@ func _physics_process(delta):
 		velocity.y = jump_velocity
 		_play_anim("Jump", true)
 
-	if Input.is_action_just_pressed("interact"):
+	if Input.is_action_just_pressed("interact") and not only_basic_moves:
 		if not _try_climb_obstacle():
 			if nearby_ladder:
 				_try_ladder_climb()
@@ -646,6 +649,15 @@ func _end_slide():
 	slide_timer = 0.0
 
 func _input(event: InputEvent) -> void:
+	if only_basic_moves:
+		# only the attack (left mouse) goes through; walking and jumping are read in physics
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if not is_dead and not is_hurt and not is_stunned and not is_landing:
+				if is_attacking:
+					attack_buffer = true
+				else:
+					_do_attack()
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 		if is_on_floor():
 			_start_parry()

@@ -358,10 +358,13 @@ func _apply_near_fonts() -> void:
 		_name_tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
+static var _bb_re: RegEx = null
+
 func _strip_bbcode(s: String) -> String:
-	var re = RegEx.new()
-	re.compile("\\[[^\\]]*\\]")
-	return re.sub(s, "", true)
+	if _bb_re == null:
+		_bb_re = RegEx.new()
+		_bb_re.compile("\\[[^\\]]*\\]")
+	return _bb_re.sub(s, "", true)
 
 ## Pop-in, a slight bob, a hard jolt on swear words; the bubble keeps the same size on
 ## screen whatever the zoom (no giant bubble during the intro zoom), and when the speakers
@@ -422,10 +425,7 @@ func _decorate_near() -> void:
 		_name_tag.modulate.a = lerp(1.0, 0.0, smoothstep(0.5, 0.9, _far_k))
 
 func _text_height(lbl: RichTextLabel, full: String, width: float) -> float:
-	var plain = full
-	var re = RegEx.new()
-	re.compile("\\[[^\\]]*\\]")
-	plain = re.sub(plain, "", true)
+	var plain = _strip_bbcode(full)
 	lbl.size = Vector2(width, 400)
 	lbl.text = full
 	var h = lbl.get_content_height()

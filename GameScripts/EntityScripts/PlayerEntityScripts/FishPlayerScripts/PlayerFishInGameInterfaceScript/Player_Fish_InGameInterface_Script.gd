@@ -19,6 +19,11 @@ var glow: ColorRect
 var hp_bar_base_pos: Vector2
 var hearts_base_pos: Vector2
 var stamina_base_pos: Vector2
+var _player: Node = null
+var _last_hearts: int = -1
+var _last_stamina: float = -1.0
+var _glow_on: bool = true
+var _shaken: bool = true
 
 
 const HP_BAR_SPEED_TABLE: Dictionary = {
@@ -41,7 +46,7 @@ func _ready():
 	stamina_base_pos = stamina.position
 	
 	glow = ColorRect.new()
-	glow.mouse_filter = Control.MOUSE_FILTER_STOP
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE   # it covers the whole screen: must not eat clicks
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
 	
 	var shader = Shader.new()
@@ -66,39 +71,43 @@ func _ready():
 func _process(delta):
 	if get_tree().paused:
 		return
-	
-	var player = get_tree().get_first_node_in_group("player")
+	# the player is looked up once (not every frame) and again only if it disappears
+	if _player == null or not is_instance_valid(_player):
+		_player = get_tree().get_first_node_in_group("player")
+		_last_hearts = -1
+		_last_stamina = -1.0
+	var player = _player
 	if not player:
 		return
-	
+	# hearts / stamina / bar speed are only touched when the value really changed
 	if player.has_method("get_hp"):
 		current_hearts = player.get_hp()
-		_update_hearts()
-	
+		if current_hearts != _last_hearts:
+			_last_hearts = current_hearts
+			_update_hearts()
+			if hp_bar:
+				var speed = HP_BAR_SPEED_TABLE.get(clamp(current_hearts, 0, 5), 1.0)
+				hp_bar.speed_scale = speed
+				if speed <= 0.0:
+					hp_bar.stop()
 	if player.has_method("get_stamina"):
 		stamina_value = player.get_stamina()
-		_update_stamina()
-	
-	
-	if hp_bar:
-		var h = clamp(current_hearts, 0, 5)
-		var speed = HP_BAR_SPEED_TABLE.get(h, 1.0)
-		hp_bar.speed_scale = speed
-		if speed <= 0.0:
-			hp_bar.stop()
-	
+		if absf(stamina_value - _last_stamina) > 0.25:
+			_last_stamina = stamina_value
+			_update_stamina()
+
 	var hp_percent = float(current_hearts) / float(max_hearts)
-	
 	if hp_percent <= 0.2:
 		shake_amount = 2.0 * (1.0 - hp_percent / 0.2)
 		pulse_timer += delta
-		var pulse = 0.3 + 0.3 * sin(pulse_timer * 2.0)
-		glow.material.set_shader_parameter("pulse", pulse)
-	else:
+		glow.material.set_shader_parameter("pulse", 0.3 + 0.3 * sin(pulse_timer * 2.0))
+		_glow_on = true
+	elif _glow_on:
+		_glow_on = false
 		shake_amount = 0.0
 		pulse_timer = 0.0
 		glow.material.set_shader_parameter("pulse", 0.0)
-	
+
 	if shake_amount > 0:
 		var shake = Vector2(
 			randf_range(-shake_amount, shake_amount),
@@ -108,7 +117,9 @@ func _process(delta):
 		hearts.position = hearts_base_pos + shake
 		stamina.position = stamina_base_pos + shake
 		shake_amount = max(shake_amount - shake_decay * delta, 0.0)
-	else:
+		_shaken = true
+	elif _shaken:
+		_shaken = false
 		hp_bar.position = hp_bar_base_pos
 		hearts.position = hearts_base_pos
 		stamina.position = stamina_base_pos
