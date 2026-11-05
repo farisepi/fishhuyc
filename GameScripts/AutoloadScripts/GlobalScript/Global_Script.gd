@@ -204,9 +204,10 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 		# no settings yet: still a window that fits the screen (the bottom of the HUD used to
 		# go under the taskbar with the 1920x1080 window on a 1080p screen)
 		if apply_window:
-			if OS.has_feature("editor"):
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-			apply_resolution(0)
+			if is_dev_run():
+				_apply_dev_window()
+			else:
+				apply_resolution(0)
 		return
 	
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
@@ -231,15 +232,38 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	)
 	
 	var fullscreen = config.get_value("graphics", "fullscreen", false)
-	# started from the Godot editor (debug): always a window, whatever the settings say
-	if OS.has_feature("editor"):
-		fullscreen = false
+	# started from the Godot editor (F5 / F6, debug run): always a normal window
+	if is_dev_run():
+		_apply_dev_window()
+		return
 	if fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	
 	apply_resolution(int(config.get_value("graphics", "resolution", 0)))
+
+
+## The game was started from the editor (or is a debug build): no fullscreen, ever.
+func is_dev_run() -> bool:
+	return OS.has_feature("editor") or OS.has_feature("editor_runtime") or OS.is_debug_build()
+
+
+## A 1280 x 720 window in the middle of the screen (smaller if the screen is small).
+func _apply_dev_window() -> void:
+	var w = get_window()
+	if w == null:
+		return
+	if w.mode != Window.MODE_WINDOWED:
+		w.mode = Window.MODE_WINDOWED
+	w.borderless = false
+	var want = Vector2i(1280, 720)
+	var usable: Vector2i = DisplayServer.screen_get_usable_rect(w.current_screen).size
+	if usable.x > 0 and usable.y > 0:
+		var k = min(1.0, min(float(usable.x) * 0.9 / want.x, float(usable.y) * 0.85 / want.y))
+		want = Vector2i(int(want.x * k), int(want.y * k))
+	w.size = want
+	w.move_to_center()
 
 func _apply_audio_bus(bus_name: String, value: float) -> void:
 	var bus_index = AudioServer.get_bus_index(bus_name)

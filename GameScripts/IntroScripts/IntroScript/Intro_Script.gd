@@ -190,7 +190,7 @@ func _setup_skip_ui(screen_size: Vector2) -> void:
 	_skip_ui = Control.new()
 	_skip_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skip_ui.size = Vector2(300, 44)
-	_skip_ui.position = Vector2(screen_size.x - 300 - 18, screen_size.y - 44 - 16)
+	_skip_ui.position = Vector2(screen_size.x - 300 - 8, 8)   # top-right, where it always was
 	_skip_ui.z_index = 500
 	_skip_ui.modulate.a = 0.0
 	_skip_ui.draw.connect(_draw_skip)
@@ -209,27 +209,23 @@ func _draw_skip() -> void:
 	var c = _skip_ui
 	var sz = c.size
 	var p = clamp(skip_progress / SKIP_HOLD_TIME, 0.0, 1.0)
-	var t = Time.get_ticks_msec() / 1000.0
 	c.draw_rect(Rect2(Vector2.ZERO, sz), Color(0, 0, 0, 0.55))
-	c.draw_rect(Rect2(Vector2.ZERO, Vector2(sz.x, 1)), Color(1, 1, 1, 0.18))
 	var ctr = Vector2(26, sz.y * 0.5)
 	c.draw_arc(ctr, 16.0, 0, TAU, 40, Color(1, 1, 1, 0.18), 3.0)
 	if p > 0.0:
 		c.draw_arc(ctr, 16.0, -PI * 0.5, -PI * 0.5 + TAU * p, 40, Color(1, 1, 1, 0.95), 3.0)
 		c.draw_circle(ctr + Vector2(cos(-PI * 0.5 + TAU * p), sin(-PI * 0.5 + TAU * p)) * 16.0, 2.5, Color.WHITE)
 	if _skip_font:
-		var kc = Color(1, 1, 1, 0.9 if p > 0.0 else 0.6 + 0.2 * sin(t * 3.0))
+		var kc = Color(1, 1, 1, 0.9 if p > 0.0 else 0.75)
 		var kw = _skip_font.get_string_size("ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7).x
 		c.draw_string(_skip_font, Vector2(ctr.x - kw * 0.5, ctr.y + 3.0), "ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, kc)
 		var txt = "ПРОПУСКАЮ..." if p > 0.0 else "ЗАЖМИ — ПРОПУСТИТЬ"
 		c.draw_string(_skip_font, Vector2(50, sz.y * 0.5 + 4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.92))
-		# a thin bar under the text
-		c.draw_rect(Rect2(48, sz.y - 10, sz.x - 60, 2), Color(1, 1, 1, 0.15))
-		c.draw_rect(Rect2(48, sz.y - 10, (sz.x - 60) * p, 2), Color(1, 1, 1, 0.9))
 
-func _input_skip_hint(event: InputEvent) -> void:
-	if event is InputEventMouseMotion or event is InputEventMouseButton or event is InputEventKey:
-		_skip_show = 2.2
+func _input_skip_hint(_event: InputEvent) -> void:
+	pass   # the hint shows only while the mouse button is held (and once at the start)
+
+var _blink_t: float = 0.0   # time since the intro started: the hint is shown once at the start
 
 func _process(delta: float) -> void:
 	_enforce_label_font()
@@ -241,7 +237,6 @@ func _process(delta: float) -> void:
 	var skip_input = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	
 	if skip_input:
-		_skip_show = 2.2
 		skip_progress += delta
 		if skip_progress >= SKIP_HOLD_TIME:
 			_skip_intro()
@@ -249,13 +244,16 @@ func _process(delta: float) -> void:
 	else:
 		if skip_progress > 0.0:
 			skip_progress = max(skip_progress - SKIP_RETRACT_SPEED * delta, 0.0)
-	_skip_show = max(0.0, _skip_show - delta)
+	_blink_t += delta
 	
 	var progress = clamp(skip_progress / SKIP_HOLD_TIME, 0.0, 1.0)
 	skip_dim.color = Color(0, 0, 0, progress * 0.6)
 	if _skip_ui:
-		var want = 1.0 if (_skip_show > 0.0 or progress > 0.0) else 0.0
-		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, want, delta * 4.0)
+		# at the start it fades in, stays a moment and fades out; later it fades in while
+		# the button is held and fades out after
+		var target = 1.0 if (skip_input or progress > 0.0 or (_blink_t > 0.3 and _blink_t < 3.0)) else 0.0
+		var speed = 2.5 if target > _skip_ui.modulate.a else 1.6
+		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, target, delta * speed)
 		_skip_ui.queue_redraw()
 	
 	if intro_music:

@@ -854,7 +854,8 @@ func apply_audio_volumes() -> void:
 
 func apply_graphics_settings() -> void:
 	if fullscreen_check:
-		if fullscreen_check.button_pressed:
+		# started from the editor: stay in a window (the checkbox only counts in the real game)
+		if fullscreen_check.button_pressed and not Global.is_dev_run():
 			get_window().mode = Window.MODE_FULLSCREEN
 		else:
 			get_window().mode = Window.MODE_WINDOWED

@@ -251,6 +251,8 @@ var _inspection_cycles: Array = []
 var _inspection_active: bool = false
 var _inspection_jobs_left: int = 0
 var _inspection_bad: int = 0
+## who is being checked: -1 = the player, else the station of the fish being checked
+var _insp_station: int = -1
 ## Before the accident on the 4th box (first shift) the fish can not do anything at all:
 ## no walking, no jumping, no attacks, no blocking, no dashing.
 var _pre_accident_lock: bool = true
@@ -801,8 +803,16 @@ var _guard_walking: bool = false
 ## Where the guard belongs right now: behind the player during an inspection, else his post.
 func _guard_home() -> Vector2:
 	if _inspection_active:
-		return Vector2(player_turn_x - 64.0, GUARD_POSITION.y)
+		return Vector2(_inspection_x() - 64.0, GUARD_POSITION.y)
 	return GUARD_POSITION
+
+## x of whoever is being checked right now.
+func _inspection_x() -> float:
+	if _insp_station >= 0:
+		var f = _station_fish(_insp_station)
+		if f and is_instance_valid(f):
+			return f.global_position.x
+	return player_turn_x
 
 ## Safety net: if the guard is left standing somewhere after a hit (two things moved him at
 ## once, a tween got cut...), he walks back to his place by himself.
@@ -2249,7 +2259,10 @@ func _follow_inspect_target(area: Area2D, hl: Control) -> void:
 		elif id.begins_with("guard_shift"):
 			pos = GUARD_POSITION   # nobody at the post: the empty post itself is the target
 	elif id.begins_with("sniper") and sniper_sprite:
-		pos = sniper_sprite.global_position
+		if sniper_sprite.visible and sniper_sprite.modulate.a > 0.5:
+			pos = sniper_sprite.global_position
+		elif id.begins_with("sniper_shift"):
+			pos = SNIPER_POSITION   # gone: the empty post is clicked
 	else:
 		return
 	if pos == data.get("pos", Vector2.INF):
@@ -2462,7 +2475,9 @@ func _area_outline_nodes(area: Area2D) -> Array:
 			return [guard_sprite]
 		return []   # nobody at the post: only the dashed "ПОСТ ПУСТ" mark
 	if st == "sniper_shift":
-		return [sniper_sprite] if sniper_sprite else []
+		if sniper_sprite and sniper_sprite.visible and sniper_sprite.modulate.a > 0.5:
+			return [sniper_sprite]
+		return []   # gone: the dashed "ПОСТ ПУСТ" mark is clicked
 	return _outline_nodes.get(area, [])
 
 func _create_inspect_text_panel() -> void:
@@ -2579,7 +2594,7 @@ func _process(delta: float) -> void:
 # ---------------------------------------------------------------- streak / grades
 ## Minigame speed: +3.5% per job in the streak (up to +28%), +10% while the guard inspects.
 func _mg_pace() -> float:
-	return 1.0 + min(_streak, 8) * 0.035 + (0.1 if _inspection_active else 0.0)
+	return 1.0 + min(_streak, 8) * 0.035 + (0.1 if (_inspection_active and _insp_station < 0) else 0.0)
 
 
 func _register_success(q: float) -> void:
@@ -2590,7 +2605,7 @@ func _register_success(q: float) -> void:
 	_float_text(txt, Color(1.0, 0.86, 0.35) if perfect else Color(0.6, 1.0, 0.6))
 	if camera and camera.has_method("add_trauma") and perfect:
 		camera.add_trauma(0.06)
-	if _inspection_active:
+	if _inspection_active and _insp_station < 0:
 		_inspection_step()
 	_update_streak_label()
 
@@ -2599,7 +2614,7 @@ func _register_fail() -> void:
 	if _streak >= 3:
 		_float_text("СЕРИЯ ПРЕРВАНА", Color(1.0, 0.45, 0.4))
 	_streak = 0
-	if _inspection_active:
+	if _inspection_active and _insp_station < 0:
 		_inspection_bad += 1
 		_inspection_step()
 	_update_streak_label()
@@ -2636,10 +2651,11 @@ func _update_streak_label() -> void:
 		below = _act_strip.position.y + _act_strip.size.y - _hud_panel.position.y + 3
 	_streak_label.position = Vector2(0, below)
 	_streak_label.visible = _streak >= 2
-	_streak_label.text = "СЕРИЯ x" + str(_streak) + ("   ПРОВЕРКА!" if _inspection_active else "")
+	var my_check = _inspection_active and _insp_station < 0
+	_streak_label.text = "СЕРИЯ x" + str(_streak) + ("   ПРОВЕРКА!" if my_check else "")
 	var hot = _streak >= STREAK_REWARD
 	_streak_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35) if hot else Color(0.8, 0.9, 1.0))
-	if _inspection_active:
+	if my_check:
 		_streak_label.visible = true
 
 
@@ -2689,10 +2705,22 @@ func _start_inspection() -> void:
 	_inspection_active = true
 	_inspection_jobs_left = 3
 	_inspection_bad = 0
+	# the other fish get checked too (about every second check)
+	_insp_station = -1
+	if randf() < 0.5:
+		var options: Array = []
+		for st in range(NUM_NPC_FISHES + 1):
+			if st != player_station and _station_fish(st) != null:
+				options.append(st)
+		if not options.is_empty():
+			_insp_station = options[randi() % options.size()]
 	_update_streak_label()
-	_show_guard_dialog(["ПРОВЕРКА! ПОСМОТРИМ, КАК ТЫ РАБОТАЕШЬ.", "ТАК, ПОКАЖИ-КА МНЕ СВОЮ РАБОТУ.", "НЕ ОТВЛЕКАТЬСЯ. Я СМОТРЮ."][randi() % 3], 2.2)
+	if _insp_station < 0:
+		_show_guard_dialog(["ПРОВЕРКА! ПОСМОТРИМ, КАК ТЫ РАБОТАЕШЬ.", "ТАК, ПОКАЖИ-КА МНЕ СВОЮ РАБОТУ.", "НЕ ОТВЛЕКАТЬСЯ. Я СМОТРЮ."][randi() % 3], 2.2)
+	else:
+		_show_guard_dialog(["ПРОВЕРКА! А НУ, ЧЕШУЙЧАТЫЙ, ПОКАЖИ РАБОТУ.", "ТАК, ТЕПЕРЬ ТЫ. Я СМОТРЮ.", "ЭЙ, ТЫ! РАБОТАЙ ПОКАЗАТЕЛЬНО."][randi() % 3], 2.2)
 	_guard_busy = true
-	await _guard_walk_to(Vector2(player_turn_x - 64.0, GUARD_POSITION.y))
+	await _guard_walk_to(Vector2(_inspection_x() - 64.0, GUARD_POSITION.y))
 	if guard_sprite:
 		guard_sprite.scale.x = abs(guard_sprite.scale.x)   # looks at the player
 		if guard_sprite.sprite_frames and guard_sprite.sprite_frames.has_animation("idle"):
@@ -2710,10 +2738,15 @@ func _end_inspection() -> void:
 	if not _inspection_active:
 		return
 	_inspection_active = false
+	_insp_station = -1
 	_update_streak_label()
 	if state == State.DEAD or state == State.SHIFT_END:
 		return
-	if _inspection_bad == 0:
+	if _insp_station >= 0:
+		# a fish was checked: its mistakes were punished on the spot already
+		_show_guard_dialog("НЕПЛОХО. РАБОТАЙ ДАЛЬШЕ." if _inspection_bad == 0 else "ПЛОХО. ЕЩЁ РАЗ — И ПОЖАЛЕЕШЬ.", 2.0)
+		_insp_station = -1
+	elif _inspection_bad == 0:
 		_show_guard_dialog("НЕПЛОХО. ТАК И ПРОДОЛЖАЙ.", 2.0)
 		# the check went fine: the fish calms down a bit
 		var hp_now = player.get_hp() if player and player.has_method("get_hp") else 5
@@ -3097,6 +3130,7 @@ func _guard_shift_sequence() -> void:
 		guard_changing = false
 		return
 	_inspection_active = false
+	_insp_station = -1
 	_update_streak_label()
 	var w := 0.0
 	while _guard_busy and w < 8.0:
@@ -3213,7 +3247,8 @@ func _start_belt() -> void:
 	conveyor_paused = true
 	_streak = 0
 	_inspection_active = false
-	_inspection_cycles = [randi_range(5, 11), randi_range(16, 24)] if current_shift >= 2 else []
+	_insp_station = -1
+	_inspection_cycles = [randi_range(4, 8), randi_range(11, 16), randi_range(19, 24)] if current_shift >= 2 else []
 	_update_streak_label()
 	while _resolved < TOTAL_OBJECTS:
 		if _belt_stopped(gen):
@@ -3318,6 +3353,7 @@ func _job_fish(it: Dictionary, st: int, fish: Node) -> void:
 		return
 	var mistake = randf() < NPC_MISTAKE_CHANCE
 	var node = it["node"]
+	var checked = _inspection_active and _insp_station == st
 	if mistake:
 		_halt += 1
 		await _play_press(st, func(): _break_item(it, st == STATION_PACK, false, false), node)
@@ -3326,6 +3362,10 @@ func _job_fish(it: Dictionary, st: int, fish: Node) -> void:
 		_halt = max(0, _halt - 1)
 	else:
 		await _play_press(st, func(): _advance_item(it), node)
+	if checked and _inspection_active and _insp_station == st:
+		if mistake:
+			_inspection_bad += 1
+		_inspection_step()
 
 
 ## The player's press: tutorial boxes go by themselves, the 4th one is the accident (the
@@ -4990,19 +5030,90 @@ func _check_escape_info_ready() -> void:
 	if escape_info_shift == -1 and guard_shifts_found.size() >= 3 and sniper_shifts_found.size() >= 3:
 		escape_info_shift = current_shift
 
+## The escape plan as a banner at the top: a dark steel plate with hazard ends, a small
+## "ПЛАН ПОБЕГА" tag, the main line big, the second one under it; it drops in and its edge
+## glows slowly.
+var _esc_banner: Control = null
+var _esc_lines: Array = ["", ""]
+
+func _escape_banner(main: String, sub: String) -> void:
+	escape_hint.visible = false
+	var fresh = _esc_banner == null
+	if fresh:
+		_esc_banner = Control.new()
+		_esc_banner.name = "EscapeBanner"
+		_esc_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_esc_banner.draw.connect(_draw_escape_banner)
+		$UI.add_child(_esc_banner)
+		var f = _bubble_font()
+		for i in range(3):
+			var l = Label.new()
+			l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			if f:
+				l.add_theme_font_override("font", f)
+			l.add_theme_font_size_override("font_size", [10, 18, 12][i])
+			l.add_theme_color_override("font_color", [HUD_C_ORANGE, Color(1.0, 0.93, 0.85), Color(0.95, 0.45, 0.4)][i])
+			l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
+			l.add_theme_constant_override("outline_size", 4)
+			_esc_banner.add_child(l)
+	if _esc_lines == [main, sub] and _esc_banner.visible:
+		return
+	_esc_lines = [main, sub]
+	var labels = _esc_banner.get_children()
+	labels[0].text = "ПЛАН ПОБЕГА"
+	labels[1].text = main
+	labels[2].text = sub
+	var w = 460.0
+	_esc_banner.size = Vector2(w, 66)
+	for i in range(3):
+		labels[i].size = Vector2(w - 40, 20)
+		labels[i].position = Vector2(20, [5, 18, 42][i])
+	var vp = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1152, 648)
+	var x = round((vp.x - w) * 0.5)
+	_esc_banner.visible = true
+	_esc_banner.position = Vector2(x, -70)
+	_esc_banner.modulate.a = 0.0
+	var tw = _esc_banner.create_tween().set_parallel(true)
+	tw.tween_property(_esc_banner, "position:y", 12.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_esc_banner, "modulate:a", 1.0, 0.25)
+	UISounds.play_switch_on()
+
+func _draw_escape_banner() -> void:
+	var c = _esc_banner
+	var sz = c.size
+	var t = Time.get_ticks_msec() / 1000.0
+	var glow = 0.5 + 0.5 * sin(t * 2.2)
+	c.draw_rect(Rect2(Vector2(3, 4), sz), Color(0, 0, 0, 0.45))
+	c.draw_rect(Rect2(Vector2.ZERO, sz), Color.BLACK)
+	c.draw_rect(Rect2(2, 2, sz.x - 4, sz.y - 4), HUD_C_EDGE)
+	c.draw_rect(Rect2(3, 2, sz.x - 6, 2), HUD_C_EDGE_HI)
+	c.draw_rect(Rect2(5, 5, sz.x - 10, sz.y - 10), HUD_C_BG)
+	# hazard stripes on both ends
+	for side in [0, 1]:
+		var x0 = 5.0 if side == 0 else sz.x - 17.0
+		for y in range(5, int(sz.y) - 5, 6):
+			c.draw_rect(Rect2(x0, y, 12, 3), HUD_C_ORANGE if y % 12 < 6 else Color8(30, 24, 16))
+	# glowing frame
+	c.draw_rect(Rect2(Vector2(1, 1), sz - Vector2(2, 2)), Color(HUD_C_ORANGE, 0.25 + 0.35 * glow), false, 2.0)
+	# a thin divider under the tag
+	c.draw_rect(Rect2(sz.x * 0.5 - 60, 17, 120, 1), Color(HUD_C_ORANGE, 0.5))
+
 func _update_escape_hint() -> void:
+	if _esc_banner:
+		_esc_banner.queue_redraw()
 	if guard_shifts_found.size() < 3 or sniper_shifts_found.size() < 3:
 		escape_hint.visible = false
+		if _esc_banner:
+			_esc_banner.visible = false
 		return
 	if escape_info_shift == current_shift:
-		escape_hint.text = "ДОЖДАТЬСЯ СМЕНЫ НА КОРОБКАХ. ПОБЕГ В ОКНО 13:00 - 13:15"
-		escape_hint.visible = true
+		_escape_banner("ДОЖДАТЬСЯ СМЕНЫ НА УПАКОВКЕ", "ПОБЕГ В ОКНО 13:00 - 13:15")
 		return
 	if elevator_inspected:
-		escape_hint.text = "13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ"
+		_escape_banner("13:00 - 13:15", "ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ")
 	else:
-		escape_hint.text = "13:00 - 13:15 ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА"
-	escape_hint.visible = true
+		_escape_banner("13:00 - 13:15", "ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА")
 
 func _enter_inspect() -> void:
 	if current_shift < 2:
@@ -6027,9 +6138,6 @@ func _near_elevator() -> bool:
 	return player.global_position.distance_to(elevator_door.global_position) < 150
 
 func _enter_elevator() -> void:
-	if guard_changing:
-		_show_dialog("ЛИФТ ЗАНЯТ. ПОДОЖДИ.", 2.0)
-		return
 	var hour = _current_hour()
 	var in_window = hour >= ESCAPE_WINDOW_START and hour <= ESCAPE_WINDOW_END
 	if not in_window:
