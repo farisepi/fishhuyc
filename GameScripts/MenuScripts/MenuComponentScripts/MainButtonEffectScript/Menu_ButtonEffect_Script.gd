@@ -37,8 +37,9 @@ static func add_shimmer(btn: Control) -> void:
 	m.set_shader_parameter("rect_min", Vector2.ZERO)
 	m.set_shader_parameter("rect_size", btn.size if btn.size.x > 1.0 else Vector2(200, 40))
 	m.set_shader_parameter("pixel", 2.0)
-	m.set_shader_parameter("period", 4.5)
-	m.set_shader_parameter("strength", 0.16)
+	m.set_shader_parameter("period", 11.0)
+	m.set_shader_parameter("strength", 0.07)
+	m.set_shader_parameter("band", 0.07)
 	m.set_shader_parameter("phase", -clamp(btn.global_position.y / 2000.0, 0.0, 0.4))
 	btn.material = m
 	if not btn.resized.is_connected(_on_shimmer_resized.bind(btn)):

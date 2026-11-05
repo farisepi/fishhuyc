@@ -28,6 +28,7 @@ var timer: float = 0.0
 var active: bool = false
 var _dead: bool = false
 var _blink_phase: float = 0.0
+@warning_ignore("unused_private_class_variable")
 var _target_dist: float = 0.0
 
 var current_aim_dir: Vector2 = Vector2.RIGHT

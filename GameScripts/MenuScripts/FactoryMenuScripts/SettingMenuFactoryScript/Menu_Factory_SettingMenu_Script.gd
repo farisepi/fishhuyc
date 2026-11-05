@@ -448,7 +448,7 @@ func _remove_bubbles_recursive(node: Node) -> void:
 		else:
 			_remove_bubbles_recursive(child)
 
-func _hide_all_decorations(node: Node, hide: bool) -> void:
+func _hide_all_decorations(node: Node, hide_it: bool) -> void:
 	if not node or not is_instance_valid(node):
 		return
 	for child in node.get_children():
@@ -457,11 +457,11 @@ func _hide_all_decorations(node: Node, hide: bool) -> void:
 		if child is Button:
 			for btn_child in child.get_children():
 				if btn_child.name == "Seaweed" or btn_child.name == "Rust":
-					btn_child.visible = not hide
+					btn_child.visible = not hide_it
 		elif child.name == "Seaweed" or child.name == "Rust":
-			child.visible = not hide
+			child.visible = not hide_it
 		else:
-			_hide_all_decorations(child, hide)
+			_hide_all_decorations(child, hide_it)
 
 func _apply_fps_visibility() -> void:
 	config.load(CONFIG_PATH)

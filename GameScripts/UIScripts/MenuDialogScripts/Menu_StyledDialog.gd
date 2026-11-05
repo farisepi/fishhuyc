@@ -70,50 +70,54 @@ func popup_centered(_size = Vector2i.ZERO) -> void:
 	add_child(_panel)
 	var accent = Color8(255, 168, 60) if style == "factory" else Color8(140, 215, 255)
 	var text_col = Color(0.92, 0.93, 0.95)
-	# contents
-	var w := 420.0
-	var title_l = _label(title.to_upper(), 18, accent)
+	# contents: everything is laid out on the art-pixel grid (PX = 3, like the menus' pixel
+	# art), so the frame and the buttons keep their chunky borders instead of thin 1:1 ones
+	var w := 450.0
+	var pad := 30.0
+	var title_l = _label(title.to_upper(), 20, accent)
 	title_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var text_l = _label(dialog_text, 14, text_col)
+	var text_l = _label(dialog_text, 15, text_col)
 	text_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var bg = NinePatchRect.new()
-	bg.texture = load(TEX[style]["panel"])
-	bg.patch_margin_left = 6
-	bg.patch_margin_right = 6
-	bg.patch_margin_top = 6
-	bg.patch_margin_bottom = 6
-	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text_l.add_theme_constant_override("line_spacing", 4)
+	var bg = _nine(TEX[style]["panel"], 4)
 	_panel.add_child(bg)
 	_panel.add_child(title_l)
 	_panel.add_child(text_l)
-	title_l.position = Vector2(20, 18)
-	title_l.size = Vector2(w - 40, 24)
-	text_l.position = Vector2(28, 52)
-	text_l.size = Vector2(w - 56, 0)
-	text_l.size = Vector2(w - 56, 0)
-	var th = max(1, text_l.get_line_count()) * (text_l.get_line_height() + 2)
-	# hazard / glass accent line under the title
-	var rule = ColorRect.new()
-	rule.color = Color(accent, 0.55)
-	rule.position = Vector2(60, 44)
-	rule.size = Vector2(w - 120, 2)
-	_panel.add_child(rule)
-	var by = 52.0 + th + 18.0
-	var bw := 130.0
-	var gap := 16.0
+	title_l.position = Vector2(pad, 24)
+	title_l.size = Vector2(w - pad * 2.0, 26)
+	# accent divider in whole art pixels, with a gap for a small diamond in the middle
+	for side in [-1.0, 1.0]:
+		var rule = ColorRect.new()
+		rule.color = Color(accent, 0.6)
+		rule.size = Vector2(w * 0.5 - pad - 18.0, PX)
+		rule.position = Vector2(w * 0.5 + (12.0 if side > 0 else -12.0 - rule.size.x), 57)
+		rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_panel.add_child(rule)
+	var dia = Polygon2D.new()
+	dia.color = accent
+	dia.polygon = PackedVector2Array([Vector2(0, -6), Vector2(6, 0), Vector2(0, 6), Vector2(-6, 0)])
+	dia.position = Vector2(w * 0.5, 58.5)
+	_panel.add_child(dia)
+	text_l.position = Vector2(pad, 74)
+	text_l.size = Vector2(w - pad * 2.0, 0)
+	text_l.size = Vector2(w - pad * 2.0, 0)
+	var lines = max(1, text_l.get_line_count())
+	var th = lines * text_l.get_line_height() + (lines - 1) * 4
+	var by = round((74.0 + th + 26.0) / PX) * PX
+	var bw := 138.0
+	var bh := 42.0
+	var gap := 18.0
 	var total = _buttons.size() * bw + max(0, _buttons.size() - 1) * gap
-	var x0 = (w - total) * 0.5
+	var x0 = round((w - total) * 0.5 / PX) * PX
 	for i in range(_buttons.size()):
-		var b = _make_button(_buttons[i][0], accent)
+		var b = _make_button(_buttons[i][0], accent, Vector2(bw, bh))
 		b.position = Vector2(x0 + i * (bw + gap), by)
-		b.size = Vector2(bw, 36)
 		var act: String = _buttons[i][1]
 		b.pressed.connect(_on_button.bind(act))
 		_panel.add_child(b)
-	var h = by + 36.0 + 20.0
-	bg.size = Vector2(w, h)
+	var h = round((by + bh + 26.0) / PX) * PX
+	bg.size = Vector2(w, h) / PX
 	_panel.size = Vector2(w, h)
 	_panel.position = ((vp - _panel.size) * 0.5).round()
 	_panel.pivot_offset = _panel.size * 0.5
@@ -142,27 +146,45 @@ func _label(text: String, size: int, col: Color) -> Label:
 	return l
 
 
-func _make_button(text: String, accent: Color) -> Button:
+const PX := 3.0
+
+## A NinePatch of a menu texture drawn at PX scale (size it in art pixels).
+func _nine(path: String, margin: int) -> NinePatchRect:
+	var n = NinePatchRect.new()
+	n.texture = load(path)
+	n.patch_margin_left = margin
+	n.patch_margin_right = margin
+	n.patch_margin_top = margin
+	n.patch_margin_bottom = margin
+	# the factory frames have hazard dashes: repeat them instead of stretching
+	n.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_TILE_FIT
+	n.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_TILE_FIT
+	n.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	n.scale = Vector2(PX, PX)
+	return n
+
+
+func _make_button(text: String, accent: Color, sz: Vector2) -> Button:
 	var b = Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
 	b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var tex = load(TEX[style]["button"])
-	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
-		var sb = StyleBoxTexture.new()
-		sb.texture = tex
-		sb.texture_margin_left = 5
-		sb.texture_margin_right = 5
-		sb.texture_margin_top = 5
-		sb.texture_margin_bottom = 5
-		if st == "hover":
-			sb.modulate_color = Color(1.25, 1.25, 1.25)
-		elif st == "pressed":
-			sb.modulate_color = Color(0.8, 0.8, 0.8)
-		b.add_theme_stylebox_override(st, sb)
+	b.size = sz
+	b.custom_minimum_size = sz
+	for st in ["normal", "hover", "pressed", "focus", "disabled", "hover_pressed"]:
+		b.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	var face = _nine(TEX[style]["button"], 5)
+	face.size = sz / PX
+	face.show_behind_parent = true
+	b.add_child(face)
+	b.mouse_entered.connect(func(): face.modulate = Color(1.3, 1.3, 1.3))
+	b.mouse_exited.connect(func(): face.modulate = Color.WHITE)
+	b.button_down.connect(func(): face.modulate = Color(0.8, 0.8, 0.8))
+	b.button_up.connect(func(): face.modulate = Color(1.3, 1.3, 1.3) if b.is_hovered() else Color.WHITE)
 	if _font:
 		b.add_theme_font_override("font", _font)
-	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_font_size_override("font_size", 15)
 	b.add_theme_color_override("font_color", Color(0.92, 0.93, 0.95))
 	b.add_theme_color_override("font_hover_color", accent)
 	b.add_theme_color_override("font_pressed_color", accent.darkened(0.2))

@@ -96,8 +96,8 @@ func show_qte_at(world_pos: Vector2):
 	set_process(true)
 	set_process_input(true)
 
-func _update_positions(offset: Vector2):
-	var center = _center + offset
+func _update_positions(ofs: Vector2):
+	var center = _center + ofs
 	
 
 	button_bg.size = Vector2(_bg_size, _bg_size)

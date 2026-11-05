@@ -42,7 +42,8 @@ const SKIP_FONT_SIZE: int = 7
 var current_index: int = 0
 var bg: ColorRect
 var image_display: TextureRect
-var text_label: Label
+var text_label: RichTextLabel
+var _typed: String = ""
 var scientist_voice: AudioStreamPlayer
 var intro_music: AudioStreamPlayer
 var slide_timer: Timer
@@ -106,6 +107,9 @@ func _ready() -> void:
 	var screen_size = get_viewport().get_visible_rect().size
 	_setup_skip_ui(screen_size)
 	
+	# the aquarium is loaded in the background while the slides play, so the change at the
+	# end is instant (it used to freeze for a moment and the fade jumped)
+	ResourceLoader.load_threaded_request(AQUARIUM_SCENE)
 	_start_time = Time.get_ticks_msec() / 1000.0
 	print("[INTRO] START at t=0.000, music=", MUSIC_LENGTH, "s, slides=", slides.size())
 	print("[INTRO] slide 7 should start at t=", SLIDES_TOTAL_BEFORE_7)
@@ -123,16 +127,14 @@ func _now() -> float:
 func _enforce_label_font() -> void:
 	if not slide_font:
 		return
-	if text_label:
-		text_label.add_theme_font_override("font", slide_font)
-		text_label.add_theme_font_size_override("font_size", SLIDE_FONT_SIZE)
-	if skip_label and custom_font:
-		skip_label.add_theme_font_override("font", custom_font)
-		skip_label.add_theme_font_size_override("font_size", SKIP_FONT_SIZE)
+	if text_label and not text_label.has_theme_font_override("normal_font"):
+		text_label.add_theme_font_override("normal_font", slide_font)
+		text_label.add_theme_font_size_override("normal_font_size", SLIDE_FONT_SIZE)
 
 func _input(_event: InputEvent) -> void:
 	if final_fade_started:
 		return
+	_input_skip_hint(_event)
 	get_viewport().set_input_as_handled()
 
 func _create_ui() -> void:
@@ -156,15 +158,20 @@ func _create_ui() -> void:
 	add_child(image_display)
 	_setup_intro_fx(screen_size)
 	
-	text_label = Label.new()
+	# rich text: the letters tremble a little (an old, nervous projector)
+	text_label = RichTextLabel.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	text_label.bbcode_enabled = true
+	text_label.scroll_active = false
+	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	text_label.offset_bottom = -200
+	text_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	
 	_enforce_label_font()
 	
-	text_label.add_theme_color_override("font_color", Color.WHITE)
+	text_label.add_theme_color_override("default_color", Color.WHITE)
 	add_child(text_label)
 	
 	slide_timer = Timer.new()
@@ -173,8 +180,6 @@ func _create_ui() -> void:
 	add_child(slide_timer)
 
 func _setup_skip_ui(screen_size: Vector2) -> void:
-	var pos = Vector2(screen_size.x - SKIP_WIDTH - 5, 5)
-	
 	skip_dim = ColorRect.new()
 	skip_dim.color = Color(0, 0, 0, 0)
 	skip_dim.size = screen_size
@@ -182,41 +187,49 @@ func _setup_skip_ui(screen_size: Vector2) -> void:
 	skip_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	skip_dim.z_index = 400
 	add_child(skip_dim)
-	
-	skip_bg = TextureRect.new()
-	skip_bg.texture = load(PROGRESS_BG_PATH)
-	skip_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	skip_bg.stretch_mode = TextureRect.STRETCH_SCALE
-	skip_bg.size = Vector2(SKIP_WIDTH, SKIP_HEIGHT)
-	skip_bg.position = pos
-	skip_bg.z_index = 500
-	skip_bg.visible = false
-	add_child(skip_bg)
-	
-	skip_fill = TextureRect.new()
-	skip_fill.texture = load(PROGRESS_FULL_PATH)
-	skip_fill.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	skip_fill.stretch_mode = TextureRect.STRETCH_SCALE
-	skip_fill.size = Vector2(0, SKIP_HEIGHT)
-	skip_fill.position = pos
-	skip_fill.z_index = 501
-	skip_fill.visible = false
-	skip_fill.clip_contents = true
-	add_child(skip_fill)
-	
-	skip_label = Label.new()
-	skip_label.text = "ПРОПУСТИТЬ"
-	
-	_enforce_label_font()
-	
-	skip_label.add_theme_color_override("font_color", Color.WHITE)
-	skip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	skip_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	skip_label.size = Vector2(SKIP_WIDTH, SKIP_HEIGHT + 6)
-	skip_label.position = Vector2(pos.x, pos.y + 8)
-	skip_label.z_index = 502
-	skip_label.visible = false
-	add_child(skip_label)
+	_skip_ui = Control.new()
+	_skip_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skip_ui.size = Vector2(300, 44)
+	_skip_ui.position = Vector2(screen_size.x - 300 - 18, screen_size.y - 44 - 16)
+	_skip_ui.z_index = 500
+	_skip_ui.modulate.a = 0.0
+	_skip_ui.draw.connect(_draw_skip)
+	add_child(_skip_ui)
+	_skip_font = ResourceLoader.load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf", "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
+	if _skip_font:
+		_skip_font.fixed_size = 0
+
+var _skip_ui: Control = null
+var _skip_font: FontFile = null
+var _skip_show: float = 0.0     # seconds the hint stays after the last mouse move / press
+
+## Bottom-right: a ring fills around a little "ЛКМ" cap while the button is held, the text
+## next to it says what will happen; it shows up on any mouse move or press and fades away.
+func _draw_skip() -> void:
+	var c = _skip_ui
+	var sz = c.size
+	var p = clamp(skip_progress / SKIP_HOLD_TIME, 0.0, 1.0)
+	var t = Time.get_ticks_msec() / 1000.0
+	c.draw_rect(Rect2(Vector2.ZERO, sz), Color(0, 0, 0, 0.55))
+	c.draw_rect(Rect2(Vector2.ZERO, Vector2(sz.x, 1)), Color(1, 1, 1, 0.18))
+	var ctr = Vector2(26, sz.y * 0.5)
+	c.draw_arc(ctr, 16.0, 0, TAU, 40, Color(1, 1, 1, 0.18), 3.0)
+	if p > 0.0:
+		c.draw_arc(ctr, 16.0, -PI * 0.5, -PI * 0.5 + TAU * p, 40, Color(1, 1, 1, 0.95), 3.0)
+		c.draw_circle(ctr + Vector2(cos(-PI * 0.5 + TAU * p), sin(-PI * 0.5 + TAU * p)) * 16.0, 2.5, Color.WHITE)
+	if _skip_font:
+		var kc = Color(1, 1, 1, 0.9 if p > 0.0 else 0.6 + 0.2 * sin(t * 3.0))
+		var kw = _skip_font.get_string_size("ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7).x
+		c.draw_string(_skip_font, Vector2(ctr.x - kw * 0.5, ctr.y + 3.0), "ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, kc)
+		var txt = "ПРОПУСКАЮ..." if p > 0.0 else "ЗАЖМИ — ПРОПУСТИТЬ"
+		c.draw_string(_skip_font, Vector2(50, sz.y * 0.5 + 4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.92))
+		# a thin bar under the text
+		c.draw_rect(Rect2(48, sz.y - 10, sz.x - 60, 2), Color(1, 1, 1, 0.15))
+		c.draw_rect(Rect2(48, sz.y - 10, (sz.x - 60) * p, 2), Color(1, 1, 1, 0.9))
+
+func _input_skip_hint(event: InputEvent) -> void:
+	if event is InputEventMouseMotion or event is InputEventMouseButton or event is InputEventKey:
+		_skip_show = 2.2
 
 func _process(delta: float) -> void:
 	_enforce_label_font()
@@ -228,10 +241,7 @@ func _process(delta: float) -> void:
 	var skip_input = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	
 	if skip_input:
-		if not skip_bg.visible:
-			skip_bg.visible = true
-			skip_fill.visible = true
-			skip_label.visible = true
+		_skip_show = 2.2
 		skip_progress += delta
 		if skip_progress >= SKIP_HOLD_TIME:
 			_skip_intro()
@@ -239,14 +249,14 @@ func _process(delta: float) -> void:
 	else:
 		if skip_progress > 0.0:
 			skip_progress = max(skip_progress - SKIP_RETRACT_SPEED * delta, 0.0)
-		if skip_progress <= 0.0:
-			skip_bg.visible = false
-			skip_fill.visible = false
-			skip_label.visible = false
+	_skip_show = max(0.0, _skip_show - delta)
 	
 	var progress = clamp(skip_progress / SKIP_HOLD_TIME, 0.0, 1.0)
-	skip_fill.size.x = SKIP_WIDTH * progress
-	skip_dim.color = Color(0, 0, 0, progress * MAX_DIM_ALPHA)
+	skip_dim.color = Color(0, 0, 0, progress * 0.6)
+	if _skip_ui:
+		var want = 1.0 if (_skip_show > 0.0 or progress > 0.0) else 0.0
+		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, want, delta * 4.0)
+		_skip_ui.queue_redraw()
 	
 	if intro_music:
 		intro_music.volume_db = lerp(MUSIC_NORMAL_DB, MUSIC_SILENT_DB, progress)
@@ -276,8 +286,7 @@ func _skip_intro() -> void:
 	
 	_cleanup_menus()
 	
-	_log_time("CHANGE SCENE -> Act1")
-	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
+	_go_to_aquarium(0.45)
 
 func _cleanup_menus() -> void:
 	var parent = get_parent()
@@ -307,19 +316,80 @@ func _create_root_black() -> ColorRect:
 	return black
 
 func _own_fade_and_change_scene() -> void:
-	var black = _create_root_black()
-	
-	var tween = create_tween()
-	tween.tween_property(black, "color:a", 1.0, FINAL_FADE_TIME)
-	await tween.finished
-	
+	_go_to_aquarium(FINAL_FADE_TIME)
+
+const AQUARIUM_SCENE := "res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn"
+
+## Overlay that outlives the intro: it waits until the aquarium has really drawn a few
+## frames, then fades out at a steady pace (long frames from the change do not make it jump).
+const _HANDOFF_SRC := """extends CanvasLayer
+var _id := 0
+var _frames := 0
+var _a := 1.0
+var go := false
+func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
+func _process(delta):
+	if not go:
+		return
+	var sc = get_tree().current_scene
+	if sc == null or sc.get_instance_id() == _id:
+		return
+	_frames += 1
+	if _frames < 6:
+		return
+	_a = max(0.0, _a - min(delta, 1.0 / 30.0) / 1.1)
+	get_node("Black").color.a = _a * _a * (3.0 - 2.0 * _a)
+	if _a <= 0.0:
+		queue_free()
+"""
+
+func _go_to_aquarium(fade_time: float) -> void:
+	var layer = CanvasLayer.new()
+	layer.layer = 1100
+	var src = GDScript.new()
+	src.source_code = _HANDOFF_SRC
+	if src.reload() == OK:
+		layer.set_script(src)
+	var black = ColorRect.new()
+	black.name = "Black"
+	black.color = Color(0, 0, 0, 0)
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(black)
+	get_tree().root.add_child(layer)
+	if layer.get_script():
+		layer.set("_id", get_tree().current_scene.get_instance_id() if get_tree().current_scene else 0)
+	# everything (picture, words, grain, music) goes down together under the black
+	var tw = create_tween().set_parallel(true)
+	tw.tween_property(black, "color:a", 1.0, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	if intro_music and intro_music.playing:
+		tw.tween_property(intro_music, "volume_db", MUSIC_SILENT_DB, fade_time)
+	await tw.finished
+	if intro_music:
+		intro_music.stop()
+	# the scene is (almost always) ready by now; if not, wait for it under the black
+	var packed: PackedScene = null
+	while true:
+		var st = ResourceLoader.load_threaded_get_status(AQUARIUM_SCENE)
+		if st == ResourceLoader.THREAD_LOAD_LOADED:
+			packed = ResourceLoader.load_threaded_get(AQUARIUM_SCENE)
+			break
+		if st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			break
+		await get_tree().process_frame
 	_log_time("CHANGE SCENE -> Act1")
-	# the overlay is a child of the root and outlives this scene: fade it away afterwards
-	var t = black.create_tween()
-	t.tween_interval(0.35)
-	t.tween_property(black, "color:a", 0.0, 0.8)
-	t.tween_callback(black.queue_free)
-	get_tree().change_scene_to_file("res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn")
+	if layer.get_script():
+		layer.set("go", true)
+	else:
+		var t = black.create_tween()
+		t.tween_interval(0.35)
+		t.tween_property(black, "color:a", 0.0, 0.8)
+		t.tween_callback(layer.queue_free)
+	if packed:
+		get_tree().change_scene_to_packed(packed)
+	else:
+		get_tree().change_scene_to_file(AQUARIUM_SCENE)
 
 func _stop_main_menu_music() -> void:
 	if has_node("/root/GlobalMusic"):
@@ -339,7 +409,7 @@ func _type_text(text: String, idx: int, generation: int) -> void:
 		return
 	
 	typing = true
-	text_label.text += text[idx]
+	_set_typed(_typed + text[idx])
 	
 	if scientist_voice and not scientist_voice.playing and scientist_voice.stream:
 		scientist_voice.pitch_scale = 0.7 + randf_range(-0.03, 0.03)
@@ -368,6 +438,11 @@ func _type_text(text: String, idx: int, generation: int) -> void:
 		return
 	
 	_type_text(text, idx + 1, generation)
+
+func _set_typed(s: String) -> void:
+	_typed = s
+	if text_label:
+		text_label.text = "[shake rate=7.0 level=3 connected=1]" + s.replace("[", "[lb]") + "[/shake]"
 
 func _target_time_for_slide_start(index: int) -> float:
 	if index < 6:
@@ -403,9 +478,8 @@ void fragment() {
 	float vig = smoothstep(0.35, 0.85, length(cc * vec2(1.2, 1.0)));
 	vec2 gp = floor(FRAGCOORD.xy / 3.0);
 	float g = h(gp + floor(TIME * 18.0) * 7.31);
-	float scratch = step(0.997, h(vec2(floor(UV.x * 300.0), floor(TIME * 9.0))));
-	float a = vig * 0.75 + (g - 0.5) * 0.08 + scratch * 0.12;
-	COLOR = vec4(vec3(scratch > 0.5 ? 0.85 : 0.0), clamp(a, 0.0, 1.0) * strength);
+	float a = vig * 0.75 + (g - 0.5) * 0.08;
+	COLOR = vec4(vec3(0.0), clamp(a, 0.0, 1.0) * strength);
 }
 """
 var _img_mat: ShaderMaterial = null
@@ -419,16 +493,7 @@ func _setup_intro_fx(screen_size: Vector2) -> void:
 	_img_mat.shader = s1
 	image_display.material = _img_mat
 	image_display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	# thin frame behind the picture
-	_frame = Control.new()
-	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var frame_draw = func():
-		var r = Rect2(Vector2(-6, -6), image_display.size + Vector2(12, 12))
-		_frame.draw_rect(r.grow(4), Color(0, 0, 0, 0.6))
-		_frame.draw_rect(r, Color(0.55, 0.55, 0.6, 0.35), false, 1.0)
-	_frame.draw.connect(frame_draw)
-	_frame.show_behind_parent = true
-	image_display.add_child(_frame)
+	# (no frame around the picture and no film scratches any more - asked to remove them)
 	# drifting dust in the projector light
 	var dust = CPUParticles2D.new()
 	var img = Image.create(2, 2, false, Image.FORMAT_RGBA8)
@@ -451,7 +516,7 @@ func _setup_intro_fx(screen_size: Vector2) -> void:
 	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0))
 	dust.color_ramp = g
 	add_child(dust)
-	# grain + vignette + scratches over everything (the skip bar is added later, stays on top)
+	# grain + vignette over everything (the skip bar is added later, stays on top)
 	var film = ColorRect.new()
 	film.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	film.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -514,7 +579,7 @@ func _show_slide(index: int) -> void:
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
 	
-	text_label.text = ""
+	_set_typed("")
 	_type_text(slide["text"], 0, generation)
 	
 	var fade_in = create_tween()
@@ -588,6 +653,10 @@ func _start_final_fade() -> void:
 	final_fade.set_parallel(true)
 	final_fade.tween_property(image_display, "modulate:a", 0.0, FINAL_FADE_TIME)
 	final_fade.tween_property(text_label, "modulate:a", 0.0, FINAL_FADE_TIME)
+	# the film grain, vignette and dust go down together with the picture
+	for c in get_children():
+		if c is CanvasItem and c != image_display and c != text_label and c != bg and c != _skip_ui:
+			final_fade.tween_property(c, "modulate:a", 0.0, FINAL_FADE_TIME)
 	await final_fade.finished
 	
 	_cleanup_menus()
@@ -595,7 +664,7 @@ func _start_final_fade() -> void:
 	Global.intro_completed = true
 	UISounds.start_factory_ambience()
 	
-	_own_fade_and_change_scene()
+	_go_to_aquarium(0.3)
 
 func _exit_tree() -> void:
 	Global.intro_active = false

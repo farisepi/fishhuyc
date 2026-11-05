@@ -23,6 +23,8 @@ var _player: Node = null
 var _last_hearts: int = -1
 var _last_stamina: float = -1.0
 var _glow_on: bool = true
+## A level that draws its own 1 HP glow (the factory) switches this one off.
+var glow_disabled: bool = false
 var _shaken: bool = true
 
 
@@ -58,16 +60,24 @@ func _ready():
 		vec2 uv = UV;
 		vec2 dist = abs(uv - 0.5) * 2.0;
 		float d = max(dist.x, dist.y);
-		float alpha = smoothstep(0.7, 1.0, d) * glow_color.a * pulse;
+		float alpha = smoothstep(0.5, 1.0, d) * glow_color.a * pulse;
 		COLOR = vec4(glow_color.rgb, alpha);
 	}
 	"""
 	glow.material = ShaderMaterial.new()
 	glow.material.shader = shader
-	glow.material.set_shader_parameter("glow_color", Color(1, 0, 0, 0.15))
+	glow.material.set_shader_parameter("glow_color", Color(1, 0, 0, LOW_HP_GLOW_A))
 	glow.material.set_shader_parameter("pulse", 0.0)
 	add_child(glow)
 	_add_shimmer(suit_icon, 0.35)
+	glow.visible = false
+
+## 1 HP: a red pulsing glow on the screen edges (stronger than it used to be). Only while the
+## interface itself is on screen (no red frame during the intro -> aquarium transition).
+const LOW_HP_GLOW_A := 0.17
+
+static func low_hp_pulse(t: float) -> float:
+	return 0.5 + 0.35 * sin(t * 2.4)
 
 ## The same sweeping light as on the HP bar, on the suit indicator.
 func _add_shimmer(spr: Sprite2D, phase: float) -> void:
@@ -94,7 +104,12 @@ func _process(delta):
 		_last_hearts = -1
 		_last_stamina = -1.0
 	var player = _player
+	var ui = get_node_or_null("UI_Container") as CanvasItem
+	var ui_alpha = 0.0
+	if ui and ui.visible and visible:
+		ui_alpha = ui.modulate.a
 	if not player:
+		glow.visible = false
 		return
 	# hearts / stamina / bar speed are only touched when the value really changed
 	if player.has_method("get_hp"):
@@ -117,13 +132,16 @@ func _process(delta):
 	if hp_percent <= 0.2:
 		shake_amount = 2.0 * (1.0 - hp_percent / 0.2)
 		pulse_timer += delta
-		glow.material.set_shader_parameter("pulse", 0.3 + 0.3 * sin(pulse_timer * 2.0))
+		glow.material.set_shader_parameter("pulse", low_hp_pulse(pulse_timer))
 		_glow_on = true
+		glow.visible = not glow_disabled and ui_alpha > 0.01 and current_hearts > 0
+		glow.modulate.a = ui_alpha
 	elif _glow_on:
 		_glow_on = false
 		shake_amount = 0.0
 		pulse_timer = 0.0
 		glow.material.set_shader_parameter("pulse", 0.0)
+		glow.visible = false
 
 	if shake_amount > 0:
 		var shake = Vector2(

@@ -46,6 +46,7 @@ func _ready() -> void:
 		btn.scale = Vector2(0.85, 0.85)
 		btn.pivot_offset = btn.size / 2.0
 	
+	_build_fx()
 	hide()
 
 func show_menu() -> void:
@@ -81,6 +82,7 @@ func _animate_in() -> void:
 		_anim_tween.tween_property(_bg_rect, "modulate:a", 1.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 1.0, 0.2)
+	_fx_in()
 	
 	for i in range(_buttons.size()):
 		var btn = _buttons[i]
@@ -110,6 +112,7 @@ func hide_menu() -> void:
 		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 0.0, 0.15)
+	_fx_out()
 	
 	await _anim_tween.finished
 	hide()
@@ -122,6 +125,152 @@ func hide_menu() -> void:
 		if is_instance_valid(btn):
 			btn.modulate.a = 0.0
 	_is_closing = false
+
+## ---------------------------------------------------------------- pause effects
+## Behind the menu the frozen game blurs and goes cold (shader on the screen), dust motes
+## (factory) or bubbles (aquarium) drift through the frame, a big "ПАУЗА" title drops in and
+## glows, a light line runs across it, and the frame breathes slowly.
+const BACKDROP_SHADER := "res://GameShaders/SharedShaders/Shared_PauseBackdrop_Shader.gdshader"
+const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
+var _fx_rect: ColorRect = null
+var _fx_mat: ShaderMaterial = null
+var _fx_parts: CPUParticles2D = null
+var _fx_title: Label = null
+var _fx_line: ColorRect = null
+var _fx_tw: Tween = null
+var _fx_t: float = 0.0
+var _framing_scale: Vector2 = Vector2.ONE
+
+func _build_fx() -> void:
+	var aqua = _in_aquarium()
+	var accent = Color8(130, 210, 255) if aqua else Color8(255, 168, 60)
+	if _framing:
+		_framing_scale = _framing.scale
+	# backdrop
+	var sh = load(BACKDROP_SHADER) if ResourceLoader.exists(BACKDROP_SHADER) else null
+	if sh:
+		_fx_rect = ColorRect.new()
+		_fx_rect.name = "PauseBackdrop"
+		_fx_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fx_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_fx_mat = ShaderMaterial.new()
+		_fx_mat.shader = sh
+		_fx_mat.set_shader_parameter("tint", Color(0.45, 0.75, 1.0) if aqua else Color(1.0, 0.62, 0.25))
+		_fx_mat.set_shader_parameter("amount", 0.0)
+		_fx_rect.material = _fx_mat
+		add_child(_fx_rect)
+		move_child(_fx_rect, 0)   # under the dark overlay and the buttons
+	# drifting motes / bubbles
+	_fx_parts = CPUParticles2D.new()
+	var img = Image.create(3 if aqua else 2, 3 if aqua else 2, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	if aqua:
+		img.set_pixel(1, 1, Color(1, 1, 1, 0))
+	_fx_parts.texture = ImageTexture.create_from_image(img)
+	_fx_parts.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_fx_parts.amount = 36
+	_fx_parts.lifetime = 7.0
+	_fx_parts.preprocess = 7.0
+	_fx_parts.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_fx_parts.emission_rect_extents = Vector2(600, 20) if aqua else Vector2(600, 340)
+	_fx_parts.position = Vector2(576, 680) if aqua else Vector2(576, 324)
+	_fx_parts.direction = Vector2(0, -1) if aqua else Vector2(0.4, -1)
+	_fx_parts.spread = 12.0 if aqua else 180.0
+	_fx_parts.gravity = Vector2.ZERO
+	_fx_parts.initial_velocity_min = 25.0 if aqua else 4.0
+	_fx_parts.initial_velocity_max = 60.0 if aqua else 14.0
+	_fx_parts.scale_amount_min = 1.0
+	_fx_parts.scale_amount_max = 2.0 if aqua else 1.5
+	var g = Gradient.new()
+	g.set_color(0, Color(accent, 0.0))
+	g.add_point(0.3, Color(accent.lerp(Color.WHITE, 0.5), 0.45))
+	g.set_color(g.get_point_count() - 1, Color(accent, 0.0))
+	_fx_parts.color_ramp = g
+	_fx_parts.emitting = false
+	add_child(_fx_parts)
+	if _bg_rect:
+		move_child(_fx_parts, _bg_rect.get_index() + 1)
+	# title
+	_fx_title = Label.new()
+	_fx_title.text = "ПАУЗА"
+	_fx_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var f = ResourceLoader.load(FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
+	if f:
+		f.fixed_size = 0
+		_fx_title.add_theme_font_override("font", f)
+	_fx_title.add_theme_font_size_override("font_size", 40)
+	_fx_title.add_theme_color_override("font_color", accent)
+	_fx_title.add_theme_color_override("font_outline_color", Color(0.03, 0.03, 0.05))
+	_fx_title.add_theme_constant_override("outline_size", 8)
+	_fx_title.add_theme_color_override("font_shadow_color", Color(accent, 0.35))
+	_fx_title.add_theme_constant_override("shadow_offset_x", 0)
+	_fx_title.add_theme_constant_override("shadow_offset_y", 0)
+	_fx_title.add_theme_constant_override("shadow_outline_size", 22)
+	_fx_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_fx_title.size = Vector2(400, 56)
+	_fx_title.position = Vector2(376, 108)
+	_fx_title.pivot_offset = _fx_title.size * 0.5
+	_fx_title.modulate.a = 0.0
+	add_child(_fx_title)
+	# a light line that runs across under the title
+	_fx_line = ColorRect.new()
+	_fx_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fx_line.color = Color(accent, 0.8)
+	_fx_line.size = Vector2(0, 3)
+	_fx_line.position = Vector2(576, 162)
+	add_child(_fx_line)
+	set_process(true)
+
+func _fx_in() -> void:
+	if _fx_tw and _fx_tw.is_valid():
+		_fx_tw.kill()
+	_fx_t = 0.0
+	if _fx_parts:
+		_fx_parts.emitting = true
+		_fx_parts.restart()
+	_fx_tw = create_tween().set_parallel(true)
+	_fx_tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	if _fx_mat:
+		_fx_tw.tween_method(func(v): _fx_mat.set_shader_parameter("amount", v), 0.0, 1.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if _fx_title:
+		_fx_title.modulate.a = 0.0
+		_fx_title.position.y = 88
+		_fx_title.scale = Vector2(1.25, 1.25)
+		_fx_tw.tween_property(_fx_title, "modulate:a", 1.0, 0.2).set_delay(0.05)
+		_fx_tw.tween_property(_fx_title, "position:y", 108.0, 0.35).set_delay(0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_fx_tw.tween_property(_fx_title, "scale", Vector2.ONE, 0.3).set_delay(0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if _fx_line:
+		_fx_line.size.x = 0.0
+		_fx_line.position.x = 576.0
+		_fx_line.modulate.a = 1.0
+		_fx_tw.tween_property(_fx_line, "size:x", 220.0, 0.35).set_delay(0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_fx_tw.tween_property(_fx_line, "position:x", 466.0, 0.35).set_delay(0.15).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+func _fx_out() -> void:
+	if _fx_tw and _fx_tw.is_valid():
+		_fx_tw.kill()
+	if _fx_parts:
+		_fx_parts.emitting = false
+	_fx_tw = create_tween().set_parallel(true)
+	_fx_tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	if _fx_mat:
+		var from = float(_fx_mat.get_shader_parameter("amount"))
+		_fx_tw.tween_method(func(v): _fx_mat.set_shader_parameter("amount", v), from, 0.0, 0.15)
+	if _fx_title:
+		_fx_tw.tween_property(_fx_title, "modulate:a", 0.0, 0.12)
+	if _fx_line:
+		_fx_tw.tween_property(_fx_line, "modulate:a", 0.0, 0.12)
+
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	_fx_t += delta
+	# the title glows and the frame slowly breathes
+	if _fx_title and not _is_closing:
+		var p = 0.5 + 0.5 * sin(_fx_t * 2.2)
+		_fx_title.add_theme_constant_override("shadow_outline_size", int(16 + 10 * p))
+	if _framing and not _is_closing:
+		_framing.scale = _framing_scale * (1.0 + 0.004 * sin(_fx_t * 1.3))
 
 func _input(event: InputEvent) -> void:
 	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).
@@ -180,7 +329,19 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
-	_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
+	if _in_aquarium():
+		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
+	else:
+		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
+
+## The aquarium level uses this pause menu too, but with the aquarium look and menus.
+func _in_aquarium() -> bool:
+	var cur = ""
+	if owner and owner.scene_file_path != "":
+		cur = owner.scene_file_path
+	elif get_tree().current_scene:
+		cur = get_tree().current_scene.scene_file_path
+	return Global.get_level_number(cur) == 1
 
 func _on_settings_pressed() -> void:
 	if _transitioning:
@@ -188,7 +349,10 @@ func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
-	_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
+	if _in_aquarium():
+		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn")
+	else:
+		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
 
 func _on_exit_pressed() -> void:
 	if _transitioning:

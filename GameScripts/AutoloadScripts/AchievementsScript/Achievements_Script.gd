@@ -10,6 +10,18 @@ var acrobat_unlocked: bool = false
 var worker_of_month_unlocked: bool = false
 var scout_unlocked: bool = false
 var freedom_unlocked: bool = false
+var chase_unlocked: bool = false
+var handyman_unlocked: bool = false
+## Factory stations the player has worked at (for "Разнорабочий"), kept between runs.
+var stations_worked: Array = []
+const ALL_STATIONS := [0, 1, 2, 3, 4]
+
+## Achievements added after the menus were drawn: the menus build their rows from this list
+## (copies of the last row). icon "" = no icon yet, a "?" badge is shown instead.
+const EXTRA := [
+	{"id": "chase", "name": "Погоня", "desc": "Пройти пролог", "icon": ""},
+	{"id": "handyman", "name": "Разнорабочий", "desc": "Поработать на всех станках", "icon": ""},
+]
 
 const TITLES := {
 	"coffee": "Кофе бы...",
@@ -20,6 +32,8 @@ const TITLES := {
 	"worker_of_month": "Работник месяца",
 	"scout": "Разведчик",
 	"freedom": "Свобода",
+	"chase": "Погоня",
+	"handyman": "Разнорабочий",
 }
 # these already play the sound inside unlock_*()
 const SOUND_IN_UNLOCK := ["worker_of_month", "scout", "freedom"]
@@ -290,6 +304,9 @@ func load_achievements() -> void:
 	worker_of_month_unlocked = config.get_value("achievements", "worker_of_month", false)
 	scout_unlocked = config.get_value("achievements", "scout", false)
 	freedom_unlocked = config.get_value("achievements", "freedom", false)
+	chase_unlocked = config.get_value("achievements", "chase", false)
+	handyman_unlocked = config.get_value("achievements", "handyman", false)
+	stations_worked = config.get_value("progress", "stations_worked", [])
 
 func save_achievements() -> void:
 	var config = ConfigFile.new()
@@ -301,6 +318,9 @@ func save_achievements() -> void:
 	config.set_value("achievements", "worker_of_month", worker_of_month_unlocked)
 	config.set_value("achievements", "scout", scout_unlocked)
 	config.set_value("achievements", "freedom", freedom_unlocked)
+	config.set_value("achievements", "chase", chase_unlocked)
+	config.set_value("achievements", "handyman", handyman_unlocked)
+	config.set_value("progress", "stations_worked", stations_worked)
 	config.save("user://achievements.cfg")
 
 func unlock_coffee() -> void:
@@ -374,4 +394,95 @@ func reset_all() -> void:
 	worker_of_month_unlocked = false
 	scout_unlocked = false
 	freedom_unlocked = false
+	chase_unlocked = false
+	handyman_unlocked = false
+	stations_worked = []
 	save_achievements()
+
+
+func unlock_chase() -> void:
+	if chase_unlocked:
+		return
+	chase_unlocked = true
+	achievement_unlocked.emit("chase")
+	save_achievements()
+
+
+func unlock_handyman() -> void:
+	if handyman_unlocked:
+		return
+	handyman_unlocked = true
+	achievement_unlocked.emit("handyman")
+	save_achievements()
+
+
+## A finished job at a factory station. All of them once -> "Разнорабочий".
+func mark_station_worked(station: int) -> void:
+	if not (station in stations_worked):
+		stations_worked.append(station)
+		save_achievements()
+	for st in ALL_STATIONS:
+		if not (st in stations_worked):
+			return
+	unlock_handyman()
+
+
+func is_unlocked(id: String) -> bool:
+	var v = get(id + "_unlocked")
+	return v == true
+
+
+func any_unlocked() -> bool:
+	for id in TITLES.keys():
+		if is_unlocked(id):
+			return true
+	return false
+
+
+func total_count() -> int:
+	return TITLES.size()
+
+
+## Menu helper: adds a row for every EXTRA achievement under `list`, copied from `template`
+## (the last row of the menu). Returns [{id, root, icon, check, name, desc}].
+func build_extra_rows(list: Node, template: Control) -> Array:
+	var rows: Array = []
+	if list == null or template == null:
+		return rows
+	for e in EXTRA:
+		var row = list.get_node_or_null(NodePath(e["id"].capitalize().replace(" ", "") + "Achievement"))
+		if row == null:
+			row = template.duplicate()
+			row.name = e["id"].capitalize().replace(" ", "") + "Achievement"
+			list.add_child(row)
+		var icon = row.get_node_or_null("Icon") as TextureRect
+		var nm = row.get_node_or_null("NameLabel") as Label
+		var ds = row.get_node_or_null("DescLabel") as Label
+		if nm:
+			nm.text = e["name"]
+		if ds:
+			ds.text = e["desc"]
+		for extra_child in ["ProgressLabel"]:
+			var pc = row.get_node_or_null(extra_child)
+			if pc:
+				pc.visible = false
+		if icon:
+			if e["icon"] != "" and ResourceLoader.exists(ICON_DIR + e["icon"]):
+				icon.texture = load(ICON_DIR + e["icon"])
+			else:
+				icon.texture = null
+				var q = icon.get_node_or_null("NoIcon") as Label
+				if q == null:
+					q = Label.new()
+					q.name = "NoIcon"
+					q.text = "?"
+					q.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+					q.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+					q.set_anchors_preset(Control.PRESET_FULL_RECT)
+					q.add_theme_font_size_override("font_size", 40)
+					q.add_theme_color_override("font_color", C_GOLD)
+					q.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03))
+					q.add_theme_constant_override("outline_size", 6)
+					icon.add_child(q)
+		rows.append({"id": e["id"], "root": row, "icon": icon, "check": row.get_node_or_null("Check"), "name": nm, "desc": ds})
+	return rows

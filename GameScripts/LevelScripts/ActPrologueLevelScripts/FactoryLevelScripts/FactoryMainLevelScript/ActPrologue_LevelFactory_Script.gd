@@ -35,6 +35,7 @@ var _sushi_broken_textures: Array = []
 
 const OBJECT_SPEED: float = 375.0
 const NPC_WALK_SPEED: float = 240.0
+const SAFE_ZONE_CENTER_X: float = 1230.0
 const NPC_WALK_DELAY_MIN: float = 0.5
 const NPC_WALK_DELAY_MAX: float = 1.0
 
@@ -51,6 +52,7 @@ const SNIPER_SHIFTS: Array = [11.0, 13.0, 15.0]
 
 const ESCAPE_WINDOW_START: float = 13.0
 const ESCAPE_WINDOW_END: float = 13.25
+const ESCAPE_WINDOW_REAL: float = 12.0   # the 15 minutes 13:00 - 13:15 last 12 seconds
 
 const COLOR_GREEN := Color(0.2, 0.8, 0.3)
 const COLOR_RED := Color(0.9, 0.2, 0.2)
@@ -63,7 +65,7 @@ const GUARD_DOG_COLOR := Color(0.4, 0.6, 1.0)
 const GUARD_MONKEY_COLOR := Color(0.5, 1.0, 0.5)
 const SNIPER_NORMAL_COLOR := Color(0.7, 0.85, 1.0)
 
-const GUARD_POSITION := Vector2(-215, 310)
+const GUARD_POSITION := Vector2(-215, 339)   # feet on the same floor line as the fish
 const GUARD_LIFT_POSITION := Vector2(-290, 325)
 const SNIPER_POSITION := Vector2(1060, 60)
 const GUARD_WALK_SPEED: float = 290.0
@@ -289,7 +291,16 @@ var _stk_btn: float = 0.0
 var _stk_was_held: bool = false
 var _stk_zone: Vector2 = Vector2(0.62, 0.78)
 var _halt: int = 0                 # > 0: somebody messed up - production and the clock stand still
-var _clock_speed: float = 0.0      # shift fraction per second for the current cycle
+var _clock_speed: float = 0.0      # (old) shift fraction per second for the current cycle
+var _cycle_real_avg: float = 3.4
+var _cycle_game_t: float = 0.0
+var _clock_v: float = 0.0
+## seconds one belt step takes (measured over the last shift, halts included)
+var _shift_pace: float = 3.0
+var _pace_sum: float = 0.0
+var _pace_n: int = 0
+const CLOCK_PACE_MIN: float = 2.2
+const CLOCK_PACE_MAX: float = 6.0          # current, smoothed clock speed (shift fraction per second)
 var _cycle_avg: float = 3.0        # how long a cycle usually takes (real seconds, without halts)
 var _cycle_t0: int = 0
 var _cycle_halted: float = 0.0
@@ -384,7 +395,10 @@ const HUD_CELL: float = 12.0
 const HUD_X0: float = 346.0
 const HUD_FONT := 13
 const ZONE_LIGHT_H: float = 26.0
-const SAFE_ZONE_SHADER := "res://GameShaders/SharedShaders/Shared_SafeZone_Shader.gdshader"
+const SAFE_ZONE_SHADER := "res://GameShaders/SharedShaders/Shared_SafeAura_Shader.gdshader"
+const ZONE_FLOOR_Y: float = 381.0
+const ZONE_AURA_H: float = 84.0
+const ZONE_UNDER: float = 7.0
 const OUTLINE_SHADER := "res://GameShaders/SharedShaders/Shared_Outline_Shader.gdshader"
 ## Enemy placeholder sheets (guard = mecha dog / mecha monkey, sniper = mecha pigeon)
 const EN_DIR := "res://GameAssets/Sprites/EntitySprites/EnemySprites/"
@@ -458,9 +472,6 @@ var stress_level: int = 0
 var stress_bar: Control = null
 var stress_label: Label = null
 var stress_title: Label = null
-var _stress_pulse_time: float = 0.0
-var _progress_cells: Control = null
-var _hud_labels: Array = []
 var _clock_hands: Array = []   # [hour_hand, minute_hand]
 var _hud_on: bool = true
 var _hud_nodes: Array = []
@@ -486,6 +497,11 @@ var _fx = null
 var _tut_out_zone := 0.0
 var _tut_work_t := 0.0
 var _tut_was_inspect := false
+
+## The SceneTree even while this node is being taken out of it (restart from the death
+## screen): coroutines that wake up then must not crash on get_tree() == null.
+func _tree() -> SceneTree:
+	return Engine.get_main_loop() as SceneTree
 
 func _ready() -> void:
 	randomize()
@@ -590,7 +606,9 @@ func _ready() -> void:
 		if container and container is Control:
 			container.modulate.a = 0.0
 	
-	await get_tree().process_frame
+	await _tree().process_frame
+	if not is_inside_tree():
+		return
 	
 	if player and "only_basic_moves" in player:
 		player.only_basic_moves = true   # in the factory: walk, jump and attack only
@@ -631,7 +649,7 @@ func _get_stop_zone_x(index: int) -> float:
 		return FISH_START_X + index * FISH_SPACING
 	return z.global_position.x
 
-func _is_box_in_zone(index: int, box_pos: Vector2, box_size: Vector2) -> bool:
+func _is_box_in_zone(index: int, box_pos: Vector2, _box_size: Vector2) -> bool:
 	if _box_processed_zones.has(index):
 		return false
 	if index < 0 or index >= stop_zones.size():
@@ -640,10 +658,6 @@ func _is_box_in_zone(index: int, box_pos: Vector2, box_size: Vector2) -> bool:
 	if z == null:
 		return false
 	var zone_pos = z.global_position
-	var zone_size = Vector2(40, 40)
-	var col = z.get_node_or_null("CollisionShape2D")
-	if col and col.shape is RectangleShape2D:
-		zone_size = col.shape.size * col.scale
 	# objects move left along the belt: the box has arrived once its centre reaches the zone centre
 	return box_pos.x <= zone_pos.x
 
@@ -776,9 +790,12 @@ func _await_elevator_anim(anim_name: String) -> void:
 	if elevator_back and elevator_back.sprite_frames and elevator_back.sprite_frames.has_animation(anim_name):
 		await elevator_back.animation_finished
 	else:
-		await get_tree().create_timer(13.0 / 14.0).timeout
+		await _tree().create_timer(13.0 / 14.0).timeout
+		if not is_inside_tree():
+			return
 
 var _guard_tween: Tween = null
+var _guard_walk_id: int = 0
 var _guard_walking: bool = false
 
 ## Where the guard belongs right now: behind the player during an inspection, else his post.
@@ -805,8 +822,12 @@ func _guard_walk_to(target: Vector2) -> void:
 	if guard_sprite == null:
 		return
 	# only one walk at a time: a new one replaces the old one (they used to fight)
+	# (the old walk's await gives up as soon as the id changes - no tween stepping from
+	# inside another tween's step any more)
+	_guard_walk_id += 1
+	var my_id = _guard_walk_id
 	if _guard_tween and _guard_tween.is_valid():
-		_guard_tween.custom_step(9999.0)   # jump the old walk to its end (its await returns)
+		_guard_tween.kill()
 	if target.x < guard_sprite.position.x:
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
 	elif target.x > guard_sprite.position.x:
@@ -815,16 +836,20 @@ func _guard_walk_to(target: Vector2) -> void:
 		guard_sprite.play("jogging")
 	else:
 		guard_sprite.play("idle")
-	var dist = guard_sprite.position.distance_to(target)
+	var dist = absf(guard_sprite.position.x - target.x) + absf(guard_sprite.position.y - GUARD_POSITION.y)
 	var duration = dist / GUARD_WALK_SPEED
 	if duration < 0.1:
 		duration = 0.1
+	target.y = GUARD_POSITION.y   # always on the floor, like the fish
 	var tween = create_tween()
 	_guard_tween = tween
 	_guard_walking = true
 	tween.tween_property(guard_sprite, "position", target, duration)
-	await tween.finished
-	if _guard_tween == tween:
+	while my_id == _guard_walk_id and tween.is_valid() and tween.is_running():
+		await _tree().process_frame
+		if not is_inside_tree():
+			return
+	if my_id == _guard_walk_id:
 		_guard_walking = false
 
 func _ensure_death_screen() -> void:
@@ -932,27 +957,28 @@ func _create_maintenance_safe_zone() -> void:
 	maintenance_safe_zone_rect = ColorRect.new()
 	maintenance_safe_zone_rect.name = "MaintenanceSafeZone"
 	maintenance_safe_zone_rect.color = Color(0.25, 1.0, 0.45, 0.8)
-	maintenance_safe_zone_rect.z_index = 1
+	maintenance_safe_zone_rect.z_index = 31   # light: over the belt, under the food
 	maintenance_safe_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var center = Vector2(1230, 325)
-	var size = Vector2(170, ZONE_LIGHT_H)
-	# a light pool on the floor (y 380), nothing above it
-	maintenance_safe_zone_rect.offset_left = center.x - size.x / 2.0
-	maintenance_safe_zone_rect.offset_top = 380.0 - size.y / 2.0
-	maintenance_safe_zone_rect.offset_right = center.x + size.x / 2.0
-	maintenance_safe_zone_rect.offset_bottom = 380.0 + size.y / 2.0
+	# an aura rising from the floor, with particles drifting up (like the aquarium glass)
+	var w = 170.0
+	maintenance_safe_zone_rect.offset_left = SAFE_ZONE_CENTER_X - w / 2.0
+	maintenance_safe_zone_rect.offset_top = ZONE_FLOOR_Y - ZONE_AURA_H
+	maintenance_safe_zone_rect.offset_right = SAFE_ZONE_CENTER_X + w / 2.0
+	maintenance_safe_zone_rect.offset_bottom = ZONE_FLOOR_Y + ZONE_UNDER
 	_apply_zone_shader(maintenance_safe_zone_rect)
 	add_child(maintenance_safe_zone_rect)
+	_add_zone_particles(maintenance_safe_zone_rect, Color(0.45, 1.0, 0.6))
 
 func _create_work_zone() -> void:
 	work_zone_rect = ColorRect.new()
 	work_zone_rect.name = "WorkZone"
 	work_zone_rect.color = Color(0.3, 0.75, 1.0, 0.8)
-	work_zone_rect.z_index = 1
+	work_zone_rect.z_index = 31
 	work_zone_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_zone_shader(work_zone_rect)
 	add_child(work_zone_rect)
 	_update_work_zone_position()
+	_add_zone_particles(work_zone_rect, Color(0.5, 0.85, 1.0))
 
 
 func _apply_zone_shader(rect: ColorRect) -> void:
@@ -961,7 +987,8 @@ func _apply_zone_shader(rect: ColorRect) -> void:
 		return
 	var m = ShaderMaterial.new()
 	m.shader = sh
-	m.set_shader_parameter("strength", 0.55)
+	m.set_shader_parameter("strength", 1.0)
+	m.set_shader_parameter("floor_h", ZONE_UNDER)
 	rect.material = m
 	var sz = Vector2(rect.offset_right - rect.offset_left, rect.offset_bottom - rect.offset_top)
 	if sz.x > 0.0 and sz.y > 0.0:
@@ -970,18 +997,56 @@ func _apply_zone_shader(rect: ColorRect) -> void:
 		m.set_shader_parameter("rect_size", rect.size)
 	)
 
+## Little light motes that rise out of a zone's floor.
+func _add_zone_particles(rect: ColorRect, col: Color) -> void:
+	var p = CPUParticles2D.new()
+	p.name = "AuraParticles"
+	var img = Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	p.texture = ImageTexture.create_from_image(img)
+	p.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var w = rect.offset_right - rect.offset_left
+	var h = rect.offset_bottom - rect.offset_top
+	p.position = Vector2(w / 2.0, h - ZONE_UNDER)
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(w * 0.42, 1.0)
+	p.amount = 14
+	p.lifetime = 2.2
+	p.preprocess = 2.2
+	p.direction = Vector2(0, -1)
+	p.spread = 6.0
+	p.gravity = Vector2.ZERO
+	p.initial_velocity_min = 12.0
+	p.initial_velocity_max = 30.0
+	p.scale_amount_min = 0.5
+	p.scale_amount_max = 1.0
+	var g = Gradient.new()
+	g.set_color(0, Color(col, 0.0))
+	g.add_point(0.15, Color(col, 0.9))
+	g.set_color(1, Color(col, 0.0))
+	p.color_ramp = g
+	var mat = CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	p.material = mat
+	p.use_parent_material = false
+	rect.add_child(p)
+
 func _update_work_zone_position() -> void:
 	if work_zone_rect == null:
 		return
-	# a light pool on the floor under the player's spot
-	var h = ZONE_LIGHT_H
+	# the same floor aura under the player's spot (a bit lower)
+	var h = ZONE_AURA_H * 0.7 + ZONE_UNDER
 	var w = PLAYER_ZONE_SIZE.x + 30.0
 	work_zone_rect.offset_left = player_zone_center.x - w / 2.0
-	work_zone_rect.offset_top = 380.0 - h / 2.0
+	work_zone_rect.offset_top = ZONE_FLOOR_Y - ZONE_AURA_H * 0.7
 	work_zone_rect.offset_right = player_zone_center.x + w / 2.0
-	work_zone_rect.offset_bottom = 380.0 + h / 2.0
+	work_zone_rect.offset_bottom = ZONE_FLOOR_Y + ZONE_UNDER
 	if work_zone_rect.material:
 		work_zone_rect.material.set_shader_parameter("rect_size", Vector2(w, h))
+	var parts = work_zone_rect.get_node_or_null("AuraParticles") as CPUParticles2D
+	if parts:
+		parts.position = Vector2(w / 2.0, h - ZONE_UNDER)
+		parts.emission_rect_extents = Vector2(w * 0.42, 1.0)
 
 func _create_vignette() -> void:
 	inspect_vignette = ColorRect.new()
@@ -1020,12 +1085,12 @@ void fragment() {
 	var pulse_shader = Shader.new()
 	pulse_shader.code = """
 shader_type canvas_item;
-uniform vec4 glow_color : source_color = vec4(1.0, 0.0, 0.0, 0.15);
+uniform vec4 glow_color : source_color = vec4(1.0, 0.0, 0.0, 0.17);
 uniform float pulse : hint_range(0.0, 1.0) = 0.0;
 void fragment() {
 	vec2 dist = abs(UV - 0.5) * 2.0;
 	float d = max(dist.x, dist.y);
-	COLOR = vec4(glow_color.rgb, smoothstep(0.7, 1.0, d) * glow_color.a * pulse);
+	COLOR = vec4(glow_color.rgb, smoothstep(0.5, 1.0, d) * glow_color.a * pulse);
 }
 """
 	var pulse_mat = ShaderMaterial.new()
@@ -1047,13 +1112,15 @@ func _update_low_hp_pulse(delta: float) -> void:
 		hp = player.hp
 	# the fish HUD has its own copy of this glow; here it is drawn by the level instead (so it
 	# also stays while the HUD is hidden) - the HUD one is switched off to not double it
+	if player_gui and "glow_disabled" in player_gui:
+		player_gui.glow_disabled = true
 	if player_gui and "glow" in player_gui and player_gui.glow and player_gui.glow.visible:
 		player_gui.glow.visible = false
 	if hp <= 1 and hp > 0:
 		low_hp_vignette.visible = true
 		low_hp_vignette.modulate.a = 1.0
 		_low_hp_pulse_time += delta
-		(low_hp_vignette.material as ShaderMaterial).set_shader_parameter("pulse", 0.3 + 0.3 * sin(_low_hp_pulse_time * 2.0))
+		(low_hp_vignette.material as ShaderMaterial).set_shader_parameter("pulse", 0.5 + 0.35 * sin(_low_hp_pulse_time * 2.4))
 	else:
 		low_hp_vignette.visible = false
 		_low_hp_pulse_time = 0.0
@@ -1106,7 +1173,7 @@ func _draw_clock_lcd() -> void:
 		_draw_seg_digit(c, Vector2(x, y), dw, dh, t, SEG_MAP.get(ch, ""), on, glow)
 		x += dw + gap * (0.5 if i != 1 else 0.5)
 		if i == 1:
-			var blink = int(Time.get_ticks_msec() / 500) % 2 == 0
+			var blink = int(Time.get_ticks_msec() / 500.0) % 2 == 0
 			var col = on if blink else off
 			c.draw_rect(Rect2(x + colon_w * 0.25, y + dh * 0.28, t, t), col)
 			c.draw_rect(Rect2(x + colon_w * 0.25, y + dh * 0.64, t, t), col)
@@ -1267,6 +1334,16 @@ func _build_minigame_bar() -> void:
 	if hint_label:
 		hint_label.add_theme_font_size_override("font_size", 16)
 		hint_label.add_theme_color_override("font_color", Color(0.86, 0.88, 0.92))
+		# a dark plate behind the minigame hint so it reads over the belt
+		var hb = StyleBoxFlat.new()
+		hb.bg_color = Color(0.02, 0.03, 0.06, 0.78)
+		hb.border_color = Color(0.2, 0.23, 0.3, 0.9)
+		hb.set_border_width_all(1)
+		hb.content_margin_left = 10
+		hb.content_margin_right = 10
+		hb.content_margin_top = 4
+		hb.content_margin_bottom = 4
+		hint_label.add_theme_stylebox_override("normal", hb)
 		hint_label.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
 		hint_label.add_theme_constant_override("outline_size", 4)
 	_mg_title.visible = false
@@ -1286,39 +1363,39 @@ func _tutorial_tick(delta: float) -> void:
 	if current_shift == 1 and _pre_accident_lock:
 		return
 	# moving (right after the accident)
-	_tut.hint("f_move", "ХОДИТЬ И ПРЫГАТЬ. НО ОТ СВОЕГО ПРЕССА ДАЛЕКО НЕ УХОДИ", ["ui_left", "ui_right", "jump"],
+	_tut.hint("f_move", "ХОДИТЬ И ПРЫГАТЬ|Только далеко от своего пресса не уходи", ["ui_left", "ui_right", "jump"],
 		func(): return _player_moving(), 2.5, 9.0)
 	# the shift panel, once a few boxes are through
 	if _hud_on and _box_fill >= AUTO_OBJECTS + 2:
-		_tut.hint("f_hud", "СПРАВА СВЕРХУ — ПАНЕЛЬ СМЕНЫ: ВРЕМЯ, КОРОБКИ И СТРЕСС. КРАСНЫЕ КЛЕТКИ — ТВОИ ОШИБКИ", [], Callable(), 5.0, 7.0)
+		_tut.hint("f_hud", "ПАНЕЛЬ СМЕНЫ|Справа сверху: время, коробки и стресс. Красные клетки — твои ошибки", [], Callable(), 5.0, 7.0)
 	# walked away from the press
 	if working and not _is_player_in_zone():
 		_tut_out_zone += dt
 	else:
 		_tut_out_zone = 0.0
 	if _tut_out_zone > 0.6:
-		_tut.hint("f_zone", "ВЕРНИСЬ К СВОЕМУ ПРЕССУ — ОХРАНА СЛЕДИТ, КТО ОТЛЫНИВАЕТ", [], func(): return _is_player_in_zone(), 1.5, 8.0)
+		_tut.hint("f_zone", "ВЕРНИСЬ К ПРЕССУ|Охрана следит, кто отлынивает от работы", [], func(): return _is_player_in_zone(), 1.5, 8.0)
 	# inspect mode and the journal (from the 2nd shift)
 	if current_shift >= 2:
 		if working:
 			_tut_work_t += dt
 		if _tut_work_t > 3.0:
-			_tut.hint("f_inspect", "РЕЖИМ ОСМОТРА: ВРЕМЯ ЗАМЕДЛЯЕТСЯ, ПОДСВЕЧЕННОЕ МОЖНО ИЗУЧИТЬ МЫШКОЙ", [_key_name("inspect")],
+			_tut.hint("f_inspect", "ОСМОТР|Время замедляется. Подсвеченное можно изучить мышкой", [_key_name("inspect")],
 				func(): return state == State.INSPECT, 2.5, 14.0)
 		if _tut_was_inspect and state != State.INSPECT:
-			_tut.hint("f_journal", "ЖУРНАЛ: ВСЁ, ЧТО ТЫ УЗНАЛ, И ВРЕМЯ ПЕРЕСМЕНОК", [_key_name("journal")],
+			_tut.hint("f_journal", "ЖУРНАЛ|Здесь всё, что ты узнал, и время пересменок", [_key_name("journal")],
 				func(): return journal_open, 2.0, 10.0)
 		if state == State.INSPECT:
 			_tut_was_inspect = true
 		if guard_changing or sniper_changing:
-			_tut.hint("f_shiftchange", "ПЕРЕСМЕНКА! ЗАЙДИ В ОСМОТР И НАЖМИ НА ЖЁЛТУЮ ЦЕЛЬ — ЗАПИШЕШЬ ВРЕМЯ", [_key_name("inspect")],
+			_tut.hint("f_shiftchange", "ПЕРЕСМЕНКА!|Зайди в осмотр и нажми на жёлтую цель — запишешь время", [_key_name("inspect")],
 				func(): return not guard_shifts_found.is_empty() or not sniper_shifts_found.is_empty() or not (guard_changing or sniper_changing), 2.5, 12.0)
 
 
 ## Picks a minigame variant for this box and shows it.
 func _start_minigame(station: int = STATION_PACK) -> void:
 	if _tut:
-		_tut.hint("f_work", "СУШИ ПОД ТВОИМ ПРЕССОМ — СДЕЛАЙ ЗАДАНИЕ ВОВРЕМЯ. ПРОМАХ = БРАК И УДАР ОХРАНЫ", [_key_name("interact")],
+		_tut.hint("f_work", "РАБОТА|Суши под твоим прессом: сделай задание вовремя. Промах — брак и удар охраны", [_key_name("interact")],
 			func(): return not minigame_active, 1.5, 12.0)
 	state = State.MINIGAME
 	minigame_active = true
@@ -1595,6 +1672,8 @@ func _update_minigame_fill() -> void:
 	var in_zone = px >= minigame_zone.position.x and px <= minigame_zone.position.x + minigame_zone.size.x
 	minigame_slider.modulate = Color(0.8, 1.6, 0.8) if in_zone else Color.WHITE
 
+var _stress_relief: int = 0
+var _relief_hp: int = 99
 func _update_stress_from_hp() -> void:
 	if player == null:
 		return
@@ -1603,7 +1682,10 @@ func _update_stress_from_hp() -> void:
 		hp = player.get_hp()
 	else:
 		hp = player.hp
-	stress_level = STRESS_BY_HP.get(hp, 0)
+	if hp < _relief_hp:
+		_stress_relief = 0   # a new hit brings the stress back
+	_relief_hp = hp
+	stress_level = max(0, STRESS_BY_HP.get(hp, 0) - _stress_relief)
 	_update_stress_bar()
 
 func _get_miss_chance() -> float:
@@ -1707,7 +1789,7 @@ func _hud_text(key: String, text: String, x_px: float, y_px: float, w_px: float,
 	l.text = text
 	l.position = Vector2(x_px, y_px)
 	l.size = Vector2(w_px, 18)
-	l.horizontal_alignment = align
+	l.horizontal_alignment = align as HorizontalAlignment
 	l.add_theme_color_override("font_color", col)
 
 
@@ -1732,8 +1814,118 @@ func _create_hud() -> void:
 		m.set_shader_parameter("strength", 0.22)
 		_hud_panel.material = m
 	_hud_nodes.append(_hud_panel)
+	_create_action_strip()
 	_layout_hud()
 
+
+## ---------------------------------------------------------------- action strip
+## Two pixel "buttons" right under the shift panel: [I] ОСМОТР  [J] ЖУРНАЛ. The one in use is
+## lit, the journal blinks a "!" after a new note. Shown from the 2nd shift, inside the view.
+const ACT_H: int = 13
+var _act_strip: Control = null
+var _act_labels: Dictionary = {}
+var _act_sig: Array = []
+var _act_note_t: float = 0.0
+
+func _create_action_strip() -> void:
+	_act_strip = Control.new()
+	_act_strip.name = "ActionStrip"
+	_act_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_act_strip.visible = false
+	_act_strip.draw.connect(_draw_action_strip)
+	$UI.add_child(_act_strip)
+	if _hud_panel and _hud_panel.material is ShaderMaterial:
+		var m = (_hud_panel.material as ShaderMaterial).duplicate()
+		m.set_shader_parameter("phase", 0.95)
+		_act_strip.material = m
+	for k in ["key_i", "txt_i", "key_j", "txt_j"]:
+		var l = Label.new()
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if k.begins_with("key") else HORIZONTAL_ALIGNMENT_LEFT
+		l.add_theme_font_size_override("font_size", 12 if k.begins_with("key") else 13)
+		l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
+		l.add_theme_constant_override("outline_size", 0 if k.begins_with("key") else 4)
+		_act_strip.add_child(l)
+		_act_labels[k] = l
+
+func _act_half_w() -> int:
+	return int(HUD_W / 2.0)
+
+func _update_action_strip(delta: float) -> void:
+	if _act_strip == null:
+		return
+	var want_show = current_shift >= 2 and _hud_on and state != State.DEAD
+	if _act_strip.visible != want_show:
+		_act_strip.visible = want_show
+		if want_show:
+			_act_strip.modulate.a = 0.0
+			_act_strip.create_tween().tween_property(_act_strip, "modulate:a", 1.0, 0.5)
+	if not want_show:
+		return
+	if inspect_journal_notice and inspect_journal_notice.visible:
+		_act_note_t = 4.0
+	if journal_open:
+		_act_note_t = 0.0
+	var dt = delta / max(0.05, Engine.time_scale) if Engine.time_scale > 0.0 else 0.016
+	_act_note_t = max(0.0, _act_note_t - dt)
+	var blink = _act_note_t > 0.0 and int(Time.get_ticks_msec() / 250.0) % 2 == 0
+	var sig = [state == State.INSPECT, journal_open, blink, _key_name("inspect"), _key_name("journal")]
+	if sig == _act_sig:
+		return
+	_act_sig = sig
+	var hw = _act_half_w()
+	var cap = 9
+	for side in [["i", 0, "ОСМОТР", sig[0], sig[3]], ["j", hw, "ЖУРНАЛ", sig[1], sig[4]]]:
+		var x0: int = side[1]
+		var on: bool = side[3]
+		var kl: Label = _act_labels["key_" + side[0]]
+		var tl: Label = _act_labels["txt_" + side[0]]
+		var ktxt: String = side[4]
+		if ktxt.length() > 3:
+			ktxt = ktxt.substr(0, 3)
+		kl.text = ktxt
+		kl.position = Vector2((x0 + 4) * HUD_PX, (3 + (1 if on else 0)) * HUD_PX)
+		kl.size = Vector2(cap * HUD_PX, (cap - 1) * HUD_PX)
+		kl.add_theme_color_override("font_color", Color8(24, 26, 34))
+		tl.text = side[2]
+		tl.position = Vector2((x0 + 4 + cap + 3) * HUD_PX, 2 * HUD_PX)
+		tl.size = Vector2((hw - cap - 10) * HUD_PX, (ACT_H - 4) * HUD_PX)
+		tl.add_theme_color_override("font_color", HUD_C_ORANGE.lightened(0.25) if on else HUD_C_TEXT)
+	_act_strip.queue_redraw()
+
+func _draw_action_strip() -> void:
+	var c = _act_strip
+	if c == null:
+		return
+	var W = HUD_W
+	var H = ACT_H
+	_hud_rect(c, 0, 0, W, H, Color.BLACK)
+	_hud_rect(c, 1, 1, W - 2, H - 2, HUD_C_EDGE)
+	_hud_rect(c, 2, 1, W - 4, 1, HUD_C_EDGE_HI)
+	_hud_rect(c, 2, 2, W - 4, H - 4, HUD_C_BG)
+	var hw = _act_half_w()
+	# divider between the two buttons
+	_hud_rect(c, hw, 2, 1, H - 4, Color.BLACK)
+	_hud_rect(c, hw + 1, 2, 1, H - 4, HUD_C_DIM)
+	var states = [_act_sig[0] if _act_sig.size() > 0 else false, _act_sig[1] if _act_sig.size() > 1 else false]
+	for i in range(2):
+		var x0 = 0 if i == 0 else hw
+		var on: bool = states[i]
+		if on:
+			_hud_rect(c, x0 + 2, 2, hw - 2 if i == 0 else W - hw - 2, H - 4, Color(HUD_C_ORANGE, 0.22))
+			_hud_rect(c, x0 + 2, H - 3, hw - 2 if i == 0 else W - hw - 2, 1, HUD_C_ORANGE)
+		# key cap (9 x 9), pushed down while that mode is on
+		var ky = 2 + (1 if on else 0)
+		_hud_rect(c, x0 + 4, 2 + 1, 9, 9, Color.BLACK)
+		_hud_rect(c, x0 + 4, ky, 9, 8, Color8(180, 186, 200) if not on else HUD_C_ORANGE)
+		_hud_rect(c, x0 + 5, ky + 1, 7, 5, Color8(232, 236, 244) if not on else HUD_C_ORANGE.lightened(0.35))
+	# "!" on the journal after a new note
+	if _act_sig.size() > 2 and _act_sig[2]:
+		var bx = W - 6
+		_hud_rect(c, bx - 1, 2, 4, 9, Color.BLACK)
+		_hud_rect(c, bx, 3, 2, 4, HUD_C_ORANGE)
+		_hud_rect(c, bx, 8, 2, 2, HUD_C_ORANGE)
 
 func _hud_rows() -> int:
 	return 4 if current_shift >= 2 else 3
@@ -1748,6 +1940,11 @@ func _layout_hud() -> void:
 		_hud_panel.material.set_shader_parameter("rect_size", _hud_panel.size)
 	var vp = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1152, 648)
 	_hud_panel.position = Vector2(vp.x - _hud_panel.size.x - HUD_MARGIN, HUD_MARGIN)
+	if _act_strip:
+		_act_strip.size = Vector2(HUD_W, ACT_H) * HUD_PX
+		_act_strip.position = _hud_panel.position + Vector2(0, _hud_panel.size.y + 2.0 * HUD_PX)
+		if _act_strip.material is ShaderMaterial:
+			_act_strip.material.set_shader_parameter("rect_size", _act_strip.size)
 
 
 func _draw_hud() -> void:
@@ -1764,7 +1961,7 @@ func _draw_hud() -> void:
 	# hazard stripe along the top
 	for x in range(2, W - 2):
 		for y in range(2, 4):
-			if int((x + y) / 2) % 2 == 0:
+			if int((x + y) / 2.0) % 2 == 0:
 				_hud_rect(c, x, y, 1, 1, HUD_C_ORANGE)
 			else:
 				_hud_rect(c, x, y, 1, 1, Color8(24, 20, 16))
@@ -1787,7 +1984,7 @@ func _draw_hud() -> void:
 		_pix_seg_digit(c, ch, dx, y, on, off)
 		dx += 5
 		if i == 1:
-			var blink = int(Time.get_ticks_msec() / 500) % 2 == 0
+			var blink = int(Time.get_ticks_msec() / 500.0) % 2 == 0
 			_hud_rect(c, dx, y + 2, 1, 1, on if blink else off)
 			_hud_rect(c, dx, y + 4, 1, 1, on if blink else off)
 			dx += 2
@@ -1795,7 +1992,7 @@ func _draw_hud() -> void:
 	# row 2: packed / ruined boxes
 	y += 10
 	var cells_w = TOTAL_OBJECTS * 3 - 1
-	var cx0 = int((W - cells_w) / 2)
+	var cx0 = int((W - cells_w) / 2.0)
 	for i in range(TOTAL_OBJECTS):
 		var st = _box_states[i] if i < _box_states.size() else 0
 		var col = HUD_C_DIM if st == 0 else (HUD_C_GOOD if st == 1 else (HUD_C_BAD if st == 2 else HUD_C_SKIP))
@@ -1805,7 +2002,7 @@ func _draw_hud() -> void:
 
 	# row 3: stress
 	y += 9
-	var pct = str(stress_level) + "%"
+	var _pct = str(stress_level) + "%"
 	var bx = 25
 	var bw = W - 4 - 13 - bx
 	_hud_rect(c, bx - 1, y - 1, bw + 2, 7, Color.BLACK)
@@ -1893,10 +2090,10 @@ func _create_inspect_targets() -> void:
 	_add_inspect_target("sniper", Vector2(1060, 60), Vector2(120, 80),
 		"Снайпер-Голубь", "Снайпер, который может пристрелить меня когда угодно..",
 		"Снайпер-Голубь в меха костюме. Имеет крылья винтовку и пистолет", COLOR_HIGHLIGHT_BLUE, "")
-	_add_inspect_target("guard_dog", Vector2(-215, 310), Vector2(80, 80),
+	_add_inspect_target("guard_dog", GUARD_POSITION, Vector2(80, 80),
 		"Охранник-Собака", "Лучший друг человека..",
 		"Охранник-Собака в меха костюме. Имеет меха челюсти со смертельной силой сжатия", COLOR_HIGHLIGHT_BLUE, "dog")
-	_add_inspect_target("guard_monkey", Vector2(-215, 310), Vector2(80, 80),
+	_add_inspect_target("guard_monkey", GUARD_POSITION, Vector2(80, 80),
 		"Охранник-Обезьяна", "Человекоподобные тоже с ними..",
 		"Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост", COLOR_HIGHLIGHT_BLUE, "monkey")
 	for fish in npc_fishes:
@@ -1912,13 +2109,13 @@ func _create_inspect_targets() -> void:
 	_add_inspect_target("conveyor", Vector2(380, 368), Vector2(1240, 56),
 		"Конвейер", "Сколько еще таких заводов они построили?",
 		str(TOTAL_OBJECTS) + " коробок за смену", COLOR_HIGHLIGHT_BLUE, "")
-	_add_inspect_target("guard_shift_9", Vector2(-215, 310), Vector2(80, 80),
+	_add_inspect_target("guard_shift_9", GUARD_POSITION, Vector2(80, 80),
 		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 09:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 9.0)
-	_add_inspect_target("guard_shift_13", Vector2(-215, 310), Vector2(80, 80),
+	_add_inspect_target("guard_shift_13", GUARD_POSITION, Vector2(80, 80),
 		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 13:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 13.0)
-	_add_inspect_target("guard_shift_17", Vector2(-215, 310), Vector2(80, 80),
+	_add_inspect_target("guard_shift_17", GUARD_POSITION, Vector2(80, 80),
 		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 17:00",
 		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 17.0)
 	_add_inspect_target("sniper_shift_11", Vector2(1060, 60), Vector2(120, 80),
@@ -1932,6 +2129,8 @@ func _create_inspect_targets() -> void:
 		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 15.0)
 
 func _add_inspect_target(id: String, pos: Vector2, size: Vector2, title: String, phrase: String, journal: String, color: Color, special_type: String = "", special_hour: float = -1.0) -> void:
+	if not (id in _all_target_ids):
+		_all_target_ids.append(id)
 	var area = Area2D.new()
 	area.name = "InspectTarget_" + id
 	area.position = pos
@@ -2014,6 +2213,10 @@ func _is_inspect_target_visible(area: Area2D) -> bool:
 		return not guard_is_dog and not guard_changing and guard_sprite != null and guard_sprite.visible
 	if special_type == "":
 		return true
+	if special_type == "guard_shift" and current_shift < 2:
+		return false   # nobody changes in the first shift
+	if special_type == "sniper_shift" and current_shift < 3:
+		return false   # the pigeon starts changing from the third shift
 	if special_type == "guard_shift" or special_type == "sniper_shift":
 		var hour = _current_hour()
 		if hour >= special_hour and hour <= special_hour + 0.25:
@@ -2044,7 +2247,7 @@ func _follow_inspect_target(area: Area2D, hl: Control) -> void:
 		if guard_sprite and guard_sprite.visible:
 			pos = guard_sprite.global_position
 		elif id.begins_with("guard_shift"):
-			pos = GUARD_LIFT_POSITION   # inside the elevator: click the elevator
+			pos = GUARD_POSITION   # nobody at the post: the empty post itself is the target
 	elif id.begins_with("sniper") and sniper_sprite:
 		pos = sniper_sprite.global_position
 	else:
@@ -2075,7 +2278,10 @@ func _update_shift_marker() -> void:
 			var st = data.get("special_type", "")
 			if (st == "guard_shift" or st == "sniper_shift") and _is_inspect_target_visible(area):
 				var p: Vector2 = data.get("pos", area.position)
-				_shift_marker_targets.append(p + Vector2(30, -data.get("size", Vector2(80, 80)).y * 0.5 + 4.0))
+				var who: AnimatedSprite2D = guard_sprite if st == "guard_shift" else sniper_sprite
+				var empty = who == null or not who.visible or who.modulate.a < 0.5
+				_shift_marker_targets.append({"p": p + Vector2(30, -data.get("size", Vector2(80, 80)).y * 0.5 + 4.0),
+					"post": GUARD_POSITION if st == "guard_shift" else SNIPER_POSITION, "empty": empty, "who": who})
 	if _shift_marker == null:
 		_shift_marker = Node2D.new()
 		_shift_marker.z_as_relative = false
@@ -2090,7 +2296,11 @@ func _update_shift_marker() -> void:
 func _draw_shift_marker() -> void:
 	var t = Time.get_ticks_msec() / 1000.0
 	var yel = Color8(255, 214, 60)
-	for p in _shift_marker_targets:
+	for m in _shift_marker_targets:
+		var p: Vector2 = m["p"]
+		if m["empty"]:
+			_draw_empty_post(m["post"], m["who"], t, yel)
+			p = m["post"] + Vector2(0, -60)
 		var c: Vector2 = p + Vector2(0, round(sin(t * 5.0) * 3.0))
 		var pts = PackedVector2Array([c + Vector2(0, -9), c + Vector2(7, 0), c + Vector2(0, 9), c + Vector2(-7, 0)])
 		_shift_marker.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -11), c + Vector2(9, 0), c + Vector2(0, 11), c + Vector2(-9, 0)]), Color(0.08, 0.06, 0.02))
@@ -2100,6 +2310,52 @@ func _draw_shift_marker() -> void:
 		# pulse ring
 		var k = fmod(t * 1.4, 1.0)
 		_shift_marker.draw_arc(c, 10.0 + k * 12.0, 0, TAU, 20, Color(yel, 0.7 * (1.0 - k)), 1.5)
+
+## Nobody at the post right now: a dashed yellow ghost of whoever stands there, with
+## "ПОСТ ПУСТ" - clicking it notes the change just the same.
+func _draw_empty_post(post: Vector2, who: AnimatedSprite2D, t: float, yel: Color) -> void:
+	var m = _shift_marker
+	var pulse = 0.5 + 0.5 * sin(t * 4.0)
+	if who and who.sprite_frames and who.sprite_frames.has_animation("idle"):
+		var tex = who.sprite_frames.get_frame_texture("idle", int(t * 6.0) % max(1, who.sprite_frames.get_frame_count("idle")))
+		if tex:
+			var sz = tex.get_size() * who.global_scale.abs()
+			var flip = who.scale.x < 0.0 or who.flip_h
+			var r = Rect2(post - sz / 2.0 + who.offset * who.global_scale.abs(), sz)
+			if flip:
+				m.draw_set_transform(Vector2(post.x * 2.0, 0), 0.0, Vector2(-1, 1))
+			m.draw_texture_rect(tex, r, false, Color(yel.r * 1.3, yel.g * 1.3, yel.b, 0.32 + 0.2 * pulse))
+			m.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# dashed frame around the empty spot
+	var box = Rect2(post - Vector2(26, 34), Vector2(52, 68))
+	m.draw_rect(box, Color(yel, 0.06 + 0.05 * pulse))
+	var dash = 4.0
+	var off = fmod(t * 10.0, dash * 2.0)
+	var col = Color(yel, 0.65 + 0.35 * pulse)
+	var x = box.position.x - off
+	while x < box.end.x:
+		var x0 = max(x, box.position.x)
+		var x1 = min(x + dash, box.end.x)
+		if x1 > x0:
+			m.draw_rect(Rect2(x0, box.position.y, x1 - x0, 1.5), col)
+			m.draw_rect(Rect2(x0, box.end.y - 1.5, x1 - x0, 1.5), col)
+		x += dash * 2.0
+	var y = box.position.y - off
+	while y < box.end.y:
+		var y0 = max(y, box.position.y)
+		var y1 = min(y + dash, box.end.y)
+		if y1 > y0:
+			m.draw_rect(Rect2(box.position.x, y0, 1.5, y1 - y0), col)
+			m.draw_rect(Rect2(box.end.x - 1.5, y0, 1.5, y1 - y0), col)
+		y += dash * 2.0
+	var f = _bubble_font()
+	if f:
+		var txt = "ПОСТ ПУСТ"
+		var tw = f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		var tp = Vector2(round(post.x - tw / 2.0), round(box.position.y - 4.0))
+		m.draw_string_outline(f, tp, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, 3, Color(0.08, 0.06, 0.02))
+		m.draw_string(f, tp, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, col)
+
 
 ## ---------------------------------------------------------------- inspect outlines
 func _outline_targets_for(id: String) -> Array:
@@ -2204,11 +2460,7 @@ func _area_outline_nodes(area: Area2D) -> Array:
 	if st == "guard_shift":
 		if guard_sprite and guard_sprite.visible:
 			return [guard_sprite]
-		var out: Array = []
-		for n in [elevator_front, elevator_back]:
-			if n:
-				out.append(n)
-		return out
+		return []   # nobody at the post: only the dashed "ПОСТ ПУСТ" mark
 	if st == "sniper_shift":
 		return [sniper_sprite] if sniper_sprite else []
 	return _outline_nodes.get(area, [])
@@ -2274,13 +2526,16 @@ func _is_player_in_zone() -> bool:
 
 func _process(delta: float) -> void:
 	_apply_pre_accident_lock()
+	# the fish stands still at its press while a minigame / incident is running
+	if player and "minigame_lock" in player:
+		player.minigame_lock = minigame_active or _inc_active or (state == State.MINIGAME)
 	if _slowmo_on and state != State.INSPECT:
 		_set_slowmo(false)
 	if state == State.DEAD:
 		if Engine.time_scale != 1.0:
 			_reset_slowmo_now()
 		return
-	if get_tree().paused:
+	if _tree().paused:
 		return
 	_process_clock(delta)
 	_process_shift_changes()
@@ -2315,6 +2570,7 @@ func _process(delta: float) -> void:
 				pass
 	_guard_watchdog()
 	_tutorial_tick(delta)
+	_update_action_strip(delta)
 	# the shift HUD must stay on screen once it was switched on
 	if _hud_on and _hud_panel and is_instance_valid(_hud_panel) and not _hud_panel.visible:
 		_hud_panel.visible = true
@@ -2374,7 +2630,11 @@ func _update_streak_label() -> void:
 		_streak_label.add_theme_constant_override("outline_size", 4)
 		_hud_panel.add_child(_streak_label)
 	_streak_label.size = Vector2(_hud_panel.size.x - 6, 18)
-	_streak_label.position = Vector2(0, _hud_panel.size.y + 2)
+	# under the [I] ОСМОТР / [J] ЖУРНАЛ strip when it is shown
+	var below = _hud_panel.size.y + 2
+	if _act_strip and current_shift >= 2:
+		below = _act_strip.position.y + _act_strip.size.y - _hud_panel.position.y + 3
+	_streak_label.position = Vector2(0, below)
 	_streak_label.visible = _streak >= 2
 	_streak_label.text = "СЕРИЯ x" + str(_streak) + ("   ПРОВЕРКА!" if _inspection_active else "")
 	var hot = _streak >= STREAK_REWARD
@@ -2455,9 +2715,18 @@ func _end_inspection() -> void:
 		return
 	if _inspection_bad == 0:
 		_show_guard_dialog("НЕПЛОХО. ТАК И ПРОДОЛЖАЙ.", 2.0)
+		# the check went fine: the fish calms down a bit
+		var hp_now = player.get_hp() if player and player.has_method("get_hp") else 5
+		if STRESS_BY_HP.get(hp_now, 0) - _stress_relief > 0:
+			_stress_relief += 20
+			_update_stress_from_hp()
+			_float_text("СТРЕСС -20%", Color(0.55, 0.85, 1.0), -14.0)
+			UISounds.play_switch_on()
 	else:
 		_show_guard_dialog("ПЛОХО РАБОТАЕШЬ. ЭТО ТЕБЕ НА ПАМЯТЬ.", 2.0)
-		await get_tree().create_timer(0.6, false).timeout
+		await _tree().create_timer(0.6, false).timeout
+		if not is_inside_tree():
+			return
 		await _guard_hit_player()
 	if guard_changing or state == State.DEAD:
 		return
@@ -2588,12 +2857,19 @@ func _process_shift_end_npcs(delta: float) -> void:
 		if i < npc_walk_delays.size():
 			delay = npc_walk_delays[i]
 		if shift_end_npc_timer >= delay:
-			fish.position.x += NPC_WALK_SPEED * delta
-			if fish is AnimatedSprite2D:
-				fish.flip_h = false
-			if fish is AnimatedSprite2D and fish.sprite_frames.has_animation("jogging"):
-				if fish.animation != "jogging":
-					fish.play("jogging")
+			# everybody runs to the maintenance safe zone on the right and waits there
+			var stop_x = SAFE_ZONE_CENTER_X - 66.0 + i * 40.0
+			if fish.position.x < stop_x - 1.0:
+				fish.position.x = min(stop_x, fish.position.x + NPC_WALK_SPEED * delta)
+				if fish is AnimatedSprite2D:
+					fish.flip_h = false
+				if fish is AnimatedSprite2D and fish.sprite_frames.has_animation("jogging"):
+					if fish.animation != "jogging":
+						fish.play("jogging")
+			elif fish is AnimatedSprite2D:
+				fish.flip_h = true   # look back at the hall
+				if fish.sprite_frames.has_animation("idle") and fish.animation != "idle":
+					fish.play("idle")
 
 ## After the shift the food that is still on the belt rides off to the left.
 func _process_finished_boxes(delta: float) -> void:
@@ -2628,33 +2904,80 @@ func _process_conveyor_scroll(delta: float) -> void:
 ## at 18:00). Inside one belt step the clock runs at a steady speed (from the average step
 ## length), it slows down softly near the end of the step instead of jumping, and it stands
 ## still while the guard is punishing somebody.
+## The clock is the boss now: one belt step has a fixed slot of CYCLE_SLOT seconds and the
+## belt waits for the slot if the work went faster, so the last box always lands at 18:00.
+## The clock runs at one steady speed, except in a few stretched periods: the escape window
+## 13:00 - 13:15 lasts 12 s, every other guard / sniper change lasts 6 s. On a mistake it
+## stands still until the guard is back at his place.
+const CYCLE_SLOT: float = 2.8
+const CHANGE_REAL: float = 6.0
+var _shift_elapsed: float = 0.0   # running (not held) time of this shift
+
+## [start_hour, end_hour, real_seconds] of the stretched periods of this shift.
+func _slow_periods() -> Array:
+	var p: Array = [[ESCAPE_WINDOW_START, ESCAPE_WINDOW_END, ESCAPE_WINDOW_REAL]]
+	var hours: Array = []
+	if current_shift >= 2:
+		hours.append_array(GUARD_SHIFTS)
+	if current_shift >= 3:
+		hours.append_array(SNIPER_SHIFTS)
+	for h in hours:
+		if h >= ESCAPE_WINDOW_START and h < ESCAPE_WINDOW_END:
+			continue
+		var dup = false
+		for q in p:
+			if is_equal_approx(q[0], h):
+				dup = true
+		if not dup:
+			p.append([h, h + SHIFT_CHANGE_HOURS, CHANGE_REAL])
+	return p
+
 func _process_clock(delta: float) -> void:
-	if state == State.DEAD:
+	if state == State.DEAD or state == State.INTRO:
 		return
-	if state == State.SHIFT_END:
-		if shift_time < 1.0:
-			shift_time = move_toward(shift_time, 1.0, delta * 0.08)
-			_update_clock_label()
-			_update_wall_clock()
-		return
-	if state == State.INTRO:
-		return
-	if _halt > 0:
+	_cycle_game_t += delta
+	var held = state != State.SHIFT_END and _clock_on_hold()
+	if held:
 		_cycle_halted += delta
+		return   # somebody made a mistake: everything waits for the guard
+	_shift_elapsed += delta
+	var periods = _slow_periods()
+	if _clock_v <= 0.0:
+		var slow_f := 0.0
+		var slow_s := 0.0
+		for q in periods:
+			slow_f += (q[1] - q[0]) / SHIFT_DURATION_HOURS
+			slow_s += q[2]
+		_clock_v = (1.0 - slow_f) / max(20.0, float(TOTAL_CYCLES) * CYCLE_SLOT - slow_s)
+	# 18:00 only comes with the last box (if the work is late the clock waits at 17:59)
+	var cap = 1.0 if state == State.SHIFT_END else 0.998
+	if shift_time >= cap:
 		return
-	var cap = float(_cycles_done + 1) / float(TOTAL_CYCLES) - 0.001
-	var room = cap - shift_time
-	if room <= 0.0:
-		return
-	var speed = min(_clock_speed, room * 1.5)
+	var v = _clock_v
 	var hour = _current_hour()
-	# the escape window 13:00 - 13:15 always lasts long enough to reach the elevator
-	if hour >= ESCAPE_WINDOW_START - 0.02 and hour <= ESCAPE_WINDOW_END:
-		speed = min(speed, (ESCAPE_WINDOW_END - ESCAPE_WINDOW_START) / SHIFT_DURATION_HOURS / 18.0)
-	shift_time = min(shift_time + speed * delta, cap)
+	for q in periods:
+		if hour >= q[0] and hour < q[1]:
+			v = (q[1] - q[0]) / SHIFT_DURATION_HOURS / q[2]
+			break
+	shift_time = min(shift_time + v * delta, cap)
 	_update_clock_label()
 	_update_wall_clock()
 
+
+var _hold_after_error: bool = false
+
+func _clock_on_hold() -> bool:
+	if _halt > 0:
+		_hold_after_error = true
+		return true
+	if _hold_after_error:
+		# the punishment is over: wait until the guard stands at his place again
+		var away = guard_sprite != null and guard_sprite.visible and not guard_changing \
+			and guard_sprite.position.distance_to(_guard_home()) > 6.0
+		if away and not guard_changing:
+			return true
+		_hold_after_error = false
+	return false
 
 func _begin_clock_cycle() -> void:
 	_cycle_t0 = Time.get_ticks_msec()
@@ -2667,6 +2990,11 @@ func _begin_clock_cycle() -> void:
 func _end_clock_cycle() -> void:
 	var dur = float(Time.get_ticks_msec() - _cycle_t0) / 1000.0 - _cycle_halted
 	_cycle_avg = lerp(_cycle_avg, clamp(dur, 0.8, 12.0), 0.35)
+	# game time of the whole cycle, halts included (this is what the clock has to cover)
+	_cycle_real_avg = lerp(_cycle_real_avg, clamp(_cycle_game_t, 0.8, 15.0), 0.25)
+	_pace_sum += max(0.0, _cycle_game_t - _cycle_halted)   # without the stops for mistakes
+	_pace_n += 1
+	_cycle_game_t = 0.0
 
 func _work_progress() -> float:
 	var part = 0.0
@@ -2727,11 +3055,11 @@ func _update_clock_label() -> void:
 func _process_shift_changes() -> void:
 	var hour = _current_hour()
 	for shift_hour in GUARD_SHIFTS:
-		if guard_last_checked_hour < shift_hour and hour >= shift_hour:
+		if guard_last_checked_hour < shift_hour and hour >= shift_hour and current_shift >= 2:
 			_on_guard_shift_change(shift_hour)
 	guard_last_checked_hour = hour
 	for shift_hour in SNIPER_SHIFTS:
-		if sniper_last_checked_hour < shift_hour and hour >= shift_hour:
+		if sniper_last_checked_hour < shift_hour and hour >= shift_hour and current_shift >= 3:
 			_on_sniper_shift_change(shift_hour)
 	sniper_last_checked_hour = hour
 
@@ -2772,17 +3100,23 @@ func _guard_shift_sequence() -> void:
 	_update_streak_label()
 	var w := 0.0
 	while _guard_busy and w < 8.0:
-		await get_tree().create_timer(0.1, false).timeout
+		await _tree().create_timer(0.1, false).timeout
+		if not is_inside_tree():
+			return
 		w += 0.1
 	_guard_busy = true
 	_show_guard_dialog(GUARD_LEAVE_LINES[randi() % GUARD_LEAVE_LINES.size()], 2.0)
 	await _guard_walk_to(elevator_button.position if elevator_button else GUARD_POSITION)
-	await get_tree().create_timer(0.5).timeout
+	await _tree().create_timer(0.5).timeout
+	if not is_inside_tree():
+		return
 	await _await_elevator_anim("open")
 	await _guard_walk_to(GUARD_LIFT_POSITION)
 	guard_sprite.visible = false
 	await _await_elevator_anim("close")
-	await get_tree().create_timer(SHIFT_CHANGE_REAL).timeout
+	await _tree().create_timer(SHIFT_CHANGE_REAL).timeout
+	if not is_inside_tree():
+		return
 	guard_is_dog = not guard_is_dog
 	_apply_guard_frames()
 	guard_sprite.position = GUARD_LIFT_POSITION
@@ -2801,16 +3135,22 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		return
 	sniper_changing = true
 	if is_dialog_active:
-		await get_tree().create_timer(2.6, false).timeout   # let the guard finish first
+		await _tree().create_timer(2.6, false).timeout   # let the guard finish first
+		if not is_inside_tree():
+			return
 	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_LEAVE_LINES[randi() % SNIPER_LEAVE_LINES.size()], 1.6, true)
-	await get_tree().create_timer(2.2, false).timeout
+	await _tree().create_timer(2.2, false).timeout
+	if not is_inside_tree():
+		return
 	if sniper_sprite:
 		var tw = create_tween()
 		tw.tween_property(sniper_sprite, "modulate:a", 0.0, 0.4)
 		await tw.finished
 		sniper_sprite.visible = false
 		sniper_sprite.modulate.a = 1.0
-	await get_tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
+	await _tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
+	if not is_inside_tree():
+		return
 	if sniper_sprite:
 		sniper_sprite.modulate.a = 0.0
 		sniper_sprite.visible = true
@@ -2878,6 +3218,13 @@ func _start_belt() -> void:
 	while _resolved < TOTAL_OBJECTS:
 		if _belt_stopped(gen):
 			return
+		# the belt keeps the clock's rhythm: the next step starts at its time slot
+		while _shift_elapsed < float(_cycles_done) * CYCLE_SLOT and not _belt_stopped(gen):
+			await _tree().process_frame
+			if not is_inside_tree():
+				return
+		if _belt_stopped(gen):
+			return
 		if _spawned < TOTAL_OBJECTS and _cycles_done % SPAWN_EVERY == 0:
 			_spawn_item()
 		_begin_clock_cycle()
@@ -2917,7 +3264,17 @@ func _start_belt() -> void:
 			return
 		_end_clock_cycle()
 		_cycles_done += 1
-		await get_tree().create_timer(0.12, false).timeout
+		await _tree().create_timer(0.12, false).timeout
+		if not is_inside_tree():
+			return
+	if _belt_stopped(gen):
+		return
+	# the last box can be done a few steps early (ruined ones drop out sooner): the shift
+	# still ends at 18:00 - the clock just keeps its pace until then
+	while shift_time < 0.997 and not _belt_stopped(gen):
+		await _tree().process_frame
+		if not is_inside_tree():
+			return
 	if _belt_stopped(gen):
 		return
 	_end_shift()
@@ -2987,7 +3344,7 @@ func _job_player(it: Dictionary) -> void:
 		await _player_press_result(false)
 		return
 	if state == State.INSPECT:
-		_exit_inspect()
+		_exit_inspect(true)   # thrown out of the slow motion: work!
 	if player_gui and not player_gui.visible:
 		_show_gui()
 	_start_minigame(player_station)
@@ -3047,7 +3404,9 @@ func _electric_accident(it: Dictionary) -> void:
 			if camera and camera.has_method("add_trauma"):
 				camera.add_trauma(0.12)
 		k += 1
-		await get_tree().create_timer(0.05, false).timeout
+		await _tree().create_timer(0.05, false).timeout
+		if not is_inside_tree():
+			return
 		t += 0.05
 	for b in bolts:
 		b.queue_free()
@@ -3067,7 +3426,9 @@ func _electric_accident(it: Dictionary) -> void:
 	_set_hud_visible(true)
 	_show_gui()
 	_show_guard_dialog("ЧТО, ТОКОМ ДЁРНУЛО? НИЧЕГО, РАБОТАЙ ДАЛЬШЕ!", 2.5)
-	await get_tree().create_timer(0.8, false).timeout
+	await _tree().create_timer(0.8, false).timeout
+	if not is_inside_tree():
+		return
 	_halt = max(0, _halt - 1)
 
 
@@ -3104,8 +3465,10 @@ func _incident_during_job(kind: int, it: Dictionary) -> void:
 	var delay = randf_range(0.15, 0.55)
 	var t := 0.0
 	while t < delay:
-		await get_tree().process_frame
-		if not get_tree().paused:
+		await _tree().process_frame
+		if not is_inside_tree():
+			return
+		if not _tree().paused:
 			t += get_process_delta_time()
 	# the fish was quicker - nothing broke this time
 	if not minigame_active or state != State.MINIGAME or _player_item != it:
@@ -3124,7 +3487,7 @@ func _incident_during_job(kind: int, it: Dictionary) -> void:
 
 func _run_incident(kind: int) -> bool:
 	if _tut:
-		_tut.hint("f_incident", "АВАРИЯ! УСТРАНИ ЕЁ ПО ПОДСКАЗКЕ НА ПАНЕЛИ, ИНАЧЕ ТОВАР ПРОПАДЁТ", [_key_name("interact")],
+		_tut.hint("f_incident", "АВАРИЯ!|Делай, что написано на панели, иначе товар пропадёт", [_key_name("interact")],
 			func(): return not _inc_active, 1.5, 12.0)
 	state = State.MINIGAME
 	_inc_kind = kind
@@ -3153,7 +3516,7 @@ func _run_incident(kind: int) -> bool:
 	match kind:
 		MGE_FIRE:
 			_mg_title.text = "ПОЖАР НА КОНВЕЙЕРЕ!"
-			hint_label.text = "ДЕРЖИ " + key + " — ПЕНА. ТУШИ ВСЕ ОЧАГИ"
+			hint_label.text = "Искра из пресса подожгла товар!\nДЕРЖИ " + key + " — пена. Потуши все очаги"
 			fire = Node2D.new()
 			fire.z_as_relative = false
 			fire.z_index = 45
@@ -3167,17 +3530,19 @@ func _run_incident(kind: int) -> bool:
 				tongues.append(p)
 		MGE_SHORT:
 			_mg_title.text = "ЗАМЫКАНИЕ ПРЕССА!"
-			hint_label.text = key + " — СБРОСЬ ИСКРЯЩИЙ ПРЕДОХРАНИТЕЛЬ"
+			hint_label.text = "Пресс коротнуло — предохранители искрят!\n" + key + " — сбрось тот, что искрит"
 			_spawn_sparks(btn, 16)
 		MGE_STUCK:
 			_mg_title.text = "КНОПКУ ЗАКЛИНИЛО!"
-			hint_label.text = "ДЕРЖИ " + key + " — ЗАМАХ, ОТПУСТИ В ЗЕЛЁНОМ"
+			hint_label.text = "Кнопка застряла в корпусе — пресс встал.\nДЕРЖИ " + key + " — замах, ОТПУСТИ в зелёной зоне. Нужно 3 сильных удара"
 	_inc_canvas.modulate = Color.WHITE
 	_inc_canvas.visible = true
 	var spark_t := 0.0
 	while _inc_result == 0 and state != State.DEAD and state != State.SHIFT_END:
-		await get_tree().process_frame
-		if get_tree().paused:
+		await _tree().process_frame
+		if not is_inside_tree():
+			return false
+		if _tree().paused:
 			continue
 		var dt = get_process_delta_time()
 		_inc_t += dt
@@ -3241,7 +3606,9 @@ func _run_incident(kind: int) -> bool:
 		_spawn_sparks(btn, 20)
 		if camera and camera.has_method("add_trauma"):
 			camera.add_trauma(0.35)
-	await get_tree().create_timer(0.35, false).timeout
+	await _tree().create_timer(0.35, false).timeout
+	if not is_inside_tree():
+		return false
 	if state == State.MINIGAME:
 		state = State.WORKING
 	return ok
@@ -3484,7 +3851,7 @@ func _draw_incident() -> void:
 			c.draw_rect(Rect2(21, 183, 158 * left, 4), blue if left > 0.3 else red)
 
 
-func _draw_fire_mg(c: Control, green: Color, blue: Color, red: Color, rim: Color) -> void:
+func _draw_fire_mg(c: Control, _green: Color, blue: Color, red: Color, _rim: Color) -> void:
 	# the box on the belt
 	c.draw_rect(Rect2(22, 150, 156, 4), Color8(40, 46, 58))
 	c.draw_rect(Rect2(30, 128, 140, 24), Color.BLACK)
@@ -3531,7 +3898,7 @@ func _draw_fire_mg(c: Control, green: Color, blue: Color, red: Color, rim: Color
 	c.draw_rect(Rect2(180, 32 + tank_h * (1.0 - _fire_tank), 6, tank_h * _fire_tank), tcol)
 
 
-func _draw_short_mg(c: Control, green: Color, green_d: Color, blue: Color, red: Color, rim: Color) -> void:
+func _draw_short_mg(c: Control, green: Color, green_d: Color, _blue: Color, red: Color, _rim: Color) -> void:
 	# sparks still to kill
 	for i in range(_fuse_need):
 		var r = Rect2(100 - _fuse_need * 9 + i * 18, 14, 12, 8)
@@ -3580,13 +3947,25 @@ func _draw_short_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 	c.draw_colored_polygon(PackedVector2Array([Vector2(sx - 6, 178), Vector2(sx + 6, 178), Vector2(sx, 186)]), Color8(250, 240, 160))
 
 
-func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: Color, rim: Color) -> void:
+## Text inside the incident window (outlined, centred on x).
+func _inc_text(c: Control, txt: String, cx: float, y: float, size: int, col: Color) -> void:
+	var f = _bubble_font()
+	if f == null:
+		return
+	var w = f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var p = Vector2(round(cx - w / 2.0), round(y))
+	c.draw_string_outline(f, p, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 4, Color(0.02, 0.03, 0.06))
+	c.draw_string(f, p, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+
+func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: Color, _rim: Color) -> void:
+	# how many strong punches are still needed
+	_inc_text(c, "ВЫБЕЙ КНОПКУ  " + str(_stk_hits) + "/" + str(_stk_need), 100, 22, 11, Color(0.92, 0.94, 0.98))
 	for i in range(_stk_need):
-		var r = Rect2(100 - _stk_need * 9 + i * 18, 14, 12, 8)
+		var r = Rect2(100 - _stk_need * 9 + i * 18, 27, 12, 6)
 		c.draw_rect(r, Color.BLACK)
-		c.draw_rect(r.grow(-2), green if i < _stk_hits else green_d.darkened(0.5))
+		c.draw_rect(r.grow(-1), green if i < _stk_hits else green_d.darkened(0.5))
 	# the stuck button in its housing; every strong punch knocks it a bit further out
-	var ctr = Vector2(100, 84)
+	var ctr = Vector2(100, 78)
 	var shake = Vector2(sin(_inc_t * 70.0), cos(_inc_t * 63.0)) * 2.0 * _stk_power if _stk_power > 0.6 else Vector2.ZERO
 	c.draw_rect(Rect2(ctr.x - 44, ctr.y - 30, 88, 64), Color.BLACK)
 	c.draw_rect(Rect2(ctr.x - 42, ctr.y - 28, 84, 60), Color8(70, 76, 90))
@@ -3605,7 +3984,8 @@ func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 		c.draw_line(ctr + Vector2(-30, -26), ctr + Vector2(-22, -14), Color8(30, 30, 36), 2)
 		c.draw_line(ctr + Vector2(30, 30), ctr + Vector2(24, 18), Color8(30, 30, 36), 2)
 	# power meter
-	var bar = Rect2(20, 136, 160, 18)
+	var bar = Rect2(20, 132, 160, 16)
+	_inc_text(c, "СИЛА ЗАМАХА", 100, 125, 9, Color(0.7, 0.76, 0.86))
 	c.draw_rect(bar.grow(2), Color.BLACK)
 	c.draw_rect(bar, Color(0.03, 0.05, 0.09))
 	var zx0 = bar.position.x + bar.size.x * _stk_zone.x
@@ -3621,6 +4001,28 @@ func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 	c.draw_rect(Rect2(bar.position.x, bar.position.y + 5, fx - bar.position.x, 8), Color(pcol, 0.55))
 	c.draw_rect(Rect2(fx - 2, bar.position.y - 4, 4, bar.size.y + 8), Color.BLACK)
 	c.draw_rect(Rect2(fx - 1, bar.position.y - 3, 2, bar.size.y + 6), pcol)
+	# a small arrow over the green part: release here
+	var zc = (zx0 + zx1) * 0.5
+	var bob = round(sin(_inc_t * 6.0) * 1.5)
+	c.draw_colored_polygon(PackedVector2Array([Vector2(zc - 4, bar.position.y - 7 + bob), Vector2(zc + 4, bar.position.y - 7 + bob), Vector2(zc, bar.position.y - 2 + bob)]), green)
+	# what to do RIGHT NOW
+	var held = Input.is_action_pressed("interact")
+	var key = _key_name("interact")
+	var msg = ""
+	var mcol = Color(0.92, 0.94, 0.98)
+	if _stk_tired > 0.0:
+		msg = "ПЕРЕБОР! ПОДОЖДИ..."
+		mcol = red.lightened(0.2)
+	elif in_zone and held:
+		msg = "ОТПУСТИ!"
+		mcol = green.lightened(0.3) if int(_inc_t * 10.0) % 2 == 0 else Color.WHITE
+	elif held:
+		msg = "ДЕРЖИ... ЗАМАХ"
+		mcol = blue.lightened(0.3)
+	else:
+		msg = "ЗАЖМИ " + key
+		mcol = Color(1.0, 0.86, 0.4) if int(_inc_t * 3.0) % 2 == 0 else Color(0.92, 0.94, 0.98)
+	_inc_text(c, msg, 100, 170, 13 if msg == "ОТПУСТИ!" else 11, mcol)
 
 
 func _advance_item(it: Dictionary) -> void:
@@ -3690,7 +4092,7 @@ func _set_object_stage(stage: int, pop: bool = true) -> void:
 	_apply_stage(current_object, stage, pop)
 
 
-func _apply_stage(obj: Node2D, stage: int, pop: bool = true) -> void:
+func _apply_stage(obj, stage: int, pop: bool = true) -> void:
 	if obj == null or not is_instance_valid(obj):
 		return
 	_load_sushi_textures()
@@ -3756,7 +4158,9 @@ func _play_and_wait(spr: AnimatedSprite2D, anim: StringName, max_time: float = 2
 	if spr == null or not is_instance_valid(spr) or spr.sprite_frames == null:
 		return
 	if not spr.sprite_frames.has_animation(anim):
-		await get_tree().create_timer(0.25, false).timeout
+		await _tree().create_timer(0.25, false).timeout
+		if not is_inside_tree():
+			return
 		return
 	spr.play(anim)
 	var dur := 0.35
@@ -3766,15 +4170,17 @@ func _play_and_wait(spr: AnimatedSprite2D, anim: StringName, max_time: float = 2
 		for i in range(spr.sprite_frames.get_frame_count(anim)):
 			total += spr.sprite_frames.get_frame_duration(anim, i)
 		dur = total / spd
-	await get_tree().create_timer(clamp(dur, 0.05, max_time), false).timeout
+	await _tree().create_timer(clamp(dur, 0.05, max_time), false).timeout
+	if not is_inside_tree():
+		return
 
 ## The press comes down, covers the sushi, and only while it is down `on_impact` is called
 ## (that is where the sushi changes). Then the foot lifts and the sushi springs back up.
-func _play_press(press_index: int, on_impact: Callable = Callable(), target: Node2D = null) -> void:
+func _play_press(press_index: int, on_impact: Callable = Callable(), target = null) -> void:
 	var press: AnimatedSprite2D = null
 	if press_index >= 0 and press_index < presses.size():
 		press = presses[press_index]
-	var obj = target if target != null else current_object
+	var obj = target if (target != null and is_instance_valid(target)) else current_object
 	if press == null or press.sprite_frames == null or not press.sprite_frames.has_animation("press_down"):
 		if on_impact.is_valid():
 			on_impact.call()
@@ -3788,14 +4194,15 @@ func _play_press(press_index: int, on_impact: Callable = Callable(), target: Nod
 	if obj and is_instance_valid(obj):
 		obj.scale = Vector2(1.2, 0.5)
 		obj.visible = false   # fully under the foot while it changes
-	if camera and camera.has_method("add_trauma"):
-		camera.add_trauma(0.1)
+	_press_shake()
 	if _fx:
 		var fx_x = _get_stop_zone_x(press_index)
-		_fx.press_impact(Vector2(fx_x, BELT_SURFACE_Y - 2.0), Vector2(fx_x, press.global_position.y - 46.0))
+		_fx.press_impact(Vector2(fx_x, BELT_SURFACE_Y - 2.0), Vector2(fx_x, press.global_position.y - 46.0), 11.0 * press.global_scale.x)
 	if on_impact.is_valid():
 		on_impact.call()
-	await get_tree().create_timer(PRESS_HOLD_TIME, false).timeout
+	await _tree().create_timer(PRESS_HOLD_TIME, false).timeout
+	if not is_inside_tree():
+		return
 	if press.sprite_frames.has_animation("press_up"):
 		press.play("press_up")
 	if obj and is_instance_valid(obj):
@@ -3805,6 +4212,15 @@ func _play_press(press_index: int, on_impact: Callable = Callable(), target: Nod
 	await _play_and_wait(press, "press_up", 1.2)
 	if obj and is_instance_valid(obj):
 		obj.z_index = Z_FOOD
+
+## Every press that comes down shakes the screen a little - the same for all of them, and
+## presses landing together do not stack into a big jolt.
+const PRESS_SHAKE := 0.17
+func _press_shake() -> void:
+	if camera and "trauma" in camera:
+		camera.trauma = max(camera.trauma, PRESS_SHAKE)
+	elif camera and camera.has_method("add_trauma"):
+		camera.add_trauma(PRESS_SHAKE)
 
 func _play_npc_attack(fish: Node, press_index: int = -1) -> void:
 	if fish == null or not is_instance_valid(fish):
@@ -3824,14 +4240,20 @@ func _play_npc_attack(fish: Node, press_index: int = -1) -> void:
 			fish.play(anim)
 			# the fist reaches the button about 40% into the punch
 			var total = _anim_time(fish, anim)
-			await get_tree().create_timer(total * 0.4, false).timeout
+			await _tree().create_timer(total * 0.4, false).timeout
+			if not is_inside_tree():
+				return
 			_press_button_light(press_index)
-			await get_tree().create_timer(total * 0.6, false).timeout
+			await _tree().create_timer(total * 0.6, false).timeout
+			if not is_inside_tree():
+				return
 			if is_instance_valid(fish) and fish.sprite_frames.has_animation("idle"):
 				fish.play("idle")
 			return
 	_press_button_light(press_index)
-	await get_tree().create_timer(0.3, false).timeout
+	await _tree().create_timer(0.3, false).timeout
+	if not is_inside_tree():
+		return
 
 
 func _anim_time(spr: AnimatedSprite2D, anim: StringName) -> float:
@@ -3871,8 +4293,52 @@ func _press_button_light(press_index: int) -> void:
 	tw.parallel().tween_property(b, "position", PRESS_BUTTON_LOCAL, 0.12).set_delay(0.12)
 	_button_glow(presses[press_index].to_global(PRESS_BUTTON_LOCAL))
 
-## A soft round glow + a ring around a pressed button (world space, additive).
+## The pressed button lights the press around it for a moment (a real light in the dark
+## hall) and spits a few pixel sparks - no soft circles.
+var _btn_light_tex: Texture2D = null
 func _button_glow(at: Vector2) -> void:
+	if _btn_light_tex == null:
+		var gt = GradientTexture2D.new()
+		gt.width = 64
+		gt.height = 64
+		gt.fill = GradientTexture2D.FILL_RADIAL
+		gt.fill_from = Vector2(0.5, 0.5)
+		gt.fill_to = Vector2(1.0, 0.5)
+		var gr = Gradient.new()
+		gr.set_color(0, Color(1, 1, 1, 1))
+		gr.set_color(1, Color(1, 1, 1, 0))
+		gt.gradient = gr
+		_btn_light_tex = gt
+	var l = PointLight2D.new()
+	l.texture = _btn_light_tex
+	l.color = Color(1.0, 0.42, 0.25)
+	l.energy = 2.2
+	l.texture_scale = 0.9
+	l.global_position = at
+	add_child(l)
+	var lt = l.create_tween()
+	lt.tween_property(l, "energy", 0.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	lt.tween_callback(l.queue_free)
+	# pixel sparks: 2x2 squares that hop out on a pixel grid and fade
+	for i in range(5):
+		var sp = ColorRect.new()
+		sp.size = Vector2(2, 2)
+		sp.color = [Color(1.0, 0.9, 0.6), Color(1.0, 0.55, 0.3)][i % 2]
+		sp.z_as_relative = false
+		sp.z_index = 60
+		sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(sp)
+		var a = -PI * 0.5 + randf_range(-1.3, 1.3)
+		var d = randf_range(6.0, 13.0)
+		sp.global_position = (at - Vector2.ONE).round()
+		var to = (at + Vector2(cos(a), sin(a)) * d).round()
+		var st = sp.create_tween()
+		st.tween_property(sp, "global_position", to, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		st.tween_property(sp, "global_position", to + Vector2(0, 4), 0.18)
+		st.parallel().tween_property(sp, "modulate:a", 0.0, 0.18)
+		st.tween_callback(sp.queue_free)
+
+func _button_glow_old(at: Vector2) -> void:
 	var g = Node2D.new()
 	g.z_as_relative = false
 	g.z_index = 60
@@ -3906,23 +4372,31 @@ func _play_player_attack() -> void:
 ## Returns when the fist reaches the button.
 func _player_punch() -> void:
 	if player == null or player_sprite == null or player_sprite.sprite_frames == null:
-		await get_tree().create_timer(0.18, false).timeout
+		await _tree().create_timer(0.18, false).timeout
+		if not is_inside_tree():
+			return
 		return
 	_face_player_to_press()
 	var anim = "AttackLeft" if (randi() % 2 == 0) else "AttackRight"
 	if not player_sprite.sprite_frames.has_animation(anim):
-		await get_tree().create_timer(0.18, false).timeout
+		await _tree().create_timer(0.18, false).timeout
+		if not is_inside_tree():
+			return
 		return
 	if "is_attacking" in player:
 		player.set("is_attacking", true)   # keeps the player state machine off the animation
 	player_sprite.play(anim)
 	var total = _anim_time(player_sprite, anim)
 	_finish_player_punch(anim, total)
-	await get_tree().create_timer(total * 0.4, false).timeout
+	await _tree().create_timer(total * 0.4, false).timeout
+	if not is_inside_tree():
+		return
 
 
 func _finish_player_punch(anim: String, total: float) -> void:
-	await get_tree().create_timer(total, false).timeout
+	await _tree().create_timer(total, false).timeout
+	if not is_inside_tree():
+		return
 	if player and "is_attacking" in player:
 		player.set("is_attacking", false)
 	if player_sprite and player_sprite.animation == anim and player_sprite.sprite_frames.has_animation("Idle"):
@@ -3946,18 +4420,18 @@ func _player_press_result(success: bool, punish: bool = true) -> void:
 		else:
 			_register_fail()
 	_last_quality = 0.5
+	if success and current_shift >= 2 and has_node("/root/Achievements") and Achievements.has_method("mark_station_worked"):
+		Achievements.mark_station_worked(st)
 	if _is_player_in_zone():
 		await _player_punch()
 	else:
-		await get_tree().create_timer(0.18, false).timeout
+		await _tree().create_timer(0.18, false).timeout
+		if not is_inside_tree():
+			return
 	_press_button_light(st)
 	var node = it["node"]
 	if success:
-		var on_done = func():
-			_advance_item(it)
-			if camera and camera.has_method("add_trauma"):
-				camera.add_trauma(0.14)
-		await _play_press(st, on_done, node)
+		await _play_press(st, func(): _advance_item(it), node)
 	else:
 		_halt += 1
 		await _play_press(st, func(): _break_item(it, st == STATION_PACK, false), node)
@@ -4108,7 +4582,9 @@ func _stress_miss_effect() -> void:
 		t2.tween_property(_mg_canvas, "position:x", p0.x + 8, 0.04)
 		t2.tween_property(_mg_canvas, "position:x", p0.x - 8, 0.04)
 		t2.tween_property(_mg_canvas, "position:x", p0.x, 0.04)
-		await get_tree().create_timer(0.5).timeout
+		await _tree().create_timer(0.5).timeout
+		if not is_inside_tree():
+			return
 		_mg_canvas.position = p0
 		return
 	var original_pos = minigame_panel.position
@@ -4117,7 +4593,9 @@ func _stress_miss_effect() -> void:
 	tween.tween_property(minigame_panel, "position:x", original_pos.x + 8, 0.04)
 	tween.tween_property(minigame_panel, "position:x", original_pos.x - 8, 0.04)
 	tween.tween_property(minigame_panel, "position:x", original_pos.x, 0.04)
-	await get_tree().create_timer(0.5).timeout
+	await _tree().create_timer(0.5).timeout
+	if not is_inside_tree():
+		return
 	minigame_panel.position = original_pos
 
 func _guard_hit_player() -> void:
@@ -4127,7 +4605,7 @@ func _guard_hit_player() -> void:
 		return
 	await _guard_wait_free()
 	_guard_busy = true
-	var orig_pos = guard_sprite.position
+	var _orig_pos = guard_sprite.position
 	var orig_flip = guard_sprite.scale.x
 	var target = player.global_position + Vector2(-40, -20)
 	await _guard_walk_to(target)
@@ -4140,13 +4618,15 @@ func _guard_hit_player() -> void:
 			guard_sprite.play("attack_left")
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
 	_guard_lunge()
-	await get_tree().create_timer(0.15).timeout
+	await _tree().create_timer(0.15).timeout
+	if not is_inside_tree():
+		return
 	UISounds.play_hit()
 	if player.has_method("take_damage"):
-		player.take_damage(1)
-	if camera and camera.has_method("add_trauma"):
-		camera.add_trauma(0.15)
-	await get_tree().create_timer(0.35, false).timeout
+		player.take_damage(1, guard_sprite)   # knocks the fish back a little + small shake
+	await _tree().create_timer(0.35, false).timeout
+	if not is_inside_tree():
+		return
 	if not guard_changing:
 		await _guard_walk_to(_guard_home())
 		guard_sprite.scale.x = orig_flip if not _inspection_active else abs(guard_sprite.scale.x)
@@ -4162,7 +4642,9 @@ func _guard_hit_player() -> void:
 func _guard_wait_free() -> void:
 	var waited := 0.0
 	while (_guard_busy or guard_changing) and waited < 15.0:
-		await get_tree().create_timer(0.1, false).timeout
+		await _tree().create_timer(0.1, false).timeout
+		if not is_inside_tree():
+			return
 		waited += 0.1
 	_guard_busy = false
 
@@ -4187,7 +4669,7 @@ func _guard_hit_npc(fish: Node) -> void:
 		return
 	await _guard_wait_free()
 	_guard_busy = true
-	var orig_pos = guard_sprite.position
+	var _orig_pos = guard_sprite.position
 	var orig_flip = guard_sprite.scale.x
 	var fish_pos = fish.global_position
 	var target = fish_pos + Vector2(-30, -10)
@@ -4201,9 +4683,18 @@ func _guard_hit_npc(fish: Node) -> void:
 			guard_sprite.play("attack_left")
 		guard_sprite.scale.x = -abs(guard_sprite.scale.x)
 	_guard_lunge()
-	await get_tree().create_timer(0.15).timeout
+	await _tree().create_timer(0.15).timeout
+	if not is_inside_tree():
+		return
 	UISounds.play_hit()
 	if fish is AnimatedSprite2D:
+		# a small knock back from the guard, then the fish steps back to its press
+		var home = fish.position
+		var kdir = 1.0 if fish.global_position.x >= guard_sprite.global_position.x else -1.0
+		var kt = create_tween()
+		kt.tween_property(fish, "position", home + Vector2(9.0 * kdir, -4.0), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		kt.tween_property(fish, "position", home + Vector2(11.0 * kdir, 0.0), 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		kt.tween_property(fish, "position", home, 0.35).set_delay(0.25)
 		var tw = create_tween()
 		tw.tween_property(fish, "modulate", Color(1, 0.4, 0.4), 0.1)
 		tw.tween_property(fish, "modulate", Color(1, 1, 1, 1), 0.25)
@@ -4213,7 +4704,9 @@ func _guard_hit_npc(fish: Node) -> void:
 				fish.play("idle")
 	if camera and camera.has_method("add_trauma"):
 		camera.add_trauma(0.1)
-	await get_tree().create_timer(0.35, false).timeout
+	await _tree().create_timer(0.35, false).timeout
+	if not is_inside_tree():
+		return
 	if not guard_changing:
 		await _guard_walk_to(_guard_home())
 		guard_sprite.scale.x = orig_flip if not _inspection_active else abs(guard_sprite.scale.x)
@@ -4300,11 +4793,15 @@ func _sniper_kill_player() -> void:
 	if is_instance_valid(bullet):
 		var fade2 = create_tween()
 		fade2.tween_property(bullet, "modulate:a", 0.0, 0.2)
-	await get_tree().create_timer(0.2).timeout
+	await _tree().create_timer(0.2).timeout
+	if not is_inside_tree():
+		return
 	if is_instance_valid(tracer):
 		tracer.queue_free()
 	if is_instance_valid(bullet):
 		bullet.queue_free()
+	if player and player.has_method("knockback_from"):
+		player.knockback_from(sniper_pos, player.KNOCK_DEATH)
 	if player and player.has_method("die"):
 		player.die()
 
@@ -4335,14 +4832,18 @@ func _end_shift() -> void:
 	_fade_and_new_shift()
 
 func _fade_and_new_shift() -> void:
-	await get_tree().create_timer(2.5).timeout
+	await _tree().create_timer(2.5).timeout
+	if not is_inside_tree():
+		return
 	if fade_rect:
 		fade_rect.visible = true
 		fade_rect.color = Color(0, 0, 0, 0)
 		var tween = create_tween()
 		tween.tween_property(fade_rect, "color:a", 1.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		await tween.finished
-	await get_tree().create_timer(0.5).timeout
+	await _tree().create_timer(0.5).timeout
+	if not is_inside_tree():
+		return
 	_start_new_shift()
 	if fade_rect:
 		var tween2 = create_tween()
@@ -4421,6 +4922,16 @@ func _start_new_shift() -> void:
 	_strike_forgive = 0.0
 	_halt = 0
 	_cycle_avg = 3.0
+	# this shift's clock speed comes from the pace of the previous one (fixed for the shift)
+	if _pace_n >= 6:
+		_shift_pace = clamp(_pace_sum / float(_pace_n) * 1.05, CLOCK_PACE_MIN, CLOCK_PACE_MAX)
+	_pace_sum = 0.0
+	_pace_n = 0
+	_clock_v = 0.0
+	_shift_elapsed = 0.0
+	_hold_after_error = false
+	_cycle_game_t = 0.0
+	_stress_relief = 0
 	shift_time = 0.0
 	guard_last_checked_hour = -1.0
 	sniper_last_checked_hour = -1.0
@@ -4462,15 +4973,13 @@ func _start_new_shift() -> void:
 		elevator_front.animation = "close"
 		elevator_front.frame = elevator_front.sprite_frames.get_frame_count("close") - 1
 		elevator_front.stop()
+	# the old bottom-left key hints are replaced by the action strip under the shift panel
+	bind_hint_i.visible = false
+	bind_hint_j.visible = false
 	if current_shift >= 2:
 		_set_hud_visible(true)
 		_show_gui()
 		_refresh_bind_hints()
-		bind_hint_i.visible = true
-		bind_hint_j.visible = true
-	else:
-		bind_hint_i.visible = false
-		bind_hint_j.visible = false
 	_update_shift_bars()
 	_update_stress_from_hp()
 	_update_escape_hint()
@@ -4518,9 +5027,11 @@ func _enter_inspect() -> void:
 		inspect_vignette.visible = true
 	_set_slowmo(true)
 
-func _exit_inspect() -> void:
+func _exit_inspect(forced: bool = false) -> void:
 	if state != State.INSPECT:
 		return
+	if forced:
+		_inspect_kick_fx()
 	state = State.WORKING
 	inspect_mode = false
 	inspect_overlay.visible = false
@@ -4547,17 +5058,17 @@ func _exit_inspect() -> void:
 			camera.global_position = player.global_position
 	if inspect_vignette:
 		inspect_vignette.visible = false
-	_set_slowmo(false)
+	_set_slowmo(false, 0.09 if forced else 0.25)
 
 ## ---------------------------------------------------------------- inspect slow motion
 ## The world runs at half speed while the fish looks around: colours drain, the edges get a
 ## colour fringe and a cold tint, the sound drops lower. Everything snaps back on leaving.
-const SLOWMO_SCALE: float = 0.5
+const SLOWMO_SCALE: float = 0.25
 var _slowmo_on: bool = false
 var _slowmo_tw: Tween = null
 var _post_base: Dictionary = {}
 
-func _set_slowmo(on: bool) -> void:
+func _set_slowmo(on: bool, out_time: float = 0.25) -> void:
 	if on == _slowmo_on:
 		return
 	_slowmo_on = on
@@ -4572,9 +5083,9 @@ func _set_slowmo(on: bool) -> void:
 				_post_base[k] = {"saturation": 0.92, "aberration": 0.0016, "vignette_strength": 0.55, "grade_amount": 0.55}[k]
 	_slowmo_tw = create_tween().set_parallel(true).set_ignore_time_scale(true)
 	_slowmo_tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	var d = 0.35 if on else 0.25
+	var d = 0.35 if on else out_time
 	_slowmo_tw.tween_property(Engine, "time_scale", SLOWMO_SCALE if on else 1.0, d)
-	_slowmo_tw.tween_property(AudioServer, "playback_speed_scale", 0.72 if on else 1.0, d)
+	_slowmo_tw.tween_property(AudioServer, "playback_speed_scale", 0.6 if on else 1.0, d)
 	if pm:
 		var target = {
 			"saturation": 0.6 if on else _post_base["saturation"],
@@ -4609,11 +5120,69 @@ func _slowmo_whoosh() -> void:
 	tw.tween_callback(layer.queue_free)
 
 
+## Work came while looking around: the slow motion is ripped away - a hard snap back to full
+## speed, a jolt, a white-hot flash with red edges, a squeezed zoom and "ЗА РАБОТУ!".
+func _inspect_kick_fx() -> void:
+	UISounds.play_hit()
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.32)
+	if camera:
+		camera.zoom = inspect_camera_original_zoom * 1.12   # the exit tween then eases it back
+	var layer = CanvasLayer.new()
+	layer.layer = 4
+	add_child(layer)
+	var flash = ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.color = Color(1.0, 0.95, 0.85, 0.55)
+	layer.add_child(flash)
+	var edge = ColorRect.new()
+	edge.set_anchors_preset(Control.PRESET_FULL_RECT)
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sh = Shader.new()
+	sh.code = """shader_type canvas_item;
+uniform float a = 1.0;
+void fragment() {
+	vec2 cc = UV - 0.5;
+	float v = smoothstep(0.3, 0.75, length(cc * vec2(1.25, 1.0)));
+	COLOR = vec4(0.9, 0.12, 0.08, v * 0.6 * a);
+}
+"""
+	var em = ShaderMaterial.new()
+	em.shader = sh
+	edge.material = em
+	layer.add_child(edge)
+	var lbl = Label.new()
+	lbl.text = "ЗА РАБОТУ!"
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var f = _bubble_font()
+	if f:
+		lbl.add_theme_font_override("font", f)
+	lbl.add_theme_font_size_override("font_size", 34)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	lbl.add_theme_color_override("font_outline_color", Color(0.1, 0.02, 0.0))
+	lbl.add_theme_constant_override("outline_size", 8)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.size = Vector2(500, 50)
+	lbl.position = Vector2(326, 120)
+	lbl.pivot_offset = lbl.size * 0.5
+	lbl.scale = Vector2(1.8, 1.8)
+	layer.add_child(lbl)
+	var tw = create_tween().set_parallel(true).set_ignore_time_scale(true)
+	tw.tween_property(flash, "color:a", 0.0, 0.22)
+	tw.tween_method(func(v): em.set_shader_parameter("a", v), 1.0, 0.0, 0.6)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.3).set_delay(0.55)
+	tw.chain().tween_callback(layer.queue_free)
+
+
 ## Never leave the game slowed down (death, pause, leaving the level).
 func _reset_slowmo_now() -> void:
 	_slowmo_on = false
 	if _slowmo_tw and _slowmo_tw.is_valid():
 		_slowmo_tw.kill()
+	if _journal_slow_tw and _journal_slow_tw.is_valid():
+		_journal_slow_tw.kill()
 	Engine.time_scale = 1.0
 	AudioServer.playback_speed_scale = 1.0
 	var post = get_node_or_null("PostFX") as ColorRect
@@ -4621,18 +5190,114 @@ func _reset_slowmo_now() -> void:
 		for k in _post_base.keys():
 			post.material.set_shader_parameter(k, _post_base[k])
 
+## Click in inspect mode: only what is highlighted right now can be looked at, and only
+## where it really is - the pixels of its sprite (overlapping boxes used to let you inspect
+## the elevator through the guard, the belt through a press, things already noted...).
+var _hit_img_cache: Dictionary = {}
+
+func _tex_alpha(tex: Texture2D, px: Vector2) -> float:
+	if tex == null:
+		return 0.0
+	var img: Image = _hit_img_cache.get(tex, null)
+	if img == null:
+		img = tex.get_image()
+		if img == null:
+			return 1.0
+		if img.is_compressed():
+			img.decompress()
+		_hit_img_cache[tex] = img
+	var ix = int(px.x)
+	var iy = int(px.y)
+	if ix < 0 or iy < 0 or ix >= img.get_width() or iy >= img.get_height():
+		return 0.0
+	return img.get_pixel(ix, iy).a
+
+## -1 = not hit, else a score (bigger = in front / smaller target).
+func _node_hit(n: CanvasItem, wp: Vector2) -> float:
+	if n == null or not is_instance_valid(n) or not n.is_visible_in_tree():
+		return -1.0
+	var z = float(n.z_index) if n.z_as_relative == false else float(n.z_index)
+	if n is Sprite2D:
+		var s2: Sprite2D = n
+		var lp = s2.to_local(wp)
+		if not s2.get_rect().has_point(lp):
+			return -1.0
+		return z if s2.is_pixel_opaque(lp) else -1.0
+	if n is AnimatedSprite2D:
+		var a2: AnimatedSprite2D = n
+		if a2.sprite_frames == null or not a2.sprite_frames.has_animation(a2.animation):
+			return -1.0
+		var tex = a2.sprite_frames.get_frame_texture(a2.animation, a2.frame)
+		if tex == null:
+			return -1.0
+		var sz = tex.get_size()
+		var lp = a2.to_local(wp) - a2.offset
+		if a2.centered:
+			lp += sz * 0.5
+		if a2.flip_h:
+			lp.x = sz.x - lp.x
+		if a2.flip_v:
+			lp.y = sz.y - lp.y
+		if lp.x < 0 or lp.y < 0 or lp.x >= sz.x or lp.y >= sz.y:
+			return -1.0
+		# a couple of pixels of slack around thin parts
+		for o in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+			if _tex_alpha(tex, lp + o) > 0.3:
+				return z
+		return -1.0
+	if n is Control:
+		return z if (n as Control).get_global_rect().has_point(wp) else -1.0
+	return -1.0
+
 func _process_inspect_click(_mouse_pos: Vector2) -> void:
-	var world_pos = get_global_mouse_position()
+	var best_area = _inspect_pick(get_global_mouse_position())
+	if best_area == null:
+		return
+	_inspect_area(best_area)
+
+## The highlighted target under this world point (null = nothing).
+func _inspect_pick(world_pos: Vector2) -> Area2D:
+	var best_area: Area2D = null
+	var best_score := -INF
 	for area in inspect_targets:
 		if not is_instance_valid(area):
 			continue
 		if not _is_inspect_target_visible(area):
 			continue
+		var d0 = inspect_target_data.get(area, {})
+		var nodes = _area_outline_nodes(area)
+		var score := -INF
+		if nodes.is_empty():
+			# no sprite (the empty post): its box
+			var sz0 = d0.get("size", Vector2(80, 80))
+			if Rect2(d0.get("pos", Vector2.ZERO) - sz0 / 2.0, sz0).has_point(world_pos):
+				score = 100.0
+		else:
+			for n in nodes:
+				var h = _node_hit(n, world_pos)
+				if h >= 0.0:
+					score = max(score, h)
+			# big static things (doors, clock, belt) also count by their box - but anything
+			# with real pixels in front of them wins
+			var sid: String = d0.get("id", "")
+			if score == -INF and sid in ["elevator", "maintenance", "clock", "conveyor"]:
+				var sz1 = d0.get("size", Vector2(80, 80))
+				if Rect2(d0.get("pos", Vector2.ZERO) - sz1 / 2.0, sz1).has_point(world_pos):
+					score = -100.0
+		if score == -INF:
+			continue
+		# shift notes beat everything, then whatever is drawn in front
+		if d0.get("special_type", "") != "":
+			score += 1000.0
+		if score > best_score:
+			best_score = score
+			best_area = area
+	return best_area
+
+func _inspect_area(area: Area2D) -> void:
+	if true:
 		var data = inspect_target_data.get(area, {})
-		var size = data.get("size", Vector2(100, 100))
-		var pos = data.get("pos", Vector2.ZERO)
-		var rect = Rect2(pos - size / 2.0, size)
-		if rect.has_point(world_pos):
+		if true:
 			var id = data.get("id", "")
 			var special_type = data.get("special_type", "")
 			_show_inspect_text(data.get("title", ""), data.get("phrase", ""), data.get("journal", ""))
@@ -4675,8 +5340,26 @@ func _add_journal_note(id: String, text: String) -> void:
 			inspect_notice_timer = 3.0
 		_check_scout_achievement()
 
+var _all_target_ids: Array = []
+
+## Everything = every object, every fish, every guard change and every sniper change.
+func _everything_inspected() -> bool:
+	for id in _all_target_ids:
+		if not journal_notes.has(id):
+			return false
+	return not _all_target_ids.is_empty()
+
+## All the objects (the shift changes are not objects).
+func _all_objects_inspected() -> bool:
+	for id in _all_target_ids:
+		if id.begins_with("guard_shift") or id.begins_with("sniper_shift"):
+			continue
+		if not journal_notes.has(id):
+			return false
+	return not _all_target_ids.is_empty()
+
 func _check_scout_achievement() -> void:
-	if journal_notes.size() >= 13:
+	if _everything_inspected():
 		if has_node("/root/Achievements"):
 			var was = Achievements.scout_unlocked
 			Achievements.unlock_scout()
@@ -4804,9 +5487,32 @@ func _open_journal() -> void:
 	_journal_tw.tween_property(journal_panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_journal_tw.tween_property(journal_panel, "rotation", 0.0, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	UISounds.play_click()
+	# while the journal is open the game almost stands still (x0.125)
+	_journal_freeze = true
+	_set_journal_slow(true)
+
+var _journal_freeze: bool = false
+
+const JOURNAL_SCALE: float = 0.125
+var _journal_slow_tw: Tween = null
+
+## Smoothly slows the game down to x0.125 under the open journal (and back).
+func _set_journal_slow(on: bool) -> void:
+	if _slowmo_tw and _slowmo_tw.is_valid():
+		_slowmo_tw.kill()
+	if _journal_slow_tw and _journal_slow_tw.is_valid():
+		_journal_slow_tw.kill()
+	var to = JOURNAL_SCALE if on else (SLOWMO_SCALE if (_slowmo_on and state == State.INSPECT) else 1.0)
+	_journal_slow_tw = create_tween().set_parallel(true).set_ignore_time_scale(true)
+	_journal_slow_tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_journal_slow_tw.tween_property(Engine, "time_scale", to, 0.25 if on else 0.2)
+	_journal_slow_tw.tween_property(AudioServer, "playback_speed_scale", 0.6 if on else (0.6 if to < 1.0 else 1.0), 0.25)
 
 func _on_journal_close() -> void:
 	journal_open = false
+	if _journal_freeze:
+		_journal_freeze = false
+		_set_journal_slow(false)
 	if _journal_tw and _journal_tw.is_valid():
 		_journal_tw.kill()
 	_journal_tw = create_tween().set_parallel(true).set_ignore_time_scale(true)
@@ -4859,7 +5565,7 @@ func _journal_entry(text: String, col: Color, bullet: bool, size: int = 14) -> v
 		b.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		row.add_child(b)
 	var l = _journal_label(text, size, col)
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	l.custom_minimum_size = Vector2(JOURNAL_SIZE.x - 210, 0)
 	row.add_child(l)
@@ -4871,9 +5577,13 @@ func _journal_ticks(who: String, hours: Array, found: Array) -> void:
 	var name_l = _journal_label(who + ":", 14, INK)
 	name_l.custom_minimum_size = Vector2(110, 0)
 	row.add_child(name_l)
-	for h in hours:
-		var got = found.has(h)
-		var l = _journal_label(("[x] " if got else "[  ] ") + "%02d:00" % int(h), 14, INK_BLUE if got else INK_SOFT)
+	# the time is only written down once it was noted; the empty boxes just wait
+	var sorted_found = found.duplicate()
+	sorted_found.sort()
+	for i in range(hours.size()):
+		var got = i < sorted_found.size()
+		var txt = ("[x] %02d:00" % int(sorted_found[i])) if got else "[  ] --:--"
+		var l = _journal_label(txt, 14, INK_BLUE if got else INK_SOFT)
 		row.add_child(l)
 	journal_list.add_child(row)
 
@@ -4905,6 +5615,8 @@ func _show_guard_dialog(text: String, duration: float) -> void:
 ## Aquarium-style speech bubble in the world: the same nine-patch box, a shadow, a tail to
 ## the speaker, a name tag, pop-in, typewriter text with voice blips and a soft fade out.
 func _speech(speaker: Node2D, who: String, who_color: Color, text: String, duration: float, guard_voice: bool) -> void:
+	# lines only break between whole words: no break after a hyphen either ("ХЕ-ХЕ")
+	text = text.replace("-", "-\u2060")
 	_bubble_gen += 1
 	var gen = _bubble_gen
 	if _bubble and is_instance_valid(_bubble):
@@ -4925,12 +5637,12 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 		var longest := 0.0
 		for w in text.split(" ", false):
 			longest = max(longest, font.get_string_size(w, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT).x)
-		max_inner = max(max_inner, ceil(longest) + 3.0)
-		var one_line = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT).x + 4.0
+		max_inner = max(max_inner, ceil(longest) + 6.0)
+		var one_line = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, BUBBLE_FONT).x + 6.0
 		inner_w = clamp(ceil(one_line), 34.0, max_inner)
 	var meas = Label.new()
 	meas.text = text
-	meas.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	meas.autowrap_mode = TextServer.AUTOWRAP_WORD
 	if font:
 		meas.add_theme_font_override("font", font)
 	meas.add_theme_font_size_override("font_size", BUBBLE_FONT)
@@ -4985,7 +5697,7 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	lbl.scroll_active = false
 	lbl.text = "[typein]" + text.replace("[", "[lb]") + "[/typein]"
 	lbl.position = pad + Vector2(0, name_h)
-	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	if font:
 		lbl.add_theme_font_override("normal_font", font)
 	lbl.add_theme_font_size_override("normal_font_size", BUBBLE_FONT)
@@ -5025,10 +5737,12 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	var shake := 0.0
 	while t < life:
 		_place_bubble(b, sz, speaker, tail_o, tail_f, t, shake)
-		await get_tree().process_frame
+		await _tree().process_frame
+		if not is_inside_tree():
+			return
 		if gen != _bubble_gen or not is_instance_valid(b):
 			return
-		if get_tree().paused:
+		if _tree().paused:
 			continue
 		var dt = get_process_delta_time()
 		t += dt
@@ -5036,7 +5750,7 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 		var n = min(total, int(t * BUBBLE_CPS))
 		if n > shown:
 			var ch = text[n - 1]
-			if ch != " " and (n / 2) != (shown / 2):
+			if ch != " " and int(n / 2.0) != int(shown / 2.0):
 				if guard_voice:
 					UISounds.play_mechanic()
 				else:
@@ -5182,9 +5896,13 @@ func _toggle_pause() -> void:
 			pausemenu.visible = false
 		get_tree().paused = false
 		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-		if _slowmo_on:
+		if journal_open:
+			Engine.time_scale = JOURNAL_SCALE
+			AudioServer.playback_speed_scale = 0.6
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		elif _slowmo_on:
 			Engine.time_scale = SLOWMO_SCALE
-			AudioServer.playback_speed_scale = 0.72
+			AudioServer.playback_speed_scale = 0.6
 			if state == State.INSPECT:
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	else:
@@ -5206,9 +5924,13 @@ func _toggle_pause() -> void:
 
 func _resume_after_pause() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-	if _slowmo_on:
+	if journal_open:
+		Engine.time_scale = JOURNAL_SCALE
+		AudioServer.playback_speed_scale = 0.6
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	elif _slowmo_on:
 		Engine.time_scale = SLOWMO_SCALE
-		AudioServer.playback_speed_scale = 0.72
+		AudioServer.playback_speed_scale = 0.6
 		if state == State.INSPECT:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
@@ -5323,7 +6045,9 @@ func _enter_elevator() -> void:
 			_show_freedom_achievement()
 	_show_dialog("ПОБЕГ...", 1.5)
 	await _await_elevator_anim("open")
-	await get_tree().create_timer(1.0).timeout
+	await _tree().create_timer(1.0).timeout
+	if not is_inside_tree():
+		return
 	Global.autosave(Global.SCENE_HALLWAY)
 	Global.goto_scene(Global.SCENE_HALLWAY)
 

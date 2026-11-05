@@ -229,6 +229,8 @@ func _start_background_chatter() -> void:
 		return
 	if chatter.is_active():
 		chatter.stop()
+	# the background talk never just runs out: after the last line it starts over
+	chatter.loop = true
 	chatter.start()
 
 
@@ -680,13 +682,13 @@ func _tutorial_tick(dt: float) -> void:
 	if animationtrack and animationtrack.is_playing() and animationtrack.current_animation == "INTRO":
 		return
 	_tut_t += dt
-	_tut.hint("a_swim", "ПЛАВАТЬ", ["ui_up", "ui_left", "ui_down", "ui_right"],
+	_tut.hint("a_swim", "ПЛАВАТЬ|Стрелками в любую сторону", ["ui_up", "ui_left", "ui_down", "ui_right"],
 		func(): return player.get("velocity") is Vector2 and (player.get("velocity") as Vector2).length() > 30.0, 2.0, 8.0)
 	if _tut_t > 6.0:
-		_tut.hint("a_listen", "ВНИЗУ, ЗА СТЕКЛОМ, ЛЮДИ О ЧЁМ-ТО СПОРЯТ. ПОДПЛЫВИ ПОСЛУШАТЬ", [],
+		_tut.hint("a_listen", "ПОДСЛУШАТЬ|Внизу за стеклом люди о чём-то спорят. Подплыви поближе", [],
 			func(): return player.global_position.y > GLASS_ZONE.position.y - 40.0, 2.5, 12.0)
 	if _in_glass_zone:
-		_tut.hint("a_hit", "ТРЕЩИНА В СТЕКЛЕ. УДАРЬ ПО НЕЙ", ["interact"], func(): return _cutscene, 1.0, 20.0)
+		_tut.hint("a_hit", "УДАРИТЬ|В стекле трещина — бей прямо по ней", ["interact"], func(): return _cutscene, 1.0, 20.0)
 
 
 func _process(_delta: float) -> void:
@@ -906,7 +908,7 @@ func _make_alarm_overlay() -> ColorRect:
 	return r
 
 
-func _quake_jolt(cam: Camera2D, k: float, n: int) -> void:
+func _quake_jolt(cam: Camera2D, k: float, _n: int) -> void:
 	if cam:
 		if "trauma" in cam:
 			cam.trauma = min(1.0, float(cam.trauma) + lerp(0.25, 0.45, k))
@@ -997,13 +999,17 @@ func _play_earthquake() -> void:
 	if not is_inside_tree():
 		return
 	UISounds.stop_earthquake()
-	await _show_flashback_title()
+	var title_layer = await _show_flashback_title()
 	if not is_inside_tree():
 		return
 	UISounds.set_glitch(0.0)
 	UISounds.stop_factory_ambience()
 	Global.prologue1_completed = true
 	Global.autosave(Global.SCENE_FACTORY)
+	# the title stays on screen through the scene change and only then dissolves into the
+	# factory (it lives on the root, above the global fade)
+	if title_layer:
+		title_layer.set_meta("go", true)
 	Global.goto_scene(Global.SCENE_FACTORY)
 
 func _knockout_fish() -> void:
@@ -1069,16 +1075,49 @@ func _spawn_falling_debris() -> void:
 		cam.add_trauma(0.8)
 
 
-func _show_flashback_title() -> void:
+## Small helper script for the title overlay: waits until the factory is really there, then
+## fades the words and the black away.
+const _TITLE_FADE_SRC := """extends CanvasLayer
+var _scene_id := 0
+var _t := 0.0
+var _phase := 0
+func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_scene_id = get_tree().current_scene.get_instance_id() if get_tree().current_scene else 0
+func _process(delta):
+	if not has_meta("go"):
+		return
+	var sc = get_tree().current_scene
+	if _phase == 0:
+		if sc and sc.get_instance_id() != _scene_id:
+			_phase = 1
+			_t = 0.0
+		return
+	_t += min(delta, 0.05)
+	if _phase == 1 and _t > 0.9:
+		_phase = 2
+		var tw = create_tween()
+		tw.tween_property(get_node("Title"), "modulate:a", 0.0, 0.7)
+		tw.tween_property(get_node("Black"), "modulate:a", 0.0, 1.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_callback(queue_free)
+"""
+
+func _show_flashback_title() -> CanvasLayer:
 	var layer = CanvasLayer.new()
-	layer.layer = 100
-	add_child(layer)
+	layer.layer = 1030   # over the global fade: the black never blinks during the change
+	var src = GDScript.new()
+	src.source_code = _TITLE_FADE_SRC
+	if src.reload() == OK:
+		layer.set_script(src)
+	get_tree().root.add_child(layer)
 	var rect = ColorRect.new()
 	rect.color = Color.BLACK
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.name = "Black"
 	layer.add_child(rect)
 	var label = Label.new()
+	label.name = "Title"
 	label.text = "Пару дней назад..."
 	label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 	var tf = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
@@ -1097,8 +1136,8 @@ func _show_flashback_title() -> void:
 	var tw = create_tween()
 	tw.tween_property(label, "modulate:a", 1.0, 1.0)
 	tw.tween_interval(1.4)
-	tw.tween_property(label, "modulate:a", 0.0, 0.6)
 	await tw.finished
+	return layer
 
 
 # ---------------------------------------------------------------------------

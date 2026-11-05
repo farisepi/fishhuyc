@@ -66,10 +66,44 @@ func take_damage(amount: int) -> void:
 		return
 	hp -= amount
 	_flash_damage()
+	# pushed away from the player: a little on a hit, more when it is the killing blow
+	var dir = 1.0
+	if player and is_instance_valid(player):
+		dir = 1.0 if global_position.x >= player.global_position.x else -1.0
 	if hp <= 0:
+		_knockback(dir, 34.0, 0.3, 10.0)
 		die()
 	else:
+		_knockback(dir, 12.0, 0.14, 3.0)
 		_on_hurt()
+
+
+## Slides the body `dist` px sideways (stops at walls) and hops the sprites a bit.
+func _knockback(dir: float, dist: float, time: float, hop: float) -> void:
+	var spr: Node2D = null
+	for c in get_children():
+		if c is AnimatedSprite2D or c is Sprite2D:
+			spr = c
+			break
+	if spr and hop > 0.0:
+		var base_y = spr.position.y
+		var ht = create_tween()
+		ht.tween_property(spr, "position:y", base_y - hop, time * 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		ht.tween_property(spr, "position:y", base_y, time * 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var moved := 0.0
+	var t := 0.0
+	while t < time and is_inside_tree():
+		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
+		var dt = get_physics_process_delta_time()
+		t += dt
+		# fast at first, then easing out
+		var k = 1.0 - pow(1.0 - clamp(t / time, 0.0, 1.0), 2.0)
+		var step = dist * k - moved
+		moved += step
+		if move_and_collide(Vector2(step * dir, 0.0)):
+			return
 
 func _flash_damage() -> void:
 	var target = null
@@ -135,7 +169,7 @@ func _update_aggro(dist: float) -> void:
 		if dist > deaggro_range:
 			is_aggro = false
 
-func _patrol_step(delta: float) -> void:
+func _patrol_step(_delta: float) -> void:
 	velocity.x = patrol_dir * speed * patrol_speed_mult
 	if global_position.x > patrol_origin.x + patrol_range:
 		patrol_dir = -1
@@ -174,7 +208,7 @@ func _hurt_player(amount: int) -> void:
 	if player.get("is_dashing") == true:
 		return
 	if player.has_method("take_damage"):
-		player.take_damage(amount)
+		player.take_damage(amount, self)
 
 
 # =====================================================================
@@ -362,7 +396,7 @@ func _hurt_player_smart(amount: int) -> bool:
 		if from_behind and player.has_method("_set_blocking"):
 			player._set_blocking(false)
 	if player.has_method("take_damage"):
-		player.take_damage(amount)
+		player.take_damage(amount, self)
 	return true
 
 
@@ -384,7 +418,7 @@ func _play_on(spr: AnimatedSprite2D, anim_name: String, extra_offset: Vector2 = 
 	if spr.animation != anim_name or restart or not spr.is_playing():
 		spr.play(anim_name)
 	var tex = spr.sprite_frames.get_frame_texture(anim_name, 0)
-	var h = tex.get_height() if tex else 75.0
+	var h: float = float(tex.get_height()) if tex else 75.0
 	spr.offset = _base_sprite_offset + extra_offset + Vector2(0, -(h - 75.0) / 2.0)
 
 

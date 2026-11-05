@@ -76,6 +76,7 @@ const SIDE_GAP := 4.0
 var _far_k: float = 0.0       # 0 = the speakers are on screen, 1 = far away
 var _measured_line = null
 var _measured_h: float = 30.0
+@warning_ignore("unused_private_class_variable")
 var _measured_shift: float = 0.0
 var _far_measured_line = null
 var _far_measured_h: float = 0.0
@@ -225,14 +226,14 @@ func _show_near(text: String) -> void:
 	
 	if line != _measured_line:
 		_measured_line = line
-		var full = line.text if line else text
+		var full = (line.text if line else text).replace("-", "-\u2060")
 		var f: Font = _near_label.get_theme_font("normal_font")
 		var plain = _strip_bbcode(full)
 		var tw = NEAR_MAX_W - PAD_X * 2
 		var name_w = 30.0
 		if f:
 			var ts = f.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, tw - 8.0, NEAR_FONT)
-			tw = min(tw, ts.x + 8.0)
+			tw = min(tw, ts.x + 12.0)   # a few px of slack: the box is never a hair too narrow
 			name_w = 0.0
 		_measured_w = ceil(max(max(tw, name_w) + PAD_X * 2, 46.0))
 		var th = _text_height(_near_label, full, _measured_w - PAD_X * 2)
@@ -266,11 +267,27 @@ func _show_near(text: String) -> void:
 	if line != _typein_line:
 		_typein_line = line
 		_typein.clear()
-	var wrapped = "[typein]" + text + "[/typein]"
+	# the WHOLE line is laid out from the first letter (the type-in effect hides what is not
+	# printed yet), so a word never jumps to the next line while it is being typed
+	text = text.replace("-", "-\u2060")   # no line break after a hyphen
+	var full_line = _full_line_bbcode(line, text)
+	var wrapped = "[typein]" + full_line + "[/typein]"
 	if _near_label.text != wrapped:
 		_near_label.text = wrapped
-		_typein.grow_to(_strip_bbcode(text).length())
+	_typein.grow_to(_strip_bbcode(text).length())
 	_decorate_near()
+
+
+## The full text of the current line with the same red colour on the swears as the typed one.
+func _full_line_bbcode(line, typed: String) -> String:
+	if line == null or not ("text" in line):
+		return typed
+	var full: String = line.text.replace("-", "-\u2060")
+	if "swear_words" in line:
+		for sw in line.swear_words:
+			if sw != "":
+				full = full.replace(sw, "[color=#FF3333]" + sw + "[/color]")
+	return full
 
 
 ## Height from the node's origin to the top of the head (sprite frame height, a bit of the
@@ -366,6 +383,12 @@ func _apply_near_fonts() -> void:
 		_near_label.add_theme_font_size_override(key, NEAR_FONT)
 	_near_label.add_theme_constant_override("line_separation", 2)
 	_near_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# wrap only between whole words (WORD_SMART used to cut a dot or a letter off a word that
+	# was a hair too wide for the box)
+	_near_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	for fl in [_far_label]:
+		if fl:
+			fl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	if _name_tag:
 		_name_tag.add_theme_font_size_override("font_size", NEAR_FONT)
 		_name_tag.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

@@ -66,6 +66,26 @@ var movement_blocked: bool = false
 ## Set by a level (the factory): the fish can ONLY walk, jump and attack there -
 ## no block, no parry, no dash, no climbing / ladders. Off everywhere else.
 var only_basic_moves: bool = false
+## Set by the factory while a minigame runs: the fish keeps standing at its press.
+var minigame_lock: bool = false
+
+## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
+## further. Levels can scale it down.
+var knockback_scale: float = 1.0
+var _knock_vx: float = 0.0
+var _knock_dir: float = 0.0
+const KNOCK_HIT: float = 150.0
+const KNOCK_DEATH: float = 230.0
+const HURT_SHAKE: float = 0.3
+const DEATH_SHAKE: float = 0.45
+## The little fish that pops out of the broken suit when it dies.
+const DEATH_FISH_SHEET := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishDeathFrames/Player_MechaFish_Death_MechaSuit_SpriteList_Animation.png"
+const DEATH_FISH_FRAME: int = 6     # the dome hits the floor and cracks on this frame
+var _death_fish: AnimatedSprite2D = null
+var _death_fish_v: Vector2 = Vector2.ZERO
+var _death_fish_floor: float = 0.0
+var _death_fish_bounces: int = 0
+var _death_fish_spawned: bool = false
 var dash_cooldown: float = 0.0
 var is_dashing: bool = false
 var is_shift_held: bool = false
@@ -342,8 +362,14 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 	if is_dead:
-		velocity = Vector2.ZERO
+		velocity.x = _knock_vx
+		_knock_vx = move_toward(_knock_vx, 0.0, 700.0 * delta)
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		elif velocity.y > 0.0:
+			velocity.y = 0.0
 		move_and_slide()
+		_update_death_fish(delta)
 		return
 	if get_tree().paused:
 		return
@@ -382,9 +408,12 @@ func _physics_process(delta):
 		return
 
 	if is_hurt:
-		velocity = Vector2.ZERO
+		velocity.x = _knock_vx
+		_knock_vx = move_toward(_knock_vx, 0.0, 900.0 * delta)
 		if not is_on_floor():
 			velocity.y += gravity * delta
+		elif velocity.y > 0.0:
+			velocity.y = 0.0
 		move_and_slide()
 		return
 
@@ -400,7 +429,7 @@ func _physics_process(delta):
 		shift_held_time += delta
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
-	if is_dashing or movement_blocked:
+	if is_dashing or movement_blocked or minigame_lock:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
@@ -765,7 +794,29 @@ func _deal_attack_damage() -> void:
 		if camera and camera.has_method("add_trauma"):
 			camera.add_trauma(0.08)
 
-func take_damage(amount: int):
+## Who hit us decides where we fly: a Node2D, a position, or nothing (= backwards).
+func _knock_dir_from(source) -> float:
+	var sx = NAN
+	if source is Node2D and is_instance_valid(source):
+		sx = source.global_position.x
+	elif source is Vector2:
+		sx = source.x
+	if is_nan(sx) or absf(sx - global_position.x) < 1.0:
+		return -float(facing_direction)
+	return 1.0 if global_position.x > sx else -1.0
+
+func knockback_from(source, power: float = KNOCK_HIT) -> void:
+	_knock_dir = _knock_dir_from(source)
+	_knock_vx = _knock_dir * power * knockback_scale
+	if is_on_floor():
+		velocity.y = -70.0 * knockback_scale
+
+func _shake_camera(amount: float) -> void:
+	var cam = get_viewport().get_camera_2d() if get_viewport() else null
+	if cam and cam.has_method("add_trauma"):
+		cam.add_trauma(amount)
+
+func take_damage(amount: int, source = null):
 	if is_dead or is_dying:
 		return
 	if hp <= 0:
@@ -792,8 +843,12 @@ func take_damage(amount: int):
 	if hp < 0:
 		hp = 0
 	if hp <= 0:
+		knockback_from(source, KNOCK_DEATH)
+		_shake_camera(DEATH_SHAKE)
 		_begin_death()
 		return
+	knockback_from(source, KNOCK_HIT)
+	_shake_camera(HURT_SHAKE)
 	if sprite == null:
 		return
 	_set_blocking(false)
@@ -844,6 +899,8 @@ func die():
 		sprite.animation = "Death"
 		sprite.frame = 0
 		sprite.play("Death")
+		if not sprite.frame_changed.is_connected(_on_death_frame):
+			sprite.frame_changed.connect(_on_death_frame)
 		
 		await sprite.animation_finished
 		if not is_inside_tree():
@@ -851,6 +908,12 @@ func die():
 			
 		sprite.stop()
 		sprite.frame = last_frame
+		if not _death_fish_spawned:
+			_spawn_death_fish()
+		# let the little fish land before the death screen
+		await _safe_timer(0.8)
+		if not is_inside_tree():
+			return
 	else:
 		await _safe_timer(1.0)
 		if not is_inside_tree():
@@ -1037,3 +1100,106 @@ func set_hp(value: int):
 
 func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
+
+
+
+# ------------------------------------------------------------------ death: the fish pops out
+func _on_death_frame() -> void:
+	if sprite == null or sprite.animation != "Death":
+		return
+	if sprite.frame >= DEATH_FISH_FRAME and not _death_fish_spawned:
+		_spawn_death_fish()
+
+
+## Cuts the flopping-fish sheet into frames trimmed to the fish itself (so it spins around
+## its own middle while it flies).
+func _death_fish_frames() -> SpriteFrames:
+	var tex = load(DEATH_FISH_SHEET) as Texture2D
+	if tex == null:
+		return null
+	var img = tex.get_image()
+	if img == null:
+		return null
+	if img.is_compressed():
+		img.decompress()
+	var f = SpriteFrames.new()
+	f.set_animation_loop("default", true)
+	f.set_animation_speed("default", 12.0)
+	var n = int(tex.get_width() / 160.0)
+	for i in range(n):
+		var cell = img.get_region(Rect2i(i * 160, 0, 160, tex.get_height()))
+		var used = cell.get_used_rect()
+		if used.size.x <= 0 or used.size.y <= 0:
+			continue
+		var at = AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * 160 + used.position.x, used.position.y, used.size.x, used.size.y)
+		f.add_frame("default", at)
+	return f
+
+
+func _spawn_death_fish() -> void:
+	_death_fish_spawned = true
+	if sprite == null or not is_inside_tree():
+		return
+	var frames = _death_fish_frames()
+	if frames == null or frames.get_frame_count("default") == 0:
+		return
+	var host = get_parent() if get_parent() else self
+	_death_fish = AnimatedSprite2D.new()
+	_death_fish.sprite_frames = frames
+	_death_fish.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_death_fish.z_as_relative = false
+	# in front of everything around (in the factory the suit stands behind the belt)
+	_death_fish.z_index = max(sprite.z_index + z_index + 2, 35)
+	var side = signf(sprite.scale.x) if sprite.scale.x != 0.0 else 1.0
+	# out of the glass dome (the front of the lying suit)
+	var start = sprite.to_global(Vector2(-46.0, 2.0))
+	_death_fish.global_position = start
+	_death_fish.scale = sprite.global_scale.abs()
+	_death_fish.flip_h = side < 0.0
+	host.add_child(_death_fish)
+	_death_fish.global_position = start
+	_death_fish.play("default")
+	# pops up and away from the suit, falls back and bounces twice
+	var away = -side
+	if _knock_dir != 0.0:
+		away = _knock_dir
+	_death_fish_v = Vector2(away * randf_range(95.0, 130.0), -randf_range(230.0, 270.0))
+	_death_fish_floor = sprite.to_global(Vector2(0, 36.0)).y
+	_death_fish_bounces = 0
+	# a few water drops from the cracked dome
+	for i in range(8):
+		var d = ColorRect.new()
+		d.size = Vector2(2, 2)
+		d.color = Color(0.55, 0.85, 1.0, 0.9)
+		d.z_as_relative = false
+		d.z_index = _death_fish.z_index
+		host.add_child(d)
+		d.global_position = start
+		var to = start + Vector2(randf_range(-26, 26), -randf_range(10, 30))
+		var tw = d.create_tween()
+		tw.tween_property(d, "global_position", to, 0.25).set_ease(Tween.EASE_OUT)
+		tw.tween_property(d, "global_position", Vector2(to.x + randf_range(-6, 6), _death_fish_floor), 0.3).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(d, "modulate:a", 0.0, 0.3)
+		tw.tween_callback(d.queue_free)
+
+
+func _update_death_fish(delta: float) -> void:
+	if _death_fish == null or not is_instance_valid(_death_fish):
+		return
+	if _death_fish_bounces >= 3:
+		return
+	_death_fish_v.y += 900.0 * delta
+	_death_fish.global_position += _death_fish_v * delta
+	_death_fish.rotation += _death_fish_v.x * 0.05 * delta
+	if _death_fish.global_position.y >= _death_fish_floor and _death_fish_v.y > 0.0:
+		_death_fish.global_position.y = _death_fish_floor
+		_death_fish_bounces += 1
+		if _death_fish_bounces >= 3 or absf(_death_fish_v.y) < 60.0:
+			_death_fish_bounces = 3
+			_death_fish_v = Vector2.ZERO
+			_death_fish.rotation = 0.0
+			_death_fish.speed_scale = 0.5   # lies there, flopping
+		else:
+			_death_fish_v = Vector2(_death_fish_v.x * 0.55, -_death_fish_v.y * 0.38)

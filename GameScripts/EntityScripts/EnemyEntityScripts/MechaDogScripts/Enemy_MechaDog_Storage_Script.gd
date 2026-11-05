@@ -454,7 +454,7 @@ func _grapple_logic(delta: float) -> void:
 		# the jaws keep chewing while the fish struggles
 		_grip_tick = 0.0
 		if player.has_method("take_damage"):
-			player.take_damage(1)
+			player.take_damage(1, self)
 		_shake(0.12)
 		if not _player_ok() or int(player.get("hp")) <= 0:
 			_release_player(false)
@@ -468,7 +468,7 @@ func _grapple_logic(delta: float) -> void:
 	if t >= grip_time:
 		# fish failed: a last hard chomp, then the dog lets go and backs off
 		if player.has_method("take_damage"):
-			player.take_damage(2)
+			player.take_damage(2, self)
 		_shake(0.35)
 		_release_player(true)
 		cooldown = 1.0

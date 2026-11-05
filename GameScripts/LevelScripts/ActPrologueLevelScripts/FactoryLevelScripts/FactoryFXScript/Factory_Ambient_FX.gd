@@ -161,16 +161,24 @@ func sparks(at: Vector2, count: int, falling: bool) -> void:
 	get_tree().create_timer(1.4, false).timeout.connect(p.queue_free)
 
 
-## One press stroke: steam hiss from the cylinder top, crumbs and a dust ring at the foot.
-func press_impact(foot: Vector2, top: Vector2) -> void:
-	# steam
+## One press stroke: steam all over the press (along the whole top, out of the joints on
+## both sides and around the foot), crumbs and a dust ring at the foot.
+func press_impact(foot: Vector2, top: Vector2, half_w: float = 30.0) -> void:
+	# side jets: the cylinder vents left and right halfway down, and the foot puffs sideways
+	for side in [-1.0, 1.0]:
+		var mid_y = lerp(top.y, foot.y, 0.45)
+		_steam_jet(Vector2(foot.x + side * half_w * 0.85, mid_y), Vector2(side, -0.35), 7, 0.75, 22.0, 46.0)
+		_steam_jet(Vector2(foot.x + side * half_w * 0.6, foot.y - 6.0), Vector2(side, -0.15), 6, 0.6, 30.0, 60.0)
+	# steam along the whole top of the press
 	var s = CPUParticles2D.new()
 	s.texture = _soft
 	s.one_shot = true
 	s.explosiveness = 0.7
-	s.amount = 16
+	s.amount = 26
 	s.lifetime = 1.1
 	s.position = top
+	s.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	s.emission_rect_extents = Vector2(half_w, 2.0)
 	s.direction = Vector2(0, -1)
 	s.spread = 35.0
 	s.initial_velocity_min = 14.0
@@ -218,3 +226,37 @@ func press_impact(foot: Vector2, top: Vector2) -> void:
 	add_child(d)
 	d.emitting = true
 	get_tree().create_timer(0.9, false).timeout.connect(d.queue_free)
+
+
+
+func _steam_jet(at: Vector2, dir: Vector2, amount: int, life: float, v0: float, v1: float) -> void:
+	var j = CPUParticles2D.new()
+	j.texture = _soft
+	j.one_shot = true
+	j.explosiveness = 0.85
+	j.amount = amount
+	j.lifetime = life
+	j.position = at
+	j.direction = dir
+	j.spread = 18.0
+	j.initial_velocity_min = v0
+	j.initial_velocity_max = v1
+	j.gravity = Vector2(0, -14)
+	j.damping_min = 30.0
+	j.damping_max = 50.0
+	j.scale_amount_min = 0.4
+	j.scale_amount_max = 1.0
+	var sc = Curve.new()
+	sc.add_point(Vector2(0, 0.4))
+	sc.add_point(Vector2(1, 1.5))
+	j.scale_amount_curve = sc
+	var g = Gradient.new()
+	g.set_color(0, Color(0.92, 0.94, 0.98, 0.7))
+	g.set_color(1, Color(0.7, 0.72, 0.78, 0.0))
+	j.color_ramp = g
+	j.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	j.z_as_relative = false
+	j.z_index = 17
+	add_child(j)
+	j.emitting = true
+	get_tree().create_timer(life + 0.4, false).timeout.connect(j.queue_free)

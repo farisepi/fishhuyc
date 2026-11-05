@@ -53,8 +53,7 @@ func start_hit_sequence() -> void:
 	await get_tree().create_timer(2.0).timeout
 	
 	UISounds.stop_factory_ambience()
-	Fade.fade_out()
-	await Fade.fade_out
+	await Fade.fade_out()
 	var tree = get_tree()
 	if tree:
 		tree.change_scene_to_file("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn")

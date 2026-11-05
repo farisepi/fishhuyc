@@ -41,7 +41,7 @@ func _on_hit_area_body_entered(body: Node2D):
 		if body.has_method("is_blocking") and body.is_blocking():
 			print("игрок заблокировал урон")
 		if body.has_method("take_damage"):
-			body.take_damage(1)
+			body.take_damage(1, self)
 			print("удар по игроку")
 			print("удар по игроку (1 сердце)")
 		state = State.KNOCKBACK

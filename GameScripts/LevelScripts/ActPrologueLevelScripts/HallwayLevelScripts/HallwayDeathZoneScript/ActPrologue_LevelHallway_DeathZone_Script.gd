@@ -1,5 +1,6 @@
 extends Area2D
 
+@warning_ignore("unused_signal")
 signal player_died
 
 @export var death_delay: float = 0.5

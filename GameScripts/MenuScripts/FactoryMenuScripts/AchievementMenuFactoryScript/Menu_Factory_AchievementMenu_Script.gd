@@ -57,6 +57,7 @@ const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Me
 @onready var freedom_desc: Label = $AchievementsScroll/AchievementsList/FreedomAchievement/DescLabel
 
 var total_achievements: int = 8
+var _extra_rows: Array = []
 var unlocked_count: int = 0
 
 func _ready() -> void:
@@ -74,6 +75,8 @@ func _ready() -> void:
 	if not back_btn.pressed.is_connected(_on_back_button_pressed):
 		back_btn.pressed.connect(_on_back_button_pressed)
 	
+	_extra_rows = Achievements.build_extra_rows(get_node_or_null("AchievementsScroll/AchievementsList"), freedom_achievement)
+	total_achievements = Achievements.total_count()
 	_setup_progress_bar()
 	update_achievements()
 
@@ -174,6 +177,17 @@ func update_achievements() -> void:
 			if freedom_desc:
 				freedom_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 	
+	for r in _extra_rows:
+		if Achievements.is_unlocked(r["id"]):
+			unlocked_count += 1
+			_set_bright(r["root"], r["icon"], r["check"], r["name"])
+			if r["desc"]:
+				r["desc"].add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+		else:
+			_set_gray(r["root"], r["icon"], r["check"], r["name"])
+			if r["desc"]:
+				r["desc"].add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+
 	if progress_bar:
 		progress_bar.value = unlocked_count
 	if progress_label:
@@ -192,10 +206,7 @@ func _set_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: 
 	if name_label: name_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
 func _on_reset_pressed() -> void:
-	if not Achievements.coffee_unlocked and not Achievements.flashback_unlocked \
-		and not Achievements.pop_star_unlocked and not Achievements.rebel_unlocked \
-		and not Achievements.acrobat_unlocked and not Achievements.worker_of_month_unlocked \
-		and not Achievements.scout_unlocked and not Achievements.freedom_unlocked:
+	if not Achievements.any_unlocked():
 		return
 	
 	var menu = STYLED_DIALOG.new()

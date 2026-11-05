@@ -184,7 +184,7 @@ func _chase_logic(dist: float, vertical_diff: float) -> void:
 			_start_quad_run()
 
 
-func _quad_run_logic(delta: float, dist: float, vertical_diff: float) -> void:
+func _quad_run_logic(delta: float, _dist: float, vertical_diff: float) -> void:
 	_play_anim("run_fast")
 	velocity.x = facing_dir * quad_run_speed
 	windup_timer += delta
@@ -207,7 +207,7 @@ func _quad_run_logic(delta: float, dist: float, vertical_diff: float) -> void:
 		_start_jump_bite()
 
 
-func _jump_bite_logic(delta: float, dist: float) -> void:
+func _jump_bite_logic(delta: float, _dist: float) -> void:
 	velocity.x = facing_dir * quad_run_speed * 0.55
 	windup_timer += delta
 	if windup_timer >= 0.10 and not _damage_dealt_this_attack:
@@ -221,7 +221,7 @@ func _jump_bite_logic(delta: float, dist: float) -> void:
 		state = State.RETREAT
 
 
-func _bite_logic(delta: float, dist: float) -> void:
+func _bite_logic(delta: float, _dist: float) -> void:
 	velocity.x = 0
 	windup_timer += delta
 	if not _damage_dealt_this_attack and _is_player_in_attack_zone(bite_range):
@@ -319,17 +319,17 @@ func _cancel_attack_early() -> void:
 		sprite.stop()
 
 
-func _play_anim(name: String) -> void:
+func _play_anim(anim_name: String) -> void:
 	if not sprite:
 		return
 	if not sprite.sprite_frames:
 		return
 	if sprite.animation == "hit" and sprite.is_playing():
 		return
-	if not sprite.sprite_frames.has_animation(name):
-		name = "idle"
-	if sprite.animation != name or not sprite.is_playing():
-		sprite.play(name)
+	if not sprite.sprite_frames.has_animation(anim_name):
+		anim_name = "idle"
+	if sprite.animation != anim_name or not sprite.is_playing():
+		sprite.play(anim_name)
 
 
 func _reset_quad_visual() -> void:

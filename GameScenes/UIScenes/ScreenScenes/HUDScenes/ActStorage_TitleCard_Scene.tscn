@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://a8k4m2n6p1q9r" path="res://GameScripts/UIScripts/HUDScripts/ActStorage_TitleCard_Script.gd" id="1_title"]
+[ext_resource type="Script" uid="uid://lgpjmk1k0mlm" path="res://GameScripts/UIScripts/HUDScripts/ActStorage_TitleCard_Script.gd" id="1_title"]
 
 [node name="TitleCard" type="CanvasLayer"]
 layer = 100

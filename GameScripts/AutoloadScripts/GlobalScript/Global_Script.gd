@@ -201,6 +201,12 @@ func apply_resolution(index: int) -> void:
 func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") != OK:
+		# no settings yet: still a window that fits the screen (the bottom of the HUD used to
+		# go under the taskbar with the 1920x1080 window on a 1080p screen)
+		if apply_window:
+			if OS.has_feature("editor"):
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			apply_resolution(0)
 		return
 	
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))

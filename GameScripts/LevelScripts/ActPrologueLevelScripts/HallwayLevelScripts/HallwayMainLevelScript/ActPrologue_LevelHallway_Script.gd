@@ -392,7 +392,7 @@ func _update_intro_enemies():
 
 		var y_off = _intro_enemy_y_offsets[i] if i < _intro_enemy_y_offsets.size() else 0.0
 
-		var desired_x = px - ENEMY_MIN_GAP - i * ENEMY_SPACING
+		var _desired_x = px - ENEMY_MIN_GAP - i * ENEMY_SPACING
 		var max_x = px - ENEMY_MIN_GAP
 
 		if enemy.global_position.x > max_x:
@@ -961,17 +961,17 @@ func _run_forklift_shift_qte() -> bool:
 
 	shift_qte.show_qte()
 
-	var result: bool = false
-	var received: bool = false
+	# (a lambda can't change outer locals - the old flags never flipped; a Dictionary can)
+	var st = {"result": false, "received": false}
 
 	var callback = func(success: bool):
-		result = success
-		received = true
+		st["result"] = success
+		st["received"] = true
 
 	if not shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.connect(callback)
 
-	while not received:
+	while not st["received"]:
 		await get_tree().process_frame
 		if not is_inside_tree():
 			if shift_qte.qte_result.is_connected(callback):
@@ -981,7 +981,7 @@ func _run_forklift_shift_qte() -> bool:
 	if shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.disconnect(callback)
 
-	return result
+	return st["result"]
 
 func _force_dash():
 	if not player:
@@ -998,24 +998,21 @@ func _run_shift_qte_cutscene() -> bool:
 
 	shift_qte.show_qte()
 
-	var result: bool = false
-	var received: bool = false
+	# (a lambda can't change outer locals - the old flags never flipped; a Dictionary can)
+	var st = {"result": false, "received": false}
 
 	var callback = func(success: bool):
-		result = success
-		received = true
+		st["result"] = success
+		st["received"] = true
 
 	if not shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.connect(callback)
 
 	await get_tree().process_frame
 
-	var qte_started = false
+	var qte_started = true   # (it always ended up true: the lambda flag could not change it)
 	if shift_qte.has_signal("qte_started"):
-		shift_qte.qte_started.connect(func(): qte_started = true, CONNECT_ONE_SHOT)
 		await get_tree().create_timer(0.1).timeout
-		if not qte_started:
-			qte_started = true
 	
 	if qte_started:
 		var p_target_x = player.global_position.x + _qte_throw_dir * 600.0
@@ -1034,7 +1031,7 @@ func _run_shift_qte_cutscene() -> bool:
 		_forklift_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 		_forklift_tween.tween_property(forklift, "global_position:x", f_target_x, 1.5)
 
-	while not received:
+	while not st["received"]:
 		await get_tree().process_frame
 		if not is_inside_tree():
 			return false
@@ -1042,7 +1039,7 @@ func _run_shift_qte_cutscene() -> bool:
 	if shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.disconnect(callback)
 
-	if received:
+	if st["received"]:
 		var stop_tweens = get_tree().get_processed_tweens()
 		for t in stop_tweens:
 			t.kill()
@@ -1050,7 +1047,7 @@ func _run_shift_qte_cutscene() -> bool:
 		var f_y = forklift.global_position.y
 		var p_y = player.global_position.y
 		
-		if result:
+		if st["result"]:
 			forklift.global_position = Vector2(player.global_position.x + 150, f_y)
 			player.global_position = Vector2(forklift.global_position.x - 350, p_y)
 		else:
@@ -1059,7 +1056,7 @@ func _run_shift_qte_cutscene() -> bool:
 		if player.has_method("_play_anim"):
 			player._play_anim("Idle", true)
 
-	return result
+	return st["result"]
 
 func _throw_item_at_forklift():
 	if not player.has_item or forklift_stopped:
@@ -1148,6 +1145,9 @@ func _win():
 	# progress is kept even if the player never saved manually
 	Global.autosave(Global.SCENE_STORAGE)
 
+	# the prologue is over: the fish got out of the hallway (Hallway -> NearFactory)
+	if has_node("/root/Achievements"):
+		Achievements.unlock_chase()
 	GlobalMusic.stop_music()
 	Global.goto_scene(Global.SCENE_STORAGE)
 

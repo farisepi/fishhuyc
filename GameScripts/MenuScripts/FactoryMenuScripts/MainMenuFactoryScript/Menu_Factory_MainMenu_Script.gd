@@ -65,6 +65,7 @@ func _ready() -> void:
 		logo_original_y = logo.position.y
 		logo_original_scale = logo.scale
 
+	_setup_logo_click_anim()
 	if logo_area:
 		logo_area.mouse_entered.connect(_on_logo_mouse_entered)
 		logo_area.mouse_exited.connect(_on_logo_mouse_exited)
@@ -104,9 +105,47 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		click_sound.pitch_scale = randf_range(0.98, 1.02)
 		click_sound.play()
 		_logo_jelly_effect()
+		_play_logo_click_anim()
 		_spawn_logo_boxes()
 		await get_tree().create_timer(2.5).timeout
 		can_click_logo = true
+
+## "Logo click": a puff of steam bursts out around the logo (10-frame sheet, 209 x 105,
+## centred on the logo).
+const LOGO_CLICK_SHEET := "res://GameAssets/Sprites/UserInterfaceSprites/MainMenuSprites/MainMenuLogoTextures/MainMenuFactoryLogoTexture/Menu_MainMenu_Factory_LogoSteam_SpriteList_Animation.png"
+var _logo_click: AnimatedSprite2D = null
+
+func _setup_logo_click_anim() -> void:
+	if logo == null or not ResourceLoader.exists(LOGO_CLICK_SHEET):
+		return
+	var tex = load(LOGO_CLICK_SHEET) as Texture2D
+	if tex == null:
+		return
+	var f = SpriteFrames.new()
+	f.set_animation_loop("default", false)
+	f.set_animation_speed("default", 16.0)
+	var n = 10
+	var fw = int(tex.get_width() / float(n))
+	for i in range(n):
+		var at = AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * fw, 0, fw, tex.get_height())
+		f.add_frame("default", at)
+	_logo_click = AnimatedSprite2D.new()
+	_logo_click.name = "LogoClick"
+	_logo_click.sprite_frames = f
+	_logo_click.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_logo_click.visible = false
+	_logo_click.z_index = 1
+	logo.add_child(_logo_click)
+	_logo_click.animation_finished.connect(func(): _logo_click.visible = false)
+
+func _play_logo_click_anim() -> void:
+	if _logo_click == null:
+		return
+	_logo_click.visible = true
+	_logo_click.frame = 0
+	_logo_click.play("default")
 
 func _logo_jelly_effect() -> void:
 	if not logo:
