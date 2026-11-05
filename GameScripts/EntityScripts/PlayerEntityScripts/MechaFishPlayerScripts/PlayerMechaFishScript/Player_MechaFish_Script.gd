@@ -68,6 +68,21 @@ var movement_blocked: bool = false
 var only_basic_moves: bool = false
 ## Set by the factory while a minigame runs: the fish keeps standing at its press.
 var minigame_lock: bool = false
+## Уровень может выключить блок (F) и парирование (ПКМ) — в Hallway их рано показывать.
+var allow_block: bool = true
+var allow_parry: bool = true
+
+# --- лазание / перелезание (новая механика) ---
+const VAULT_MAX_H: float = 40.0       # до этой высоты — быстрый перескок дугой
+const DETECT_GAP: float = 50.0        # насколько близко к препятствию надо быть
+const LEDGE_ABOVE_HEAD: float = 32.0  # насколько выше головы можно схватиться за край в прыжке
+var _feet_off: float = 28.0
+var _head_off: float = 38.0
+var _half_w: float = 23.0
+var _body_shape: CollisionShape2D = null
+
+# --- падение в яму ---
+var is_falling_into_pit: bool = false
 
 ## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
 ## further. Levels can scale it down.
@@ -183,6 +198,12 @@ func _ready():
 	held_icon.z_index = 100
 	add_child(held_icon)
 	_update_stamina_ui(true)
+	_body_shape = get_node_or_null("CollisionShape2D")
+	if _body_shape and _body_shape.shape is CapsuleShape2D:
+		var cap: CapsuleShape2D = _body_shape.shape
+		_feet_off = _body_shape.position.y + cap.height / 2.0
+		_head_off = -(_body_shape.position.y - cap.height / 2.0)
+		_half_w = cap.radius
 
 func get_hp() -> int:
 	return hp
@@ -357,6 +378,8 @@ func _end_parry() -> void:
 		_play_anim("Idle")
 
 func _physics_process(delta):
+	if is_falling_into_pit:
+		return
 	if is_on_ladder:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -434,8 +457,8 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 	if is_vaulting or is_climbing or is_climbing_animation:
-		velocity.y = 0
-		move_and_slide()
+		# позицию в это время ведёт tween — физику не трогаем
+		velocity = Vector2.ZERO
 		return
 	if not is_on_floor():
 		velocity.y += gravity * delta
@@ -515,8 +538,9 @@ func _physics_process(delta):
 			velocity.x = 0
 
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_sliding and not _is_getting_up:
-		velocity.y = jump_velocity
-		_play_anim("Jump", true)
+		if only_basic_moves or not _try_vault():
+			velocity.y = jump_velocity
+			_play_anim("Jump", true)
 
 	if Input.is_action_just_pressed("interact") and not only_basic_moves:
 		if not _try_climb_obstacle():
@@ -543,64 +567,18 @@ func _physics_process(delta):
 
 	move_and_slide()
 
+	# хват за край: в прыжке/падении упёрся в препятствие, край на уровне рук -> подтягиваемся
+	if not only_basic_moves and not is_on_floor() and direction != 0 and velocity.y > -60.0:
+		_try_ledge_grab(1 if direction > 0 else -1)
+
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
 
+# E у препятствия — то же, что пробел: перелезть / залезть.
 func _try_climb_obstacle() -> bool:
-	if is_climbing_animation or is_climbing or is_vaulting or is_blocking or is_stunned or is_parrying:
-		return false
-	if barriers_node == null:
-		return false
-
-	var player_pos = global_position
-	var best = null
-	var best_dist = INF
-	var best_data = {}
-
-	for o in barriers_node.get_children():
-		if not is_instance_valid(o) or o.is_queued_for_deletion():
-			continue
-		var shapes: Array = []
-		_collect_rect_shapes(o, shapes)
-		for entry in shapes:
-			var col: CollisionShape2D = entry.shape_node
-			var rect: RectangleShape2D = entry.rect
-			var center: Vector2 = col.global_position
-			var half_w = rect.size.x * 0.5
-			var half_h = rect.size.y * 0.5
-			var left_edge = center.x - half_w
-			var right_edge = center.x + half_w
-			var top_edge = center.y - half_h
-
-			var height_above = top_edge - player_pos.y
-			if height_above < -climb_max_height:
-				continue
-			if height_above > climb_max_height:
-				continue
-			var closest_x = clamp(player_pos.x, left_edge, right_edge)
-			var dx = abs(player_pos.x - closest_x)
-			if dx > climb_max_side_distance:
-				continue
-			if rect.size.y > climb_max_height * 2.0:
-				continue
-
-			var dist = Vector2(player_pos.x - closest_x, height_above).length()
-			if dist < best_dist:
-				best_dist = dist
-				best = o
-				best_data = {
-					"center": center,
-					"left": left_edge,
-					"right": right_edge,
-					"top": top_edge,
-					"height": height_above,
-				}
-
-	if best == null:
-		return false
-
-	_climb_over(best, best_data.center, best_data.left, best_data.right, best_data.top)
-	return true
+	if is_on_floor():
+		return _try_vault()
+	return _try_ledge_grab(facing_direction)
 
 func _collect_rect_shapes(node: Node, out: Array) -> void:
 	for child in node.get_children():
@@ -610,55 +588,6 @@ func _collect_rect_shapes(node: Node, out: Array) -> void:
 				out.append({"shape_node": child, "rect": s})
 		else:
 			_collect_rect_shapes(child, out)
-
-func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, top_edge: float) -> void:
-	last_climbed_obstacle = o
-	is_climbing_animation = true
-	velocity = Vector2.ZERO
-	
-	set_physics_process(false)
-	
-	var go_right = global_position.x < center.x
-	facing_direction = 1 if go_right else -1
-	if sprite:
-		sprite.scale.x = 1 if go_right else -1
-
-	_play_anim("Climb", true)
-
-	var climb_anim_len = 0.4
-	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("Climb"):
-		var count = sprite.sprite_frames.get_frame_count("Climb")
-		var spd = sprite.sprite_frames.get_animation_speed("Climb")
-		if spd > 0 and count > 0:
-			climb_anim_len = float(count) / spd
-
-	var dir = 1.0 if go_right else -1.0
-	
-	var start_pos = global_position
-	var target_y = top_edge - climb_vertical_offset
-	var target_x = clamp(start_pos.x, left_edge + climb_horizontal_offset, right_edge - climb_horizontal_offset)
-	
-	if abs(target_x - start_pos.x) < 1.0:
-		target_x = start_pos.x + dir * climb_horizontal_offset
-		
-	var end_pos = Vector2(target_x + dir * climb_horizontal_offset, target_y)
-
-	var tw = create_tween()
-	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	
-	var mid_pos = Vector2(start_pos.x, target_y)
-	tw.tween_property(self, "global_position", mid_pos, climb_anim_len * 0.5)
-	tw.tween_property(self, "global_position", end_pos, climb_anim_len * 0.5)
-
-	await tw.finished
-
-	if not is_inside_tree():
-		return
-
-	is_climbing_animation = false
-	set_physics_process(true)
-	_play_anim("Idle")
-	velocity.y = 0
 
 func _play_landing() -> void:
 	if sprite == null:
@@ -682,11 +611,11 @@ func _input(event: InputEvent) -> void:
 		# factory: only walking and jumping (read in physics) - no attacks, blocks, parries, dashes
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-		if is_on_floor():
+		if allow_parry and is_on_floor():
 			_start_parry()
 		return
 
-	if event is InputEventKey and event.keycode == KEY_F and not event.echo:
+	if event is InputEventKey and event.keycode == KEY_F and not event.echo and allow_block:
 		if is_stunned or is_dead or is_dying or is_parrying:
 			return
 		if not is_on_floor():
@@ -954,6 +883,67 @@ func _show_death_screen() -> void:
 		return
 	screen.show_death.call_deferred()
 
+# Падение в яму (DeathZone): проваливаемся сквозь пол, темнеем, затем экран смерти.
+func fall_into_pit(zone: Node2D = null):
+	if is_dead or is_dying or is_falling_into_pit:
+		return
+	is_falling_into_pit = true
+	is_dying = true
+	movement_blocked = true
+	is_dashing = false
+	is_sliding = false
+	is_vaulting = false
+	is_climbing = false
+	is_climbing_animation = false
+	is_attacking = false
+	is_landing = false
+	_set_blocking(false)
+	Engine.time_scale = 1.0
+	_set_body_collision(false)
+
+	var pit := Rect2()
+	if zone:
+		var zc = zone.get_node_or_null("CollisionShape2D")
+		if zc and zc.shape is RectangleShape2D:
+			var hs = zc.shape.size / 2.0
+			pit = Rect2(zc.global_position - hs, zc.shape.size)
+
+	var vx = clamp(velocity.x, -160.0, 160.0)
+	var vy = min(velocity.y, 0.0) + 60.0
+	if camera:
+		if "follow_enabled" in camera:
+			camera.follow_enabled = false
+	_shake_camera(0.2)
+	if sprite:
+		_play_anim("Falling", true)
+		var spin = create_tween()
+		spin.tween_property(sprite, "rotation", deg_to_rad(28.0) * (1.0 if vx >= 0.0 else -1.0), 0.9)
+	var dark = create_tween()
+	dark.tween_property(self, "modulate", Color(0.05, 0.05, 0.07, 1.0), 0.6).set_delay(0.15)
+
+	var t := 0.0
+	while t < 1.0:
+		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
+		var d = get_physics_process_delta_time()
+		t += d
+		vy += gravity * d
+		vx = move_toward(vx, 0.0, 260.0 * d)
+		var nx = global_position.x + vx * d
+		if pit.has_area():
+			nx = clamp(nx, pit.position.x + 14.0, pit.end.x - 14.0)
+		global_position = Vector2(nx, global_position.y + vy * d)
+
+	is_dead = true
+	velocity = Vector2.ZERO
+	set_physics_process(false)
+	_show_death_screen()
+
+func _set_body_collision(on: bool) -> void:
+	if _body_shape:
+		_body_shape.set_deferred("disabled", not on)
+
 func _dash():
 	if is_dashing or dash_cooldown > 0:
 		return
@@ -1020,33 +1010,251 @@ func start_parry(enemy: CharacterBody2D, callback: Callable = Callable()):
 	parry_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	get_tree().current_scene.add_child(parry_label)
 
-func _try_vault() -> bool:
-	if is_climbing_animation or is_climbing or is_vaulting or is_blocking or is_stunned or is_parrying:
-		return false
-	if not barriers_node:
-		return false
-	for o in barriers_node.get_children():
-		if o is StaticBody2D and global_position.distance_to(o.global_position) < 60:
-			var s = o.get_node("CollisionShape2D").shape
-			if s is RectangleShape2D:
-				if s.size.y > 60:
-					return false
-				_jump_over(o, s.size.y >= 30)
-				return true
-	return false
+# ================== ЛАЗАНИЕ ==================
+# Препятствия: все StaticBody2D внутри barriers_node + узлы из группы "climbable"
+# (например, упавший стеллаж). Высота считается от ног рыбы до верха препятствия,
+# стопки (ящик на ящике) склеиваются в одно препятствие.
+#   <= VAULT_MAX_H        : быстрый перескок дугой (Jump -> Falling)
+#   <= climb_max_height   : прыжок к краю + подтягивание с анимацией Climb
+# Управление: ПРОБЕЛ (или E) рядом с препятствием. В прыжке, упираясь в край, — автохват.
 
-func _jump_over(o: StaticBody2D, high: bool):
+func _get_obstacles() -> Array:
+	var arr: Array = []
+	if barriers_node:
+		for o in barriers_node.get_children():
+			if o is StaticBody2D and not o.is_queued_for_deletion():
+				arr.append(o)
+	for o in get_tree().get_nodes_in_group("climbable"):
+		if o is StaticBody2D and not arr.has(o):
+			arr.append(o)
+	return arr
+
+func _body_rect(o: Node) -> Rect2:
+	var shapes: Array = []
+	_collect_rect_shapes(o, shapes)
+	var out := Rect2()
+	for entry in shapes:
+		var col: CollisionShape2D = entry.shape_node
+		if col.disabled:
+			continue
+		var h: Vector2 = entry.rect.size / 2.0
+		var xf: Transform2D = col.global_transform
+		var r := Rect2(xf * Vector2(-h.x, -h.y), Vector2.ZERO)
+		for p in [Vector2(h.x, -h.y), Vector2(h.x, h.y), Vector2(-h.x, h.y)]:
+			r = r.expand(xf * p)
+		out = r if not out.has_area() else out.merge(r)
+	return out
+
+func _find_climb_target(dir: int, max_gap: float) -> Dictionary:
+	var feet_y = global_position.y + _feet_off
+	var head_y = global_position.y - _head_off
+	var front_x = global_position.x + dir * _half_w
+	var rects: Array = []
+	for o in _get_obstacles():
+		var r = _body_rect(o)
+		if r.has_area():
+			rects.append(r)
+	var best_rect := Rect2()
+	var best_gap := max_gap
+	for r in rects:
+		if r.position.y >= feet_y - 2.0:
+			continue          # не выше пола
+		if r.end.y < head_y:
+			continue          # висит над головой — под ним можно пройти
+		var near_edge = r.position.x if dir > 0 else r.end.x
+		var gap = (near_edge - front_x) * dir
+		if gap < -_half_w or gap > best_gap:
+			continue
+		best_gap = gap
+		best_rect = r
+	if not best_rect.has_area():
+		return {}
+	# склеиваем стопку
+	var changed = true
+	while changed:
+		changed = false
+		for r2 in rects:
+			if r2.position.y < best_rect.position.y and r2.end.y >= best_rect.position.y - 4.0 \
+			and r2.position.x < best_rect.end.x - 4.0 and r2.end.x > best_rect.position.x + 4.0:
+				best_rect = best_rect.merge(r2)
+				changed = true
+	return {"rect": best_rect, "height": feet_y - best_rect.position.y}
+
+func _can_start_climb() -> bool:
+	if is_climbing_animation or is_climbing or is_vaulting or movement_blocked or minigame_lock:
+		return false
+	if is_blocking or is_stunned or is_parrying or is_hurt or is_dead or is_dying or only_basic_moves:
+		return false
+	return true
+
+func _try_vault() -> bool:
+	if not _can_start_climb():
+		return false
+	var dir = facing_direction
+	var t = _find_climb_target(dir, DETECT_GAP)
+	if t.is_empty():
+		return false
+	var h: float = t["height"]
+	if h <= 4.0 or h > climb_max_height:
+		return false
+	if h <= VAULT_MAX_H and t["rect"].size.x <= CLIMB_NARROW_W:
+		_vault_over(t["rect"], dir)
+	else:
+		_mantle(t["rect"], dir)
+	return true
+
+func _try_ledge_grab(dir: int) -> bool:
+	if not _can_start_climb():
+		return false
+	var t = _find_climb_target(dir, 6.0)
+	if t.is_empty():
+		return false
+	var top: float = t["rect"].position.y
+	var feet_y = global_position.y + _feet_off
+	var head_y = global_position.y - _head_off
+	if top < head_y - LEDGE_ABOVE_HEAD or top > feet_y - 4.0:
+		return false
+	if t["height"] <= VAULT_MAX_H and t["rect"].size.x <= CLIMB_NARROW_W:
+		_vault_over(t["rect"], dir)
+	else:
+		_mantle(t["rect"], dir)
+	return true
+
+func _bezier_move(t: float, a: Vector2, b: Vector2, c: Vector2) -> void:
+	global_position = a.lerp(b, t).lerp(b.lerp(c, t), t)
+
+# Быстрый перескок через невысокое препятствие дугой
+func _vault_over(rect: Rect2, dir: int) -> void:
 	is_vaulting = true
 	velocity = Vector2.ZERO
-	var d = 1 if sprite.scale.x > 0 else -1
-	var t = global_position
-	t.x = o.global_position.x + d * 50
-	t.y = o.global_position.y - 30 if high else global_position.y
-	create_tween().set_trans(Tween.TRANS_SINE).tween_property(self, "global_position", t, 0.3 if high else 0.15)
-	await _safe_timer(0.3 if high else 0.15)
+	_set_body_collision(false)
+	facing_direction = dir
+	if sprite:
+		sprite.scale.x = dir
+	_play_anim("Jump", true)
+
+	var from = global_position
+	var far_edge = rect.end.x if dir > 0 else rect.position.x
+	var to = Vector2(far_edge + dir * (_half_w + 8.0), from.y)
+	var apex_y = rect.position.y - _feet_off - 14.0
+	var ctrl = Vector2((from.x + to.x) / 2.0, 2.0 * apex_y - (from.y + to.y) / 2.0)
+	var dur = clamp(abs(to.x - from.x) / 300.0 + (from.y + _feet_off - rect.position.y) / 400.0, 0.3, 0.5)
+
+	var tw = create_tween()
+	tw.tween_method(_bezier_move.bind(from, ctrl, to), 0.0, 1.0, dur)
+	await _safe_timer(dur * 0.5)
+	if is_vaulting:
+		_play_anim("Falling", true)
+	await tw.finished
+	if not is_inside_tree():
+		return
+
+	_set_body_collision(true)
 	is_vaulting = false
+	last_climbed_obstacle = null
+	# сохраняем инерцию, чтобы бег не обрывался
+	velocity.x = Input.get_axis("ui_left", "ui_right") * run_speed
+	_play_landing()
+
+# ---------------- Залезание на препятствие ----------------
+# 1) ПОДПРЫГ к краю: рыба прыгает вдоль стенки так, чтобы руки оказались у верхнего края
+#    (время зависит от высоты препятствия — чем выше, тем дольше).
+# 2) ВИС: короткая пауза, рыба держится за край.
+# 3) ПОДТЯГИВАНИЕ: анимация Climb в своём темпе, тело плавно поднимается и
+#    переваливается через край.
+# 4) Встаёт наверху. Узкое препятствие (уже ~2 рыб) — сразу перешагивает и спрыгивает
+#    с другой стороны, широкое (контейнер, стеллаж) — остаётся стоять сверху.
+const CLIMB_RISE_SPEED: float = 260.0   # px/с подъёма к краю
+const CLIMB_HANG_TIME: float = 0.12
+const CLIMB_PULL_TIME: float = 0.5
+const CLIMB_NARROW_W: float = 70.0      # уже этого — перелезаем насквозь
+
+func _mantle(rect: Rect2, dir: int) -> void:
+	is_climbing_animation = true
+	velocity = Vector2.ZERO
+	_set_body_collision(false)
+	facing_direction = dir
+	if sprite:
+		sprite.scale.x = dir
+
+	var near = rect.position.x if dir > 0 else rect.end.x
+	var top = rect.position.y
+	var stand_y = top - _feet_off
+	# висим: прижаты к стенке, «руки» (верх тела) чуть ниже края
+	var hang = Vector2(near - dir * (_half_w + 1.0), top + _head_off - 8.0)
+	# встаём: на краю, но не на самом обрыве; на узком — по центру
+	var stand_x = near + dir * min(_half_w + 10.0, rect.size.x * 0.5)
+	if rect.size.x <= CLIMB_NARROW_W:
+		stand_x = rect.get_center().x
+
+	# 1) подпрыг к краю (если край выше, чем точка виса)
+	if global_position.y > hang.y + 2.0:
+		var rise = global_position.y - hang.y
+		var rise_t = clamp(rise / CLIMB_RISE_SPEED, 0.15, 0.55)
+		_play_anim("Jump", true)
+		var t1 = create_tween()
+		t1.tween_property(self, "global_position:x", hang.x, rise_t * 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		t1.parallel().tween_property(self, "global_position:y", hang.y, rise_t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		await t1.finished
+		if not is_inside_tree():
+			return
+	else:
+		var t0 = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		t0.tween_property(self, "global_position", Vector2(hang.x, global_position.y), 0.1)
+		await t0.finished
+
+	# 2) вис
+	_play_anim("Climb", true)
+	if sprite:
+		sprite.pause()
+		sprite.frame = 0
+	await _safe_timer(CLIMB_HANG_TIME)
+	if not is_inside_tree():
+		return
+
+	# 3) подтягивание: Climb растягиваем на время подъёма
+	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("Climb"):
+		var count = sprite.sprite_frames.get_frame_count("Climb")
+		var fps = sprite.sprite_frames.get_animation_speed("Climb")
+		if fps > 0 and count > 0:
+			sprite.speed_scale = (float(count) / fps) / CLIMB_PULL_TIME
+		sprite.play("Climb")
+	var t2 = create_tween()
+	# вверх — быстрее в начале (рывок), x — переваливаемся через край во второй половине
+	t2.tween_property(self, "global_position:y", stand_y - 3.0, CLIMB_PULL_TIME * 0.75).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	t2.parallel().tween_property(self, "global_position:x", stand_x, CLIMB_PULL_TIME * 0.6).set_delay(CLIMB_PULL_TIME * 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t2.tween_property(self, "global_position:y", stand_y, CLIMB_PULL_TIME * 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await t2.finished
+	if not is_inside_tree():
+		return
+	if sprite:
+		sprite.speed_scale = 1.0
+
+	_set_body_collision(true)
+	is_climbing_animation = false
+	was_on_floor_last_frame = true
+	velocity = Vector2.ZERO
+	var axis = Input.get_axis("ui_left", "ui_right")
+	if axis != 0.0:
+		velocity.x = axis * run_speed
+		_play_anim("Run")
+	else:
+		_play_anim("Idle")
+
+# совместимость со старым кодом
+func _jump_over(o: StaticBody2D, high: bool):
+	var r = _body_rect(o)
+	if not r.has_area():
+		return
+	var dir = 1 if sprite.scale.x > 0 else -1
+	if high:
+		_mantle(r, dir)
+	else:
+		_vault_over(r, dir)
 
 func _try_climb():
+	# E в воздухе — тоже попытка зацепиться
+	_try_ledge_grab(facing_direction)
 	return false
 
 func _try_ladder_climb():
@@ -1097,6 +1305,18 @@ func on_death_zone_entered():
 
 func set_hp(value: int):
 	hp = clamp(value, 0, max_hp)
+
+## Вызывается уровнем после катсцен: сразу «прилипнуть» к полу, без падения и Landing.
+func snap_to_floor_now() -> void:
+	if is_dead or is_falling_into_pit:
+		return
+	velocity = Vector2(0, 60)
+	move_and_slide()
+	velocity = Vector2.ZERO
+	was_on_floor_last_frame = true
+	is_landing = false
+	if sprite and sprite.animation in ["Falling", "Jump", "Landing"]:
+		_play_anim("Idle", true)
 
 func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
