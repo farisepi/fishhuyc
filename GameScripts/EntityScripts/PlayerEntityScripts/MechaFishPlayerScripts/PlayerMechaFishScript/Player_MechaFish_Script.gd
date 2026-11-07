@@ -68,6 +68,8 @@ var movement_blocked: bool = false
 var only_basic_moves: bool = false
 ## Set by the factory while a minigame runs: the fish keeps standing at its press.
 var minigame_lock: bool = false
+## The level stopped time but this fish may still move (factory tutorial).
+var ignore_pause: bool = false
 
 ## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
 ## further. Levels can scale it down.
@@ -371,7 +373,7 @@ func _physics_process(delta):
 		move_and_slide()
 		_update_death_fish(delta)
 		return
-	if get_tree().paused:
+	if get_tree().paused and not ignore_pause:
 		return
 
 	if parry_cooldown > 0:

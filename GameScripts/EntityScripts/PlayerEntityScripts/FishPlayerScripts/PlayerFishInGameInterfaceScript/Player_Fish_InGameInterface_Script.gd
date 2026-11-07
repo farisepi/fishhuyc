@@ -26,6 +26,8 @@ var _glow_on: bool = true
 ## A level that draws its own 1 HP glow (the factory) switches this one off.
 var glow_disabled: bool = false
 var _shaken: bool = true
+## the 1 HP glow fades in on its own, only once the interface has fully appeared
+var _glow_k: float = 0.0
 
 
 const HP_BAR_SPEED_TABLE: Dictionary = {
@@ -134,10 +136,16 @@ func _process(delta):
 		pulse_timer += delta
 		glow.material.set_shader_parameter("pulse", low_hp_pulse(pulse_timer))
 		_glow_on = true
-		glow.visible = not glow_disabled and ui_alpha > 0.01 and current_hearts > 0
-		glow.modulate.a = ui_alpha
+		if ui_alpha >= 0.99:
+			_glow_k = move_toward(_glow_k, 1.0, delta / 1.6)
+		else:
+			_glow_k = min(_glow_k, ui_alpha)
+		var ga = smoothstep(0.0, 1.0, _glow_k)
+		glow.visible = not glow_disabled and ga > 0.01 and current_hearts > 0
+		glow.modulate.a = ga
 	elif _glow_on:
 		_glow_on = false
+		_glow_k = 0.0
 		shake_amount = 0.0
 		pulse_timer = 0.0
 		glow.material.set_shader_parameter("pulse", 0.0)

@@ -79,6 +79,77 @@ func format_save_time() -> String:
 	var d = Time.get_datetime_dict_from_system()
 	return "%02d.%02d.%s %02d:%02d" % [d.day, d.month, str(d.year).substr(2, 2), d.hour, d.minute]
 
+## Factory progress of this save: the shift to start from, what was found out, which tutorial
+## parts were done ("tut"), stations worked at ("stations"), the accident seen, ...
+var factory_state: Dictionary = {}
+
+func write_factory_state(config: ConfigFile) -> void:
+	config.set_value("factory", "state", factory_state)
+
+func read_factory_state(config: ConfigFile) -> void:
+	var st = config.get_value("factory", "state", {})
+	factory_state = st.duplicate(true) if st is Dictionary else {}
+
+## Saves only the factory part (tutorial flags etc.) into the active slot right away.
+func save_factory_state() -> void:
+	var save_path = "user://saves/save_" + str(save_slot) + ".cfg"
+	var config = ConfigFile.new()
+	if config.load(save_path) != OK:
+		return
+	write_factory_state(config)
+	config.save(save_path)
+
+## A new run through the factory (from the aquarium): the shift progress starts over, what
+## the player already learned (tutorial, seen accident) stays.
+func reset_factory_progress() -> void:
+	var keep := {}
+	for k in ["tut", "accident_seen"]:
+		if factory_state.has(k):
+			keep[k] = factory_state[k]
+	factory_state = keep
+
+## "Завод - 2 Смена" for the save slots.
+func get_save_title(config: ConfigFile) -> String:
+	var scene = config.get_value("save", "scene", "???")
+	var t = get_location_name(scene)
+	if get_level_number(scene) == 2:
+		var st = config.get_value("factory", "state", {})
+		var sh = int(st.get("shift", 1)) if st is Dictionary else 1
+		t += " - " + str(max(1, sh)) + " Смена"
+	return t
+
+## The saving sign in the bottom-right corner (do not close the game while it is on).
+var _save_icon_layer: CanvasLayer = null
+const SAVE_ICON := preload("res://GameScripts/UIScripts/SaveIconScripts/Save_Icon.gd")
+
+func show_save_icon(time: float = 1.8) -> void:
+	if _save_icon_layer and is_instance_valid(_save_icon_layer):
+		_save_icon_layer.set_meta("until", Time.get_ticks_msec() + int(time * 1000.0))
+		return
+	var layer = CanvasLayer.new()
+	layer.layer = 120
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	layer.set_meta("until", Time.get_ticks_msec() + int(time * 1000.0))
+	get_tree().root.add_child(layer)
+	_save_icon_layer = layer
+	var icon = SAVE_ICON.new()
+	layer.add_child(icon)
+	var vp = Vector2(BASE_SIZE)
+	icon.position = vp - icon.size - Vector2(18, 16)
+	icon.modulate.a = 0.0
+	var tw = icon.create_tween()
+	tw.tween_property(icon, "modulate:a", 1.0, 0.25)
+	while is_instance_valid(layer) and Time.get_ticks_msec() < int(layer.get_meta("until")):
+		await get_tree().process_frame
+	if not is_instance_valid(layer):
+		return
+	var tw2 = icon.create_tween()
+	tw2.tween_property(icon, "modulate:a", 0.0, 0.35)
+	await tw2.finished
+	if is_instance_valid(layer):
+		layer.queue_free()
+	_save_icon_layer = null
+
 ## Writes the current progress into the active save slot (creates the file if needed).
 func autosave(scene_path: String, player_pos: Vector2 = Vector2.ZERO) -> void:
 	DirAccess.make_dir_absolute("user://saves/")
@@ -92,8 +163,10 @@ func autosave(scene_path: String, player_pos: Vector2 = Vector2.ZERO) -> void:
 	config.set_value("shards", "blue", shards_blue)
 	config.set_value("shards", "green", shards_green)
 	config.set_value("shards", "cyan", shards_cyan)
+	write_factory_state(config)
 	config.save(save_path)
 	last_save_level = max(1, get_level_number(scene_path))
+	show_save_icon()
 
 ## One brightness overlay for the whole game (settings menus reuse it).
 func ensure_brightness_layer() -> ColorRect:

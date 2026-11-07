@@ -163,6 +163,39 @@ func _make_decorations() -> void:
 	_near_panel.add_child(_name_tag)
 
 
+## A tiny space-bar key under the bottom-right corner of the bubble when the line can be
+## skipped (the cutscene).
+var _skip_icon: Control = null
+
+func _update_skip_icon() -> void:
+	var on = _controller != null and _controller.skippable and _near_panel != null and _near_panel.visible
+	if not on:
+		if _skip_icon:
+			_skip_icon.visible = false
+		return
+	if _skip_icon == null:
+		_skip_icon = Control.new()
+		_skip_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_skip_icon.size = Vector2(17, 8)
+		_skip_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_skip_icon.draw.connect(func():
+			var c = _skip_icon
+			var k = 0.5 + 0.5 * sin(_time * 4.0)
+			c.draw_rect(Rect2(0, 1, 17, 7), Color(0.06, 0.07, 0.1, 0.9))
+			c.draw_rect(Rect2(1, 0, 15, 6), Color(0.06, 0.07, 0.1))
+			c.draw_rect(Rect2(2, 1, 13, 4), Color(0.93, 0.94, 0.96))
+			c.draw_rect(Rect2(2, 4, 13, 1), Color(0.7, 0.72, 0.78))
+			# the space sign: a little bracket lying on its back
+			var ink = Color(0.2, 0.24, 0.32).lerp(Color(0.1, 0.45, 0.7), k)
+			c.draw_rect(Rect2(5, 2, 1, 2), ink)
+			c.draw_rect(Rect2(11, 2, 1, 2), ink)
+			c.draw_rect(Rect2(5, 3, 7, 1), ink))
+		_near_panel.add_child(_skip_icon)
+	_skip_icon.visible = true
+	_skip_icon.position = Vector2(_near_panel.size.x - 19, _near_panel.size.y + 1)
+	_skip_icon.queue_redraw()
+
+
 func _on_line_shown(_line: ChatterLine, _index: int) -> void:
 	_pop = 0.0
 
@@ -187,6 +220,8 @@ func bind(controller: ChatterController) -> void:
 # ---------------------------------------------------------------------------
 
 func _on_stopped() -> void:
+	if _skip_icon:
+		_skip_icon.visible = false
 	_measured_line = null
 	_far_measured_line = null
 	_hide_all()
@@ -276,6 +311,7 @@ func _show_near(text: String) -> void:
 		_near_label.text = wrapped
 	_typein.grow_to(_strip_bbcode(text).length())
 	_decorate_near()
+	_update_skip_icon()
 
 
 ## The full text of the current line with the same red colour on the swears as the typed one.

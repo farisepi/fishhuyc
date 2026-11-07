@@ -421,6 +421,7 @@ func _load_last_save() -> void:
 		return
 	
 	Global.player_position = Vector2(px, py)
+	Global.read_factory_state(config)
 	Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
 	Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 	Global.chatter_char_index = config.get_value("save", "chatter_index", 0)

@@ -21,6 +21,7 @@ func _ready() -> void:
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(loading_label, "modulate:a", 1.0, 0.4)
+	_make_save_notice()
 	
 	
 	var level = Global.last_save_level
@@ -66,9 +67,37 @@ func _ready() -> void:
 	fade.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	fade.tween_property(bg, "modulate:a", 0.0, 0.8)
 	fade.parallel().tween_property(loading_label, "modulate:a", 0.0, 0.8)
+	if _notice:
+		fade.parallel().tween_property(_notice, "modulate:a", 0.0, 0.5)
 	await fade.finished
 	
 	queue_free()
 
 func _process(_delta: float) -> void:
 	pass
+
+## Before the game: the saving sign and "do not close the game while you see it".
+const SAVE_ICON := preload("res://GameScripts/UIScripts/SaveIconScripts/Save_Icon.gd")
+var _notice: Control = null
+
+func _make_save_notice() -> void:
+	_notice = Control.new()
+	_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notice.size = Vector2(1152, 648)
+	$Canvas.add_child(_notice)
+	var icon = SAVE_ICON.new()
+	_notice.add_child(icon)
+	icon.position = Vector2(576 - icon.size.x * 0.5, 230)
+	var l = Label.new()
+	l.text = "Когда в углу экрана появляется этот знак,\nигра сохраняется. Не закрывайте её в это время."
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 18)
+	l.add_theme_color_override("font_color", Color(0.85, 0.88, 0.94))
+	l.add_theme_constant_override("line_spacing", 6)
+	l.size = Vector2(900, 60)
+	l.position = Vector2(126, 320)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notice.add_child(l)
+	_notice.modulate.a = 0.0
+	var tw = _notice.create_tween()
+	tw.tween_property(_notice, "modulate:a", 1.0, 0.5)

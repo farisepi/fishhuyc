@@ -172,6 +172,7 @@ func _on_play_button_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.MAIN_MENU
 	Global.is_new_game = true
+	Global.factory_state = {}
 	Global.intro_completed = false
 	Global.prologue1_completed = false
 	Global.prologue2_completed = false

@@ -77,9 +77,8 @@ func _update_slot_text(slot: Button, index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
 	var config = ConfigFile.new()
 	if config.load(save_path) == OK:
-		var scene = config.get_value("save", "scene", "???")
 		var time = config.get_value("save", "time", "???")
-		var location = Global.get_location_name(scene)
+		var location = Global.get_save_title(config)
 		slot.text = location + "\n" + time
 		slot.add_theme_color_override("font_color", Color(0.831, 0.643, 0.09))
 		
@@ -288,6 +287,8 @@ func _save_game(index: int, scene_path: String = ""):
 	config.set_value("shards", "blue", Global.shards_blue)
 	config.set_value("shards", "green", Global.shards_green)
 	config.set_value("shards", "cyan", Global.shards_cyan)
+	if Global.came_from == Global.MenuSource.GAME:
+		Global.write_factory_state(config)
 	
 	config.save(save_path)
 	var slot = grid.get_child(index) as Button
@@ -319,6 +320,7 @@ func _load_game(index: int):
 			Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
 			Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 			Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
+			Global.read_factory_state(config)
 			
 			Global.last_save_level = max(1, Global.get_level_number(scene))
 			

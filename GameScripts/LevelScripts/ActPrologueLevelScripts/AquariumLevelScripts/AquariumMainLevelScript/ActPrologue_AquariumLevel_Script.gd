@@ -84,6 +84,14 @@ func _ready():
 	
 	_setup_character_animations()
 	_spawn_bubbles()
+	# the fish stays put until the intro camera has zoomed out
+	if player and "can_move" in player:
+		player.can_move = false
+	_intro_lock = true
+	if cutscene_chatter:
+		cutscene_chatter.skippable = true
+	if quake_chatter:
+		quake_chatter.skippable = true
 	UISounds.start_factory_ambience()
 	if pausemenu:
 		pausemenu.visible = false
@@ -95,6 +103,22 @@ func _ready():
 	_setup_lab_lights()
 	_setup_npc_shadows()
 	_setup_toolbox_shadow()
+
+var _intro_lock: bool = false
+## end of the camera zoom-out in the INTRO animation
+const INTRO_ZOOM_END := 2.7
+
+func _update_intro_lock() -> void:
+	if not _intro_lock:
+		return
+	var done = animationtrack == null or not animationtrack.is_playing() or animationtrack.current_animation != "INTRO" \
+		or animationtrack.current_animation_position >= INTRO_ZOOM_END
+	if done:
+		_intro_lock = false
+		if player and "can_move" in player and not _cutscene:
+			player.can_move = true
+	elif player and "can_move" in player:
+		player.can_move = false
 
 func _schedule_boring(t: Timer) -> void:
 	t.start(randf_range(BORING_INTERVAL_MIN, BORING_INTERVAL_MAX))
@@ -127,8 +151,10 @@ func _on_scientist_animation_finished() -> void:
 		"boring":
 			scientistsprite.play("idle")
 			_schedule_boring(scientist_boring_timer)
-		"angry":
+		"angry", "angry_end":
 			scientistsprite.play("idle")
+		"angry_start":
+			scientistsprite.play("angry_jump")
 			
 func _on_mechanic_boring_timer() -> void:
 	if not mechanicsprite or mechanicsprite.animation != "idle":
@@ -682,16 +708,14 @@ func _tutorial_tick(dt: float) -> void:
 	if animationtrack and animationtrack.is_playing() and animationtrack.current_animation == "INTRO":
 		return
 	_tut_t += dt
-	_tut.hint("a_swim", "ПЛАВАТЬ|Стрелками в любую сторону", ["ui_up", "ui_left", "ui_down", "ui_right"],
+	if _intro_lock:
+		return
+	_tut.hint("a_swim", "ПЛАВАТЬ|W A S D — плыть в любую сторону", ["W", "A", "S", "D"],
 		func(): return player.get("velocity") is Vector2 and (player.get("velocity") as Vector2).length() > 30.0, 2.0, 8.0)
-	if _tut_t > 6.0:
-		_tut.hint("a_listen", "ПОДСЛУШАТЬ|Внизу за стеклом люди о чём-то спорят. Подплыви поближе", [],
-			func(): return player.global_position.y > GLASS_ZONE.position.y - 40.0, 2.5, 12.0)
-	if _in_glass_zone:
-		_tut.hint("a_hit", "УДАРИТЬ|В стекле трещина — бей прямо по ней", ["interact"], func(): return _cutscene, 1.0, 20.0)
 
 
 func _process(_delta: float) -> void:
+	_update_intro_lock()
 	_process_lab_lights(get_process_delta_time())
 	_update_npc_shadows()
 	_update_box_shadow()
@@ -723,6 +747,9 @@ func _start_glass_cutscene() -> void:
 		return
 	_cutscene = true
 	_ending = true
+	for bt in [scientist_boring_timer, mechanic_boring_timer]:
+		if bt:
+			bt.stop()
 	if _hint:
 		var ht = create_tween()
 		ht.tween_property(_hint, "modulate:a", 0.0, 0.2)
@@ -786,8 +813,7 @@ func _start_glass_cutscene() -> void:
 			cbox2.force_near = true
 		var bt2 = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		bt2.tween_property(cbox2, "bubble_scale", 1.0, 1.6)
-	if scientistsprite and scientistsprite.sprite_frames and scientistsprite.sprite_frames.has_animation("angry"):
-		scientistsprite.play("angry")
+	_angry_jump()
 	await get_tree().create_timer(0.7).timeout
 	if not is_inside_tree():
 		return
@@ -800,6 +826,53 @@ func _start_glass_cutscene() -> void:
 		player.velocity = Vector2.ZERO
 	_play_earthquake()
 
+
+const ANGRY_DIR := "res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/"
+## the scientist's angry jumping, in three sprite lists: he starts jumping, jumps (looped, while
+## he says his two lines) and stops when the mechanic starts talking
+func _setup_angry_anims() -> void:
+	if scientistsprite == null or scientistsprite.sprite_frames == null:
+		return
+	var sf: SpriteFrames = scientistsprite.sprite_frames
+	for a in [["angry_start", "NPC_Scientist_AngryStart_SpriteList_Animation.png", false, 10.0],
+			["angry_jump", "NPC_Scientist_AngryJump_SpriteList_Animation.png", true, 10.0],
+			["angry_end", "NPC_Scientist_AngryEnd_SpriteList_Animation.png", false, 10.0]]:
+		if sf.has_animation(a[0]):
+			continue
+		var tex = load(ANGRY_DIR + a[1]) as Texture2D
+		if tex == null:
+			continue
+		sf.add_animation(a[0])
+		sf.set_animation_loop(a[0], a[2])
+		sf.set_animation_speed(a[0], a[3])
+		var fh = tex.get_height()
+		for i in range(int(float(tex.get_width()) / float(fh))):
+			var at = AtlasTexture.new()
+			at.atlas = tex
+			at.region = Rect2(i * fh, 0, fh, fh)
+			sf.add_frame(a[0], at)
+
+func _angry_jump() -> void:
+	if scientistsprite == null or scientistsprite.sprite_frames == null:
+		return
+	_setup_angry_anims()
+	var sf = scientistsprite.sprite_frames
+	if not sf.has_animation("angry_start"):
+		if sf.has_animation("angry"):
+			scientistsprite.play("angry")
+		return
+	scientistsprite.play("angry_start")
+	if cutscene_chatter and not cutscene_chatter.line_shown.is_connected(_on_cutscene_line):
+		cutscene_chatter.line_shown.connect(_on_cutscene_line)
+		cutscene_chatter.chatter_stopped.connect(_stop_angry_jump)
+
+func _on_cutscene_line(line, _i) -> void:
+	if line and line.speaker == ChatterLine.Speaker.MECHANIC:
+		_stop_angry_jump()
+
+func _stop_angry_jump() -> void:
+	if scientistsprite and String(scientistsprite.animation).begins_with("angry_") and scientistsprite.animation != "angry_end":
+		scientistsprite.play("angry_end")
 
 func _hide_player_ui() -> void:
 	if player == null:
@@ -956,6 +1029,12 @@ func _play_earthquake() -> void:
 	var base_energy: Array = _lamp_base.duplicate()
 	_start_panic()
 	_quake_shake(QUAKE_DURATION + 6.0, lights, base_energy)
+	var qbox = quake_chatter.find_child("ChatterBox", true, false) if quake_chatter else null
+	if qbox and "bubble_scale" in qbox:
+		qbox.bubble_scale = 1.0
+		qbox._scale_cur = 0.0
+		if "force_near" in qbox:
+			qbox.force_near = true
 	# Track the last quake line to know when to trigger the debris
 	var hit := [false]
 	var last = quake_chatter.lines.size() - 1
@@ -1005,6 +1084,7 @@ func _play_earthquake() -> void:
 	UISounds.set_glitch(0.0)
 	UISounds.stop_factory_ambience()
 	Global.prologue1_completed = true
+	Global.reset_factory_progress()
 	Global.autosave(Global.SCENE_FACTORY)
 	# the title stays on screen through the scene change and only then dissolves into the
 	# factory (it lives on the root, above the global fade)
@@ -1151,6 +1231,12 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_toggle_pause()
 		return
+	if _cutscene and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		for ctrl in [cutscene_chatter, quake_chatter]:
+			if ctrl and ctrl.is_active() and ctrl.skippable:
+				get_viewport().set_input_as_handled()
+				ctrl.skip_line()
+				return
 	if _in_glass_zone and not _cutscene and (event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)):
 		get_viewport().set_input_as_handled()
 		_start_glass_cutscene()

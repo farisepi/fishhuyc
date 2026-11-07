@@ -1220,14 +1220,14 @@ metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 script = ExtResource("26_hykhb")
 text = "Проснулся БЛЯТЬ наконец..."
 swear_words = Array[String](["БЛЯТЬ"])
-display_time = 1.5
+display_time = 1.0
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_t0kk6"]
 script = ExtResource("26_hykhb")
 text = "Пол комплекса чуть не РАЗЪЕБАЛ"
 swear_words = Array[String](["РАЗЪЕБАЛ"])
-display_time = 1.5
+display_time = 1.0
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_hykhb"]
@@ -1241,7 +1241,7 @@ metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 script = ExtResource("26_hykhb")
 speaker = 1
 text = "А простым работагям это всё чинить..."
-display_time = 1.2
+display_time = 1.0
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 
 [sub_resource type="Resource" id="Resource_nr1wi"]

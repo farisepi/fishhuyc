@@ -14,6 +14,11 @@ var layer_width: float = 0.0
 var start_x: float = 576.0
 var spawn_timer: float = 0.0
 var rng := RandomNumberGenerator.new()
+## The belt and its boxes are the same in every factory menu: moving from the main menu to
+## the settings (and back) keeps them where they were instead of starting over. Boxes can only
+## be grabbed in the main menu.
+static var _saved: Dictionary = {}
+var draggable: bool = true
 
 func _ready() -> void:
 	rng.randomize()
@@ -31,6 +36,43 @@ func _ready() -> void:
 	layer3_clone2.position.x = start_x + layer_width * 2.0
 	
 	spawn_timer = box_spawn_interval
+	var host = owner if owner else get_parent()
+	draggable = host != null and String(host.scene_file_path).contains("MainMenu")
+	_restore_state()
+
+func _restore_state() -> void:
+	if _saved.is_empty():
+		return
+	# the time the menus were switching: everything moved on meanwhile
+	var gone = clamp((Time.get_ticks_msec() - int(_saved.get("t", 0))) / 1000.0, 0.0, 5.0)
+	var offs: Array = _saved.get("layers", [])
+	var sprs = [layer3, layer3_clone, layer3_clone2]
+	for i in range(min(offs.size(), sprs.size())):
+		sprs[i].position.x = offs[i]
+	spawn_timer = float(_saved.get("spawn", box_spawn_interval))
+	for b in _saved.get("boxes", []):
+		var box = box_scene.instantiate()
+		add_child(box)
+		box.position = b[0] - Vector2(layer3_speed * gone, 0)
+		box.rotation = b[1]
+		box.conveyor_speed = layer3_speed
+		if "swing_phase" in box:
+			box.swing_phase = b[2]
+		box.input_pickable = draggable
+	if gone > 0.0:
+		_process(gone)
+
+func _exit_tree() -> void:
+	var boxes: Array = []
+	for c in get_children():
+		if c is Area2D and "held" in c and not c.held and not c.thrown:
+			boxes.append([c.position, c.rotation, c.swing_phase])
+	_saved = {
+		"t": Time.get_ticks_msec(),
+		"layers": [layer3.position.x, layer3_clone.position.x, layer3_clone2.position.x] if layer3 else [],
+		"spawn": spawn_timer,
+		"boxes": boxes,
+	}
 
 func _process(delta: float) -> void:
 	if layer_width <= 0.0:
@@ -61,4 +103,5 @@ func _spawn_box() -> void:
 	box.global_position = to_global(box_spawn_position)
 	box.rotation = rng.randf_range(-0.2, 0.2)
 	box.conveyor_speed = layer3_speed
+	box.input_pickable = draggable
 	

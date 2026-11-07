@@ -164,6 +164,32 @@ func resume_chatter() -> void:
 	elif _active and _typing:
 		_timer.start(typing_speed)
 
+## Пропуск (пробел в катсцене): если реплика ещё печатается — она сразу допечатывается,
+## если уже напечатана — сразу следующая.
+var skippable: bool = false
+
+func skip_line() -> void:
+	if not _active or _current_line == null:
+		return
+	if _typing:
+		while _seg_index < _segments.size():
+			var seg: Dictionary = _segments[_seg_index]
+			var rest: String = seg["text"].substr(_seg_char) if not seg["swear"] else seg["text"]
+			if seg["swear"]:
+				_typed_text += "[color=#FF3333]" + rest + "[/color]"
+			else:
+				_typed_text += rest
+			_seg_index += 1
+			_seg_char = 0
+		_typing = false
+		line_finished.emit(_current_line, _current_index)
+		_timer.stop()
+		var wait = _current_line.display_time if _current_line.display_time > 0.0 else default_display_time
+		_timer.start(max(0.6, wait))
+	else:
+		_timer.stop()
+		_show_next_line()
+
 ## Получить текущий typed-текст (для отображения в UI)
 func get_typed_text() -> String:
 	return _typed_text
