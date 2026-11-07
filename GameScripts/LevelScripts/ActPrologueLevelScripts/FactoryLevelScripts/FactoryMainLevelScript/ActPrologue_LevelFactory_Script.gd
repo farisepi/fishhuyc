@@ -535,6 +535,7 @@ func _tut_mark(id: String) -> void:
 func _setup_spotlight() -> void:
 	_spot = SPOTLIGHT.new()
 	add_child(_spot)
+	_spot.block_check = func(): return pausemenu != null and pausemenu.visible
 	_spot.key_event.connect(_on_spot_key)
 
 func _spot_show(title: String, body: String, keys: Array, target: Callable, dim: bool = true) -> void:
@@ -743,7 +744,7 @@ func _tut_inspect_flow() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ОСМОТР", "Сейчас охранник уйдёт на пересменку. Включи режим осмотра: время замедлится, а всё интересное подсветится — его можно изучить мышкой.", [_key_name("inspect")], _act_screen_rect.bind(false))
+	_spot_show("ОСМОТР", "Чтобы сбежать, нужно узнать, когда меняются охрана и снайпер, и найти, куда бежать. Для этого — режим осмотра: время замедляется, всё полезное подсвечивается, а найденное записывается в журнал. Сейчас охранник уйдёт на пересменку — включи осмотр.", [_key_name("inspect")], _act_screen_rect.bind(false))
 	await _tut_wait_for_key("inspect")
 	if not is_inside_tree():
 		return
@@ -752,6 +753,18 @@ func _tut_inspect_flow() -> void:
 	if not is_inside_tree():
 		return
 	_enter_inspect()
+	# moving the view around in inspect mode
+	_spot_show("ОСМОТР: ВЗГЛЯД", "В режиме осмотра рыба стоит, а взгляд можно двигать по всему цеху. Осмотрись.", ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
+	var moved_t := 0.0
+	while is_inside_tree() and state == State.INSPECT and inspect_camera_offset.length() < 90.0 and moved_t < 12.0:
+		await _tree().process_frame
+		moved_t += get_process_delta_time() / max(0.05, Engine.time_scale)
+	if not is_inside_tree():
+		return
+	_spot.done()
+	await _tut_wait(0.8)
+	if not is_inside_tree():
+		return
 	_tut_wait_guard_note = true
 	_guard_shift_sequence()
 	var gh: float = GUARD_SHIFTS[0]
@@ -820,8 +833,8 @@ func _skip_process() -> void:
 		_skip_t += dt
 		var held = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _tree().paused
 		_skip_hold = clamp(_skip_hold + (dt if held else -dt * 2.0) / SKIP_HOLD_TIME, 0.0, 1.0)
-		var want = held or _skip_hold > 0.0 or (_skip_t > 0.3 and _skip_t < 3.0)
-		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, 1.0 if want else 0.0, dt * (2.5 if want else 1.6))
+		var want = held or _skip_hold > 0.0 or (_skip_t > 0.4 and _skip_t < 3.4)
+		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, 1.0 if want else 0.0, dt * (1.2 if want else 0.9))
 		_skip_ui.queue_redraw()
 		if _skip_hold >= 1.0:
 			_start_accident_skip()
@@ -848,12 +861,10 @@ func _draw_skip_ui() -> void:
 
 func _start_accident_skip() -> void:
 	_skipping = true
-	if fade_rect:
-		fade_rect.visible = true
-		fade_rect.color = Color(0, 0, 0, 0)
-		var tw = create_tween()
-		tw.tween_property(fade_rect, "color:a", 1.0, 0.3)
-		await tw.finished
+	if _skip_ui and is_instance_valid(_skip_ui):
+		var tws = _skip_ui.create_tween()
+		tws.tween_property(_skip_ui, "modulate:a", 0.0, 0.25)
+	await _skip_blackout(true)
 	if not is_inside_tree():
 		return
 	if _skip_ui and is_instance_valid(_skip_ui):
@@ -874,15 +885,130 @@ func _end_accident_skip() -> void:
 	if _skip_ui and is_instance_valid(_skip_ui):
 		_skip_ui.queue_free()
 		_skip_ui = null
-	if fade_rect:
-		var tw = create_tween()
-		tw.tween_property(fade_rect, "color:a", 0.0, 0.5)
-		tw.tween_callback(func(): fade_rect.visible = false)
+	_skip_blackout(false)
 
 func _mark_accident_seen() -> void:
 	if not bool(Global.factory_state.get("accident_seen", false)):
 		Global.factory_state["accident_seen"] = true
 		Global.save_factory_state()
+
+
+# ---------------------------------------------------------------- after the shift
+var _tut_maint_active: bool = false
+
+func _tut_maint_lesson() -> void:
+	_tut_maint_active = true
+	_tut_no_penalty = true
+	await _tut_wait(0.6)
+	if not is_inside_tree():
+		return
+	await _tut_freeze(false)
+	if not is_inside_tree():
+		return
+	_spot_show("КОНЕЦ СМЕНЫ", "Смена окончена — все рыбы идут в комнату техобслуживания. Иди за ними: стоять на месте или идти в другую сторону нельзя, охрана за этим следит.", [], _maint_screen_rect)
+	await _tut_wait(4.5, true)
+	if not is_inside_tree():
+		return
+	_spot.hide_step()
+	await _tut_unfreeze()
+	if not is_inside_tree():
+		return
+	_spot_show("КОНЕЦ СМЕНЫ", "Иди направо, к комнате техобслуживания.", ["D"], _maint_screen_rect, false)
+	while is_inside_tree() and state == State.SHIFT_END and not _is_player_near_maintenance():
+		await _tree().process_frame
+	if not is_inside_tree():
+		return
+	_spot.done()
+	await _tut_wait(0.6)
+	if _spot:
+		_spot.hide_step()
+	_tut_mark("maint")
+	_tut_maint_active = false
+
+func _maint_screen_rect() -> Rect2:
+	var p = maintenance_door.global_position if maintenance_door else Vector2(SAFE_ZONE_CENTER_X, 325)
+	if maintenance_door is Control:
+		p = maintenance_door.global_position + maintenance_door.size * 0.5
+	var r = _world_to_screen(Rect2(p + Vector2(-60, -70), Vector2(120, 130)))
+	# off screen: the light sits at the screen edge on the door's side
+	var c = r.get_center()
+	c.x = clamp(c.x, 90.0, 1062.0)
+	c.y = clamp(c.y, 90.0, 558.0)
+	return Rect2(c - r.size * 0.5, r.size)
+
+## Small notice at the top while the shift is over: "go to maintenance ->".
+var _maint_notice: Control = null
+const MAINT_TEXT := "СМЕНА ОКОНЧЕНА — НА ТЕХОБСЛУЖИВАНИЕ"
+
+func _show_maint_notice() -> void:
+	if _maint_notice == null:
+		_maint_notice = Control.new()
+		_maint_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var f = _bubble_font()
+		var tw0 = f.get_string_size(MAINT_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x if f else 330.0
+		_maint_notice.size = Vector2(ceil(tw0) + 66.0, 34)
+		_maint_notice.draw.connect(_draw_maint_notice)
+		$UI.add_child(_maint_notice)
+	_maint_notice.position = Vector2(round(576 - _maint_notice.size.x * 0.5), 70)
+	_maint_notice.visible = true
+	_maint_notice.modulate.a = 0.0
+	var tw = _maint_notice.create_tween()
+	tw.tween_property(_maint_notice, "modulate:a", 1.0, 0.3)
+	_maint_notice_loop()
+
+func _maint_notice_loop() -> void:
+	while is_inside_tree() and _maint_notice and _maint_notice.visible:
+		_maint_notice.queue_redraw()
+		if _is_player_near_maintenance() and _maint_notice.modulate.a > 0.99:
+			var tw = _maint_notice.create_tween()
+			tw.tween_property(_maint_notice, "modulate:a", 0.0, 0.3)
+			tw.tween_callback(func(): _maint_notice.visible = false)
+			return
+		await _tree().process_frame
+
+func _hide_maint_notice() -> void:
+	if _maint_notice:
+		_maint_notice.visible = false
+
+func _draw_maint_notice() -> void:
+	var c = _maint_notice
+	var sz = c.size
+	c.draw_rect(Rect2(Vector2(3, 3), sz), Color(0, 0, 0, 0.45))
+	c.draw_rect(Rect2(Vector2.ZERO, sz), Color.BLACK)
+	c.draw_rect(Rect2(2, 2, sz.x - 4, sz.y - 4), HUD_C_EDGE)
+	c.draw_rect(Rect2(4, 4, sz.x - 8, sz.y - 8), HUD_C_BG)
+	c.draw_rect(Rect2(4, 4, 6, sz.y - 8), HUD_C_ORANGE)
+	var f = _bubble_font()
+	if f:
+		c.draw_string(f, Vector2(20, 22), MAINT_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.95, 0.93, 0.88))
+	# a bouncing arrow toward the door
+	var dir = 1.0
+	if player and maintenance_door:
+		dir = sign(maintenance_door.global_position.x - player.global_position.x)
+		if dir == 0.0:
+			dir = 1.0
+	var bx = sz.x - 26 + sin(Time.get_ticks_msec() / 150.0) * 3.0 * dir
+	var cy = sz.y * 0.5
+	var pts = PackedVector2Array([Vector2(bx - 6 * dir, cy - 7), Vector2(bx + 7 * dir, cy), Vector2(bx - 6 * dir, cy + 7)])
+	c.draw_colored_polygon(pts, HUD_C_ORANGE)
+
+# ---------------------------------------------------------------- the accident skip screen
+var _skip_black_layer: CanvasLayer = null
+var _skip_black: ColorRect = null
+
+func _skip_blackout(on: bool) -> void:
+	if _skip_black == null:
+		_skip_black_layer = CanvasLayer.new()
+		_skip_black_layer.layer = 85
+		add_child(_skip_black_layer)
+		_skip_black = ColorRect.new()
+		_skip_black.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_skip_black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_skip_black.color = Color(0, 0, 0, 0)
+		_skip_black_layer.add_child(_skip_black)
+	var tw = create_tween().set_ignore_time_scale(true)
+	tw.tween_property(_skip_black, "color:a", 1.0 if on else 0.0, 0.35 if on else 0.6).set_trans(Tween.TRANS_SINE)
+	await tw.finished
 
 # ---------------------------------------------------------------- save state (every shift)
 func _load_factory_state() -> void:
@@ -1925,7 +2051,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 		MG.LOCK:
 			_mg_title.text = STATION_TITLE.get(station, "ЗАМОК")
 			_mg_title.position = Vector2(376, 186)
-			var pins = 2 if current_shift == 2 else 3
+			var pins = 2
 			mg_pins.clear()
 			var a = randf() * TAU
 			for i in range(pins):
@@ -1934,9 +2060,9 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_pin_index = 0
 			mg_angle = -PI / 2.0
 			mg_dir = 1.0 if randf() < 0.5 else -1.0
-			mg_speed = 2.5 + 0.15 * current_shift
-			mg_pin_half = 0.3
-			mg_timeout = 3.2 * pins
+			mg_speed = 1.9 + 0.1 * current_shift
+			mg_pin_half = 0.42
+			mg_timeout = 4.5 * pins
 			hint_label.text = key + " — КОГДА СТРЕЛКА В ЗЕЛЁНОМ"
 			hint_label.position = Vector2(326, 418)
 		MG.GAUGE:
@@ -3427,7 +3553,7 @@ func _process_action_penalty(delta: float) -> void:
 func _process_follow_penalty(delta: float) -> void:
 	if state != State.SHIFT_END:
 		return
-	if player == null or _is_player_near_maintenance() or _shift_fade_lock:
+	if player == null or _is_player_near_maintenance() or _shift_fade_lock or _tut_no_penalty:
 		_violation_tick(false, delta, true)
 		return
 	if fade_rect and fade_rect.visible and fade_rect.color.a > 0.2:
@@ -3665,6 +3791,9 @@ func _process_clock(delta: float) -> void:
 var _hold_after_error: bool = false
 
 func _clock_on_hold() -> bool:
+	# learning (the first job, a new station, the first incident of a kind): no time pressure
+	if (_mg_forgive and (minigame_active or state == State.MINIGAME)) or _inc_forgive_on:
+		return true
 	if _halt > 0:
 		_hold_after_error = true
 		return true
@@ -3767,10 +3896,13 @@ signal guard_arrive_spoken
 func _guard_return_lock() -> bool:
 	return _tut_wait_guard_note
 
+var _guard_change_hour: float = -1.0
+
 func _on_guard_shift_change(_hour: float) -> void:
 	if guard_changing:
 		return
 	guard_changing = true
+	_guard_change_hour = _hour
 	if not _tut_done("inspect") and is_equal_approx(_hour, GUARD_SHIFTS[0]):
 		_tut_inspect_flow()
 		return
@@ -3813,7 +3945,7 @@ func _guard_shift_sequence() -> void:
 			return
 		w += 0.1
 	_guard_busy = true
-	_show_guard_dialog(GUARD_LEAVE_LINES[randi() % GUARD_LEAVE_LINES.size()], 2.0)
+	_show_guard_dialog(GUARD_LEAVE_LINES[randi() % GUARD_LEAVE_LINES.size()], 2.0, not guard_shifts_found.has(_guard_change_hour))
 	guard_leave_spoken.emit()
 	await _guard_walk_to(elevator_button.position if elevator_button else GUARD_POSITION)
 	await _tree().create_timer(0.5).timeout
@@ -3869,7 +4001,7 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		await _await_signal_or(guard_leave_spoken, 9.0)
 		if not is_inside_tree():
 			return
-	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_LEAVE_LINES[randi() % SNIPER_LEAVE_LINES.size()], 1.6, true, "sniper")
+	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_LEAVE_LINES[randi() % SNIPER_LEAVE_LINES.size()], 1.6, true, "sniper", not sniper_shifts_found.has(_hour))
 	await _tree().create_timer(2.2, false).timeout
 	if not is_inside_tree():
 		return
@@ -4304,7 +4436,10 @@ func _pop_in(n: Control, from_scale: float = 0.6) -> void:
 	tw.tween_property(n, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(n, "modulate:a", 1.0, 0.18)
 
+var _inc_forgive_on: bool = false
+
 func _run_incident(kind: int, forgive: bool = false) -> bool:
+	_inc_forgive_on = forgive
 	state = State.MINIGAME
 	_inc_kind = kind
 	_inc_active = true
@@ -4409,6 +4544,7 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 		_mg_title.text = {MGE_FIRE: "ПОЖАР НА КОНВЕЙЕРЕ!", MGE_SHORT: "ЗАМЫКАНИЕ ПРЕССА!", MGE_STUCK: "КНОПКУ ЗАКЛИНИЛО!"}.get(kind, "")
 	if forgive and _spot:
 		_spot.hide_step()
+	_inc_forgive_on = false
 	_inc_active = false
 	_inc_flash = 1.0
 	_inc_flash_good = ok
@@ -5553,7 +5689,7 @@ func _press_button() -> void:
 		else:
 			mg_pin_index += 1
 			mg_dir = -mg_dir
-			mg_speed *= 1.15
+			mg_speed *= 1.06
 			_mg_flash = 1.0
 			_mg_flash_good = true
 			if camera and camera.has_method("add_trauma"):
@@ -5916,6 +6052,9 @@ func _end_shift() -> void:
 	for i in range(npc_fishes.size()):
 		npc_walk_delays.append(randf_range(NPC_WALK_DELAY_MIN, NPC_WALK_DELAY_MAX))
 	_show_guard_dialog("РАБОТА НА СЕГОДНЯ ВЫПОЛНЕНА! ВСЕ НА ТЕХОБСЛУЖИВАНИЕ И НАЗАД!", 3.0)
+	_show_maint_notice()
+	if not _tut_done("maint"):
+		_tut_maint_lesson()
 	if _is_progress_bar_perfect():
 		if has_node("/root/Achievements"):
 			var was = Achievements.worker_of_month_unlocked
@@ -5925,9 +6064,18 @@ func _end_shift() -> void:
 	_fade_and_new_shift()
 
 func _fade_and_new_shift() -> void:
-	await _tree().create_timer(2.5).timeout
+	await _tree().create_timer(2.5, false).timeout
 	if not is_inside_tree():
 		return
+	# (lesson) wait until the fish has walked to the maintenance room
+	var w := 0.0
+	while is_inside_tree() and (_tut_maint_active or _tut_frozen) and not _is_player_near_maintenance() and w < 14.0:
+		await _tree().process_frame
+		w += get_process_delta_time()
+	if not is_inside_tree():
+		return
+	_tut_maint_active = false
+	_tut_no_penalty = false
 	_shift_fade_lock = true
 	if fade_rect:
 		fade_rect.visible = true
@@ -6013,6 +6161,7 @@ func _face_player_to_press() -> void:
 		player_sprite.scale.x = -abs(player_sprite.scale.x)
 
 func _start_new_shift() -> void:
+	_hide_maint_notice()
 	current_shift += 1
 	current_object_index = 0
 	correct_count = 0
@@ -6850,15 +6999,15 @@ func _show_dialog(text: String, duration: float) -> void:
 	_speech(player, NAME_PLAYER, COLOR_NAME_PLAYER, text, duration, false)
 
 ## The guard talks: a bubble over the guard (kept on screen with its tail pointing at him).
-func _show_guard_dialog(text: String, duration: float) -> void:
-	_speech(guard_sprite, NAME_GUARD, COLOR_NAME_GUARD, text, duration, true)
+func _show_guard_dialog(text: String, duration: float, alert: bool = false) -> void:
+	_speech(guard_sprite, NAME_GUARD, COLOR_NAME_GUARD, text, duration, true, "main", alert)
 
 
 ## Aquarium-style speech bubble in the world: the same nine-patch box, a shadow, a tail to
 ## the speaker, a name tag, pop-in, typewriter text with voice blips and a soft fade out.
 var _chan_bubbles: Dictionary = {}   # channel -> [node, gen]
 
-func _speech(speaker: Node2D, who: String, who_color: Color, text: String, duration: float, guard_voice: bool, channel: String = "main") -> void:
+func _speech(speaker: Node2D, who: String, who_color: Color, text: String, duration: float, guard_voice: bool, channel: String = "main", alert: bool = false) -> void:
 	# lines only break between whole words: no break after a hyphen either ("ХЕ-ХЕ")
 	text = text.replace("-", "-\u2060")
 	_bubble_gen += 1
@@ -6942,6 +7091,23 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	var tail_f = Polygon2D.new()
 	tail_f.color = Color(0.96, 0.97, 0.98)
 	root.add_child(tail_f)
+	if alert:
+		# a change whose time is not written down yet: a "!" badge next to the bubble
+		var badge = Control.new()
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.size = Vector2(13, 15)
+		badge.position = Vector2(sz.x + 3, -6)
+		badge.draw.connect(func():
+			var p = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 110.0)
+			var col = Color(1.0, 0.82, 0.2).lerp(Color(1.0, 0.45, 0.2), p)
+			badge.draw_rect(Rect2(1, 1, 13, 15), Color(0, 0, 0, 0.45))
+			badge.draw_rect(Rect2(0, 0, 13, 15), Color(0.06, 0.07, 0.1))
+			badge.draw_rect(Rect2(1, 1, 11, 13), col)
+			badge.draw_rect(Rect2(5, 3, 3, 6), Color(0.08, 0.06, 0.04))
+			badge.draw_rect(Rect2(5, 10, 3, 2), Color(0.08, 0.06, 0.04)))
+		root.add_child(badge)
+		var bt = badge.create_tween().set_loops()
+		bt.tween_callback(badge.queue_redraw).set_delay(0.05)
 	# rich text: the type-in effect drops every letter in as it is printed; the whole line is
 	# laid out from the start, so words never jump to the next line while typing
 	var lbl = RichTextLabel.new()

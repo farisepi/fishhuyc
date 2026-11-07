@@ -54,6 +54,8 @@ var _progress := -1.0      # 0..1 bar at the bottom of the card (timed steps), <
 var _done_t := -1.0
 var _tag := "ОБУЧЕНИЕ"
 var dim_outside := true    # false: only the card, no darkness (the minigame needs the view)
+## The level can hide the whole layer (e.g. while its pause menu is open).
+var block_check: Callable = Callable()
 
 
 func _ready() -> void:
@@ -191,6 +193,10 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	var blocked = block_check.is_valid() and block_check.call()
+	visible = not blocked
+	if blocked:
+		return
 	var dt = min(delta, 0.05)
 	_t += dt
 	if _done_t >= 0.0:
