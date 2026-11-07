@@ -33,6 +33,23 @@ const FORKLIFT_TARGET_X: float = 7500.0
 
 const CUTSCENE_BARS_HEIGHT: float = 140.0
 
+const DEATH_SCREEN_SCENE: PackedScene = preload("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn")
+
+# --- катсцена погрузчика ---
+const FL_SPAWN_AHEAD: float = 1200.0    # где появляется погрузчик (центр, от рыбы)
+const FL_SPEED: float = 220.0           # скорость погрузчика
+const FL_FISH_SPEED_MULT: float = 0.75  # рыба в катсцене бежит чуть медленнее обычного
+const FL_QTE_GAP: float = 520.0         # расстояние рыба<->погрузчик, когда начинается QTE
+const FL_SLOWMO: float = 0.15           # slow-mo во время QTE
+const FL_SLOWMO_RAMP: float = 0.5       # за сколько секунд плавно входим в slow-mo
+const FL_QTE_TIME: float = 2.0          # реальные секунды на QTE SHIFT
+const FL_DASH_DIST: float = 100.0       # длина рывка-уклонения
+const FL_DASH_TIME: float = 0.28        # длительность рывка (реальные секунды)
+
+# Парирование и блок пока рано показывать — вернуть на следующем уровне
+const ENABLE_PARRY_SCENE: bool = false
+const ALLOW_BLOCK_AND_PARRY: bool = false
+
 enum State { INTRO_RUN, QTE_GRAB, RUNNING, SNIPER_CUTSCENE, FORKLIFT_CUTSCENE, FORKLIFT_QTE, ELEVATOR_WAIT, ELEVATOR_GO, WIN, GAMEOVER }
 var state: State = State.INTRO_RUN
 var elevator_timer: float = 0.0
@@ -49,6 +66,28 @@ var forklift_charging: bool = false
 
 var parry_done: bool = false
 var parry_trigger: Area2D = null
+var passage_done: bool = false
+
+var _shake: float = 0.0
+var _shake_floor: float = 0.0
+var _was_shaking: bool = false
+var _last_ticks: int = 0
+var _cam_base_offset: Vector2 = Vector2.ZERO
+var _cam_track: Node2D = null
+var _cam_track_offset: Vector2 = Vector2.ZERO
+var _aim_active: bool = false
+var _aim_width: float = 10.0
+var _aim_blink: float = 0.0
+var _vignette: ColorRect = null
+var _flash_rect: ColorRect = null
+var _shelf_hint: Label = null
+var _elevator_hint: Label = null
+var _cutscene_running: bool = false
+var _shelf_dx: float = 0.0
+var _bullet: Line2D = null
+var _bullet_active: bool = false
+var _bullet_from: Vector2 = Vector2.ZERO
+var _bullet_pos: Vector2 = Vector2.ZERO
 
 var sniper: Node = null
 var sniper_active: bool = false
@@ -129,24 +168,26 @@ func _ready():
 
 	forklift_trigger.body_entered.connect(_on_forklift_trigger_entered)
 
-	death_zone.body_entered.connect(func(body):
-		if body == player and not is_game_over and state == State.RUNNING:
-			is_game_over = true
-			state = State.GAMEOVER
-			_stop_all_world()
-	)
-	death_zone2.body_entered.connect(func(body):
-		if body == player and not is_game_over and state == State.RUNNING:
-			is_game_over = true
-			state = State.GAMEOVER
-			_stop_all_world()
-	)
+	# ямы: падение и экран смерти делает сам игрок (fall_into_pit), уровень только останавливает мир
+	for dz in get_children():
+		if dz is Area2D and dz.has_signal("player_died") and dz.has_method("reset"):
+			dz.player_died.connect(_on_pit_fall)
 
+	if "allow_block" in player:
+		player.allow_block = ALLOW_BLOCK_AND_PARRY
+	if "allow_parry" in player:
+		player.allow_parry = ALLOW_BLOCK_AND_PARRY
+
+	_ensure_death_screen()
 	_create_sniper_trigger()
 	_create_cutscene_bars()
+	_create_fx_layer()
 
 	_setup_parry_scene()
 	_setup_entrance_gate()
+	_last_ticks = Time.get_ticks_msec()
+	if camera:
+		_cam_base_offset = camera.offset
 
 	if pause_menu:
 		pause_menu.hide()
@@ -236,6 +277,9 @@ func _lock_player_input(locked: bool):
 		player.is_blocking = false
 		player.is_attacking = false
 		player.is_landing = false
+		# после катсцены рыба «не знала», что стоит на полу, и проигрывала падение+приземление
+		if player.has_method("snap_to_floor_now"):
+			player.snap_to_floor_now()
 
 func _stop_all_world():
 	for enemy in $Enemies.get_children():
@@ -286,37 +330,82 @@ func _on_sniper_trigger_entered(body):
 func _spawn_sniper_deferred(with_cutscene: bool):
 	_spawn_sniper(with_cutscene)
 
-func _setup_parry_scene():
-	var parrying_scene = get_node_or_null("ParryingScene")
-	if not parrying_scene:
+func _ensure_death_screen():
+	# В сцене Hallway нет ноды DeathScreen — поэтому экран смерти не появлялся.
+	if get_node_or_null("DeathScreen") == null:
+		var ds = DEATH_SCREEN_SCENE.instantiate()
+		ds.name = "DeathScreen"
+		add_child(ds)
+
+func _on_pit_fall():
+	if is_game_over:
 		return
-	parry_trigger = parrying_scene.get_node_or_null("ParryTrigger")
+	is_game_over = true
+	state = State.GAMEOVER
+	_deactivate_sniper()
+	_stop_all_world()
+
+func _setup_parry_scene():
+	# Парирование пока рано показывать игроку (вернуть: ENABLE_PARRY_SCENE = true)
+	var parrying_scene = get_node_or_null("ParryingScene")
+	if not parrying_scene or ENABLE_PARRY_SCENE:
+		return
+	parrying_scene.visible = false
+	parrying_scene.process_mode = Node.PROCESS_MODE_DISABLED
+	var trig = parrying_scene.get_node_or_null("ParryTrigger")
+	if trig:
+		trig.set_deferred("monitoring", false)
 	var enemy = parrying_scene.get_node_or_null("AttackParry")
-	if parry_trigger and enemy:
-		enemy.visible = false
-		enemy.set_physics_process(false)
-		enemy.set_process(false)
+	if enemy:
 		enemy.collision_layer = 0
 		enemy.collision_mask = 0
-		var col = enemy.get_node_or_null("CollisionShape2D")
-		if col:
-			col.disabled = true
-		parry_trigger.body_entered.connect(func(body):
-			if not is_inside_tree():
-				return
-			if body == player and not parry_done:
-				player.start_parry(enemy, _on_parry_complete)
-				parry_trigger.set_deferred("monitoring", false)
-		)
 
 func _setup_entrance_gate():
-	var entrance_gate = $EntranceGate
-	var entrance_trigger = $EntranceTrigger
-	var passage_trigger = $TightPassageTrigger
-	if entrance_gate and entrance_trigger and passage_trigger:
+	var entrance_gate = get_node_or_null("EntranceGate")
+	var entrance_trigger = get_node_or_null("EntranceTrigger")
+	var passage_trigger = get_node_or_null("TightPassageTrigger")
+	if entrance_gate:
 		var col = entrance_gate.get_node_or_null("CollisionShape2D")
 		if col:
 			col.disabled = false
+	if passage_trigger and passage_trigger.has_signal("passage_completed"):
+		passage_trigger.passage_completed.connect(_on_passage_completed)
+	# в проход заходим автоматически, как только упёрлись в стеллажи
+	if entrance_trigger:
+		entrance_trigger.body_entered.connect(_on_entrance_entered)
+
+func _on_entrance_entered(_body):
+	pass
+
+# в проход входим по E, стоя у стеллажей (над рыбой подсказка)
+func _update_passage_entry():
+	var entrance_trigger = get_node_or_null("EntranceTrigger")
+	var passage_trigger = get_node_or_null("TightPassageTrigger")
+	var can_enter = entrance_trigger != null and passage_trigger != null \
+		and not passage_trigger.is_active and entrance_trigger.overlaps_body(player)
+	_set_passage_hint(can_enter)
+	if can_enter and Input.is_action_just_pressed("interact"):
+		_set_passage_hint(false)
+		var gate = get_node_or_null("EntranceGate")
+		if gate:
+			var col = gate.get_node_or_null("CollisionShape2D")
+			if col:
+				col.set_deferred("disabled", true)
+		passage_trigger.call_deferred("activate", player)
+
+var _passage_hint: Label = null
+
+func _set_passage_hint(on: bool):
+	if _passage_hint == null:
+		if not on:
+			return
+		_passage_hint = _make_world_hint("E — протиснуться")
+	if on:
+		_passage_hint.position = to_local(player.global_position + Vector2(-60, -80))
+	_passage_hint.modulate.a = move_toward(_passage_hint.modulate.a, 1.0 if on else 0.0, 0.12)
+
+func _on_passage_completed():
+	passage_done = true
 
 func _start_intro():
 	if _intro_started:
@@ -599,20 +688,24 @@ func _deactivate_sniper():
 			sniper.deactivate()
 	sniper_active = false
 
+func _real_delta() -> float:
+	var now = Time.get_ticks_msec()
+	var d = (now - _last_ticks) / 1000.0
+	_last_ticks = now
+	return clamp(d, 0.0, 0.1)
+
 func _process(delta: float) -> void:
+	var rd = _real_delta()
+	_update_fx(rd)
 	if get_tree().paused:
 		return
+	_update_cutscene_motion(delta)
 
 	if state == State.INTRO_RUN or state == State.QTE_GRAB:
 		_update_intro_enemies()
 		return
 
-	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_QTE:
-		return
-
-	if state == State.FORKLIFT_CUTSCENE:
-		if is_instance_valid(player) and not player.is_dashing:
-			player.velocity.x = 400.0
+	if state == State.SNIPER_CUTSCENE or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
 		return
 
 	if state == State.RUNNING and not is_game_over:
@@ -632,11 +725,8 @@ func _process_gameplay(delta):
 	if state == State.RUNNING:
 		_check_enemy_collision()
 
-		if forklift_activated and not shelf_climbed and falling_shelf.visible:
-			var dist = player.global_position.distance_to(falling_shelf.global_position)
-			if dist < 150 and Input.is_action_just_pressed("interact"):
-				shelf_climbed = true
-				_climb_shelf()
+		_update_shelf_hint()
+		_update_passage_entry()
 
 		if forklift_ready_for_throw and not forklift_stopped:
 			var dist = player.global_position.distance_to(forklift.global_position)
@@ -647,14 +737,19 @@ func _process_gameplay(delta):
 			else:
 				player.set_can_throw(false)
 
-		if player.global_position.x > 4200 and parry_done:
-			if not can_press_button:
-				can_press_button = true
-			elif Input.is_action_just_pressed("interact"):
-				can_press_button = false
-				_lock_player_input(true)
-				state = State.ELEVATOR_WAIT
-				elevator_timer = 3.0
+		# лифт: после узкого прохода, рядом с кнопкой, по E
+		var btn_pos = elevator_button.global_position + Vector2(268, 12) if elevator_button else Vector2.INF
+		var near_button = passage_done and player.global_position.distance_to(btn_pos) < 70.0
+		can_press_button = near_button
+		_set_elevator_hint(near_button)
+		if near_button and Input.is_action_just_pressed("interact"):
+			can_press_button = false
+			_set_elevator_hint(false)
+			_lock_player_input(true)
+			state = State.ELEVATOR_WAIT
+			elevator_timer = 1.5
+			if player.sprite:
+				player.sprite.play("Idle")
 
 	elif state == State.ELEVATOR_WAIT:
 		elevator_timer -= delta
@@ -681,6 +776,10 @@ func _process_gameplay(delta):
 			
 			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.5)
+			# тёмный ColorRect внутри лифта уезжает вместе с ним
+			var interior = get_node_or_null("EndAct/ColorRect")
+			if interior:
+				lt.parallel().tween_property(interior, "position:y", interior.position.y - 400, 1.5)
 			await lt.finished
 			if not is_inside_tree(): return
 			
@@ -688,16 +787,6 @@ func _process_gameplay(delta):
 			if not is_inside_tree(): return
 			_win()
 
-	if _shelf_climbing:
-		if Input.is_action_pressed("ui_up"):
-			player.global_position.y -= 2
-
-		var shelf_top = falling_shelf.global_position.y - falling_shelf.get_node("CollisionShape2D").shape.size.y + 10
-
-		if player.global_position.y <= shelf_top:
-			player.global_position.y = shelf_top
-			_shelf_climbing = false
-			_lock_player_input(false)
 
 func _check_enemy_collision():
 	if state != State.RUNNING:
@@ -734,254 +823,531 @@ func _activate_forklift():
 	forklift_activated = true
 	_play_forklift_cutscene()
 
-func _play_forklift_cutscene():
-	state = State.FORKLIFT_CUTSCENE
+# =====================================================================
+#                       КАТСЦЕНА С ПОГРУЗЧИКОМ
+# Шот 1  — рыба бежит, камера ведёт с упреждением, нарастает гул.
+# Шот 2  — резкий перевод камеры на погрузчик: вспышка фар, тряска, он несётся со стеллажом на вилах.
+# Шот 3  — общий план «рыба <-> погрузчик», из-за края экрана тянется лазер снайпера.
+# Шот 4  — slow-mo, наезд камеры, QTE SHIFT.
+#   Успех: рыба выпрыгивает вверх, пуля снайпера проходит под ней и бьёт в погрузчик ->
+#          хит-стоп, искры, погрузчик глохнет, стеллаж падает поперёк коридора
+#          (теперь его надо перелезть — ПРОБЕЛ).
+#   Провал: пуля попадает в рыбу.
+# =====================================================================
 
+func _wait(t: float) -> void:
+	await get_tree().create_timer(t, true, false, true).timeout
+
+func _cam_tween(pos: Vector2, zoom: Vector2, dur: float, trans_type: Tween.TransitionType = Tween.TRANS_SINE, ease_type: Tween.EaseType = Tween.EASE_IN_OUT) -> Tween:
+	var t = create_tween().set_parallel(true)
+	t.set_ignore_time_scale(true)
+	t.set_trans(trans_type).set_ease(ease_type)
+	t.tween_property(camera, "global_position", pos, dur)
+	t.tween_property(camera, "zoom", zoom, dur)
+	return t
+
+func _time_scale_to(target: float, dur: float) -> Tween:
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_method(_set_time_scale, Engine.time_scale, target, dur)
+	return t
+
+func _set_time_scale(v: float) -> void:
+	Engine.time_scale = v
+
+func _fit_zoom(a: Vector2, b: Vector2, max_zoom: float) -> Vector2:
+	var vp = get_viewport_rect().size
+	var dist = max(abs(a.x - b.x), 1.0)
+	var z = clamp(vp.x * 0.7 / dist, 0.6, max_zoom)
+	return Vector2(z, z)
+
+func _floor_top_y() -> float:
+	var col = get_node_or_null("Floor/CollisionShape2D")
+	if col and col.shape is RectangleShape2D:
+		return col.global_position.y - col.shape.size.y / 2.0
+	return NAN
+
+func _forklift_center() -> Vector2:
+	var col = forklift.get_node_or_null("CollisionShape2D")
+	if col:
+		return col.global_position
+	return forklift.global_position + Vector2(90, 50)
+
+var _shelf_base_y: float = 0.0
+
+func _play_forklift_cutscene():
+	# Спокойная версия: камера просто ведёт рыбу, рыба бежит по полу навстречу погрузчику,
+	# снайпер стреляет в спину, slow-mo + QTE SHIFT. Успех: рывок вперёд — пуля проходит
+	# мимо и попадает в погрузчик, он ломается, стеллаж падает с вил (его надо перелезть).
+	state = State.FORKLIFT_CUTSCENE
 	_lock_player_input(true)
 	_stop_all_world()
+	if not camera:
+		return
 
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Run")
-		player.sprite.scale.x = 1
-
-	_show_cutscene_bars(0.6)
-
-	var player_cam_pos = _get_camera_target()
-	var cam_y = player_cam_pos.y
-
+	var cam_from = _get_camera_target()
 	_disable_camera_for_cutscene()
-
-	var start_zoom = camera.zoom
-
-	camera.global_position = player_cam_pos
+	camera.global_position = cam_from
 	camera.reset_smoothing()
+	var start_zoom: Vector2 = camera.zoom
+	_show_cutscene_bars(0.7)
 
-	var t0 = create_tween().set_parallel(true)
-	t0.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t0.tween_property(camera, "global_position", Vector2(7000.0, cam_y), 1.4)
-	t0.tween_property(camera, "zoom", Vector2(1.4, 1.4), 1.4)
-	await t0.finished
+	# рыба могла влететь в триггер в прыжке — сначала аккуратно опускаем её на пол
+	await _ground_player()
 	if not is_inside_tree():
 		return
 
+	if not sniper or not is_instance_valid(sniper):
+		_spawn_sniper(false)
+	if sniper and is_instance_valid(sniper):
+		if sniper.has_method("deactivate"):
+			sniper.deactivate()
+		sniper.visible = true
+
+	# --- погрузчик со стеллажом на вилах, на полу, справа
+	forklift_stopped = false
+	forklift.modulate = Color.WHITE
+	forklift.rotation = 0.0
+	forklift.collision_layer = 0
+	forklift.collision_mask = 0
+	var fc_off = _forklift_center() - forklift.global_position
+	forklift.global_position.x = player.global_position.x + FL_SPAWN_AHEAD - fc_off.x
+	_prepare_shelf_on_forks()
 	forklift.visible = true
 	falling_shelf.visible = true
 
-	var forklift_y = forklift.global_position.y
-	forklift.global_position = Vector2(8300.0, forklift_y)
-	falling_shelf.global_position = Vector2(8360.0, forklift_y)
-	forklift.set("active", true)
-	if "direction" in forklift:
-		forklift.direction = -1
-	if "move_dir" in forklift:
-		forklift.move_dir = -1
-	if "speed" in forklift:
-		forklift.speed = abs(forklift.speed)
+	# --- камера мягко ведёт рыбу с упреждением и чуть отдаляется
+	_cam_track = player
+	_cam_track_offset = Vector2(120.0, cam_from.y - player.global_position.y)
+	var zt = create_tween()
+	zt.set_ignore_time_scale(true)
+	zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	zt.tween_property(camera, "zoom", start_zoom * 0.85, 1.4)
 
-	await get_tree().create_timer(1.0).timeout
-	if not is_inside_tree():
-		return
-
-	var t1 = create_tween().set_parallel(true)
-	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t1.tween_property(camera, "global_position", Vector2(player.global_position.x, cam_y), 1.2)
-	t1.tween_property(camera, "zoom", start_zoom, 1.2)
-	await t1.finished
-	if not is_inside_tree():
-		return
-
-	_restore_camera_after_cutscene()
-
+	# --- рыба бежит, погрузчик едет навстречу
 	if player.sprite:
+		player.sprite.scale.x = 1
 		player.sprite.play("Run")
+	_cutscene_running = true
+	_shake_floor = 0.05
 
-	forklift.set_physics_process(true)
-
-	var bullet = _spawn_fake_bullet()
-	if bullet == null:
-		_hide_cutscene_bars(0.4)
-		_resume_all_world()
-		_lock_player_input(false)
-		state = State.RUNNING
-		return
-
-	var bullet_speed = 2200.0
-	var bullet_start_x = bullet.global_position.x
-	var player_x = player.global_position.x
-	var hit_dist = abs(player_x - bullet_start_x)
-	var hit_time = hit_dist / bullet_speed
-
-	var qte_lead = 1.2
-	var qte_delay = max(hit_time - qte_lead, 0.15)
-
-	await get_tree().create_timer(qte_delay).timeout
-	if not is_inside_tree():
-		if is_instance_valid(bullet):
-			bullet.queue_free()
-		return
-
-	if shift_qte and shift_qte.has_signal("qte_hit"):
-		shift_qte.qte_hit.connect(_force_dash, CONNECT_ONE_SHOT)
-
-	var qte_success = await _run_forklift_shift_qte()
-
-	if not is_inside_tree():
-		if is_instance_valid(bullet):
-			bullet.queue_free()
-		return
-
-	if qte_success:
-		if is_instance_valid(bullet):
-			var forklift_x = forklift.global_position.x
-			var remain_dist = abs(forklift_x - bullet.global_position.x)
-			var remain_time = remain_dist / bullet_speed
-			if remain_time < 0.05:
-				remain_time = 0.05
-			var bt = create_tween()
-			bt.set_trans(Tween.TRANS_LINEAR)
-			bt.tween_property(bullet, "global_position:x", forklift_x, remain_time)
-			await bt.finished
-			if not is_inside_tree():
-				if is_instance_valid(bullet):
-					bullet.queue_free()
-				return
-			if is_instance_valid(bullet):
-				bullet.queue_free()
-
-		forklift.velocity = Vector2.ZERO
-		forklift_stopped = true
-		forklift.set("active", false)
-		forklift.set_physics_process(false)
-
-		var flash = ColorRect.new()
-		flash.color = Color(1, 1, 1, 0.7)
-		flash.set_anchors_preset(Control.PRESET_FULL_RECT)
-		flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var flash_layer = CanvasLayer.new()
-		flash_layer.layer = 80
-		add_child(flash_layer)
-		flash_layer.add_child(flash)
-		var ft = create_tween()
-		ft.tween_property(flash, "modulate:a", 0.0, 0.3)
-		await ft.finished
-		if not is_inside_tree():
-			return
-		flash_layer.queue_free()
-
-		if player.has_method("_play_anim"):
-			player._play_anim("Run", true)
-
-		var tilt = create_tween().set_parallel(true)
-		tilt.tween_property(falling_shelf, "rotation", deg_to_rad(75), 0.6)
-		tilt.tween_property(falling_shelf, "global_position:y", falling_shelf.global_position.y + 40.0, 0.6)
-		await tilt.finished
-		if not is_inside_tree():
-			return
-
-		await get_tree().create_timer(0.4).timeout
-		if not is_inside_tree():
-			return
-	else:
-		if is_instance_valid(bullet):
-			bullet.queue_free()
-		if shift_qte and shift_qte.has_signal("qte_hit") and shift_qte.qte_hit.is_connected(_force_dash):
-			shift_qte.qte_hit.disconnect(_force_dash)
-		_hide_cutscene_bars(0.4)
-		_restore_camera_after_cutscene()
-		_resume_all_world()
-		_lock_player_input(false)
-		player.die()
-		state = State.RUNNING
-		return
-
-	_hide_cutscene_bars(0.6)
-
-	if player.sprite:
-		player.sprite.stop()
-		player.sprite.play("Idle")
-
-	await get_tree().create_timer(0.3).timeout
-	if not is_inside_tree():
-		return
-
-	_resume_all_world()
-	_lock_player_input(false)
-
-	state = State.RUNNING
-func _spawn_fake_bullet() -> Node2D:
-	var bullet = Node2D.new()
-	bullet.name = "FakeBullet"
-	bullet.z_index = 60
-
-	var glow = Polygon2D.new()
-	glow.polygon = PackedVector2Array([
-		Vector2(-30, -8), Vector2(30, -8),
-		Vector2(30, 8), Vector2(-30, 8)
-	])
-	glow.color = Color(1, 1, 0.6, 0.35)
-	bullet.add_child(glow)
-
-	var core = Polygon2D.new()
-	core.polygon = PackedVector2Array([
-		Vector2(-18, -4), Vector2(18, -4),
-		Vector2(18, 4), Vector2(-18, 4)
-	])
-	core.color = Color(1, 0.95, 0.3, 1.0)
-	bullet.add_child(core)
-
-	var tip = Polygon2D.new()
-	tip.polygon = PackedVector2Array([
-		Vector2(18, -4), Vector2(28, 0), Vector2(18, 4)
-	])
-	tip.color = Color(1, 1, 0.8, 1.0)
-	bullet.add_child(tip)
-
-	get_tree().current_scene.add_child(bullet)
-
-	var start_x = sniper_spawn_position.x
-	var start_y = player.global_position.y
-
-	if sniper and is_instance_valid(sniper):
-		start_x = sniper.global_position.x
-		start_y = sniper.global_position.y
-
-	bullet.global_position = Vector2(start_x, start_y)
-
-	var dir_x = player.global_position.x - start_x
-	var dir_y = player.global_position.y - start_y
-	bullet.rotation = atan2(dir_y, dir_x)
-
-	return bullet
-
-func _run_forklift_shift_qte() -> bool:
-	if not shift_qte or not shift_qte.has_method("show_qte"):
-		await get_tree().create_timer(1.2).timeout
-		return true
-
-	shift_qte.show_qte()
-
-	# (a lambda can't change outer locals - the old flags never flipped; a Dictionary can)
-	var st = {"result": false, "received": false}
-
-	var callback = func(success: bool):
-		st["result"] = success
-		st["received"] = true
-
-	if not shift_qte.qte_result.is_connected(callback):
-		shift_qte.qte_result.connect(callback)
-
-	while not st["received"]:
+	while _forklift_center().x - player.global_position.x > FL_QTE_GAP:
 		await get_tree().process_frame
 		if not is_inside_tree():
-			if shift_qte.qte_result.is_connected(callback):
-				shift_qte.qte_result.disconnect(callback)
-			return false
+			return
 
-	if shift_qte.qte_result.is_connected(callback):
-		shift_qte.qte_result.disconnect(callback)
+	# --- снайпер целится, slow-mo, QTE
+	state = State.FORKLIFT_QTE
+	_start_sniper_aim()
+	_time_scale_to(FL_SLOWMO, FL_SLOWMO_RAMP)
+	_start_bullet()
+	var success = await _run_shift_qte_cutscene()
+	if not is_inside_tree():
+		return
+	_stop_sniper_aim()
+	_shake_floor = 0.0
 
-	return st["result"]
+	if success:
+		await _forklift_success(start_zoom)
+	else:
+		await _forklift_fail()
+
+func _ground_player() -> void:
+	var floor_top = _floor_top_y()
+	if is_nan(floor_top):
+		return
+	var feet = player.get("_feet_off")
+	if feet == null:
+		feet = 28.0
+	var target_y = floor_top - feet
+	var dy = target_y - player.global_position.y
+	if abs(dy) < 1.5:
+		player.global_position.y = target_y
+		return
+	if player.sprite:
+		player.sprite.play("Falling")
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_property(player, "global_position:y", target_y, clamp(abs(dy) / 500.0, 0.08, 0.35))
+	await t.finished
+	if player.sprite and player.sprite.sprite_frames.has_animation("Landing"):
+		player.sprite.play("Landing")
+		await _wait(0.2)
+
+func _update_cutscene_motion(delta: float):
+	if not _cutscene_running:
+		return
+	player.global_position.x += player.run_speed * FL_FISH_SPEED_MULT * delta
+	if not forklift_stopped:
+		forklift.global_position.x -= FL_SPEED * delta
+		_attach_shelf_to_forklift()
+
+func _prepare_shelf_on_forks():
+	# ставим стеллаж на пол и вплотную перед погрузчиком
+	falling_shelf.rotation = 0.0
+	var floor_top = _floor_top_y()
+	if not is_nan(floor_top):
+		falling_shelf.global_position.y += floor_top - _shelf_rect().end.y
+	_shelf_base_y = falling_shelf.global_position.y
+	var radius = 38.0
+	var col = forklift.get_node_or_null("CollisionShape2D")
+	if col and col.shape is CapsuleShape2D:
+		radius = col.shape.radius
+	var front_x = _forklift_center().x - radius - 4.0
+	falling_shelf.global_position.x += front_x - _shelf_rect().end.x
+	_shelf_dx = falling_shelf.global_position.x - forklift.global_position.x
+	_attach_shelf_to_forklift()
+	var shelf_col = falling_shelf.get_node_or_null("CollisionShape2D")
+	if shelf_col:
+		shelf_col.set_deferred("disabled", true)
+
+func _attach_shelf_to_forklift():
+	falling_shelf.rotation = 0.0
+	falling_shelf.global_position = Vector2(forklift.global_position.x + _shelf_dx, _shelf_base_y - 10.0)
+
+# ---------- пуля ----------
+
+func _start_bullet():
+	if _bullet == null:
+		_bullet = Line2D.new()
+		_bullet.width = 3.0
+		_bullet.default_color = Color(1, 0.95, 0.6, 1)
+		_bullet.z_index = 90
+		add_child(_bullet)
+	_bullet.modulate.a = 1.0
+	_bullet.visible = true
+	# стартуем с левого края экрана на линии «снайпер -> рыба», чтобы пулю было видно
+	var muzzle = _sniper_muzzle_pos()
+	var chest = player.global_position + Vector2(0, -6)
+	var vp = get_viewport_rect().size
+	var left_x = camera.global_position.x - vp.x / (2.0 * camera.zoom.x) - 40.0
+	var dir = (chest - muzzle).normalized()
+	var k = (left_x - muzzle.x) / dir.x if abs(dir.x) > 0.01 else 0.0
+	_bullet_from = muzzle + dir * max(k, 0.0)
+	_bullet_pos = _bullet_from
+	_bullet_active = true
+	_draw_bullet()
+
+func _update_bullet_qte():
+	if not _bullet_active or not shift_qte:
+		return
+	var dur = shift_qte.get("_duration")
+	var tm = shift_qte.get("qte_timer")
+	if dur == null or tm == null:
+		return
+	# пуля долетает до рыбы к концу окна нажатия
+	var k = clamp(tm / (dur * 0.9), 0.0, 1.0)
+	var chest = player.global_position + Vector2(0, -6)
+	_bullet_pos = _bullet_from.lerp(chest, k)
+	_draw_bullet()
+
+func _draw_bullet():
+	var dir = (_bullet_pos - _bullet_from).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT
+	var tail = _bullet_pos - dir * 70.0
+	_bullet.points = PackedVector2Array([to_local(tail), to_local(_bullet_pos)])
+
+func _bullet_lerp(k: float, from: Vector2, target: Vector2) -> void:
+	_bullet_pos = from.lerp(target, k)
+	_draw_bullet()
+
+func _bullet_fly_to(target: Vector2, dur: float) -> void:
+	var from = _bullet_pos
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_method(_bullet_lerp.bind(from, target), 0.0, 1.0, dur)
+	await t.finished
+	_bullet_active = false
+	var f = create_tween()
+	f.set_ignore_time_scale(true)
+	f.tween_property(_bullet, "modulate:a", 0.0, 0.15)
+
+# ---------- исходы ----------
+
+func _forklift_success(start_zoom: Vector2) -> void:
+	_cutscene_running = false
+	_bullet_active = false
+
+	# рывок вперёд, к погрузчику — пуля проходит мимо
+	await _fish_dash(FL_DASH_DIST, FL_DASH_TIME)
+	_time_scale_to(1.0, 0.6)
+	if player.sprite:
+		player.sprite.play("Idle")
+
+	# пуля летит дальше и попадает в погрузчик
+	await _bullet_fly_to(_forklift_center(), 0.35)
+	if not is_inside_tree():
+		return
+	_forklift_break()
+	await _drop_shelf()
+	if not is_inside_tree():
+		return
+	_deactivate_sniper()
+	_show_shelf_hint(_shelf_rect())
+	await _wait(1.2)
+	if not is_inside_tree():
+		return
+
+	# возвращаем камеру
+	_cam_track = null
+	if "look_offset" in camera:
+		camera.look_offset = Vector2.ZERO
+	_cam_tween(_get_camera_target(), start_zoom, 1.0)
+	_hide_cutscene_bars(0.9)
+	await _wait(1.0)
+	if not is_inside_tree():
+		return
+	_cam_original_position = _get_camera_target()
+	_cam_original_zoom = start_zoom
+	_cam_original_offset = _cam_base_offset
+	_restore_camera_after_cutscene()
+	_resume_all_world()
+	_lock_player_input(false)
+	state = State.RUNNING
+
+func _forklift_fail() -> void:
+	_cutscene_running = false
+	_bullet_active = false
+	Engine.time_scale = 1.0
+	await _bullet_fly_to(player.global_position + Vector2(0, -6), 0.05)
+	if not is_inside_tree():
+		return
+	_flash(Color(1, 0.2, 0.15, 0.4), 0.3)
+	_add_shake(0.4)
+	_spawn_sparks(player.global_position, Color(1, 0.35, 0.3), 14)
+	_cam_track = null
+	is_game_over = true
+	state = State.GAMEOVER
+	_deactivate_sniper()
+	_stop_all_world()
+	player.die()
+
+func _fish_dash(dist: float, dur: float) -> void:
+	if player.sprite:
+		player.sprite.play("Run")
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(player, "global_position:x", player.global_position.x + dist, dur)
+	for i in 4:
+		_spawn_ghost()
+		await _wait(dur / 4.0)
+	await t.finished
+
+func _spawn_ghost():
+	var spr: AnimatedSprite2D = player.sprite
+	if spr == null or spr.sprite_frames == null:
+		return
+	var tex = spr.sprite_frames.get_frame_texture(spr.animation, spr.frame)
+	if tex == null:
+		return
+	var g = Sprite2D.new()
+	g.texture = tex
+	g.flip_h = spr.flip_h
+	g.z_index = 40
+	add_child(g)
+	g.global_position = spr.global_position
+	g.global_scale = spr.global_scale
+	g.modulate = Color(0.6, 0.85, 1.0, 0.55)
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_property(g, "modulate:a", 0.0, 0.4)
+	t.tween_callback(g.queue_free)
+
+func _forklift_break():
+	forklift_stopped = true
+	_flash(Color(1, 1, 1, 0.3), 0.2)
+	_add_shake(0.5)
+	_spawn_sparks(_forklift_center(), Color(1, 0.75, 0.3), 28)
+	var t = create_tween().set_parallel(true)
+	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(forklift, "global_position:x", forklift.global_position.x + 30.0, 0.6)
+	t.tween_property(forklift, "rotation", deg_to_rad(-5.0), 0.6)
+	t.tween_property(forklift, "modulate", Color(0.4, 0.38, 0.38, 1), 0.5)
+
+func _drop_shelf() -> void:
+	# стеллаж соскальзывает с вил на пол, чуть качнувшись
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_property(falling_shelf, "global_position:y", _shelf_base_y, 0.3)
+	t.parallel().tween_property(falling_shelf, "rotation", deg_to_rad(-4.0), 0.3)
+	t.tween_property(falling_shelf, "rotation", deg_to_rad(2.0), 0.18)
+	t.tween_property(falling_shelf, "rotation", 0.0, 0.18)
+	await t.finished
+	_add_shake(0.3)
+	var col = falling_shelf.get_node_or_null("CollisionShape2D")
+	if col:
+		col.set_deferred("disabled", false)
+	falling_shelf.add_to_group("climbable")
+	shelf_climbed = false
+
+func _shelf_rect() -> Rect2:
+	var col = falling_shelf.get_node_or_null("CollisionShape2D")
+	if col == null or not (col.shape is RectangleShape2D):
+		return Rect2(falling_shelf.global_position, Vector2(60, 60))
+	var h: Vector2 = col.shape.size / 2.0
+	var xf: Transform2D = col.global_transform
+	var r := Rect2(xf * Vector2(-h.x, -h.y), Vector2.ZERO)
+	for p in [Vector2(h.x, -h.y), Vector2(h.x, h.y), Vector2(-h.x, h.y)]:
+		r = r.expand(xf * p)
+	return r
+
+# ---------- снайпер в катсцене ----------
+
+func _sniper_muzzle_pos() -> Vector2:
+	if sniper and is_instance_valid(sniper):
+		var m = sniper.get_node_or_null("Muzzle")
+		if m:
+			return m.global_position
+		return sniper.global_position
+	# снайпера нет — стреляем «из-за кадра» слева
+	return player.global_position + Vector2(-1400, -60)
+
+func _start_sniper_aim():
+	_aim_active = true
+	_aim_width = 10.0
+	_aim_blink = 0.0
+	var w = create_tween()
+	w.set_ignore_time_scale(true)
+	w.tween_property(self, "_aim_width", 1.5, 0.5 + FL_QTE_TIME)
+
+func _stop_sniper_aim():
+	_aim_active = false
+	if sniper and is_instance_valid(sniper) and sniper.get("aim_line"):
+		sniper.aim_line.visible = false
+
+func _update_sniper_aim(rd: float):
+	if not _aim_active or not sniper or not is_instance_valid(sniper):
+		return
+	var line: Line2D = sniper.get("aim_line")
+	if line == null:
+		return
+	_aim_blink += rd * lerp(6.0, 22.0, clamp((10.0 - _aim_width) / 8.5, 0.0, 1.0))
+	var origin = _sniper_muzzle_pos()
+	var dir = (player.global_position - origin).normalized()
+	line.visible = true
+	line.global_position = origin
+	line.global_rotation = dir.angle()
+	line.points = PackedVector2Array([Vector2.ZERO, Vector2(100000, 0)])
+	line.width = _aim_width
+	var blink = 0.55 + 0.45 * sin(_aim_blink * TAU)
+	line.default_color = Color(1, 0.15, 0.15, blink)
+
+# ---------- эффекты ----------
+
+func _create_fx_layer():
+	_vignette = ColorRect.new()
+	_vignette.color = Color(0.8, 0.0, 0.0, 0.0)
+	_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_cutscene_canvas.add_child(_vignette)
+	_cutscene_canvas.move_child(_vignette, 0)
+
+	_flash_rect = ColorRect.new()
+	_flash_rect.color = Color(1, 1, 1, 0)
+	_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_cutscene_canvas.add_child(_flash_rect)
+
+func _flash(col: Color, dur: float):
+	if not _flash_rect:
+		return
+	_flash_rect.color = col
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_property(_flash_rect, "color:a", 0.0, dur)
+
+func _set_vignette(alpha: float, dur: float):
+	if not _vignette:
+		return
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_property(_vignette, "color:a", alpha, dur)
+
+func _add_shake(amount: float):
+	_shake = clamp(max(_shake, amount), 0.0, 1.2)
+
+func _update_fx(rd: float):
+	_update_sniper_aim(rd)
+	_update_bullet_qte()
+	if camera:
+		if _cam_track and is_instance_valid(_cam_track):
+			camera.global_position = camera.global_position.lerp(_cam_track.global_position + _cam_track_offset, clamp(rd * 10.0, 0.0, 1.0))
+		_shake = move_toward(_shake, 0.0, rd * 1.6)
+		var s = max(_shake, _shake_floor)
+		var amp = s * s * 14.0
+		if amp > 0.05:
+			camera.offset = _cam_base_offset + Vector2(randf_range(-1, 1), randf_range(-1, 1)) * amp
+			_was_shaking = true
+		elif _was_shaking:
+			camera.offset = _cam_base_offset
+			_was_shaking = false
+
+func _spawn_sparks(pos: Vector2, col: Color, amount: int):
+	var p = CPUParticles2D.new()
+	p.z_index = 80
+	p.amount = amount
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.lifetime = 0.7
+	p.direction = Vector2(0, -1)
+	p.spread = 180.0
+	p.initial_velocity_min = 120.0
+	p.initial_velocity_max = 380.0
+	p.gravity = Vector2(0, 700)
+	p.scale_amount_min = 1.5
+	p.scale_amount_max = 3.0
+	p.color = col
+	add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	get_tree().create_timer(1.5, true, false, true).timeout.connect(func():
+		if is_instance_valid(p):
+			p.queue_free()
+	)
+
+# ---------- подсказки в мире ----------
+
+func _make_world_hint(text: String) -> Label:
+	var l = Label.new()
+	l.text = text
+	l.z_index = 60
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 10)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	l.add_theme_constant_override("outline_size", 4)
+	l.size = Vector2(120, 16)
+	l.modulate.a = 0.0
+	add_child(l)
+	return l
+
+func _show_shelf_hint(r: Rect2):
+	if _shelf_hint == null:
+		_shelf_hint = _make_world_hint("ПРОБЕЛ — перелезть")
+	_shelf_hint.position = to_local(Vector2(r.get_center().x - 60.0, r.position.y - 30.0))
+	var t = create_tween()
+	t.tween_property(_shelf_hint, "modulate:a", 1.0, 0.3)
+
+func _update_shelf_hint():
+	if _shelf_hint == null or _shelf_hint.modulate.a <= 0.0:
+		return
+	var r = _shelf_rect()
+	if player.global_position.x > r.position.x + 10.0 or player.global_position.y < r.position.y:
+		var t = create_tween()
+		t.tween_property(_shelf_hint, "modulate:a", 0.0, 0.25)
+		shelf_climbed = true
+
+func _set_elevator_hint(on: bool):
+	if _elevator_hint == null:
+		if not on:
+			return
+		_elevator_hint = _make_world_hint("E — вызвать лифт")
+	if on:
+		_elevator_hint.position = to_local(elevator_button.global_position + Vector2(268 - 60, -40))
+	var target = 1.0 if on else 0.0
+	if abs(_elevator_hint.modulate.a - target) > 0.01:
+		_elevator_hint.modulate.a = move_toward(_elevator_hint.modulate.a, target, 0.1)
 
 func _force_dash():
 	if not player:
@@ -991,45 +1357,21 @@ func _force_dash():
 	if player.has_method("_dash"):
 		player._dash()
 
+
 func _run_shift_qte_cutscene() -> bool:
 	if not shift_qte or not shift_qte.has_method("show_qte"):
-		await get_tree().create_timer(1.2).timeout
+		await get_tree().create_timer(1.2, true, false, true).timeout
 		return true
 
-	shift_qte.show_qte()
+	shift_qte.show_qte(FL_QTE_TIME, false)
 
-	# (a lambda can't change outer locals - the old flags never flipped; a Dictionary can)
+	# (лямбда не может менять внешние локальные переменные — поэтому Dictionary)
 	var st = {"result": false, "received": false}
-
 	var callback = func(success: bool):
 		st["result"] = success
 		st["received"] = true
-
 	if not shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.connect(callback)
-
-	await get_tree().process_frame
-
-	var qte_started = true   # (it always ended up true: the lambda flag could not change it)
-	if shift_qte.has_signal("qte_started"):
-		await get_tree().create_timer(0.1).timeout
-	
-	if qte_started:
-		var p_target_x = player.global_position.x + _qte_throw_dir * 600.0
-		var f_target_x = forklift.global_position.x - _qte_throw_dir * 600.0
-
-		if player.has_method("_play_anim"):
-			player._play_anim("Run", true)
-
-		_forklift_player_tween = create_tween()
-		_forklift_player_tween.set_trans(Tween.TRANS_LINEAR)
-		_forklift_player_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-		_forklift_player_tween.tween_property(player, "global_position:x", p_target_x, 1.5)
-
-		_forklift_tween = create_tween()
-		_forklift_tween.set_trans(Tween.TRANS_LINEAR)
-		_forklift_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-		_forklift_tween.tween_property(forklift, "global_position:x", f_target_x, 1.5)
 
 	while not st["received"]:
 		await get_tree().process_frame
@@ -1038,24 +1380,6 @@ func _run_shift_qte_cutscene() -> bool:
 
 	if shift_qte.qte_result.is_connected(callback):
 		shift_qte.qte_result.disconnect(callback)
-
-	if st["received"]:
-		var stop_tweens = get_tree().get_processed_tweens()
-		for t in stop_tweens:
-			t.kill()
-
-		var f_y = forklift.global_position.y
-		var p_y = player.global_position.y
-		
-		if st["result"]:
-			forklift.global_position = Vector2(player.global_position.x + 150, f_y)
-			player.global_position = Vector2(forklift.global_position.x - 350, p_y)
-		else:
-			forklift.global_position = Vector2(player.global_position.x, f_y)
-			
-		if player.has_method("_play_anim"):
-			player._play_anim("Idle", true)
-
 	return st["result"]
 
 func _throw_item_at_forklift():
@@ -1094,33 +1418,6 @@ func _throw_item_at_forklift():
 		t.parallel().tween_property(falling_shelf, "rotation", 0.3, 0.6)
 
 	forklift_trigger.monitoring = false
-
-func _climb_shelf():
-	_lock_player_input(true)
-	_shelf_climbing = true
-
-func _on_parry_complete():
-	parry_done = true
-	var parrying_scene = get_node_or_null("ParryingScene")
-	if parrying_scene:
-		var enemy = parrying_scene.get_node_or_null("AttackParry")
-		if enemy:
-			enemy.visible = true
-			enemy.collision_layer = 1
-			enemy.collision_mask = 1
-			var col = enemy.get_node_or_null("CollisionShape2D")
-			if col:
-				col.disabled = false
-			var t = create_tween()
-			t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			t.tween_property(enemy, "global_position:x", enemy.global_position.x + 300, 0.4)
-
-	if is_instance_valid(player):
-		_lock_player_input(false)
-		player.is_vaulting = false
-		player.is_climbing = false
-		player.is_sliding = false
-		player.is_crouching = false
 
 func _game_over():
 	if is_game_over or state == State.GAMEOVER:
@@ -1179,25 +1476,13 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("interact"):
-		var entrance_trigger = get_node_or_null("EntranceTrigger")
-		var passage_trigger = get_node_or_null("TightPassageTrigger")
-
-		if entrance_trigger:
-			var bodies = entrance_trigger.get_overlapping_bodies()
-			if bodies.has(player) and passage_trigger and not passage_trigger.is_active:
-				var col = $EntranceGate.get_node_or_null("CollisionShape2D")
-				if col:
-					col.set_deferred("disabled", true)
-				player.global_position.x += 10
-				passage_trigger.activate(player)
-				return
-
 		if player.has_method("set_movement_blocked") and player.movement_blocked:
 			player.set_movement_blocked(false)
 			return
 
 func _toggle_pause():
-	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE:
+	if state == State.GAMEOVER or state == State.WIN or state == State.INTRO_RUN or state == State.QTE_GRAB or state == State.SNIPER_CUTSCENE \
+	or state == State.FORKLIFT_CUTSCENE or state == State.FORKLIFT_QTE:
 		return
 	if not pause_menu:
 		return
@@ -1248,20 +1533,3 @@ func _run_e_button_qte_at(world_pos: Vector2) -> bool:
 		qte_button.qte_result.disconnect(callback)
 
 	return state_dict["result"]
-
-func _run_forklift_qte_motion():
-	var ts = Engine.time_scale
-	if ts <= 0.0:
-		ts = 1.0
-
-	var dur = 1.5
-
-	var player_t = create_tween()
-	player_t.set_trans(Tween.TRANS_LINEAR)
-	player_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	player_t.tween_property(player, "global_position:x", 4700.0, dur * ts)
-
-	var forklift_t = create_tween()
-	forklift_t.set_trans(Tween.TRANS_LINEAR)
-	forklift_t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	forklift_t.tween_property(forklift, "global_position:x", 6380.0, dur * ts)
