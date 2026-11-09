@@ -345,7 +345,7 @@ func _apply_brightness_value() -> void:
 		current_brightness_layer.visible = overlay_alpha > 0.001
 
 func setup_audio_options() -> void:
-	dynamic_range_items = ["Высокий", "Стандартный", "Низкий"]
+	dynamic_range_items = [tr("Высокий"), tr("Стандартный"), tr("Низкий")]
 	dynamic_range_selected = 1
 	_populate_dropdown(dynamic_range_dropdown, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 	_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
@@ -724,20 +724,20 @@ func _show_reset_confirm() -> void:
 	var text = ""
 	match page:
 		0:
-			title = "Сброс графики"
-			text = "Сбросить настройки графики по умолчанию?"
+			title = tr("Сброс графики")
+			text = tr("Сбросить настройки графики по умолчанию?")
 		1:
-			title = "Сброс аудио"
-			text = "Сбросить настройки звука по умолчанию?"
+			title = tr("Сброс аудио")
+			text = tr("Сбросить настройки звука по умолчанию?")
 		2:
-			title = "Сброс управления"
-			text = "Сбросить управление по умолчанию?"
+			title = tr("Сброс управления")
+			text = tr("Сбросить управление по умолчанию?")
 	var menu = STYLED_DIALOG.new()
 	menu.style = "factory"
 	menu.title = title
 	menu.dialog_text = text
-	menu.add_button("Сбросить", true, "yes")
-	menu.add_cancel_button("Отмена")
+	menu.add_button(tr("Сбросить"), true, "yes")
+	menu.add_cancel_button(tr("Отмена"))
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	for child in menu.get_children():
@@ -789,10 +789,10 @@ func _show_unsaved_confirm() -> void:
 	_close_current_popup()
 	var menu = STYLED_DIALOG.new()
 	menu.style = "factory"
-	menu.title = "Несохранённые изменения"
-	menu.dialog_text = "Вы действительно хотите выйти, не сохранив изменения?"
-	menu.add_button("Да", true, "yes")
-	menu.add_button("Нет", true, "no")
+	menu.title = tr("Несохранённые изменения")
+	menu.dialog_text = tr("Вы действительно хотите выйти, не сохранив изменения?")
+	menu.add_button(tr("Да"), true, "yes")
+	menu.add_button(tr("Нет"), true, "no")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	for child in menu.get_children():
@@ -824,7 +824,7 @@ func _get_current_page() -> int:
 func _reset_controls_only() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
-		"interact": KEY_F, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
 		"inspect": KEY_I, "journal": KEY_J
 	}
 	for action in defaults.keys():
@@ -1021,7 +1021,7 @@ func _relayout() -> void:
 	for b in [move_up_btn, move_down_btn, move_left_btn, move_right_btn, interact_btn, jump_btn, inventory_btn, pause_btn, inspect_btn, journal_btn]:
 		if b:
 			b.focus_mode = Control.FOCUS_NONE
-	MenuHeader.attach(self, "НАСТРОЙКИ", acc, 30.0, 32)
+	MenuHeader.attach(self, tr("НАСТРОЙКИ"), acc, 30.0, 32)
 	# tabs: plain words in a row, the active one lit
 	var tabs = [graphics_tab, audio_tab, controls_tab]
 	for i in range(tabs.size()):
@@ -1067,8 +1067,8 @@ func _relayout() -> void:
 	var rend = 1032.0 - o.x
 	var y0 = 184.0 - o.y
 	var step = 44.0
-	MenuHeader.section(graphics_page, "ЭКРАН", acc, Vector2(lx, 150 - o.y), lend - lx)
-	MenuHeader.section(graphics_page, "ИЗОБРАЖЕНИЕ", acc, Vector2(rx, 150 - o.y), rend - rx)
+	MenuHeader.section(graphics_page, tr("ЭКРАН"), acc, Vector2(lx, 150 - o.y), lend - lx)
+	MenuHeader.section(graphics_page, tr("ИЗОБРАЖЕНИЕ"), acc, Vector2(rx, 150 - o.y), rend - rx)
 	var left = [["ResolutionLabel", "ResolutionButton"], ["FPSLimitLabel", "FPSLimitButton"],
 		["FullScreenLabel", "FullScreenCheck"], ["V-SyncLabel", "VSyncCheck"], ["FPSLabel", "FPSCheck"]]
 	for i in range(left.size()):
@@ -1078,7 +1078,7 @@ func _relayout() -> void:
 	for i in range(right.size()):
 		_place_row(right[i][0], right[i][1], rx, rend, y0 + i * step)
 	var gy = y0 + 3 * step + 14.0
-	MenuHeader.section(graphics_page, "ИГРА", acc, Vector2(rx, gy), rend - rx)
+	MenuHeader.section(graphics_page, tr("ИГРА"), acc, Vector2(rx, gy), rend - rx)
 	_place_row("LanguageLabel", "LanguageOption", rx, rend, gy + 36.0)
 	_place_row("CameraSensivityLabel", "CameraSensitivitySlider", rx, rend, gy + 36.0 + step)
 
@@ -1125,9 +1125,9 @@ func _fps_names() -> Array[String]:
 	var out: Array[String] = []
 	for v in FPS_VALUES:
 		if v == 0:
-			out.append("Авто (%d Гц)" % int(round(Global.screen_hz())))
+			out.append(tr("Авто (%d Гц)") % int(round(Global.screen_hz())))
 		elif v < 0:
-			out.append("Без лимита")
+			out.append(tr("Без лимита"))
 		else:
 			out.append("%d FPS" % v)
 	return out

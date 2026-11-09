@@ -9,6 +9,51 @@ var life_timer: float = 0.0
 var popped: bool = false
 var ignore_fish_collision: bool = false
 var ignore_timer: float = 0.0
+## >= 0: the bubble is carried over from another aquarium menu (keeps its look, no fade-in)
+var restored_alpha: float = -1.0
+
+## The background bubbles are the same in every aquarium menu (like the boxes on the factory
+## belt): switching main menu <-> settings / saves / achievements keeps them where they were
+## instead of spawning a new set. They can only be popped in the main menu.
+static var _menu_saved: Array = []
+static var _menu_saved_t: int = 0
+
+static func save_menu_bubbles(parent: Node) -> void:
+	var arr: Array = []
+	for c in parent.get_children():
+		if is_instance_valid(c) and c.has_meta("menu_bg") and not c.popped:
+			arr.append([c.global_position, c.scale, c.speed, c.direction, c.modulate.a, c.life_timer])
+	_menu_saved = arr
+	_menu_saved_t = Time.get_ticks_msec()
+
+## Puts the saved bubbles back (moved on by the time the menus were switching).
+## Returns false when there was nothing to restore.
+static func restore_menu_bubbles(parent: Node, scene: PackedScene, can_click: bool) -> bool:
+	if _menu_saved.is_empty() or scene == null:
+		return false
+	var gone = clamp((Time.get_ticks_msec() - _menu_saved_t) / 1000.0, 0.0, 3.0)
+	var saved = _menu_saved
+	_menu_saved = []
+	var n := 0
+	for b in saved:
+		var life = float(b[5]) - gone
+		if life <= 0.2:
+			continue
+		var bubble = scene.instantiate()
+		bubble.set_meta("menu_bg", true)
+		bubble.restored_alpha = float(b[4])
+		parent.add_child(bubble)
+		if not is_instance_valid(bubble) or bubble.is_queued_for_deletion():
+			continue
+		bubble.z_index = -10
+		bubble.scale = b[1]
+		bubble.speed = b[2]
+		bubble.direction = b[3]
+		bubble.global_position = b[0] + b[3] * b[2] * gone
+		bubble.life_timer = life
+		bubble.clickable = can_click
+		n += 1
+	return n > 0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision: CollisionShape2D = $CollisionShape2D
@@ -32,15 +77,18 @@ func _ready() -> void:
 
 	life_timer = life_time
 
-	modulate.a = 0.0
+	if restored_alpha >= 0.0:
+		modulate.a = restored_alpha
+	else:
+		modulate.a = 0.0
 
-	var target_alpha = randf_range(0.01, 0.75)
+		var target_alpha = randf_range(0.01, 0.75)
 
-	var fade_tween = create_tween()
-	fade_tween.tween_property(self, "modulate:a", target_alpha, 0.6)
+		var fade_tween = create_tween()
+		fade_tween.tween_property(self, "modulate:a", target_alpha, 0.6)
 
-	var scale_value = randf_range(0.15, 0.5)
-	scale = Vector2.ONE * scale_value
+		var scale_value = randf_range(0.15, 0.5)
+		scale = Vector2.ONE * scale_value
 
 	if sprite:
 		sprite.play("idle")
@@ -112,9 +160,9 @@ func _pop() -> void:
 	clickable = false
 
 	Global.bubbles_popped += 1
-	if Global.bubbles_popped >= 100:
+	if Global.bubbles_popped >= 100 and not Achievements.pop_star_unlocked:
 		Achievements.unlock_pop_star()
-		call_deferred("_notify_achievement")
+		call_deferred("_notify_achievement")   # the big-bubble effect plays only the once
 
 	if collision:
 		collision.call_deferred("set_disabled", true)

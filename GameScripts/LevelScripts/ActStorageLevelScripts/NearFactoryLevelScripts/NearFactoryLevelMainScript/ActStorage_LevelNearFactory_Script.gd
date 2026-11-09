@@ -63,7 +63,7 @@ func _show_title() -> void:
 	add_child(title_instance)
 	await get_tree().process_frame
 	if title_instance and title_instance.has_method("show_title"):
-		title_instance.show_title("АКТ 1. СКЛАД.")
+		title_instance.show_title(tr("АКТ 1. СКЛАД."))
 
 func _spawn_enemies() -> void:
 	if not spawn_points:
@@ -118,7 +118,7 @@ func _on_exit_entered(body: Node) -> void:
 	add_child(card)
 	await get_tree().process_frame
 	if card.has_method("show_title"):
-		card.show_title("ПРОДОЛЖЕНИЕ СЛЕДУЕТ", "склад ещё не закончен", 3.0)
+		card.show_title(tr("ПРОДОЛЖЕНИЕ СЛЕДУЕТ"), tr("склад ещё не закончен"), 3.0)
 	await get_tree().create_timer(4.2).timeout
 	if not is_inside_tree():
 		return

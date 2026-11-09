@@ -4,7 +4,7 @@ signal scene_loaded
 
 var dot_timer: Timer
 var dot_count: int = 0
-var loading_text: String = "Загрузка"
+var loading_text: String = tr("Загрузка")
 var color_rect: ColorRect
 var label: Label
 var is_showing: bool = false

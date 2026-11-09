@@ -138,7 +138,14 @@ func _anchor_pos() -> Vector2:
 	if style == "aquarium":
 		# bottom-right corner, out of the way of the fish and the lab
 		return Vector2(1152.0 - _panel.size.x - 16.0, 648.0 - _panel.size.y - 18.0)
-	return Vector2(16, 186)   # factory: under the suit / HP panel
+	# factory: bottom-left edge (the top corners belong to the HUD, the middle to the scene)
+	return Vector2(16.0, 648.0 - _panel.size.y - 18.0)
+
+## The hint's rect on screen while it is shown (empty when hidden).
+func panel_rect() -> Rect2:
+	if _panel == null or not _panel.visible or _panel.modulate.a < 0.05:
+		return Rect2()
+	return Rect2(_panel.position, _panel.size)
 
 
 func _start(h: Dictionary) -> void:
@@ -195,12 +202,12 @@ func _key_text(k: String) -> String:
 		var t = ""
 		if has_node("/root/InputRebind"):
 			t = get_node("/root/InputRebind").get_key_text(k)
-		if t == "" or t == "Не назначено":
+		if t == "" or t == tr("Не назначено"):
 			for e in InputMap.action_get_events(k):
 				if e is InputEventKey:
 					t = OS.get_keycode_string(e.physical_keycode if e.keycode == 0 else e.keycode)
 					break
-		return {"Left": "←", "Right": "→", "Up": "↑", "Down": "↓", "Space": "ПРОБЕЛ", "Escape": "ESC"}.get(t, t)
+		return {"Left": "←", "Right": "→", "Up": "↑", "Down": "↓", "Space": tr("ПРОБЕЛ"), "Escape": "ESC"}.get(t, t)
 	return k
 
 
@@ -239,7 +246,7 @@ func _draw_panel() -> void:
 		var fl = 1.0 - clamp(_done_t / 0.35, 0.0, 1.0)
 		c.draw_rect(Rect2(4, 0, sz.x - 4, sz.y), Color(good, 0.18 * fl))
 	# small tag: ОБУЧЕНИЕ / ГОТОВО
-	var tag = "ГОТОВО" if ok else "ОБУЧЕНИЕ"
+	var tag = tr("ГОТОВО") if ok else tr("ОБУЧЕНИЕ")
 	if _font:
 		c.draw_string(_font, Vector2(16, 14), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(edge, 0.95))
 	# key caps (they "press" once in a while so it is clear they are keys)

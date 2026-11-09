@@ -30,4 +30,4 @@ func _refresh() -> void:
 	blue_count.text = str(Global.shards_blue)
 	green_count.text = str(Global.shards_green)
 	cyan_count.text = str(Global.shards_cyan)
-	total_count.text = "Всего: " + str(Global.get_total_shards())
+	total_count.text = tr("Всего: ") + str(Global.get_total_shards())

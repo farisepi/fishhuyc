@@ -20,6 +20,7 @@ var intro_instance: CanvasLayer = null
 
 var custom_font: FontFile
 
+const BubbleScript = preload("res://GameScripts/EntityScripts/BubbleEntityScripts/Bubble_Script.gd")
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
@@ -169,10 +170,10 @@ func _show_load_or_overwrite(index: int):
 	
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
-	menu.title = "Сохранение " + str(index + 1)
-	menu.dialog_text = "Загрузить или перезаписать?"
-	menu.add_button("Загрузить", true, "load")
-	menu.add_button("Перезаписать", true, "overwrite")
+	menu.title = tr("Сохранение ") + str(index + 1)
+	menu.dialog_text = tr("Загрузить или перезаписать?")
+	menu.add_button(tr("Загрузить"), true, "load")
+	menu.add_button(tr("Перезаписать"), true, "overwrite")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
@@ -205,10 +206,10 @@ func _show_load_or_delete(index: int):
 	
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
-	menu.title = "Сохранение " + str(index + 1)
-	menu.dialog_text = "Загрузить или удалить?"
-	menu.add_button("Загрузить", true, "load")
-	menu.add_button("Удалить", true, "delete")
+	menu.title = tr("Сохранение ") + str(index + 1)
+	menu.dialog_text = tr("Загрузить или удалить?")
+	menu.add_button(tr("Загрузить"), true, "load")
+	menu.add_button(tr("Удалить"), true, "delete")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
@@ -241,10 +242,10 @@ func _show_delete_confirm(index: int):
 	
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
-	menu.title = "Удаление"
-	menu.dialog_text = "Удалить сохранение " + str(index + 1) + "?"
-	menu.add_button("Да", true, "yes")
-	menu.add_button("Нет", true, "no")
+	menu.title = tr("Удаление")
+	menu.dialog_text = tr("Удалить сохранение ") + str(index + 1) + "?"
+	menu.add_button(tr("Да"), true, "yes")
+	menu.add_button(tr("Нет"), true, "no")
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
@@ -385,9 +386,14 @@ func _input(event: InputEvent) -> void:
 
 
 func _start_background_bubbles() -> void:
-	for i in range(randi_range(3, 6)):
-		_make_menu_bubble()
+	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
+	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, false):
+		for i in range(randi_range(3, 6)):
+			_make_menu_bubble()
 	_spawn_next_bubble()
+
+func _exit_tree() -> void:
+	BubbleScript.save_menu_bubbles(self)
 
 func _spawn_next_bubble() -> void:
 	if not bubble_scene:
@@ -413,6 +419,7 @@ func _make_menu_bubble() -> void:
 	var viewport_size = viewport.get_visible_rect().size
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
+	bubble.set_meta("menu_bg", true)
 	bubble.z_index = -10
 	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
 	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
@@ -433,7 +440,7 @@ func _add_header() -> void:
 		if t:
 			t.visible = false
 			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
-	MenuHeader.attach(self, "СОХРАНЕНИЯ", acc, (old_c - 23.0) if old_c >= 0.0 else 30.0, 32)
+	MenuHeader.attach(self, tr("СОХРАНЕНИЯ"), acc, (old_c - 23.0) if old_c >= 0.0 else 30.0, 32)
 	for n in ["DividingLine1", "DividingLine2"]:
 		var d = get_node_or_null(n) as ColorRect
 		if d:

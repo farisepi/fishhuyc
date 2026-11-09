@@ -231,10 +231,10 @@ func _on_reset_pressed() -> void:
 	
 	var menu = STYLED_DIALOG.new()
 	menu.style = "factory"
-	menu.title = "Сброс достижений"
-	menu.dialog_text = "Весь прогресс достижений будет сброшен. Восстановить нельзя. Придётся начинать сначала."
-	menu.add_button("Да", true, "yes")
-	menu.add_cancel_button("Нет")
+	menu.title = tr("Сброс достижений")
+	menu.dialog_text = tr("Весь прогресс достижений будет сброшен. Восстановить нельзя. Придётся начинать сначала.")
+	menu.add_button(tr("Да"), true, "yes")
+	menu.add_cancel_button(tr("Нет"))
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
@@ -271,7 +271,7 @@ func _add_header() -> void:
 		if t:
 			t.visible = false
 			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
-	MenuHeader.attach(self, "ДОСТИЖЕНИЯ", acc, 16.0, 26, 180.0)
+	MenuHeader.attach(self, tr("ДОСТИЖЕНИЯ"), acc, 16.0, 26, 180.0)
 	var pb = get_node_or_null("ProgressBar") as Control
 	var pl2 = get_node_or_null("ProgressLabel") as Control
 	for c in [pb, pl2]:

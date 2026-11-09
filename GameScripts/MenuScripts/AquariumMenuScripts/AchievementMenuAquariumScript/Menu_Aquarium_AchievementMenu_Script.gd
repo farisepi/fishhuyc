@@ -60,6 +60,7 @@ var total_achievements: int = 8
 var _extra_rows: Array = []
 var unlocked_count: int = 0
 
+const BubbleScript = preload("res://GameScripts/EntityScripts/BubbleEntityScripts/Bubble_Script.gd")
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
@@ -243,10 +244,10 @@ func _on_reset_pressed() -> void:
 	
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
-	menu.title = "Сброс достижений"
-	menu.dialog_text = "Весь прогресс достижений будет сброшен. Восстановить нельзя. Придётся начинать сначала."
-	menu.add_button("Да", true, "yes")
-	menu.add_cancel_button("Нет")
+	menu.title = tr("Сброс достижений")
+	menu.dialog_text = tr("Весь прогресс достижений будет сброшен. Восстановить нельзя. Придётся начинать сначала.")
+	menu.add_button(tr("Да"), true, "yes")
+	menu.add_cancel_button(tr("Нет"))
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
 	
@@ -275,9 +276,14 @@ func _input(event: InputEvent) -> void:
 		_on_back_button_pressed()
 
 func _start_background_bubbles() -> void:
-	for i in range(randi_range(3, 6)):
-		_make_menu_bubble()
+	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
+	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, false):
+		for i in range(randi_range(3, 6)):
+			_make_menu_bubble()
 	_spawn_next_bubble()
+
+func _exit_tree() -> void:
+	BubbleScript.save_menu_bubbles(self)
 
 func _spawn_next_bubble() -> void:
 	if not bubble_scene:
@@ -303,6 +309,7 @@ func _make_menu_bubble() -> void:
 	var viewport_size = viewport.get_visible_rect().size
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
+	bubble.set_meta("menu_bg", true)
 	bubble.z_index = -10
 	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
 	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
@@ -323,7 +330,7 @@ func _add_header() -> void:
 		if t:
 			t.visible = false
 			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
-	MenuHeader.attach(self, "ДОСТИЖЕНИЯ", acc, 16.0, 26, 180.0)
+	MenuHeader.attach(self, tr("ДОСТИЖЕНИЯ"), acc, 16.0, 26, 180.0)
 	var pb = get_node_or_null("ProgressBar") as Control
 	var pl2 = get_node_or_null("ProgressLabel") as Control
 	for c in [pb, pl2]:

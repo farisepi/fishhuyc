@@ -301,7 +301,7 @@ func _show_next_line() -> void:
 	# Разбить текст на сегменты
 	_build_segments(_current_line)
 	_typed_text = ""
-	_full_text = _current_line.text
+	_full_text = tr(_current_line.text)
 	_seg_index = 0
 	_seg_char = 0
 	_typing = true
@@ -315,15 +315,16 @@ func _show_next_line() -> void:
 func _build_segments(line: ChatterLine) -> void:
 	_segments.clear()
 	if line.swear_words.is_empty():
-		_segments.append({"text": line.text, "swear": false})
+		_segments.append({"text": tr(line.text), "swear": false})
 		return
 	
 	# Разбить строку по ругательствам
-	var remaining = line.text
+	var remaining = tr(line.text)
 	while not remaining.is_empty():
 		var earliest_pos = -1
 		var earliest_word = ""
-		for sw in line.swear_words:
+		for sw0 in line.swear_words:
+			var sw = tr(sw0)
 			var pos = remaining.find(sw)
 			if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
 				earliest_pos = pos

@@ -53,7 +53,7 @@ const SNIPER_SHIFTS: Array = [10.0, 13.0, 16.5]   # only 13:00 is shared with th
 
 const ESCAPE_WINDOW_START: float = 13.0
 const ESCAPE_WINDOW_END: float = 13.25
-const ESCAPE_WINDOW_REAL: float = 12.0   # the 15 minutes 13:00 - 13:15 last 12 seconds
+const ESCAPE_WINDOW_REAL: float = 25.0   # the 15 minutes 13:00 - 13:15 last 25 seconds (stretched for the escape)
 
 const COLOR_GREEN := Color(0.2, 0.8, 0.3)
 const COLOR_RED := Color(0.9, 0.2, 0.2)
@@ -560,15 +560,15 @@ func _nav_arrow_update() -> void:
 	if state == State.SHIFT_END and maintenance_door and not _is_player_near_maintenance():
 		target_x = maintenance_door.global_position.x + (maintenance_door.size.x * 0.5 if maintenance_door is Control else 0.0)
 		txt = ""
-	elif escape_info_shift == current_shift and state != State.DEAD and state != State.SHIFT_END and elevator_button:
+	elif escape_info_shift != -1 and current_shift >= escape_info_shift and state != State.DEAD and state != State.SHIFT_END and elevator_button:
 		var h = _current_hour()
 		target_x = elevator_button.global_position.x
 		if h < 13.0:
 			var mins = int(round((13.0 - h) * 60.0))
-			txt = "ЛИФТ  %d:%02d" % [mins / 60, mins % 60]
+			txt = tr("ЛИФТ  %d:%02d") % [mins / 60, mins % 60]
 		elif h < 13.25:
 			var real_left = (13.25 - h) / 0.25 * ESCAPE_WINDOW_REAL
-			txt = "ЛИФТ!  %d СЕК" % int(ceil(real_left))
+			txt = tr("ЛИФТ!  %d СЕК") % int(ceil(real_left))
 		else:
 			target_x = INF
 		if abs(player.global_position.x - target_x) < 45.0:
@@ -655,7 +655,7 @@ func _draw_edge_arrow() -> void:
 	var tw = _edge_text_w
 	var w = EDGE_W + tw
 	var h = EDGE_H
-	var urgent = _edge_text.begins_with("ЛИФТ!")
+	var urgent = _edge_text.begins_with(tr("ЛИФТ!"))
 	var hot = HUD_C_ORANGE if not urgent else Color(1.0, 0.3 + 0.3 * abs(sin(t * 8.0)), 0.2)
 	# shadow
 	c.draw_rect(Rect2(1, 1, w, h), Color(0, 0, 0, 0.35))
@@ -708,7 +708,7 @@ func _draw_nav() -> void:
 	var tw = f.get_string_size(_nav_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x if f else 80.0
 	var w = tw + 16.0
 	var t = Time.get_ticks_msec() / 1000.0
-	var urgent = _nav_text.begins_with("ЛИФТ!")
+	var urgent = _nav_text.begins_with(tr("ЛИФТ!"))
 	var col = HUD_C_ORANGE if not urgent else Color(1.0, 0.3 + 0.3 * abs(sin(t * 8.0)), 0.2)
 	var r = Rect2(-w * 0.5, -10, w, 18)
 	_nav.draw_rect(Rect2(r.position + Vector2(2, 2), r.size), Color(0, 0, 0, 0.45))
@@ -729,11 +729,24 @@ func _setup_spotlight() -> void:
 	_spot = SPOTLIGHT.new()
 	add_child(_spot)
 	_spot.block_check = func(): return pausemenu != null and pausemenu.visible
+	# the tutorial card keeps off the other hints and the minigame window
+	_spot.avoid = func():
+		var a: Array = []
+		if hint_label and hint_label.is_visible_in_tree():
+			a.append(hint_label.get_global_rect())
+		if _tut and _tut.has_method("panel_rect"):
+			a.append(_tut.panel_rect())
+		if minigame_panel and minigame_panel.is_visible_in_tree():
+			a.append(minigame_panel.get_global_rect())
+		return a
 	_spot.key_event.connect(_on_spot_key)
 
 func _spot_show(title: String, body: String, keys: Array, target: Callable, dim: bool = true) -> void:
 	if _spot:
 		_spot.show_step(title, body, keys, target, dim)
+		# minigame / incident windows: the explanation sits right beside the window
+		if target == _mg_screen_rect or target == _inc_screen_rect:
+			_spot.set_dock_beside(true)
 
 func _on_spot_key(ev: InputEvent) -> void:
 	if not _tut_frozen:
@@ -877,7 +890,7 @@ func _tut_basics_intro() -> void:
 	await _tut_freeze(true)
 	if not is_inside_tree():
 		return
-	_spot_show("ДВИЖЕНИЕ", "Ты очнулся. Научись заново двигаться.", ["A", "D", "ПРОБЕЛ"], _player_screen_rect)
+	_spot_show(tr("ДВИЖЕНИЕ"), tr("Ты очнулся. Научись заново двигаться."), ["A", "D", tr("ПРОБЕЛ")], _player_screen_rect)
 	while is_inside_tree() and not _player_moving():
 		await _tree().process_frame
 	if not is_inside_tree():
@@ -890,7 +903,7 @@ func _tut_basics_intro() -> void:
 		player.process_mode = Node.PROCESS_MODE_INHERIT
 		if "ignore_pause" in player:
 			player.ignore_pause = false
-	_spot_show("БЕЗОПАСНАЯ ЗОНА", "Твоя зона у пресса. Вышел во время работы — охрана накажет.", [], _zone_screen_rect)
+	_spot_show(tr("БЕЗОПАСНАЯ ЗОНА"), tr("Твоя зона у пресса. Вышел во время работы — охрана накажет."), [], _zone_screen_rect)
 	if _spot: _spot.skippable = true
 	await _tut_wait(5.0, true)
 	if not is_inside_tree():
@@ -915,7 +928,7 @@ func _tut_after_first_job() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("СТРЕСС", "Больше стресса — больше шанс промаха. Удары его повышают, серии снижают.", [], _stress_screen_rect)
+	_spot_show(tr("СТРЕСС"), tr("Больше стресса — больше шанс промаха. Удары его повышают, серии снижают."), [], _stress_screen_rect)
 	if _spot: _spot.skippable = true
 	await _tut_wait(5.0, true)
 	if not is_inside_tree():
@@ -935,7 +948,7 @@ func _tut_after_first_job() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ПРОВЕРКА", "Охранник проверит две твои работы. Хорошо — стресс ниже, плохо — удар.", [], _guard_screen_rect)
+	_spot_show(tr("ПРОВЕРКА"), tr("Охранник проверит две твои работы. Хорошо — стресс ниже, плохо — удар."), [], _guard_screen_rect)
 	if _spot: _spot.skippable = true
 	await _tut_wait(5.0, true)
 	if not is_inside_tree():
@@ -969,7 +982,7 @@ func _tut_shift2_start() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ОСМОТР", "Чтобы сбежать, надо узнать расписание охраны и снайпера. Для этого — режим осмотра.", [_key_name("inspect")], _act_screen_rect.bind(false))
+	_spot_show(tr("ОСМОТР"), tr("Чтобы сбежать, надо узнать расписание охраны и снайпера. Для этого — режим осмотра."), [_key_name("inspect")], _act_screen_rect.bind(false))
 	await _tut_wait_for_key("inspect")
 	if not is_inside_tree():
 		return
@@ -978,7 +991,7 @@ func _tut_shift2_start() -> void:
 	if not is_inside_tree():
 		return
 	_enter_inspect()
-	_spot_show("ВЗГЛЯД", "Осмотрись: взгляд двигается.", ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
+	_spot_show(tr("ВЗГЛЯД"), tr("Осмотрись: взгляд двигается."), ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
 	var moved_t := 0.0
 	while is_inside_tree() and state == State.INSPECT and inspect_camera_offset.length() < 90.0 and moved_t < 12.0:
 		await _tree().process_frame
@@ -1031,7 +1044,7 @@ func _tut_inspect_flow() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ОСМОТР", "Чтобы сбежать, нужно узнать, когда меняются охрана и снайпер, и найти, куда бежать. Для этого — режим осмотра: время замедляется, всё полезное подсвечивается, а найденное записывается в журнал. Сейчас охранник уйдёт на пересменку — включи осмотр.", [_key_name("inspect")], _act_screen_rect.bind(false))
+	_spot_show(tr("ОСМОТР"), tr("Чтобы сбежать, нужно узнать, когда меняются охрана и снайпер, и найти, куда бежать. Для этого — режим осмотра: время замедляется, всё полезное подсвечивается, а найденное записывается в журнал. Сейчас охранник уйдёт на пересменку — включи осмотр."), [_key_name("inspect")], _act_screen_rect.bind(false))
 	await _tut_wait_for_key("inspect")
 	if not is_inside_tree():
 		return
@@ -1052,7 +1065,7 @@ func _tut_inspect_part2(with_look: bool = false) -> void:
 		await _tut_inspect_note_and_journal()
 		return
 	# moving the view around in inspect mode
-	_spot_show("ОСМОТР: ВЗГЛЯД", "В режиме осмотра рыба стоит, а взгляд можно двигать по всему цеху. Осмотрись.", ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
+	_spot_show(tr("ОСМОТР: ВЗГЛЯД"), tr("В режиме осмотра рыба стоит, а взгляд можно двигать по всему цеху. Осмотрись."), ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
 	var moved_t := 0.0
 	while is_inside_tree() and state == State.INSPECT and inspect_camera_offset.length() < 90.0 and moved_t < 12.0:
 		await _tree().process_frame
@@ -1069,15 +1082,15 @@ func _tut_inspect_part2(with_look: bool = false) -> void:
 
 func _tut_inspect_note_and_journal() -> void:
 	var gh: float = GUARD_SHIFTS[0]
-	_spot_show("ПЕРЕСМЕНКА", "Охранник уходит. Кликни на него или на пустой пост — время запишется.", [], _guard_or_post_rect, false)
+	_spot_show(tr("ПЕРЕСМЕНКА"), tr("Охранник уходит. Кликни на него или на пустой пост — время запишется."), [], _guard_or_post_rect, false)
 	var hinted_out := false
 	while is_inside_tree() and not guard_shifts_found.has(gh) and state != State.DEAD:
 		if state != State.INSPECT and not hinted_out:
 			hinted_out = true
-			_spot.set_text("ПЕРЕСМЕНКА", "Сначала включи режим осмотра, потом нажми на охранника или на пустой пост.", [_key_name("inspect")])
+			_spot.set_text(tr("ПЕРЕСМЕНКА"), tr("Сначала включи режим осмотра, потом нажми на охранника или на пустой пост."), [_key_name("inspect")])
 		elif state == State.INSPECT and hinted_out:
 			hinted_out = false
-			_spot.set_text("ПЕРЕСМЕНКА", "Нажми мышкой на охранника или на опустевший пост, чтобы записать время пересменки.", [])
+			_spot.set_text(tr("ПЕРЕСМЕНКА"), tr("Нажми мышкой на охранника или на опустевший пост, чтобы записать время пересменки."), [])
 		await _tree().process_frame
 	_tut_wait_guard_note = false
 	if not is_inside_tree() or state == State.DEAD:
@@ -1089,7 +1102,7 @@ func _tut_inspect_note_and_journal() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ЖУРНАЛ", "Всё найденное — в журнале. Открой его.", [_key_name("journal")], _act_screen_rect.bind(true))
+	_spot_show(tr("ЖУРНАЛ"), tr("Всё найденное — в журнале. Открой его."), [_key_name("journal")], _act_screen_rect.bind(true))
 	await _tut_wait_for_key("journal")
 	if not is_inside_tree():
 		return
@@ -1157,9 +1170,9 @@ func _draw_skip_ui() -> void:
 	if _skip_hold > 0.0:
 		c.draw_arc(ctr, r, -PI / 2.0, -PI / 2.0 + TAU * _skip_hold, 32, Color(1.0, 0.75, 0.35), 3.0)
 	if f:
-		var kw = f.get_string_size("ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-		c.draw_string(f, ctr + Vector2(-kw * 0.5, 3), "ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.9))
-		var txt = "ПРОПУСКАЮ..." if _skip_hold > 0.0 else "ЗАЖМИ — ПРОПУСТИТЬ"
+		var kw = f.get_string_size(tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		c.draw_string(f, ctr + Vector2(-kw * 0.5, 3), tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.9))
+		var txt = tr("ПРОПУСКАЮ...") if _skip_hold > 0.0 else tr("ЗАЖМИ — ПРОПУСТИТЬ")
 		var tw = f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 		c.draw_string(f, Vector2(ctr.x - r - 10 - tw, 27), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.92, 0.93, 0.96, 0.9))
 
@@ -1210,7 +1223,7 @@ func _tut_maint_lesson() -> void:
 	if not is_inside_tree():
 		return
 	# no darkness: the guard's line stays readable next to the card
-	_spot_show("КОНЕЦ СМЕНЫ", "После смены все идут на техобслуживание. Иди за ними — стоять нельзя.", [], _maint_screen_rect, false)
+	_spot_show(tr("КОНЕЦ СМЕНЫ"), tr("После смены все идут на техобслуживание. Иди за ними — стоять нельзя."), [], _maint_screen_rect, false)
 	if _spot:
 		_spot.skippable = true
 		_spot.card_corner = true
@@ -1223,7 +1236,7 @@ func _tut_maint_lesson() -> void:
 	await _tut_unfreeze()
 	if not is_inside_tree():
 		return
-	_spot_show("КОНЕЦ СМЕНЫ", "Иди направо.", ["D"], _maint_screen_rect, false)
+	_spot_show(tr("КОНЕЦ СМЕНЫ"), tr("Иди направо."), ["D"], _maint_screen_rect, false)
 	if _spot: _spot.card_corner = true   # out of the way, bottom-right
 	while is_inside_tree() and state == State.SHIFT_END and not _is_player_near_maintenance():
 		await _tree().process_frame
@@ -1266,7 +1279,11 @@ func _fit_hint() -> void:
 	var s = hint_label.get_minimum_size()
 	s.x = max(s.x, 300.0)   # a real plate, not just a strip under the text
 	hint_label.size = s
-	hint_label.position = Vector2(round(576.0 - s.x * 0.5), round(y))
+	# at the bottom edge of the screen, out of the scene (the minigame window stays clear)
+	y = 648.0 - s.y - 16.0
+	if minigame_panel and minigame_panel.is_visible_in_tree():
+		y = max(y, minigame_panel.get_global_rect().end.y + 8.0)
+	hint_label.position = Vector2(round(576.0 - s.x * 0.5), round(min(y, 648.0 - s.y - 4.0)))
 
 func _maint_screen_rect() -> Rect2:
 	var p = maintenance_door.global_position if maintenance_door else Vector2(SAFE_ZONE_CENTER_X, 325)
@@ -1290,7 +1307,7 @@ func _show_maint_notice() -> void:
 		_maint_notice = Control.new()
 		_maint_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var f = _bubble_font()
-		var tw0 = f.get_string_size(MAINT_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x if f else 330.0
+		var tw0 = f.get_string_size(tr(MAINT_TEXT), HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x if f else 330.0
 		_maint_notice.size = Vector2(ceil(tw0) + 66.0, 34)
 		_maint_notice.draw.connect(_draw_maint_notice)
 		$UI.add_child(_maint_notice)
@@ -1325,7 +1342,7 @@ func _draw_maint_notice() -> void:
 	c.draw_rect(Rect2(4, 4, 6, sz.y - 8), HUD_C_ORANGE)
 	var f = _bubble_font()
 	if f:
-		c.draw_string(f, Vector2(20, 22), MAINT_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.95, 0.93, 0.88))
+		c.draw_string(f, Vector2(20, 22), tr(MAINT_TEXT), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.95, 0.93, 0.88))
 	# a bouncing arrow toward the door
 	var dir = 1.0
 	if player and maintenance_door:
@@ -1372,7 +1389,9 @@ func _save_shift_state() -> void:
 	fs["escape_info_shift"] = escape_info_shift
 	fs["tut"] = _tut_flags.duplicate()
 	Global.factory_state = fs
-	Global.autosave(Global.SCENE_FACTORY)
+	# autosave only on the 2nd, 4th, 6th ... shift (every second shift)
+	if current_shift >= 2 and current_shift % 2 == 0:
+		Global.autosave(Global.SCENE_FACTORY)
 
 ## Restart after a death / a loaded save: the run starts again at the saved shift.
 func _restore_shift_progress() -> bool:
@@ -2446,32 +2465,32 @@ func _tutorial_tick(delta: float) -> void:
 	if current_shift == 1 and _pre_accident_lock:
 		return
 	# moving (right after the accident)
-	_tut.hint("f_move", "ХОДИТЬ И ПРЫГАТЬ|Только далеко от своего пресса не уходи", ["ui_left", "ui_right", "jump"],
+	_tut.hint("f_move", tr("ХОДИТЬ И ПРЫГАТЬ|Только далеко от своего пресса не уходи"), ["ui_left", "ui_right", "jump"],
 		func(): return _player_moving(), 2.5, 9.0)
 	# the shift panel, once a few boxes are through
 	if _hud_on and _box_fill >= AUTO_OBJECTS + 2:
-		_tut.hint("f_hud", "ПАНЕЛЬ СМЕНЫ|Справа сверху: время, коробки и стресс. Красные клетки — твои ошибки", [], Callable(), 5.0, 7.0)
+		_tut.hint("f_hud", tr("ПАНЕЛЬ СМЕНЫ|Справа сверху: время, коробки и стресс. Красные клетки — твои ошибки"), [], Callable(), 5.0, 7.0)
 	# walked away from the press
 	if working and not _is_player_in_zone():
 		_tut_out_zone += dt
 	else:
 		_tut_out_zone = 0.0
 	if _tut_out_zone > 0.6:
-		_tut.hint("f_zone", "ВЕРНИСЬ К ПРЕССУ|Охрана следит, кто отлынивает от работы", [], func(): return _is_player_in_zone(), 1.5, 8.0)
+		_tut.hint("f_zone", tr("ВЕРНИСЬ К ПРЕССУ|Охрана следит, кто отлынивает от работы"), [], func(): return _is_player_in_zone(), 1.5, 8.0)
 	# inspect mode and the journal (from the 2nd shift)
 	if current_shift >= 2:
 		if working:
 			_tut_work_t += dt
 		if _tut_work_t > 3.0:
-			_tut.hint("f_inspect", "ОСМОТР|Время замедляется. Подсвеченное можно изучить мышкой", [_key_name("inspect")],
+			_tut.hint("f_inspect", tr("ОСМОТР|Время замедляется. Подсвеченное можно изучить мышкой"), [_key_name("inspect")],
 				func(): return state == State.INSPECT, 2.5, 14.0)
 		if _tut_was_inspect and state != State.INSPECT:
-			_tut.hint("f_journal", "ЖУРНАЛ|Здесь всё, что ты узнал, и время пересменок", [_key_name("journal")],
+			_tut.hint("f_journal", tr("ЖУРНАЛ|Здесь всё, что ты узнал, и время пересменок"), [_key_name("journal")],
 				func(): return journal_open, 2.0, 10.0)
 		if state == State.INSPECT:
 			_tut_was_inspect = true
 		if guard_changing or sniper_changing:
-			_tut.hint("f_shiftchange", "ПЕРЕСМЕНКА!|Зайди в осмотр и нажми на жёлтую цель — запишешь время", [_key_name("inspect")],
+			_tut.hint("f_shiftchange", tr("ПЕРЕСМЕНКА!|Зайди в осмотр и нажми на жёлтую цель — запишешь время"), [_key_name("inspect")],
 				func(): return not guard_shifts_found.is_empty() or not sniper_shifts_found.is_empty() or not (guard_changing or sniper_changing), 2.5, 12.0)
 
 
@@ -2498,9 +2517,9 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 	var key = _key_name("interact")
 	match mg_kind:
 		MG.SLIDER:
-			_mg_title.text = STATION_TITLE.get(station, "УПАКОВКА")
+			_mg_title.text = tr(STATION_TITLE.get(station, tr("УПАКОВКА")))
 			_mg_title.position = Vector2(376, 246)
-			hint_label.text = "НАЖМИ " + key + " В ЗЕЛЁНОЙ ЗОНЕ!"
+			hint_label.text = tr("НАЖМИ ") + key + tr(" В ЗЕЛЁНОЙ ЗОНЕ!")
 			_hint_at(-1.0)   # right under the packing track
 			zone_center = randf_range(0.3, 0.7)
 			zone_width = randf_range(0.32, 0.42)
@@ -2512,7 +2531,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			slider_dir = 1.0
 			minigame_slider.position.x = TRACK_X0 - minigame_slider.size.x / 2.0
 		MG.LOCK:
-			_mg_title.text = STATION_TITLE.get(station, "ЗАМОК")
+			_mg_title.text = tr(STATION_TITLE.get(station, tr("ЗАМОК")))
 			_mg_title.position = Vector2(376, 186)
 			var pins = 2
 			mg_pins.clear()
@@ -2526,27 +2545,27 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_speed = 1.9 + 0.1 * current_shift
 			mg_pin_half = 0.42
 			mg_timeout = 4.5 * pins
-			hint_label.text = key + " — КОГДА СТРЕЛКА В ЗЕЛЁНОМ"
+			hint_label.text = key + tr(" — КОГДА СТРЕЛКА В ЗЕЛЁНОМ")
 			_hint_at(418.0)
 		MG.GAUGE:
-			_mg_title.text = STATION_TITLE.get(station, "ДАВЛЕНИЕ")
+			_mg_title.text = tr(STATION_TITLE.get(station, tr("ДАВЛЕНИЕ")))
 			_mg_title.position = Vector2(376, 186)
 			mg_level = 0.0
 			mg_vel = 0.12
 			var lo = randf_range(0.5, 0.74)
 			mg_band = Vector2(lo, lo + 0.13)
-			hint_label.text = key + " — ОСТАНОВИ В ЗЕЛЁНОМ!"
+			hint_label.text = key + tr(" — ОСТАНОВИ В ЗЕЛЁНОМ!")
 			_hint_at(418.0)
 		MG.RING:
-			_mg_title.text = STATION_TITLE.get(station, "СКРУТКА")
+			_mg_title.text = tr(STATION_TITLE.get(station, tr("СКРУТКА")))
 			_mg_title.position = Vector2(376, 186)
 			mg_hits_need = 2
 			mg_ring_speed = 58.0 + 5.0 * current_shift
 			mg_ring_r = 86.0
-			hint_label.text = key + " — КОГДА КОЛЬЦО СОВПАДЁТ (2 РАЗА)"
+			hint_label.text = key + tr(" — КОГДА КОЛЬЦО СОВПАДЁТ (2 РАЗА)")
 			_hint_at(418.0)
 		MG.CUT:
-			_mg_title.text = STATION_TITLE.get(station, "НАРЕЗКА")
+			_mg_title.text = tr(STATION_TITLE.get(station, tr("НАРЕЗКА")))
 			_mg_title.position = Vector2(376, 236)
 			mg_knife = 0.0
 			mg_marks.clear()
@@ -2556,7 +2575,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_hits = 0
 			mg_hits_need = n
 			mg_speed = 0.36 + 0.025 * current_shift
-			hint_label.text = key + " — РЕЖЬ ПО МЕТКАМ"
+			hint_label.text = key + tr(" — РЕЖЬ ПО МЕТКАМ")
 			_hint_at(368.0)
 	_mg_title.size = Vector2.ZERO
 	_mg_title.reset_size()
@@ -2774,6 +2793,7 @@ func _update_minigame_fill() -> void:
 
 var _stress_relief: int = 0
 var _relief_hp: int = 99
+var _stress_extra: int = 0
 func _update_stress_from_hp() -> void:
 	if player == null:
 		return
@@ -2785,7 +2805,7 @@ func _update_stress_from_hp() -> void:
 	_relief_hp = hp
 	# a hit adds its 20% on top of what it is now (the relief from a good check stays)
 	_stress_relief = clamp(_stress_relief, 0, STRESS_BY_HP.get(hp, 0))
-	stress_level = max(0, STRESS_BY_HP.get(hp, 0) - _stress_relief)
+	stress_level = clamp(max(0, STRESS_BY_HP.get(hp, 0) - _stress_relief) + _stress_extra, 0, 100)
 	_update_stress_bar()
 
 func _get_miss_chance() -> float:
@@ -2978,7 +2998,7 @@ func _update_action_strip(delta: float) -> void:
 	_act_sig = sig
 	var hw = _act_half_w()
 	var cap = 9
-	for side in [["i", 0, "ОСМОТР", sig[0], sig[3]], ["j", hw, "ЖУРНАЛ", sig[1], sig[4]]]:
+	for side in [["i", 0, tr("ОСМОТР"), sig[0], sig[3]], ["j", hw, tr("ЖУРНАЛ"), sig[1], sig[4]]]:
 		var x0: int = side[1]
 		var on: bool = side[3]
 		var kl: Label = _act_labels["key_" + side[0]]
@@ -3157,13 +3177,13 @@ func _update_hud_texts() -> void:
 	var W = HUD_W
 	var L = HORIZONTAL_ALIGNMENT_LEFT
 	var R = HORIZONTAL_ALIGNMENT_RIGHT
-	_hud_text("shift", "СМЕНА " + str(current_shift), 4 * HUD_PX, 5 * HUD_PX, 140, L, HUD_C_TEXT)
-	_hud_text("stress", "СТРЕСС", 4 * HUD_PX, 24 * HUD_PX, 70, L, HUD_C_TEXT)
+	_hud_text("shift", tr("СМЕНА ") + str(current_shift), 4 * HUD_PX, 5 * HUD_PX, 140, L, HUD_C_TEXT)
+	_hud_text("stress", tr("СТРЕСС"), 4 * HUD_PX, 24 * HUD_PX, 70, L, HUD_C_TEXT)
 	_hud_text("pct", str(stress_level) + "%", (W - 4 - 12) * HUD_PX, 24 * HUD_PX, 12 * HUD_PX, R, _stress_color(stress_level))
 	if _hud_rows() >= 4:
-		_hud_text("guard", "ОХРАНА", 4 * HUD_PX, 33 * HUD_PX, 70, L, HUD_C_TEXT)
+		_hud_text("guard", tr("ОХРАНА"), 4 * HUD_PX, 33 * HUD_PX, 70, L, HUD_C_TEXT)
 		if current_shift >= 3:
-			_hud_text("sniper", "СНАЙПЕР", (W - 4 - 14 - 3 - 28) * HUD_PX, 33 * HUD_PX, 28 * HUD_PX, R, HUD_C_TEXT)
+			_hud_text("sniper", tr("СНАЙПЕР"), (W - 4 - 14 - 3 - 28) * HUD_PX, 33 * HUD_PX, 28 * HUD_PX, R, HUD_C_TEXT)
 		elif _hud_texts.has("sniper"):
 			_hud_texts["sniper"].visible = false
 	else:
@@ -3183,21 +3203,21 @@ func _update_shift_bars() -> void:
 
 func _create_inspect_targets() -> void:
 	_add_inspect_target("clock", Vector2(576, 80), Vector2(120, 60),
-		"Часы", "Сколько я тут?", "Смена длится 10 часов", COLOR_HIGHLIGHT_BLUE, "")
+		tr("Часы"), tr("Сколько я тут?"), tr("Смена длится 10 часов"), COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("elevator", Vector2(-290, 325), Vector2(100, 120),
-		"Лифт", "Стоит попробовать..", "Лифт из которого приходят охранники", COLOR_HIGHLIGHT_BLUE, "")
+		tr("Лифт"), tr("Стоит попробовать.."), tr("Лифт из которого приходят охранники"), COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("maintenance", Vector2(1230, 325), Vector2(100, 120),
-		"Комната техобслуживания", "Туда уходят рабочие в конце смены..",
-		"Комната техобслуживания — сюда уходят рабочие после смены", COLOR_HIGHLIGHT_BLUE, "")
+		tr("Комната техобслуживания"), tr("Туда уходят рабочие в конце смены.."),
+		tr("Комната техобслуживания — сюда уходят рабочие после смены"), COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("sniper", Vector2(1060, 60), Vector2(120, 80),
-		"Снайпер-Голубь", "Снайпер, который может пристрелить меня когда угодно..",
-		"Снайпер-Голубь в меха костюме. Имеет крылья винтовку и пистолет", COLOR_HIGHLIGHT_BLUE, "")
+		tr("Снайпер-Голубь"), tr("Снайпер, который может пристрелить меня когда угодно.."),
+		tr("Снайпер-Голубь в меха костюме. Имеет крылья винтовку и пистолет"), COLOR_HIGHLIGHT_BLUE, "")
 	_add_inspect_target("guard_dog", GUARD_POSITION, Vector2(80, 80),
-		"Охранник-Собака", "Лучший друг человека..",
-		"Охранник-Собака в меха костюме. Имеет меха челюсти со смертельной силой сжатия", COLOR_HIGHLIGHT_BLUE, "dog")
+		tr("Охранник-Собака"), tr("Лучший друг человека.."),
+		tr("Охранник-Собака в меха костюме. Имеет меха челюсти со смертельной силой сжатия"), COLOR_HIGHLIGHT_BLUE, "dog")
 	_add_inspect_target("guard_monkey", GUARD_POSITION, Vector2(80, 80),
-		"Охранник-Обезьяна", "Человекоподобные тоже с ними..",
-		"Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост", COLOR_HIGHLIGHT_BLUE, "monkey")
+		tr("Охранник-Обезьяна"), tr("Человекоподобные тоже с ними.."),
+		tr("Охранник-Обезьяна в меха костюме. Имеет массивный меха хвост"), COLOR_HIGHLIGHT_BLUE, "monkey")
 	for fish in npc_fishes:
 		if fish == null:
 			continue
@@ -3206,19 +3226,19 @@ func _create_inspect_targets() -> void:
 		if info.is_empty():
 			continue
 		_add_inspect_target("npc_" + identity, fish.position, Vector2(70, 90),
-			info.get("title", ""), info.get("phrase", ""), info.get("journal", ""), COLOR_HIGHLIGHT_BLUE, "")
+			tr(info.get("title", "")), tr(info.get("phrase", "")), tr(info.get("journal", "")), COLOR_HIGHLIGHT_BLUE, "")
 	# the belt itself (added after the fish, so clicking a fish still opens the fish)
 	_add_inspect_target("conveyor", Vector2(380, 368), Vector2(1240, 56),
-		"Конвейер", "Сколько еще таких заводов они построили?",
-		str(TOTAL_OBJECTS) + " коробок за смену", COLOR_HIGHLIGHT_BLUE, "")
+		tr("Конвейер"), tr("Сколько еще таких заводов они построили?"),
+		str(TOTAL_OBJECTS) + tr(" коробок за смену"), COLOR_HIGHLIGHT_BLUE, "")
 	# one clickable target per change, made from the schedules (so they always match)
 	for h in GUARD_SHIFTS:
 		_add_inspect_target("guard_shift_" + _hour_id(h), GUARD_POSITION, Vector2(80, 80),
-			"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в " + _hour_text(h),
+			tr("Смена охранника"), tr("Охранник сменился.. Нужно записать"), tr("Смена охранника в ") + _hour_text(h),
 			COLOR_HIGHLIGHT_YELLOW, "guard_shift", h)
 	for h in SNIPER_SHIFTS:
 		_add_inspect_target("sniper_shift_" + _hour_id(h), Vector2(1060, 60), Vector2(120, 80),
-			"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в " + _hour_text(h),
+			tr("Смена снайпера"), tr("Снайпер сменился.. Нужно записать"), tr("Смена снайпера в ") + _hour_text(h),
 			COLOR_HIGHLIGHT_YELLOW, "sniper_shift", h)
 
 func _hour_id(h: float) -> String:
@@ -3528,7 +3548,7 @@ func _draw_empty_post(post: Vector2, who: AnimatedSprite2D, t: float, yel: Color
 		y += dash * 2.0
 	var f = _bubble_font()
 	if f:
-		var txt = "ПОСТ ПУСТ"
+		var txt = tr("ПОСТ ПУСТ")
 		var tw = f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 		var tp = Vector2(round(post.x - tw / 2.0), round(box.position.y - 4.0))
 		m.draw_string_outline(f, tp, txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, 3, Color(0.08, 0.06, 0.02))
@@ -3727,6 +3747,7 @@ func _process(delta: float) -> void:
 	_process_shift_end_npcs(delta)
 	_process_action_penalty(delta)
 	_nav_arrow_update()
+	_update_elevator_prompt(delta)
 	if hint_label and hint_label.visible and hint_label.text != _hint_last_text:
 		_hint_last_text = hint_label.text
 		_fit_hint()
@@ -3770,7 +3791,7 @@ func _register_success(q: float) -> void:
 	var perfect = q >= PERFECT_Q
 	_streak += 1
 	_best_streak = max(_best_streak, _streak)
-	var txt = ("ИДЕАЛЬНО!" if perfect else "ХОРОШО") + ("  x" + str(_streak) if _streak >= 2 else "")
+	var txt = (tr("ИДЕАЛЬНО!") if perfect else tr("ХОРОШО")) + ("  x" + str(_streak) if _streak >= 2 else "")
 	_float_text(txt, Color(1.0, 0.86, 0.35) if perfect else Color(0.6, 1.0, 0.6))
 	if camera and camera.has_method("add_trauma") and perfect:
 		camera.add_trauma(0.06)
@@ -3780,7 +3801,7 @@ func _register_success(q: float) -> void:
 			_stress_relief += 10
 			_relief_hp = hp_now
 			_update_stress_from_hp()
-			_float_text("СЕРИЯ: СТРЕСС -10%", Color(0.75, 1.0, 0.25), -14.0)
+			_float_text(tr("СЕРИЯ: СТРЕСС -10%"), Color(0.75, 1.0, 0.25), -14.0)
 	if _inspection_active and _insp_station < 0:
 		_inspection_step()
 	_update_streak_label()
@@ -3788,7 +3809,7 @@ func _register_success(q: float) -> void:
 
 func _register_fail() -> void:
 	if _streak >= 3:
-		_float_text("СЕРИЯ ПРЕРВАНА", Color(1.0, 0.45, 0.4))
+		_float_text(tr("СЕРИЯ ПРЕРВАНА"), Color(1.0, 0.45, 0.4))
 	_streak = 0
 	if _inspection_active and _insp_station < 0:
 		_inspection_bad += 1
@@ -3802,10 +3823,10 @@ func _streak_reward() -> void:
 	var hp = player.get_hp() if player and player.has_method("get_hp") else 5
 	if hp < 5 and player.has_method("set_hp"):
 		player.set_hp(hp + 1)
-		_float_text("+1 ПРОЧНОСТЬ", Color(0.45, 1.0, 0.55), -14.0)
+		_float_text(tr("+1 ПРОЧНОСТЬ"), Color(0.45, 1.0, 0.55), -14.0)
 		_update_stress_from_hp()
 	else:
-		_float_text("ОТЛИЧНЫЙ ТЕМП!", Color(1.0, 0.86, 0.35), -14.0)
+		_float_text(tr("ОТЛИЧНЫЙ ТЕМП!"), Color(1.0, 0.86, 0.35), -14.0)
 	UISounds.play_switch_on()
 
 
@@ -3828,7 +3849,7 @@ func _update_streak_label() -> void:
 	_streak_label.position = Vector2(0, below)
 	_streak_label.visible = _streak >= 2
 	var my_check = _inspection_active and _insp_station < 0
-	_streak_label.text = "СЕРИЯ x" + str(_streak) + ("   ПРОВЕРКА!" if my_check else "")
+	_streak_label.text = tr("СЕРИЯ x") + str(_streak) + (tr("   ПРОВЕРКА!") if my_check else "")
 	var hot = _streak >= STREAK_REWARD
 	_streak_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.35) if hot else Color(0.8, 0.9, 1.0))
 	if my_check:
@@ -3892,9 +3913,9 @@ func _start_inspection(force_player: bool = false) -> void:
 			_insp_station = options[randi() % options.size()]
 	_update_streak_label()
 	if _insp_station < 0:
-		_show_guard_dialog(["ПРОВЕРКА! ПОСМОТРИМ, КАК ТЫ РАБОТАЕШЬ.", "ТАК, ПОКАЖИ-КА МНЕ СВОЮ РАБОТУ.", "НЕ ОТВЛЕКАТЬСЯ. Я СМОТРЮ."][randi() % 3], 2.2)
+		_show_guard_dialog([tr("ПРОВЕРКА! ПОСМОТРИМ, КАК ТЫ РАБОТАЕШЬ."), tr("ТАК, ПОКАЖИ-КА МНЕ СВОЮ РАБОТУ."), tr("НЕ ОТВЛЕКАТЬСЯ. Я СМОТРЮ.")][randi() % 3], 2.2)
 	else:
-		_show_guard_dialog(["ПРОВЕРКА! А НУ, ЧЕШУЙЧАТЫЙ, ПОКАЖИ РАБОТУ.", "ТАК, ТЕПЕРЬ ТЫ. Я СМОТРЮ.", "ЭЙ, ТЫ! РАБОТАЙ ПОКАЗАТЕЛЬНО."][randi() % 3], 2.2)
+		_show_guard_dialog([tr("ПРОВЕРКА! А НУ, ЧЕШУЙЧАТЫЙ, ПОКАЖИ РАБОТУ."), tr("ТАК, ТЕПЕРЬ ТЫ. Я СМОТРЮ."), tr("ЭЙ, ТЫ! РАБОТАЙ ПОКАЗАТЕЛЬНО.")][randi() % 3], 2.2)
 	_guard_busy = true
 	await _guard_walk_to(Vector2(_inspection_x() - 64.0, GUARD_POSITION.y))
 	if guard_sprite:
@@ -3926,24 +3947,24 @@ func _end_inspection() -> void:
 		return
 	if checked_station >= 0:
 		# a fish was checked: its mistakes were punished on the spot already
-		_show_guard_dialog("НЕПЛОХО. РАБОТАЙ ДАЛЬШЕ." if _inspection_bad == 0 else "ПЛОХО. ЕЩЁ РАЗ — И ПОЖАЛЕЕШЬ.", 2.0)
+		_show_guard_dialog(tr("НЕПЛОХО. РАБОТАЙ ДАЛЬШЕ.") if _inspection_bad == 0 else tr("ПЛОХО. ЕЩЁ РАЗ — И ПОЖАЛЕЕШЬ."), 2.0)
 	elif _inspection_bad == 1:
 		# one of two done right: nothing happens
-		_show_guard_dialog("СОЙДЁТ. НО Я ЗА ТОБОЙ ПРИСМАТРИВАЮ.", 2.0)
+		_show_guard_dialog(tr("СОЙДЁТ. НО Я ЗА ТОБОЙ ПРИСМАТРИВАЮ."), 2.0)
 	elif _inspection_bad == 0:
-		_show_guard_dialog("НЕПЛОХО. ТАК И ПРОДОЛЖАЙ.", 2.0)
+		_show_guard_dialog(tr("НЕПЛОХО. ТАК И ПРОДОЛЖАЙ."), 2.0)
 		# the check went fine: the fish calms down a bit
 		var hp_now = player.get_hp() if player and player.has_method("get_hp") else 5
 		if STRESS_BY_HP.get(hp_now, 0) - _stress_relief > 0:
 			_stress_relief += 20
 			_relief_hp = hp_now
 			_update_stress_from_hp()
-			_float_text("СТРЕСС -20%", Color(0.75, 1.0, 0.25), -14.0)
+			_float_text(tr("СТРЕСС -20%"), Color(0.75, 1.0, 0.25), -14.0)
 			UISounds.play_switch_on()
 	else:
 		# both wrong: one more hit on top, right where he stands
 		_guard_extra_hit_pending = true
-		_show_guard_dialog("ПЛОХО РАБОТАЕШЬ. ЭТО ТЕБЕ НА ПАМЯТЬ.", 2.0)
+		_show_guard_dialog(tr("ПЛОХО РАБОТАЕШЬ. ЭТО ТЕБЕ НА ПАМЯТЬ."), 2.0)
 		await _tree().create_timer(0.6, false).timeout
 		if not is_inside_tree():
 			return
@@ -4014,13 +4035,14 @@ func _player_moving() -> bool:
 ## After the shift: standing still (or walking away from the maintenance room).
 const VIOL_YELL_2: float = 1.1
 const VIOL_GUARD: float = 2.0
-const VIOL_AIM: float = 3.0
+const VIOL_AIM: float = 2.0
 const VIOL_SHOOT: float = 4.0     # (aim start + aim time; the aim time is set per offence)
-var _sniper_aim_time: float = 1.0
+var _sniper_aim_time: float = 0.5
 var _aim_started: float = -1.0
 var _viol_t: float = 0.0
 var _viol_ok_t: float = 0.0
 var _viol_stage: int = 0
+var _guard_rehit_t: float = 0.0
 var _laser: Node2D = null
 
 func _process_action_penalty(delta: float) -> void:
@@ -4071,6 +4093,12 @@ func _violation_tick(bad: bool, delta: float, after_shift: bool) -> void:
 		return
 	_viol_ok_t = 0.0
 	_viol_t += dt
+	# while the fish is out of its zone the guard keeps on him, hit after hit, without going home
+	if _viol_stage >= 2 and _viol_stage < 5 and guard_sprite and guard_sprite.visible and not guard_changing and not _guard_busy:
+		_guard_rehit_t += dt
+		if _guard_rehit_t >= 1.3:
+			_guard_rehit_t = 0.0
+			_guard_hit_player()
 	var pre = 0.8 if after_shift else 0.0
 	var k = 2.0 if after_shift else 1.0
 	if _viol_stage == 0:
@@ -4078,12 +4106,12 @@ func _violation_tick(bad: bool, delta: float, after_shift: bool) -> void:
 			return
 		_viol_stage = 1
 		if after_shift:
-			_guard_yell("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!", 2.0)
+			_guard_yell(tr("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!"), 2.0)
 		else:
-			_guard_yell("ЭЙ! А НУ ВЕРНУЛСЯ К ПРЕССУ!", 2.0)
+			_guard_yell(tr("ЭЙ! А НУ ВЕРНУЛСЯ К ПРЕССУ!"), 2.0)
 	elif _viol_stage == 1 and _viol_t >= pre + VIOL_YELL_2 * k:
 		_viol_stage = 2
-		_guard_yell("Я КОМУ СКАЗАЛ?!" if not after_shift else "ОГЛОХ?! ШЕВЕЛИСЬ!", 1.6)
+		_guard_yell(tr("Я КОМУ СКАЗАЛ?!") if not after_shift else tr("ОГЛОХ?! ШЕВЕЛИСЬ!"), 1.6)
 	elif _viol_stage == 2 and _viol_t >= pre + VIOL_GUARD * k:
 		_viol_stage = 3
 		if guard_sprite and guard_sprite.visible and not guard_changing:
@@ -4106,10 +4134,11 @@ func _viol_reset() -> void:
 	if _viol_stage == 4 and state != State.DEAD:
 		# he was aiming and the fish made it back: rifle down, but next time he is quicker
 		_sniper_aim_time = 0.25
-		_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, "ПОВЕЗЛО. В СЛЕДУЮЩИЙ РАЗ — СРАЗУ.", 1.4, true, "sniper")
+		_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, tr("ПОВЕЗЛО. В СЛЕДУЮЩИЙ РАЗ — СРАЗУ."), 1.4, true, "sniper")
 	_viol_t = 0.0
 	_viol_ok_t = 0.0
 	_viol_stage = 0
+	_guard_rehit_t = 0.0
 	_laser_off()
 
 func _add_strike() -> void:
@@ -4399,6 +4428,8 @@ func _process_shift_changes() -> void:
 
 signal guard_leave_spoken
 signal guard_arrive_spoken
+signal guard_gone
+signal guard_back
 
 func _guard_return_lock() -> bool:
 	return _tut_wait_guard_note
@@ -4465,6 +4496,7 @@ func _guard_shift_sequence() -> void:
 	await _await_elevator_anim("open")
 	await _guard_walk_to(GUARD_LIFT_POSITION)
 	guard_sprite.visible = false
+	guard_gone.emit()
 	await _await_elevator_anim("close")
 	await _tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
 	if not is_inside_tree():
@@ -4479,6 +4511,7 @@ func _guard_shift_sequence() -> void:
 	guard_sprite.position = GUARD_LIFT_POSITION
 	await _await_elevator_anim("open")
 	guard_sprite.visible = true
+	guard_back.emit()
 	_show_guard_dialog(GUARD_ARRIVE_LINES[randi() % GUARD_ARRIVE_LINES.size()], 2.0)
 	guard_arrive_spoken.emit()
 	await _guard_walk_to(GUARD_POSITION)
@@ -4509,11 +4542,15 @@ func _on_sniper_shift_change(_hour: float) -> void:
 	# at 13:00 the guard changes too: both say their line at the same moment (own bubbles)
 	var with_guard = is_equal_approx(_hour, 13.0) and current_shift >= 2 and (guard_changing or GUARD_SHIFTS.has(13.0))
 	if with_guard:
-		await _await_signal_or(guard_leave_spoken, 9.0)
+		await _await_signal_or(guard_leave_spoken, 12.0)
 		if not is_inside_tree():
 			return
 	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_LEAVE_LINES[randi() % SNIPER_LEAVE_LINES.size()], 1.6, true, "sniper", not sniper_shifts_found.has(_hour))
-	await _tree().create_timer(2.2, false).timeout
+	if with_guard:
+		# leaves together with the guard: wait until he actually steps into the lift
+		await _await_signal_or(guard_gone, 30.0)
+	else:
+		await _tree().create_timer(2.2, false).timeout
 	if not is_inside_tree():
 		return
 	if sniper_sprite:
@@ -4523,8 +4560,8 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		sniper_sprite.visible = false
 		sniper_sprite.modulate.a = 1.0
 	if with_guard:
-		# comes back together with the guard
-		await _await_signal_or(guard_arrive_spoken, 25.0)
+		# comes back the moment the guard reappears from the lift
+		await _await_signal_or(guard_back, 90.0)
 	else:
 		await _tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
 	if not is_inside_tree():
@@ -4725,7 +4762,7 @@ func _job_player(it: Dictionary) -> void:
 		return
 	if not _is_player_in_zone() and _tut_stage == "first_job":
 		# (tutorial) walked away while learning to move: back to the press first
-		_spot_show("НАЗАД К ПРЕССУ", "Работа приехала! Вернись в безопасную зону у своего пресса.", ["A", "D"], _zone_screen_rect, false)
+		_spot_show(tr("НАЗАД К ПРЕССУ"), tr("Работа приехала! Вернись в безопасную зону у своего пресса."), ["A", "D"], _zone_screen_rect, false)
 		while is_inside_tree() and not _is_player_in_zone() and state != State.DEAD:
 			await _tree().process_frame
 		if not is_inside_tree() or state == State.DEAD:
@@ -4756,6 +4793,9 @@ func _job_player(it: Dictionary) -> void:
 			return
 		if ok and first:
 			_tut_mark("inc_%d" % incident)
+		if not ok and not first:
+			_stress_extra = min(100, _stress_extra + 10)   # a botched accident: +10% stress
+			_update_stress_from_hp()
 		if state == State.DEAD or state == State.SHIFT_END:
 			_player_item = null
 			player_job_finished.emit()
@@ -4773,9 +4813,9 @@ func _job_player(it: Dictionary) -> void:
 	var forgive = _tut_stage == "first_job" or (_tut_done("basics") and not _tut_done("st_%d" % player_station))
 	_start_minigame(player_station, forgive)
 	if _tut_stage == "first_job":
-		_spot_show("РАБОТА", "Жми " + _key_name("interact") + ", когда ползунок в ЗЕЛЁНОЙ зоне.", [_key_name("interact")], _mg_screen_rect)
+		_spot_show(tr("РАБОТА"), tr("Жми ") + _key_name("interact") + tr(", когда ползунок в ЗЕЛЁНОЙ зоне."), [_key_name("interact")], _mg_screen_rect)
 	elif forgive:
-		_spot_show("НОВЫЙ СТАНОК: " + String(STATION_TITLE.get(player_station, "")), "Новая работа. Пока учишься — промахи не считаются.", [_key_name("interact")], _mg_screen_rect, false)
+		_spot_show(tr("НОВЫЙ СТАНОК: ") + tr(String(STATION_TITLE.get(player_station, ""))), tr("Новая работа. Пока учишься — промахи не считаются."), [_key_name("interact")], _mg_screen_rect, false)
 	await player_job_finished
 	if forgive and _spot and _spot.is_shown() and _tut_stage != "first_job":
 		_spot_finish()
@@ -4851,7 +4891,7 @@ func _electric_accident(it: Dictionary) -> void:
 	_unlock_player_after_accident()
 	_set_hud_visible(true)
 	_show_gui()
-	_show_guard_dialog("ЧТО, ТОКОМ ДЁРНУЛО? НИЧЕГО, РАБОТАЙ ДАЛЬШЕ!", 2.5)
+	_show_guard_dialog(tr("ЧТО, ТОКОМ ДЁРНУЛО? НИЧЕГО, РАБОТАЙ ДАЛЬШЕ!"), 2.5)
 	_mark_accident_seen()
 	_end_accident_skip()
 	if not _tut_done("basics"):
@@ -4996,25 +5036,25 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 	match kind:
 		MGE_FIRE:
 			_mg_title.text = "ПОЖАР НА КОНВЕЙЕРЕ!"
-			hint_label.text = "Искра из пресса подожгла товар!\nДЕРЖИ " + key + " — пена. Потуши все очаги"
-			explain = "Искра подожгла товар. Брандспойт качается сам. Когда он над огнём — ДЕРЖИ " + key + ", пена тушит. Пена кончается — отпусти, бак наполнится. Потуши все три очага."
+			hint_label.text = tr("Искра из пресса подожгла товар!\nДЕРЖИ ") + key + tr(" — пена. Потуши все очаги")
+			explain = tr("Искра подожгла товар. Брандспойт качается сам. Когда он над огнём — ДЕРЖИ ") + key + tr(", пена тушит. Пена кончается — отпусти, бак наполнится. Потуши все три очага.")
 			fire = _make_world_fire(belt)
 		MGE_SHORT:
 			_mg_title.text = "ЗАМЫКАНИЕ ПРЕССА!"
-			hint_label.text = "Пресс коротнуло — предохранители искрят!\n" + key + " — сбрось тот, что искрит"
-			explain = "Предохранители заряжаются искрами. Огонёк бегает по ним — нажми " + key + ", когда он на ИСКРЯЩЕМ, и он сбросится. Не жми на спокойные."
+			hint_label.text = tr("Пресс коротнуло — предохранители искрят!\n") + key + tr(" — сбрось тот, что искрит")
+			explain = tr("Предохранители заряжаются искрами. Огонёк бегает по ним — нажми ") + key + tr(", когда он на ИСКРЯЩЕМ, и он сбросится. Не жми на спокойные.")
 			_spawn_sparks(btn, 16)
 		MGE_STUCK:
 			_mg_title.text = "КНОПКУ ЗАКЛИНИЛО!"
-			hint_label.text = "Кнопка застряла в корпусе — пресс встал.\nДЕРЖИ " + key + " — замах, ОТПУСТИ в зелёной зоне. Нужно 3 сильных удара"
-			explain = "Кнопка застряла. ДЕРЖИ " + key + " — шкала замаха растёт. ОТПУСТИ, когда она в зелёной зоне. Нужно 3 таких удара."
+			hint_label.text = tr("Кнопка застряла в корпусе — пресс встал.\nДЕРЖИ ") + key + tr(" — замах, ОТПУСТИ в зелёной зоне. Нужно 3 сильных удара")
+			explain = tr("Кнопка застряла. ДЕРЖИ ") + key + tr(" — шкала замаха растёт. ОТПУСТИ, когда она в зелёной зоне. Нужно 3 таких удара.")
 	_inc_canvas.modulate = Color.WHITE
 	_inc_canvas.visible = true
 	_pop_in(_inc_canvas)
 	_mg_title.reset_size()
 	_center_mg_title()
 	if forgive:
-		_spot_show("АВАРИЯ: ЧТО ДЕЛАТЬ", explain + " Пока учишься — неудача не считается.", [key], _inc_screen_rect, false)
+		_spot_show(tr("АВАРИЯ: ЧТО ДЕЛАТЬ"), explain + tr(" Пока учишься — неудача не считается."), [key], _inc_screen_rect, false)
 	var spark_t := 0.0
 	var ok := false
 	while true:
@@ -5065,7 +5105,7 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 		if not is_inside_tree():
 			return false
 		_incident_setup(kind, hard)
-		_mg_title.text = {MGE_FIRE: "ПОЖАР НА КОНВЕЙЕРЕ!", MGE_SHORT: "ЗАМЫКАНИЕ ПРЕССА!", MGE_STUCK: "КНОПКУ ЗАКЛИНИЛО!"}.get(kind, "")
+		_mg_title.text = {MGE_FIRE: tr("ПОЖАР НА КОНВЕЙЕРЕ!"), MGE_SHORT: tr("ЗАМЫКАНИЕ ПРЕССА!"), MGE_STUCK: tr("КНОПКУ ЗАКЛИНИЛО!")}.get(kind, "")
 	if forgive and _spot:
 		if ok:
 			_spot_finish()
@@ -5077,7 +5117,7 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 	_inc_flash_good = ok
 	_inc_canvas.queue_redraw()
 	_mg_title.modulate = Color.WHITE
-	_mg_title.text = ("ЛИКВИДИРОВАНО!" if ok else ("ТОВАР СГОРЕЛ!" if kind == MGE_FIRE else ("ПРОБКИ ВЫБИЛО!" if kind == MGE_SHORT else "НЕ УСПЕЛ!")))
+	_mg_title.text = (tr("ЛИКВИДИРОВАНО!") if ok else (tr("ТОВАР СГОРЕЛ!") if kind == MGE_FIRE else (tr("ПРОБКИ ВЫБИЛО!") if kind == MGE_SHORT else tr("НЕ УСПЕЛ!"))))
 	hint_label.visible = false
 	if not ok:
 		UISounds.play_switch_off()
@@ -5413,7 +5453,7 @@ func _stuck_step(dt: float) -> void:
 			_inc_flash = 0.7
 			_inc_flash_good = false
 			UISounds.play_switch_off()
-			_float_text("ПЕРЕБОР!", Color(1.0, 0.5, 0.4), -14.0)
+			_float_text(tr("ПЕРЕБОР!"), Color(1.0, 0.5, 0.4), -14.0)
 	elif _stk_was_held and _stk_power > 0.12:
 		_player_punch()
 		if _stk_power >= _stk_zone.x and _stk_power <= _stk_zone.y:
@@ -5434,7 +5474,7 @@ func _stuck_step(dt: float) -> void:
 			UISounds.play_click()
 			if camera and camera.has_method("add_trauma"):
 				camera.add_trauma(0.05)
-			_float_text("СЛАБО!" if _stk_power < _stk_zone.x else "МИМО!", Color(1.0, 0.7, 0.4), -14.0)
+			_float_text(tr("СЛАБО!") if _stk_power < _stk_zone.x else tr("МИМО!"), Color(1.0, 0.7, 0.4), -14.0)
 		_stk_power = 0.0
 	else:
 		_stk_power = move_toward(_stk_power, 0.0, dt * 2.0)
@@ -5609,7 +5649,7 @@ func _inc_text(c: Control, txt: String, cx: float, y: float, size: int, col: Col
 
 func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: Color, _rim: Color) -> void:
 	# how many strong punches are still needed
-	_inc_text(c, "ВЫБЕЙ КНОПКУ  " + str(_stk_hits) + "/" + str(_stk_need), 100, 22, 11, Color(0.92, 0.94, 0.98))
+	_inc_text(c, tr("ВЫБЕЙ КНОПКУ  ") + str(_stk_hits) + "/" + str(_stk_need), 100, 22, 11, Color(0.92, 0.94, 0.98))
 	for i in range(_stk_need):
 		var r = Rect2(100 - _stk_need * 9 + i * 18, 27, 12, 6)
 		c.draw_rect(r, Color.BLACK)
@@ -5635,7 +5675,7 @@ func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 		c.draw_line(ctr + Vector2(30, 30), ctr + Vector2(24, 18), Color8(30, 30, 36), 2)
 	# power meter
 	var bar = Rect2(20, 132, 160, 16)
-	_inc_text(c, "СИЛА ЗАМАХА", 100, 125, 9, Color(0.7, 0.76, 0.86))
+	_inc_text(c, tr("СИЛА ЗАМАХА"), 100, 125, 9, Color(0.7, 0.76, 0.86))
 	c.draw_rect(bar.grow(2), Color.BLACK)
 	c.draw_rect(bar, Color(0.03, 0.05, 0.09))
 	var zx0 = bar.position.x + bar.size.x * _stk_zone.x
@@ -5661,18 +5701,18 @@ func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 	var msg = ""
 	var mcol = Color(0.92, 0.94, 0.98)
 	if _stk_tired > 0.0:
-		msg = "ПЕРЕБОР! ПОДОЖДИ..."
+		msg = tr("ПЕРЕБОР! ПОДОЖДИ...")
 		mcol = red.lightened(0.2)
 	elif in_zone and held:
-		msg = "ОТПУСТИ!"
+		msg = tr("ОТПУСТИ!")
 		mcol = green.lightened(0.3) if int(_inc_t * 10.0) % 2 == 0 else Color.WHITE
 	elif held:
-		msg = "ДЕРЖИ... ЗАМАХ"
+		msg = tr("ДЕРЖИ... ЗАМАХ")
 		mcol = blue.lightened(0.3)
 	else:
-		msg = "ЗАЖМИ " + key
+		msg = tr("ЗАЖМИ ") + key
 		mcol = Color(1.0, 0.86, 0.4) if int(_inc_t * 3.0) % 2 == 0 else Color(0.92, 0.94, 0.98)
-	_inc_text(c, msg, 100, 170, 13 if msg == "ОТПУСТИ!" else 11, mcol)
+	_inc_text(c, msg, 100, 170, 13 if msg == tr("ОТПУСТИ!") else 11, mcol)
 
 
 func _advance_item(it: Dictionary) -> void:
@@ -6183,7 +6223,7 @@ func _on_minigame_edge_fail() -> void:
 func _mg_forgive_retry() -> void:
 	minigame_active = false
 	hint_label.visible = false
-	_float_text("МИМО! ЕЩЁ РАЗ", Color(1.0, 0.75, 0.4))
+	_float_text(tr("МИМО! ЕЩЁ РАЗ"), Color(1.0, 0.75, 0.4))
 	UISounds.play_switch_off()
 	await _tree().create_timer(0.75, false).timeout
 	if not is_inside_tree():
@@ -6312,8 +6352,9 @@ func _guard_hit_player() -> void:
 	await _tree().create_timer(0.35, false).timeout
 	if not is_inside_tree():
 		return
-	# another hit is coming (the extra one after a bad check): he stays right here
-	if not guard_changing and _guard_hits_queued == 0 and not _guard_extra_hit_pending and not _insp_wrapping:
+	# another hit is coming (the extra one after a bad check, or the fish is still out of its
+	# zone during a violation): he stays right here instead of walking back to his post
+	if not guard_changing and _guard_hits_queued == 0 and not _guard_extra_hit_pending and not _insp_wrapping and _is_player_in_zone():
 		await _guard_walk_to(_guard_home())
 		guard_sprite.scale.x = orig_flip if not _inspection_active else abs(guard_sprite.scale.x)
 	if guard_sprite.sprite_frames.has_animation("idle"):
@@ -6445,9 +6486,9 @@ func _is_progress_bar_perfect() -> bool:
 func _handle_action_strike() -> void:
 	if action_strike_count == ACTION_STRIKE_WARNING:
 		if state == State.SHIFT_END:
-			_show_guard_dialog("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!", 2.5)
+			_show_guard_dialog(tr("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!"), 2.5)
 		else:
-			_show_guard_dialog("ЭЙ! РАБОТАЙ, А НЕ ОТВЛЕКАЙСЯ!", 2.5)
+			_show_guard_dialog(tr("ЭЙ! РАБОТАЙ, А НЕ ОТВЛЕКАЙСЯ!"), 2.5)
 	elif action_strike_count >= ACTION_STRIKE_DEATH:
 		_sniper_kill_player()
 
@@ -6583,7 +6624,7 @@ func _end_shift() -> void:
 	for i in range(npc_fishes.size()):
 		npc_walk_delays.append(randf_range(NPC_WALK_DELAY_MIN, NPC_WALK_DELAY_MAX))
 	# own channel: nothing else may cut the announcement off
-	_speech(guard_sprite if (guard_sprite and guard_sprite.visible) else null, NAME_GUARD, COLOR_NAME_GUARD, "СМЕНА ОКОНЧЕНА! ВСЕ НА ТЕХОБСЛУЖИВАНИЕ!", 3.2, true, "shiftend")
+	_speech(guard_sprite if (guard_sprite and guard_sprite.visible) else null, NAME_GUARD, COLOR_NAME_GUARD, tr("СМЕНА ОКОНЧЕНА! ВСЕ НА ТЕХОБСЛУЖИВАНИЕ!"), 3.2, true, "shiftend")
 	_show_maint_notice()
 	if not _tut_done("maint"):
 		_tut_maint_lesson()
@@ -6875,13 +6916,13 @@ func _update_escape_hint() -> void:
 		if _esc_banner:
 			_esc_banner.visible = false
 		return
-	if escape_info_shift == current_shift:
-		_escape_banner("ПОБЕГ ЧЕРЕЗ ЛИФТ", "ОКНО 13:00 - 13:15 — СЛЕДУЙ ЗА СТРЕЛКОЙ")
+	if escape_info_shift != -1 and current_shift >= escape_info_shift:
+		_escape_banner(tr("ПОБЕГ ЧЕРЕЗ ЛИФТ"), tr("ОКНО 13:00 - 13:15 — СЛЕДУЙ ЗА СТРЕЛКОЙ"))
 		return
 	if elevator_inspected:
-		_escape_banner("13:00 - 13:15", "ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ")
+		_escape_banner("13:00 - 13:15", tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ"))
 	else:
-		_escape_banner("13:00 - 13:15", "ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА")
+		_escape_banner("13:00 - 13:15", tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА"))
 
 func _enter_inspect() -> void:
 	if current_shift < 2:
@@ -7219,8 +7260,8 @@ func _inspect_area(area: Area2D) -> void:
 		if true:
 			var id = data.get("id", "")
 			var special_type = data.get("special_type", "")
-			_show_inspect_text(data.get("title", ""), data.get("phrase", ""), data.get("journal", ""))
-			_add_journal_note(id, data.get("title", "") + ": " + data.get("journal", ""))
+			_show_inspect_text(tr(data.get("title", "")), tr(data.get("phrase", "")), tr(data.get("journal", "")))
+			_add_journal_note(id, tr(data.get("title", "")) + ": " + tr(data.get("journal", "")))
 			if id == "elevator":
 				elevator_inspected = true
 			if special_type == "guard_shift":
@@ -7361,7 +7402,7 @@ func _build_journal() -> void:
 			_journal_style(close, 16, INK_RED)
 			close.add_theme_color_override("font_hover_color", Color(0.85, 0.2, 0.1))
 			close.add_theme_color_override("font_pressed_color", INK)
-		_journal_title = _journal_label("ЖУРНАЛ НАБЛЮДЕНИЙ", 24, INK)
+		_journal_title = _journal_label(tr("ЖУРНАЛ НАБЛЮДЕНИЙ"), 24, INK)
 		_journal_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_journal_title.position = Vector2(60, 50)
 		_journal_title.size = Vector2(JOURNAL_SIZE.x - 120, 30)
@@ -7480,20 +7521,20 @@ func _update_journal_options() -> void:
 	for c in journal_list.get_children():
 		c.queue_free()
 	# shift changes: tick boxes for every time you can find out
-	_journal_header("ПЕРЕСМЕНКИ")
-	_journal_ticks("Охрана", GUARD_SHIFTS, guard_shifts_found)
-	_journal_ticks("Снайпер", SNIPER_SHIFTS, sniper_shifts_found)
-	_journal_header("ОСМОТРЕНО")
+	_journal_header(tr("ПЕРЕСМЕНКИ"))
+	_journal_ticks(tr("Охрана"), GUARD_SHIFTS, guard_shifts_found)
+	_journal_ticks(tr("Снайпер"), SNIPER_SHIFTS, sniper_shifts_found)
+	_journal_header(tr("ОСМОТРЕНО"))
 	if journal_notes_full.is_empty():
-		_journal_entry("Пока ничего. Нажми " + _key_name("inspect") + ", чтобы осмотреться.", INK_SOFT, false)
+		_journal_entry(tr("Пока ничего. Нажми ") + _key_name("inspect") + tr(", чтобы осмотреться."), INK_SOFT, false)
 	else:
 		for id in journal_notes_full.keys():
 			_journal_entry(journal_notes_full[id], INK, true)
 	if _schedule_known():
-		_journal_header("ВЫВОД")
-		var t = "13:00 - 13:15 — единственное время для побега"
+		_journal_header(tr("ВЫВОД"))
+		var t = tr("13:00 - 13:15 — единственное время для побега")
 		if elevator_inspected:
-			t += " через лифт"
+			t += tr(" через лифт")
 		_journal_entry(t + "!", INK_RED, false, 18)
 
 func _journal_header(text: String) -> void:
@@ -7564,11 +7605,11 @@ func _process_guard_talk(delta: float) -> void:
 	if guard_talk_timer <= 0.0:
 		guard_talk_timer = randf_range(12.0, 22.0)
 		var phrases = [
-			"я за вами слежу...",
-			"работаем, работаем...",
-			"не отлынивать!",
-			"ещё одна смена, и всё...",
-			"не расслабляться.",
+			tr("я за вами слежу..."),
+			tr("работаем, работаем..."),
+			tr("не отлынивать!"),
+			tr("ещё одна смена, и всё..."),
+			tr("не расслабляться."),
 		]
 		_show_guard_dialog(phrases[randi() % phrases.size()], 2.0)
 
@@ -7587,6 +7628,8 @@ var _chan_bubbles: Dictionary = {}   # channel -> [node, gen]
 var _bub_last_us: Dictionary = {}
 
 func _speech(speaker: Node2D, who: String, who_color: Color, text: String, duration: float, guard_voice: bool, channel: String = "main", alert: bool = false) -> void:
+	text = tr(text)
+	who = tr(who)
 	# lines only break between whole words: no break after a hyphen either ("ХЕ-ХЕ")
 	text = text.replace("-", "-\u2060")
 	_bubble_gen += 1
@@ -8036,7 +8079,7 @@ func _is_action_key(event: InputEventKey, action: String) -> bool:
 func _key_name(action: String) -> String:
 	if has_node("/root/InputRebind"):
 		var t = InputRebind.get_key_text(action)
-		if t != "" and t != "Не назначено":
+		if t != "" and t != tr("Не назначено"):
 			return t
 	return "E" if action == "interact" else action.to_upper()
 
@@ -8058,14 +8101,68 @@ func _near_elevator() -> bool:
 		return false
 	return player.global_position.distance_to(elevator_door.global_position) < 150
 
+## A floating "press E" plate over the lift when the fish is close and escape is on the table.
+## In the 13:00-13:15 window it lights up amber ("E — ВОЙТИ"); otherwise it shows the time.
+var _elev_prompt: Node2D = null
+var _elev_prompt_a: float = 0.0
+var _elev_text: String = ""
+var _elev_in_window: bool = false
+
+func _update_elevator_prompt(delta: float) -> void:
+	if player == null or elevator_button == null:
+		return
+	var can = state == State.WORKING and not journal_open and _schedule_known() and escape_info_shift != -1 and current_shift >= escape_info_shift
+	var show = can and _near_elevator()
+	if _elev_prompt == null:
+		if not show:
+			return
+		_elev_prompt = Node2D.new()
+		_elev_prompt.z_as_relative = false
+		_elev_prompt.z_index = 140
+		_elev_prompt.draw.connect(_draw_elev_prompt)
+		add_child(_elev_prompt)
+	var h = _current_hour()
+	_elev_in_window = h >= ESCAPE_WINDOW_START and h <= ESCAPE_WINDOW_END
+	if _elev_in_window:
+		_elev_text = tr("%s — ВОЙТИ") % _key_name("interact")
+	else:
+		var mins = int(round((ESCAPE_WINDOW_START - h) * 60.0)) if h < ESCAPE_WINDOW_START else 0
+		_elev_text = (tr("ЛИФТ · %d:%02d") % [mins / 60, mins % 60]) if mins > 0 else tr("ЛИФТ · 13:00")
+	_elev_prompt_a = move_toward(_elev_prompt_a, 1.0 if show else 0.0, delta * 6.0)
+	_elev_prompt.visible = _elev_prompt_a > 0.01
+	if not _elev_prompt.visible:
+		return
+	_elev_prompt.global_position = elevator_button.global_position + Vector2(0, -74)
+	_elev_prompt.modulate.a = _elev_prompt_a
+	_elev_prompt.queue_redraw()
+
+func _draw_elev_prompt() -> void:
+	var f = _bubble_font()
+	if f == null:
+		return
+	var fs := 15
+	var tw = f.get_string_size(_elev_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var w = tw + 20.0
+	var hh := 26.0
+	var r = Rect2(Vector2(-w * 0.5, -hh * 0.5), Vector2(w, hh))
+	var pulse = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0 * 4.0) if _elev_in_window else 1.0
+	_elev_prompt.draw_rect(Rect2(r.position + Vector2(0, 3), r.size), Color(0, 0, 0, 0.5))
+	_elev_prompt.draw_rect(r, Color(0.05, 0.06, 0.09, 0.96))
+	var edge = Color(0.97, 0.76, 0.26, pulse) if _elev_in_window else Color(0.42, 0.47, 0.58)
+	_elev_prompt.draw_rect(r, edge, false, 2.0)
+	var col = Color(1.0, 0.95, 0.8) if _elev_in_window else Color(0.76, 0.81, 0.9)
+	_elev_prompt.draw_string(f, Vector2(-tw * 0.5, fs * 0.42), _elev_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	var p = PackedVector2Array([Vector2(-6, hh * 0.5), Vector2(6, hh * 0.5), Vector2(0, hh * 0.5 + 7)])
+	_elev_prompt.draw_colored_polygon(p, Color(0.05, 0.06, 0.09, 0.96))
+
 func _enter_elevator() -> void:
 	var hour = _current_hour()
 	var in_window = hour >= ESCAPE_WINDOW_START and hour <= ESCAPE_WINDOW_END
 	if not in_window:
-		_show_dialog("ЛИФТ ЗАКРЫТ. НУЖНО ДОЖДАТЬСЯ 13:00.", 2.5)
+		_show_dialog(tr("ЛИФТ ЗАКРЫТ. НУЖНО ДОЖДАТЬСЯ 13:00."), 2.5)
 		return
 	if not _schedule_known():
-		_show_dialog("Я НЕ ЗНАЮ РАСПИСАНИЯ. НУЖНО БОЛЬШЕ РАЗВЕДКИ.", 2.5)
+		_show_dialog(tr("Я НЕ ЗНАЮ РАСПИСАНИЯ. НУЖНО БОЛЬШЕ РАЗВЕДКИ."), 2.5)
 		return
 	if has_node("/root/Achievements"):
 		var was = Achievements.freedom_unlocked
@@ -8121,7 +8218,7 @@ func _escape_cutscene() -> void:
 		return
 	# he notices - too late
 	if guard_sprite and guard_sprite.visible:
-		_show_guard_dialog("ЭЙ! А НУ СТОЯТЬ!", 1.6)
+		_show_guard_dialog(tr("ЭЙ! А НУ СТОЯТЬ!"), 1.6)
 	if camera:
 		_zoom_camera(Vector2(1.25, 1.25), 0.6)
 	await _tree().create_timer(0.5).timeout
@@ -8199,13 +8296,13 @@ func _escape_cutscene() -> void:
 	Global.goto_scene(Global.SCENE_HALLWAY)
 
 func _show_worker_of_month_achievement() -> void:
-	_show_achievement_banner("Работник месяца")
+	_show_achievement_banner(tr("Работник месяца"))
 
 func _show_scout_achievement() -> void:
-	_show_achievement_banner("Разведчик")
+	_show_achievement_banner(tr("Разведчик"))
 
 func _show_freedom_achievement() -> void:
-	_show_achievement_banner("Свобода")
+	_show_achievement_banner(tr("Свобода"))
 
 ## The popup itself now comes from the Achievements autoload (one pretty style everywhere).
 func _show_achievement_banner(_title: String) -> void:

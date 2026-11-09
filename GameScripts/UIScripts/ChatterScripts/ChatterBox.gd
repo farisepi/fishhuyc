@@ -261,7 +261,7 @@ func _show_near(text: String) -> void:
 	
 	if line != _measured_line:
 		_measured_line = line
-		var full = (line.text if line else text).replace("-", "-\u2060")
+		var full = (tr(line.text) if line else text).replace("-", "-\u2060")
 		var f: Font = _near_label.get_theme_font("normal_font")
 		var plain = _strip_bbcode(full)
 		var tw = NEAR_MAX_W - PAD_X * 2
@@ -318,9 +318,10 @@ func _show_near(text: String) -> void:
 func _full_line_bbcode(line, typed: String) -> String:
 	if line == null or not ("text" in line):
 		return typed
-	var full: String = line.text.replace("-", "-\u2060")
+	var full: String = tr(line.text).replace("-", "-\u2060")
 	if "swear_words" in line:
-		for sw in line.swear_words:
+		for sw0 in line.swear_words:
+			var sw = tr(sw0)
 			if sw != "":
 				full = full.replace(sw, "[color=#FF3333]" + sw + "[/color]")
 	return full
@@ -509,7 +510,7 @@ func _decorate_near() -> void:
 		_tail_fill.visible = true
 	if _name_tag:
 		_name_tag.visible = false
-		_name_tag.text = NAME_MECHANIC if is_mech else NAME_SCIENTIST
+		_name_tag.text = tr(NAME_MECHANIC if is_mech else NAME_SCIENTIST)
 		_name_tag.add_theme_color_override("font_color", (COLOR_MECHANIC if is_mech else COLOR_SCIENTIST).darkened(0.45))
 		_name_tag.position = Vector2(PAD_X, PAD_TOP - 1)
 		_name_tag.size = Vector2(_near_panel.size.x - PAD_X * 2, NEAR_FONT + 2)
@@ -547,7 +548,7 @@ func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 		if line != _far_measured_line:
 			_far_measured_line = line
 			_far_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-			_far_measured_h = _text_height(_far_label, line.text if line else text, pw - 80) + 22.0
+			_far_measured_h = _text_height(_far_label, tr(line.text) if line else text, pw - 80) + 22.0
 		ph = max(ph, _far_measured_h)
 	var target_x = vp.x * 0.5 - pw * 0.5
 	var target_y = vp.y - margin - ph

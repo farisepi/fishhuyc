@@ -65,7 +65,7 @@ func _show_next() -> void:
 		var id: String = _queue.pop_front()
 		if not (id in SOUND_IN_UNLOCK) and has_node("/root/UISounds"):
 			UISounds.play_achievement()
-		await _popup(TITLES.get(id, id), id)
+		await _popup(tr(TITLES.get(id, id)), id)
 	_showing = false
 
 

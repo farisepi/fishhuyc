@@ -30,7 +30,6 @@ InputRebind="*uid://d1sd1h4pl2cmi"
 UISounds="*uid://daub0wx4q03i"
 Achievements="*uid://bsns7txmyx4di"
 SeaweedState="*uid://bdx133or6hcja"
-Prank="*res://GameScripts/AutoloadScripts/PrankScript/Prank_Script.gd"
 
 [display]
 

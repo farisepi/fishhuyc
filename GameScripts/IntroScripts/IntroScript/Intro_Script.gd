@@ -1,13 +1,13 @@
 extends CanvasLayer
 
 var slides = [
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide1_Texture.png"), "text": "Он держал в руке то, что изменит всё."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide2_Texture.png"), "text": "Первой подопытной стала крыса."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide3_Texture.png"), "text": "Она больше не чувствовала себя собой."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide4_Texture.png"), "text": "Со временем очередь дошла до всех."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide5_Texture.png"), "text": "Так появилась новая рабочая сила."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide6_Texture.png"), "text": "Чип взял на себя то, что раньше решал мозг."},
-	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide7_Texture.png"), "text": "Система казалась безупречной..."}
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide1_Texture.png"), "text": tr("Он держал в руке то, что изменит всё.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide2_Texture.png"), "text": tr("Первой подопытной стала крыса.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide3_Texture.png"), "text": tr("Она больше не чувствовала себя собой.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide4_Texture.png"), "text": tr("Со временем очередь дошла до всех.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide5_Texture.png"), "text": tr("Так появилась новая рабочая сила.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide6_Texture.png"), "text": tr("Чип взял на себя то, что раньше решал мозг.")},
+	{"image": preload("res://GameAssets/Sprites/UserInterfaceSprites/IntroSlideSprites/Intro_Slide7_Texture.png"), "text": tr("Система казалась безупречной...")}
 ]
 
 const MUSIC_PATH = "res://GameAssets/Audio/MusicTracks/IntroMusic/Intro_Music.mp3"
@@ -31,9 +31,9 @@ const SKIP_WIDTH: float = 140.0
 const SKIP_HEIGHT: float = 8.0
 const MAX_DIM_ALPHA: float = 1.0
 
-const MUSIC_NORMAL_DB: float = 0.0
+const MUSIC_NORMAL_DB: float = -13.0
 const MUSIC_SILENT_DB: float = -80.0
-const VOICE_NORMAL_DB: float = -10.0
+const VOICE_NORMAL_DB: float = -14.0
 const VOICE_SILENT_DB: float = -80.0
 
 const SLIDE_FONT_SIZE: int = 16
@@ -217,9 +217,9 @@ func _draw_skip() -> void:
 		c.draw_circle(ctr + Vector2(cos(-PI * 0.5 + TAU * p), sin(-PI * 0.5 + TAU * p)) * 16.0, 2.5, Color.WHITE)
 	if _skip_font:
 		var kc = Color(1, 1, 1, 0.9 if p > 0.0 else 0.75)
-		var kw = _skip_font.get_string_size("ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7).x
-		c.draw_string(_skip_font, Vector2(ctr.x - kw * 0.5, ctr.y + 3.0), "ЛКМ", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, kc)
-		var txt = "ПРОПУСКАЮ..." if p > 0.0 else "ЗАЖМИ — ПРОПУСТИТЬ"
+		var kw = _skip_font.get_string_size(tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 7).x
+		c.draw_string(_skip_font, Vector2(ctr.x - kw * 0.5, ctr.y + 3.0), tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 7, kc)
+		var txt = tr("ПРОПУСКАЮ...") if p > 0.0 else tr("ЗАЖМИ — ПРОПУСТИТЬ")
 		c.draw_string(_skip_font, Vector2(50, sz.y * 0.5 + 4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.92))
 
 func _input_skip_hint(_event: InputEvent) -> void:

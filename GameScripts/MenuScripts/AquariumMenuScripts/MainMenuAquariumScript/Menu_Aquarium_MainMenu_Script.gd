@@ -13,6 +13,7 @@ extends Node2D
 @onready var logo: AnimatedSprite2D = $LogoArea/LogoAnimation
 @onready var menu_music: AudioStreamPlayer = $MenuMusic
 
+const BubbleScript = preload("res://GameScripts/EntityScripts/BubbleEntityScripts/Bubble_Script.gd")
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 var logo_float_time: float = 0.0
@@ -214,9 +215,14 @@ func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
 func _start_background_bubbles() -> void:
-	for i in range(randi_range(3, 6)):
-		_make_menu_bubble()
+	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
+	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, true):
+		for i in range(randi_range(3, 6)):
+			_make_menu_bubble()
 	_spawn_next_bubble()
+
+func _exit_tree() -> void:
+	BubbleScript.save_menu_bubbles(self)
 
 func _spawn_next_bubble() -> void:
 	if not bubble_scene:
@@ -242,6 +248,7 @@ func _make_menu_bubble() -> void:
 	var viewport_size = viewport.get_visible_rect().size
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
+	bubble.set_meta("menu_bg", true)
 	bubble.z_index = -10
 	bubble.global_position = Vector2(randf_range(0, viewport_size.x), randf_range(0, viewport_size.y))
 	bubble.scale = Vector2.ONE * randf_range(0.5, 1.4)
@@ -297,7 +304,8 @@ func _spawn_bubble_from_edge(canvas: CanvasLayer, pos: Vector2, direction: Vecto
 	canvas.add_child(bubble)
 
 	bubble.position = pos
-	bubble.scale = Vector2.ONE * randf_range(0.8, 2.0)
+	# big celebratory bubbles, each a different transparency
+	bubble.scale = Vector2.ONE * randf_range(1.8, 4.0)
 	bubble.speed = randf_range(80.0, 180.0)
 	bubble.clickable = true
 	bubble.modulate.a = 0.0
@@ -305,4 +313,4 @@ func _spawn_bubble_from_edge(canvas: CanvasLayer, pos: Vector2, direction: Vecto
 	bubble.start_life(randf_range(0.5, 15.0))
 
 	var alpha_tween = create_tween()
-	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.6, 1.0), 0.3)
+	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.14, 0.92), 0.3)

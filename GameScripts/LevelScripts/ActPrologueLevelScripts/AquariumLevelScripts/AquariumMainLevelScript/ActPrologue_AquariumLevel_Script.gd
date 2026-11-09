@@ -255,9 +255,18 @@ func _start_background_chatter() -> void:
 		return
 	if chatter.is_active():
 		chatter.stop()
-	# the background talk never just runs out: after the last line it starts over
-	chatter.loop = true
+	# the talk runs once and ends on the quarrel - it does NOT loop back to calm small talk
+	chatter.loop = false
+	# listening to the whole thing (the last line is heard) earns the "Кофе бы..." achievement
+	if not chatter.line_finished.is_connected(_on_chatter_line_finished):
+		chatter.line_finished.connect(_on_chatter_line_finished)
 	chatter.start()
+
+## The player overheard the full argument to its end -> the tired "coffee" achievement.
+func _on_chatter_line_finished(_line, index: int) -> void:
+	if chatter and index >= chatter.lines.size() - 1:
+		if has_node("/root/Achievements") and Achievements.has_method("unlock_coffee"):
+			Achievements.unlock_coffee()
 
 
 ## Plays a list of lines through a given controller and waits until they are done.
@@ -710,7 +719,7 @@ func _tutorial_tick(dt: float) -> void:
 	_tut_t += dt
 	if _intro_lock:
 		return
-	_tut.hint("a_swim", "ПЛАВАТЬ|W A S D — плыть в любую сторону", ["W", "A", "S", "D"],
+	_tut.hint("a_swim", tr("ПЛАВАТЬ|W A S D — плыть в любую сторону"), ["W", "A", "S", "D"],
 		func(): return player.get("velocity") is Vector2 and (player.get("velocity") as Vector2).length() > 30.0, 2.0, 8.0)
 
 

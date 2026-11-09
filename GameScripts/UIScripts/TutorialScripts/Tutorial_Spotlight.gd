@@ -1,6 +1,9 @@
 extends CanvasLayer
 ## Factory tutorial "flashlight": everything goes dark except a soft round spot of light on
-## what is being explained, plus a card with the explanation next to the spot.
+## what is being explained, plus a card with the explanation at an edge of the screen.
+## The card never sits on the scene next to the spot: it takes a free place along the screen
+## edges (bottom / top middle, bottom corners, left / right middle - never the top corners,
+## those belong to the HUD), away from the light and from the other hints.
 ##   spot.show_step("ДВИЖЕНИЕ", "Ты очнулся...", ["A", "D", "ПРОБЕЛ"], func(): return rect)
 ## The target callable returns a Rect2 in screen (UI) pixels every frame, so the light follows
 ## moving things. Runs while the tree is paused (the tutorial stops time).
@@ -78,10 +81,26 @@ var _card_to := 0.0
 var _t := 0.0
 var _progress := -1.0      # 0..1 bar at the bottom of the card (timed steps), <0 = none
 var _done_t := -1.0
-var _tag := "ОБУЧЕНИЕ"
+var _tag := tr("ОБУЧЕНИЕ")
 var dim_outside := true    # false: only the card, no darkness (the minigame needs the view)
 ## The level can hide the whole layer (e.g. while its pause menu is open).
 var block_check: Callable = Callable()
+## The level can name screen rects the card must keep clear of (other hints, plates):
+## a callable returning an Array of Rect2 in UI pixels.
+var avoid: Callable = Callable()
+## How dark everything around the light gets (the scene stays readable through it).
+const DARK := 0.78
+const EDGE_M := 16.0
+## Minigame / incident steps: the card is docked right beside the window (like an open
+## manual next to it), on its right, else on its left - never on top of it.
+var dock_beside: bool = false
+const DOCK_GAP := 14.0
+const DOCK_MAX_W := 420.0
+
+func set_dock_beside(v: bool) -> void:
+	dock_beside = v
+	_slot = -1
+	_layout_card()
 
 
 func _ready() -> void:
@@ -134,14 +153,17 @@ func show_step(title: String, body: String, keys: Array, target: Callable, dim: 
 	_keys = keys.duplicate()
 	skippable = false
 	card_corner = false
+	dock_beside = false
 	_card_placed = false
+	_slot = -1
+	_bad_t = 0.0
 	_step_t = 0.0
 	_title.text = title
 	_body.text = body.replace("-", "-⁠")
 	_progress = -1.0
 	_done_t = -1.0
-	_tag = "ОБУЧЕНИЕ"
-	_dark_to = 0.9 if dim else 0.0
+	_tag = tr("ОБУЧЕНИЕ")
+	_dark_to = DARK if dim else 0.0
 	_card_to = 1.0
 	_layout_card()
 	_card.visible = true
@@ -170,7 +192,7 @@ func set_progress(v: float) -> void:
 ## A green "ГОТОВО" for a moment.
 func done() -> void:
 	_done_t = 0.0
-	_tag = "ГОТОВО"
+	_tag = tr("ГОТОВО")
 	if has_node("/root/UISounds"):
 		get_node("/root/UISounds").play_click()
 
@@ -192,7 +214,16 @@ func _layout_card() -> void:
 	var title_w = 0.0
 	if _font:
 		title_w = _font.get_string_size(_title.text, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE).x
-	var w = clamp(max(CARD_W, title_w + 40.0, keys_w + 40.0), CARD_W, 520.0)
+	# long explanations get a wider, flatter card: it stays a strip at the edge of the screen
+	var base_w = CARD_W
+	var n = _body.text.length()
+	if n > 110:
+		base_w = 460.0
+	if n > 220:
+		base_w = 600.0
+	var w = clamp(max(base_w, title_w + 40.0, keys_w + 40.0), CARD_W, 640.0)
+	if dock_beside:
+		w = clamp(max(base_w, title_w + 40.0, keys_w + 40.0), CARD_W, DOCK_MAX_W)
 	_title.position = Vector2(16, 22)
 	_title.size = Vector2(w - 30, 22)
 	_body.position = Vector2(16, 46)
@@ -273,37 +304,105 @@ func _process(delta: float) -> void:
 		_card.queue_redraw()
 
 
-## The card goes under the spot if there is room, else over it; it never covers the spot.
+## Places along the screen edges where the card may sit (never the top corners: HUD).
+func _slots(sz: Vector2) -> Array:
+	var W = SCREEN.x
+	var H = SCREEN.y
+	return [
+		Vector2((W - sz.x) * 0.5, H - sz.y - 18.0),            # bottom middle
+		Vector2(EDGE_M, H - sz.y - 18.0),                      # bottom left
+		Vector2(W - sz.x - EDGE_M, H - sz.y - 18.0),           # bottom right
+		Vector2((W - sz.x) * 0.5, 14.0),                       # top middle
+		Vector2(EDGE_M, (H - sz.y) * 0.5),                     # left middle
+		Vector2(W - sz.x - EDGE_M, (H - sz.y) * 0.5),          # right middle
+	]
+
+func _overlap(a: Rect2, b: Rect2) -> float:
+	var i = a.intersection(b)
+	return i.get_area() if a.intersects(b) else 0.0
+
+## How bad a place is: covering the light counts most, then the other hints, then the order.
+func _slot_cost(pos: Vector2, sz: Vector2, idx: int) -> float:
+	var r = Rect2(pos, sz).grow(6.0)
+	var light = Rect2(_hole_c - _hole_r, _hole_r * 2.0)
+	var c = _overlap(r, light) * 10.0
+	if avoid.is_valid():
+		for a in avoid.call():
+			if a is Rect2 and a.size.x > 0.0:
+				c += _overlap(r, a) * 10.0
+	return c + idx * 50.0
+
+var _slot: int = -1
+var _bad_t: float = 0.0
+
+## Beside the target window: right of it, else left; null when neither side has room.
+func _dock_pos(sz: Vector2):
+	if not _target.is_valid():
+		return null
+	var t = _target.call()
+	if not (t is Rect2):
+		return null
+	var x = t.end.x + DOCK_GAP
+	if x + sz.x > SCREEN.x - EDGE_M:
+		x = t.position.x - DOCK_GAP - sz.x
+		if x < EDGE_M:
+			return null
+	var y = clamp(t.position.y, 14.0, SCREEN.y - sz.y - 14.0)
+	# the top-right corner is the shift panel: go below it there
+	if x + sz.x > SCREEN.x - 300.0:
+		y = max(y, 150.0)
+	return Vector2(x, y)
+
 func _place_card() -> void:
 	var sz = _card.size
+	if dock_beside:
+		var d = _dock_pos(sz)
+		if d != null:
+			if _slot != 99:
+				_card_xy = d
+			_slot = 99
+			_card_xy = _card_xy.lerp(d, 1.0 - exp(-14.0 * _last_dt))
+			_card.position = Vector2(round(_card_xy.x), round(_card_xy.y + sin(_t * 2.2) * 1.5))
+			return
+	var slots = _slots(sz)
+	var want: int
 	if card_corner:
-		_card.position = Vector2(round(SCREEN.x - sz.x - 22.0), round(SCREEN.y - sz.y - 30.0 + sin(_t * 2.2) * 1.5))
-		return
-	var x = clamp(_hole_c.x - sz.x * 0.5, 14.0, SCREEN.x - sz.x - 14.0)
-	var below = _hole_c.y + _hole_r.y + 14.0
-	var above = _hole_c.y - _hole_r.y - 14.0 - sz.y
-	var y: float
-	if below + sz.y < SCREEN.y - 10.0:
-		y = below
-	elif above > 10.0:
-		y = above
+		want = 2   # bottom right
 	else:
-		# no room above or below: beside it
-		y = clamp(_hole_c.y - sz.y * 0.5, 10.0, SCREEN.y - sz.y - 10.0)
-		if _hole_c.x > SCREEN.x * 0.5:
-			x = clamp(_hole_c.x - _hole_r.x - sz.x - 14.0, 14.0, SCREEN.x - sz.x - 14.0)
-		else:
-			x = clamp(_hole_c.x + _hole_r.x + 14.0, 14.0, SCREEN.x - sz.x - 14.0)
-	# the card picks its place once per step and then only glides sideways after the light:
-	# it no longer jumps up and down when the fish jumps or the light moves
-	_step_t += _last_dt
-	if not _card_placed:
-		_card_xy = Vector2(x, y)
-		if _step_t > 0.45:   # the light has settled on its target: the place is fixed now
+		var best = 0
+		var best_c = INF
+		for i in range(slots.size()):
+			var c = _slot_cost(slots[i], sz, i)
+			if c < best_c:
+				best_c = c
+				best = i
+		want = best
+		# the place is picked once the light has settled; later it only moves away when the
+		# light (a moving target) stays on top of the card for a moment - no jumping around
+		_step_t += _last_dt
+		if _slot >= 0 and _card_placed:
+			if want != _slot and _slot_cost(slots[_slot], sz, 0) > 400.0:
+				_bad_t += _last_dt
+			else:
+				_bad_t = 0.0
+			if _bad_t < 0.4:
+				want = _slot
+		if _step_t > 0.45:
 			_card_placed = true
+	var first = _slot < 0 or _slot == 99
+	_slot = want
+	var target = slots[want]
+	if first:
+		_card_xy = target
 	else:
-		_card_xy.x = lerp(_card_xy.x, x, 1.0 - exp(-6.0 * _last_dt))
+		_card_xy = _card_xy.lerp(target, 1.0 - exp(-10.0 * _last_dt))
 	_card.position = Vector2(round(_card_xy.x), round(_card_xy.y + sin(_t * 2.2) * 1.5))
+
+## The card's rect on screen (for the level: keep other plates off it).
+func card_rect() -> Rect2:
+	if _card == null or not _card.visible:
+		return Rect2()
+	return Rect2(_card.position, _card.size)
 
 
 func _draw_card() -> void:

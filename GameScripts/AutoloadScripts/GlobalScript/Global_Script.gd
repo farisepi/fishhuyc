@@ -69,10 +69,10 @@ func get_level_number(scene_path: String) -> int:
 
 func get_location_name(scene_path: String) -> String:
 	match get_level_number(scene_path):
-		1: return "Аквариум"
-		2: return "Завод"
-		3: return "Коридор к складовым помещениям"
-		4: return "Склад"
+		1: return tr("Аквариум")
+		2: return tr("Завод")
+		3: return tr("Коридор к складовым помещениям")
+		4: return tr("Склад")
 	return scene_path.get_file().get_basename()
 
 func format_save_time() -> String:
@@ -115,7 +115,7 @@ func get_save_title(config: ConfigFile) -> String:
 	if get_level_number(scene) == 2:
 		var st = config.get_value("factory", "state", {})
 		var sh = int(st.get("shift", 1)) if st is Dictionary else 1
-		t += " - " + str(max(1, sh)) + " Смена"
+		t += " - " + str(max(1, sh)) + tr(" Смена")
 	return t
 
 ## The saving sign in the bottom-right corner (do not close the game while it is on).
@@ -197,6 +197,8 @@ func apply_brightness(value: float) -> void:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# English texts (the language is picked in the settings)
+	preload("res://GameScripts/AutoloadScripts/LocalizationScript/Localization_EN.gd").install()
 	setup_scaling()
 	
 	print("=== CREATING SEAWEEDSTATE ===")

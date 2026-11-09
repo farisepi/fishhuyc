@@ -3,17 +3,17 @@ extends Node
 signal keybinds_updated
 
 var action_names = {
-	"ui_up": "Вверх",
-	"ui_down": "Вниз",
-	"ui_left": "Влево",
-	"ui_right": "Вправо",
-	"interact": "Взаимодействие",
-	"jump": "Прыжок",
-	"inventory": "Инвентарь",
-	"ui_cancel": "Пауза",
-	"parry": "Парирование",
-	"inspect": "Осмотреться",
-	"journal": "Журнал",
+	"ui_up": tr("Вверх"),
+	"ui_down": tr("Вниз"),
+	"ui_left": tr("Влево"),
+	"ui_right": tr("Вправо"),
+	"interact": tr("Взаимодействие"),
+	"jump": tr("Прыжок"),
+	"inventory": tr("Инвентарь"),
+	"ui_cancel": tr("Пауза"),
+	"parry": tr("Парирование"),
+	"inspect": tr("Осмотреться"),
+	"journal": tr("Журнал"),
 }
 
 var rebinding_action: String = ""
@@ -46,7 +46,7 @@ func _ensure_default_actions() -> void:
 func _apply_first_launch_defaults() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
-		"interact": KEY_F, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
+		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
 		"inspect": KEY_I, "journal": KEY_J
 	}
 	for action in defaults.keys():
@@ -71,7 +71,7 @@ func get_key_text(action: String) -> String:
 			return _keycode_to_string(e.keycode)
 		if e is InputEventMouseButton:
 			return e.as_text()
-	return "Не назначено"
+	return tr("Не назначено")
 
 func get_key_texture(action: String) -> Texture2D:
 	var events = InputMap.action_get_events(action)
@@ -194,12 +194,20 @@ func save_keybinds() -> void:
 			if e is InputEventKey:
 				key_texts.append(_keycode_to_string(e.keycode))
 		config.set_value("keybinds", action, key_texts)
+	config.set_value("meta", "version", 2)
 	config.save(SAVE_PATH)
 	keybinds_updated.emit()
 
 func load_keybinds() -> void:
 	if config.load(SAVE_PATH) != OK:
 		return
+	# v2: interaction moved from F (it clashed with the shot block) to E. A saved F is the old
+	# default, not a choice - it becomes E once; any other key the player picked stays.
+	if int(config.get_value("meta", "version", 1)) < 2:
+		if config.get_value("keybinds", "interact", []) == ["F"]:
+			config.set_value("keybinds", "interact", ["E"])
+		config.set_value("meta", "version", 2)
+		config.save(SAVE_PATH)
 	
 	for action in action_names.keys():
 		var key_texts = config.get_value("keybinds", action, [])
