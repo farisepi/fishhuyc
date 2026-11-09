@@ -1,12 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://du7h5v6vmku8t"]
 
 [ext_resource type="Script" uid="uid://lgpjmk1k0mlm" path="res://GameScripts/UIScripts/HUDScripts/ActStorage_TitleCard_Script.gd" id="1_title"]
 
-[node name="TitleCard" type="CanvasLayer"]
+[node name="TitleCard" type="CanvasLayer" unique_id=1506465310]
 layer = 100
 script = ExtResource("1_title")
 
-[node name="BG" type="ColorRect" parent="."]
+[node name="BG" type="ColorRect" parent="." unique_id=926575296]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -15,7 +15,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.85)
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=935120091]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5

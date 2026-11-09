@@ -100,6 +100,7 @@ func _ready() -> void:
 	InputRebind.keybinds_updated.connect(update_key_labels)
 	
 	_apply_fps_visibility()
+	_relayout()
 	_setup_ui()
 	_setup_dropdowns()
 	_connect_signals()
@@ -128,6 +129,8 @@ func _mark_unsaved() -> void:
 
 func _setup_dropdowns() -> void:
 	resolution_dropdown = _create_dropdown(resolution_button, "resolution")
+	if fps_button:
+		fps_dropdown = _create_dropdown(fps_button, "fps")
 	language_dropdown = _create_dropdown(language_button, "language")
 	dynamic_range_dropdown = _create_dropdown(dynamic_range_button, "dynamic_range")
 
@@ -141,7 +144,7 @@ func _create_dropdown(button: Button, id: String) -> Control:
 	container.mouse_filter = Control.MOUSE_FILTER_STOP
 	var bg = StyleBoxTexture.new()
 	bg.texture = load(POPUP_MENU_TEXTURE_PATH)
-	container.add_theme_stylebox_override("panel", bg)
+	container.add_theme_stylebox_override("panel", MenuHeader.dropdown_panel_style(_accent_col()))
 	var vbox = VBoxContainer.new()
 	vbox.name = "VBox"
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -178,6 +181,8 @@ func _create_arrow_for_button(button: Button) -> void:
 		language_arrow = arrow
 	elif button == dynamic_range_button:
 		dynamic_range_arrow = arrow
+	elif button == fps_button:
+		fps_arrow = arrow
 
 func _on_dropdown_button_pressed(container: Control) -> void:
 	if not container:
@@ -204,6 +209,9 @@ func _open_dropdown(container: Control) -> void:
 	if vbox:
 		var total_height = vbox.size.y + 12
 		container.size = Vector2(button.size.x, total_height)
+		var vh = get_viewport().get_visible_rect().size.y
+		if container.position.y + total_height > vh - 4:
+			container.position.y = max(4.0, button.global_position.y - total_height)
 	_flip_arrow(button, true)
 
 func _close_dropdown(container: Control) -> void:
@@ -222,6 +230,8 @@ func _close_all_dropdowns() -> void:
 		_close_dropdown(language_dropdown)
 	if dynamic_range_dropdown and dynamic_range_dropdown.visible:
 		_close_dropdown(dynamic_range_dropdown)
+	if fps_dropdown and fps_dropdown.visible:
+		_close_dropdown(fps_dropdown)
 
 func _flip_arrow(button: Button, flipped: bool) -> void:
 	var arrow: TextureRect = null
@@ -231,6 +241,8 @@ func _flip_arrow(button: Button, flipped: bool) -> void:
 		arrow = language_arrow
 	elif button == dynamic_range_button:
 		arrow = dynamic_range_arrow
+	elif button == fps_button:
+		arrow = fps_arrow
 	if not arrow or not is_instance_valid(arrow):
 		return
 	arrow.scale.y = -1 if flipped else 1
@@ -251,24 +263,25 @@ func _populate_dropdown(container: Control, items: Array[String], selected: int,
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		if i == selected:
-			btn.add_theme_color_override("font_color", Color.WHITE)
-			btn.add_theme_color_override("font_hover_color", Color.WHITE)
+			btn.add_theme_color_override("font_color", _accent_col())
+			btn.add_theme_color_override("font_hover_color", _accent_col())
 		else:
-			btn.add_theme_color_override("font_color", Color(0.35, 0.35, 0.35))
-			btn.add_theme_color_override("font_hover_color", Color(0.7, 0.7, 0.7))
+			btn.add_theme_color_override("font_color", Color(0.62, 0.63, 0.67))
+			btn.add_theme_color_override("font_hover_color", Color.WHITE)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var normal_bg = StyleBoxFlat.new()
-		normal_bg.bg_color = Color(0, 0, 0, 0.07)
+		normal_bg.bg_color = Color(0, 0, 0, 0)
 		normal_bg.content_margin_left = 6
 		normal_bg.content_margin_right = 6
 		var hover_bg = StyleBoxFlat.new()
-		hover_bg.bg_color = Color(0, 0, 0, 0.35)
+		hover_bg.bg_color = Color(_accent_col(), 0.16)
 		hover_bg.content_margin_left = 6
 		hover_bg.content_margin_right = 6
 		btn.add_theme_stylebox_override("normal", normal_bg)
 		btn.add_theme_stylebox_override("hover", hover_bg)
 		btn.add_theme_stylebox_override("pressed", hover_bg)
 		btn.add_theme_stylebox_override("focus", normal_bg)
-		btn.add_theme_font_size_override("font_size", 18)
+		btn.add_theme_font_size_override("font_size", 16)
 		btn.pressed.connect(_on_dropdown_item_selected.bind(i, id, container))
 		vbox.add_child(btn)
 
@@ -289,6 +302,13 @@ func _on_dropdown_item_selected(index: int, id: String, container: Control) -> v
 			_update_button_text(dynamic_range_button, dynamic_range_items, dynamic_range_selected)
 			_populate_dropdown(container, dynamic_range_items, dynamic_range_selected, "dynamic_range")
 			_on_dynamic_range_selected(index)
+		"fps":
+			fps_selected = index
+			_update_button_text(fps_button, fps_items, fps_selected)
+			_populate_dropdown(container, fps_items, fps_selected, "fps")
+			Global.fps_limit = FPS_VALUES[index]
+			Global.apply_frame_pacing()
+			_mark_unsaved()
 	_close_dropdown(container)
 
 func _update_button_text(button: Button, items: Array[String], selected: int) -> void:
@@ -523,20 +543,26 @@ func _connect_signals() -> void:
 	if inspect_btn: inspect_btn.pressed.connect(func(): _start_rebind("inspect"))
 	if journal_btn: journal_btn.pressed.connect(func(): _start_rebind("journal"))
 
+func _default_resolution() -> int:
+	return Global.saved_resolution_index(ConfigFile.new())
+
+## F11 / Alt+Enter pressed somewhere: just show it on the checkbox.
+func _on_global_fullscreen(on: bool) -> void:
+	if fullscreen_check and fullscreen_check.button_pressed != on:
+		_suppress_switch_sound = true
+		fullscreen_check.set_pressed_no_signal(on)
+		_suppress_switch_sound = false
+
 func _on_fullscreen_toggled(pressed: bool) -> void:
-	if pressed:
-		get_window().mode = Window.MODE_FULLSCREEN
-	else:
-		get_window().mode = Window.MODE_WINDOWED
+	if pressed != Global.is_fullscreen():
+		Global.set_fullscreen(pressed, resolution_selected)
 	if not _suppress_switch_sound:
 		if pressed: UISounds.play_switch_on()
 		else: UISounds.play_switch_off()
 	_mark_unsaved()
 
 func _on_vsync_toggled(pressed: bool) -> void:
-	DisplayServer.window_set_vsync_mode(
-		DisplayServer.VSYNC_ENABLED if pressed else DisplayServer.VSYNC_DISABLED
-	)
+	Global.set_vsync(pressed)
 	if not _suppress_switch_sound:
 		if pressed: UISounds.play_switch_on()
 		else: UISounds.play_switch_off()
@@ -588,8 +614,17 @@ func _on_brightness_changed(_value: float) -> void:
 	_mark_unsaved()
 
 func setup_options() -> void:
-	resolution_items = ["1920x1080", "1280x720", "854x480"]
-	resolution_selected = 0
+	resolution_items = Global.resolution_names()
+	fps_items = _fps_names()
+	fps_selected = 0
+	_populate_dropdown(fps_dropdown, fps_items, fps_selected, "fps")
+	_update_button_text(fps_button, fps_items, fps_selected)
+	resolution_selected = _default_resolution()
+	fps_selected = 0
+	_populate_dropdown(fps_dropdown, fps_items, fps_selected, "fps")
+	_update_button_text(fps_button, fps_items, fps_selected)
+	if not Global.fullscreen_changed.is_connected(_on_global_fullscreen):
+		Global.fullscreen_changed.connect(_on_global_fullscreen)
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
 	language_items = ["Русский", "English"]
@@ -603,7 +638,10 @@ func load_settings() -> void:
 		apply_defaults()
 		save_settings()
 		return
-	resolution_selected = config.get_value("graphics", "resolution", 0)
+	resolution_selected = Global.saved_resolution_index(config)
+	fps_selected = _fps_index(int(config.get_value("graphics", "fps_limit", 0)))
+	_populate_dropdown(fps_dropdown, fps_items, fps_selected, "fps")
+	_update_button_text(fps_button, fps_items, fps_selected)
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
 	var locale = config.get_value("language", "locale", "ru")
@@ -643,7 +681,10 @@ func load_settings() -> void:
 	_update_all_percent_labels()
 
 func apply_defaults() -> void:
-	resolution_selected = 0
+	resolution_selected = _default_resolution()
+	fps_selected = 0
+	_populate_dropdown(fps_dropdown, fps_items, fps_selected, "fps")
+	_update_button_text(fps_button, fps_items, fps_selected)
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
 	language_selected = 0
@@ -707,7 +748,10 @@ func _show_reset_confirm() -> void:
 			_suppress_switch_sound = true
 			match page:
 				0:
-					resolution_selected = 0
+					resolution_selected = _default_resolution()
+					fps_selected = 0
+					_populate_dropdown(fps_dropdown, fps_items, fps_selected, "fps")
+					_update_button_text(fps_button, fps_items, fps_selected)
 					_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 					_update_button_text(resolution_button, resolution_items, resolution_selected)
 					language_selected = 0
@@ -796,6 +840,8 @@ func _reset_controls_only() -> void:
 
 func save_settings() -> void:
 	config.set_value("graphics", "resolution", resolution_selected)
+	config.set_value("graphics", "resolution_size", Global.resolution_size_text(resolution_selected))
+	config.set_value("graphics", "fps_limit", FPS_VALUES[fps_selected])
 	config.set_value("language", "locale", "ru" if language_selected == 0 else "en")
 	if fps_check: config.set_value("graphics", "show_fps", fps_check.button_pressed)
 	if fullscreen_check: config.set_value("graphics", "fullscreen", fullscreen_check.button_pressed)
@@ -834,17 +880,13 @@ func apply_audio_volumes() -> void:
 	if ui_slider: _apply_volume("UI", ui_slider.value)
 
 func apply_graphics_settings() -> void:
-	if fullscreen_check:
-		# started from the editor: stay in a window (the checkbox only counts in the real game)
-		if fullscreen_check.button_pressed and not Global.is_dev_run():
-			get_window().mode = Window.MODE_FULLSCREEN
-		else:
-			get_window().mode = Window.MODE_WINDOWED
-	Global.apply_resolution(resolution_selected)
+	# what the checkbox says is what you get (also from the editor)
+	var fs = fullscreen_check.button_pressed if fullscreen_check else Global.is_fullscreen()
+	if fs != Global.is_fullscreen() or not fs:
+		Global.set_fullscreen(fs, resolution_selected)
+	Global.fps_limit = FPS_VALUES[fps_selected]
 	if vsync_check:
-		DisplayServer.window_set_vsync_mode(
-			DisplayServer.VSYNC_ENABLED if vsync_check.button_pressed else DisplayServer.VSYNC_DISABLED
-		)
+		Global.set_vsync(vsync_check.button_pressed)
 
 func _apply_volume(bus_name: String, value: float) -> void:
 	Global._apply_audio_bus(bus_name, value)
@@ -856,6 +898,7 @@ func show_page(index: int) -> void:
 	if graphics_tab: graphics_tab.modulate = Color.WHITE if index == 0 else Color.GRAY
 	if audio_tab: audio_tab.modulate = Color.WHITE if index == 1 else Color.GRAY
 	if controls_tab: controls_tab.modulate = Color.WHITE if index == 2 else Color.GRAY
+	_style_tabs(index)
 	_close_all_dropdowns()
 	_update_all_percent_labels()
 
@@ -877,7 +920,32 @@ func _update_button_label(btn: Button, action: String) -> void:
 	btn.text = InputRebind.get_key_text(action)
 
 func _start_rebind(action: String) -> void:
+	if InputRebind.rebinding_action != "":
+		InputRebind.cancel_rebind()
+	update_key_labels()
 	InputRebind.start_rebind(action)
+	var btn = _rebind_button(action)
+	if btn:
+		btn.release_focus()
+		_rebind_blink(btn, action)
+
+func _rebind_button(action: String) -> Button:
+	return {"ui_up": move_up_btn, "ui_down": move_down_btn, "ui_left": move_left_btn,
+		"ui_right": move_right_btn, "interact": interact_btn, "jump": jump_btn,
+		"inventory": inventory_btn, "ui_cancel": pause_btn, "inspect": inspect_btn,
+		"journal": journal_btn}.get(action, null)
+
+## While waiting for a key the button blinks "..." in the accent colour.
+func _rebind_blink(btn: Button, action: String) -> void:
+	var acc = _accent_col()
+	while is_inside_tree() and InputRebind.rebinding_action == action:
+		var on = (Time.get_ticks_msec() / 350) % 2 == 0
+		btn.text = "[ ? ]" if on else "[   ]"
+		btn.add_theme_color_override("font_color", acc)
+		await get_tree().process_frame
+	if is_instance_valid(btn):
+		btn.remove_theme_color_override("font_color")
+	update_key_labels()
 
 func _exit_to_main_menu() -> void:
 	if Global.came_from == Global.MenuSource.GAME:
@@ -913,7 +981,7 @@ func _input(event: InputEvent) -> void:
 		if _any_dropdown_open():
 			var mouse_pos = get_global_mouse_position()
 			var clicked_inside = false
-			for dd in [resolution_dropdown, language_dropdown, dynamic_range_dropdown]:
+			for dd in [resolution_dropdown, language_dropdown, dynamic_range_dropdown, fps_dropdown]:
 				if dd and dd.visible:
 					if dd.get_global_rect().has_point(mouse_pos):
 						clicked_inside = true
@@ -928,4 +996,142 @@ func _input(event: InputEvent) -> void:
 func _any_dropdown_open() -> bool:
 	return (resolution_dropdown and resolution_dropdown.visible) or \
 		(language_dropdown and language_dropdown.visible) or \
-		(dynamic_range_dropdown and dynamic_range_dropdown.visible)
+		(dynamic_range_dropdown and dynamic_range_dropdown.visible) or \
+		(fps_dropdown and fps_dropdown.visible)
+
+
+# ---------------------------------------------------------------- layout (built at start)
+## A big title like in the pause menu, quiet text tabs, and the general page in two columns
+## with small section headers: ЭКРАН | ИЗОБРАЖЕНИЕ + ИГРА. Also adds the frame-rate row.
+var fps_button: Button = null
+var fps_dropdown: Control = null
+var fps_arrow: TextureRect = null
+var fps_items: Array[String] = []
+var fps_selected: int = 0
+const FPS_VALUES: Array[int] = [0, 30, 60, 75, 120, 144, 165, 240, -1]
+var _tab_bar: ColorRect = null
+var _tab_index: int = 0
+
+func _accent_col() -> Color:
+	return MenuHeader.accent_for(self)
+
+func _relayout() -> void:
+	var acc = _accent_col()
+	# rebind buttons never keep the focus: Space / Enter must not press them again
+	for b in [move_up_btn, move_down_btn, move_left_btn, move_right_btn, interact_btn, jump_btn, inventory_btn, pause_btn, inspect_btn, journal_btn]:
+		if b:
+			b.focus_mode = Control.FOCUS_NONE
+	MenuHeader.attach(self, "НАСТРОЙКИ", acc, 30.0, 32)
+	# tabs: plain words in a row, the active one lit
+	var tabs = [graphics_tab, audio_tab, controls_tab]
+	for i in range(tabs.size()):
+		var b: Button = tabs[i]
+		if b == null:
+			continue
+		MenuHeader.style_tab(b, acc)
+		b.position = Vector2(576 - 255 + i * 170, 86)
+		b.size = Vector2(170, 34)
+	_tab_bar = ColorRect.new()
+	_tab_bar.color = acc
+	_tab_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tab_bar.size = Vector2(0, 2)
+	_tab_bar.position = Vector2(576, 120)
+	add_child(_tab_bar)
+	var top_line = get_node_or_null("DividingLine2")
+	if top_line:
+		top_line.position.y = 132
+		top_line.color = Color(acc, 0.35)
+		top_line.size.y = 2
+	if controls_page:
+		controls_page.position.y += 12.0
+	var bot_line = get_node_or_null("DividingLine1")
+	if bot_line:
+		bot_line.color = Color(acc, 0.35)
+		bot_line.size.y = 2
+	# the frame-rate dropdown: a copy of the resolution one
+	if resolution_button and fps_button == null:
+		fps_button = resolution_button.duplicate()
+		fps_button.name = "FPSLimitButton"
+		graphics_page.add_child(fps_button)
+		var fl = get_node_or_null("GraphicsPage/ResolutionLabel").duplicate()
+		fl.name = "FPSLimitLabel"
+		fl.text = "Частота кадров"
+		graphics_page.add_child(fl)
+		if Engine.has_singleton("ButtonEffects") or has_node("/root/ButtonEffects"):
+			ButtonEffects.setup(fps_button, Callable())
+	# two columns, page coordinates (the page sits at +8, +8)
+	var o = Vector2(8, 8)
+	var lx = 120.0 - o.x
+	var lend = 536.0 - o.x
+	var rx = 616.0 - o.x
+	var rend = 1032.0 - o.x
+	var y0 = 184.0 - o.y
+	var step = 44.0
+	MenuHeader.section(graphics_page, "ЭКРАН", acc, Vector2(lx, 150 - o.y), lend - lx)
+	MenuHeader.section(graphics_page, "ИЗОБРАЖЕНИЕ", acc, Vector2(rx, 150 - o.y), rend - rx)
+	var left = [["ResolutionLabel", "ResolutionButton"], ["FPSLimitLabel", "FPSLimitButton"],
+		["FullScreenLabel", "FullScreenCheck"], ["V-SyncLabel", "VSyncCheck"], ["FPSLabel", "FPSCheck"]]
+	for i in range(left.size()):
+		_place_row(left[i][0], left[i][1], lx, lend, y0 + i * step)
+	var right = [["BrightnessLabel", "BrightnessSlider"], ["EffectsLabel", "EffectsCheck"],
+		["IntarfaceAtributesLabel", "InterfaceAttributesCheck"]]
+	for i in range(right.size()):
+		_place_row(right[i][0], right[i][1], rx, rend, y0 + i * step)
+	var gy = y0 + 3 * step + 14.0
+	MenuHeader.section(graphics_page, "ИГРА", acc, Vector2(rx, gy), rend - rx)
+	_place_row("LanguageLabel", "LanguageOption", rx, rend, gy + 36.0)
+	_place_row("CameraSensivityLabel", "CameraSensitivitySlider", rx, rend, gy + 36.0 + step)
+
+func _place_row(label_name: String, ctrl_name: String, x0: float, x1: float, y: float) -> void:
+	var l = graphics_page.get_node_or_null(label_name) as Label
+	var c = graphics_page.get_node_or_null(ctrl_name) as Control
+	if l:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.position = Vector2(x0, y)
+		l.size = Vector2(220, 36)
+	if c == null:
+		return
+	if c is HSlider:
+		c.size = Vector2(170, 36)
+		c.position = Vector2(x1 - 52 - 170, y)
+	elif c is CheckButton:
+		c.position = Vector2(x1 - c.size.x, y + (36 - c.size.y) * 0.5)
+	elif c is Button:
+		var w = 216.0
+		var sp = c.get_node_or_null("Rust") as Sprite2D
+		if sp:
+			sp.scale *= Vector2(w / max(1.0, c.size.x), 34.0 / max(1.0, c.size.y))
+			sp.position = Vector2(w, 34) * 0.5
+		c.size = Vector2(w, 34)
+		c.position = Vector2(x1 - w, y + 1)
+
+func _style_tabs(index: int) -> void:
+	_tab_index = index
+	var acc = _accent_col()
+	var tabs = [graphics_tab, audio_tab, controls_tab]
+	for i in range(tabs.size()):
+		if tabs[i]:
+			MenuHeader.set_tab_active(tabs[i], i == index, acc)
+	var b: Button = tabs[index] if index < tabs.size() else null
+	if _tab_bar and b:
+		var f = b.get_theme_font("font")
+		var tw = f.get_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x if f else 80.0
+		var tw2 = create_tween().set_parallel(true)
+		tw2.tween_property(_tab_bar, "position:x", b.position.x + (b.size.x - tw) * 0.5, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw2.tween_property(_tab_bar, "size:x", tw, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+func _fps_names() -> Array[String]:
+	var out: Array[String] = []
+	for v in FPS_VALUES:
+		if v == 0:
+			out.append("Авто (%d Гц)" % int(round(Global.screen_hz())))
+		elif v < 0:
+			out.append("Без лимита")
+		else:
+			out.append("%d FPS" % v)
+	return out
+
+func _fps_index(v: int) -> int:
+	var i = FPS_VALUES.find(v)
+	return i if i >= 0 else 0

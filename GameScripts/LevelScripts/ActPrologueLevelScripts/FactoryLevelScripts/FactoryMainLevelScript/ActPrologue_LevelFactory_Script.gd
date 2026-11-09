@@ -34,7 +34,7 @@ const COLOR_BROKEN_TINT := Color(1.0, 0.45, 0.4)
 var _sushi_textures: Array = []
 var _sushi_broken_textures: Array = []
 
-const OBJECT_SPEED: float = 375.0
+const OBJECT_SPEED: float = 351.0
 const NPC_WALK_SPEED: float = 205.0
 const SAFE_ZONE_CENTER_X: float = 1230.0
 const NPC_WALK_DELAY_MIN: float = 0.5
@@ -48,8 +48,8 @@ const REAL_SHIFT_DURATION: float = 150.0   # ~25 boxes; only used for the guard 
 const SHIFT_CHANGE_HOURS: float = 0.25
 const SHIFT_CHANGE_REAL: float = (SHIFT_CHANGE_HOURS / SHIFT_DURATION_HOURS) * REAL_SHIFT_DURATION
 
-const GUARD_SHIFTS: Array = [9.0, 13.0, 15.5, 17.0]
-const SNIPER_SHIFTS: Array = [11.0, 13.0, 15.0]
+const GUARD_SHIFTS: Array = [9.0, 11.0, 13.0, 15.5]   # spread over the whole shift
+const SNIPER_SHIFTS: Array = [10.0, 13.0, 16.5]   # only 13:00 is shared with the guard
 
 const ESCAPE_WINDOW_START: float = 13.0
 const ESCAPE_WINDOW_END: float = 13.25
@@ -263,8 +263,10 @@ const MGE_NONE: int = 0
 const MGE_FIRE: int = 1
 const MGE_SHORT: int = 2
 const MGE_STUCK: int = 3
-const INCIDENT_CHANCE: float = 0.05
-const STK_ZONE_W := [0.19, 0.16, 0.13]   # green zone of the stuck button, per punch
+const INCIDENT_CHANCE: float = 0.03
+const INCIDENT_MIN_GAP: int = 8   # jobs between two incidents at least
+var _jobs_since_incident: int = 99
+const STK_ZONE_W := [0.23, 0.195, 0.16]   # green zone of the stuck button, per punch
 var _inc_canvas: Control = null
 var _inc_active: bool = false
 var _inc_kind: int = 0
@@ -324,7 +326,7 @@ const DIALOG_FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Fo
 const BUBBLE_MAX_W: float = 140.0
 const TYPEIN_EFFECT := preload("res://GameScripts/UIScripts/DialogScripts/Dialog_TypeIn_Effect.gd")
 const BUBBLE_FONT: int = 8
-const BUBBLE_CPS: float = 38.0
+const BUBBLE_CPS: float = 30.0
 const BUBBLE_SCALE: float = 0.9
 const NAME_GUARD := "ОХРАНА"
 const NAME_PLAYER := "ТЫ"
@@ -532,6 +534,197 @@ func _tut_mark(id: String) -> void:
 	Global.factory_state["tut"] = _tut_flags.duplicate()
 	Global.save_factory_state()
 
+## The floor goes on past the elevator: a wall there (the fish used to fall off the left end).
+func _add_side_walls() -> void:
+	for x in [-326.0, 1640.0]:
+		var wall = StaticBody2D.new()
+		wall.position = Vector2(x + (-20.0 if x < 0.0 else 20.0), 200)
+		var cs = CollisionShape2D.new()
+		var rs = RectangleShape2D.new()
+		rs.size = Vector2(40, 600)
+		cs.shape = rs
+		wall.add_child(cs)
+		add_child(wall)
+
+## An arrow over the fish: after the shift to the maintenance room; in the escape shift to the
+## elevator, with a countdown to 13:00 (and the time left in the window after it).
+var _nav: Node2D = null
+var _nav_text: String = ""
+var _nav_dir: float = 1.0
+
+func _nav_arrow_update() -> void:
+	if player == null:
+		return
+	var target_x := INF
+	var txt := ""
+	if state == State.SHIFT_END and maintenance_door and not _is_player_near_maintenance():
+		target_x = maintenance_door.global_position.x + (maintenance_door.size.x * 0.5 if maintenance_door is Control else 0.0)
+		txt = ""
+	elif escape_info_shift == current_shift and state != State.DEAD and state != State.SHIFT_END and elevator_button:
+		var h = _current_hour()
+		target_x = elevator_button.global_position.x
+		if h < 13.0:
+			var mins = int(round((13.0 - h) * 60.0))
+			txt = "ЛИФТ  %d:%02d" % [mins / 60, mins % 60]
+		elif h < 13.25:
+			var real_left = (13.25 - h) / 0.25 * ESCAPE_WINDOW_REAL
+			txt = "ЛИФТ!  %d СЕК" % int(ceil(real_left))
+		else:
+			target_x = INF
+		if abs(player.global_position.x - target_x) < 45.0:
+			target_x = INF
+	var hide_all = target_x == INF or (state == State.INSPECT) or journal_open
+	# a plate at the screen edge pointing the way (after the shift: to maintenance; in the
+	# escape shift: to the elevator, with the time on it); it fades out near the target
+	_edge_arrow_update(target_x if not hide_all else INF, txt)
+	if _nav:
+		_nav.visible = false
+	return
+	if _nav == null:
+		_nav = Node2D.new()
+		_nav.z_as_relative = false
+		_nav.z_index = 150
+		_nav.draw.connect(_draw_nav)
+		add_child(_nav)
+	_nav.visible = true
+	_nav_text = txt
+	_nav_dir = 1.0 if target_x > player.global_position.x else -1.0
+	_nav.global_position = player.global_position + Vector2(0, -96)
+	_nav.queue_redraw()
+
+var _edge_layer: CanvasLayer = null
+var _edge: Control = null
+var _edge_a: float = 0.0
+var _edge_dir: float = 1.0
+const EDGE_W := 24.0   # in HUD pixels (x HUD_PX on screen)
+const EDGE_H := 13.0
+
+var _edge_text: String = ""
+var _edge_text_w: float = 0.0   # in HUD pixels
+
+func _edge_arrow_update(target_x: float, text: String = "") -> void:
+	if text != _edge_text:
+		_edge_text = text
+		var f = _bubble_font()
+		var tpx = f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x if (f and text != "") else 0.0
+		_edge_text_w = ceil((tpx + 12.0) / HUD_PX) if text != "" else 0.0
+		if _edge:
+			_edge.size = Vector2(EDGE_W + _edge_text_w + 7.0, EDGE_H) * HUD_PX
+	var dt = get_process_delta_time() / max(0.05, Engine.time_scale)
+	var want := 0.0
+	if target_x != INF and player:
+		var dist = abs(target_x - player.global_position.x)
+		want = clamp((dist - 70.0) / 200.0, 0.0, 1.0)
+		_edge_dir = 1.0 if target_x > player.global_position.x else -1.0
+	_edge_a = move_toward(_edge_a, want, dt * 3.0)
+	if _edge == null:
+		if _edge_a <= 0.0:
+			return
+		_edge_layer = CanvasLayer.new()
+		_edge_layer.layer = 12
+		add_child(_edge_layer)
+		_edge = Control.new()
+		_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_edge.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_edge.size = Vector2(EDGE_W + _edge_text_w + 7.0, EDGE_H) * HUD_PX
+		_edge.draw.connect(_draw_edge_arrow)
+		_edge_layer.add_child(_edge)
+	_edge.visible = _edge_a > 0.01
+	if not _edge.visible:
+		return
+	_edge.modulate.a = _edge_a
+	# at the screen edge on the target's side, at the fish's height
+	var sy = 324.0
+	if player:
+		sy = (get_viewport().get_canvas_transform() * (player.global_position + Vector2(0, -40))).y
+	var slide = (1.0 - _edge_a) * 30.0
+	var x = (1152.0 - _edge.size.x - 14.0 + slide) if _edge_dir > 0.0 else (14.0 - slide)
+	_edge.position = Vector2(round(x), round(clamp(sy - _edge.size.y * 0.5, 120.0, 560.0)))
+	_edge.queue_redraw()
+
+## The plate: dark HUD panel with a pointed end, three chevrons lighting up one after another
+## toward the target, an orange stripe along the bottom - like the rest of the HUD.
+func _draw_edge_arrow() -> void:
+	var c = _edge
+	var k = HUD_PX
+	var d = _edge_dir
+	var t = Time.get_ticks_msec() / 1000.0
+	var bob = round(abs(sin(t * 4.0)) * 1.0)
+	var ox = (c.size.x if d < 0.0 else 0.0) + d * bob * k
+	c.draw_set_transform(Vector2(ox, 0), 0.0, Vector2(k * d, k))
+	var tw = _edge_text_w
+	var w = EDGE_W + tw
+	var h = EDGE_H
+	var urgent = _edge_text.begins_with("ЛИФТ!")
+	var hot = HUD_C_ORANGE if not urgent else Color(1.0, 0.3 + 0.3 * abs(sin(t * 8.0)), 0.2)
+	# shadow
+	c.draw_rect(Rect2(1, 1, w, h), Color(0, 0, 0, 0.35))
+	# body + the point
+	c.draw_rect(Rect2(0, 0, w, h), Color.BLACK)
+	c.draw_colored_polygon(PackedVector2Array([Vector2(w - 1, 0), Vector2(w + 6, h * 0.5), Vector2(w - 1, h)]), Color.BLACK)
+	c.draw_rect(Rect2(1, 1, w - 2, h - 2), HUD_C_BG)
+	c.draw_colored_polygon(PackedVector2Array([Vector2(w - 1, 1), Vector2(w + 4.5, h * 0.5), Vector2(w - 1, h - 1)]), HUD_C_BG)
+	c.draw_rect(Rect2(1, 1, w - 2, 1), HUD_C_EDGE)
+	# hazard stripe at the bottom
+	var x := 1.0
+	var i := 0
+	while x < w - 1.0:
+		c.draw_rect(Rect2(x, h - 3, min(2.0, w - 1.0 - x), 2), hot if i % 2 == 0 else HUD_C_DIM)
+		x += 2.0
+		i += 1
+	# chevrons
+	for n in range(4):
+		var ph = fmod(t * 2.2 - n * 0.22, 1.0)
+		var lit = clamp(1.0 - ph * 2.2, 0.0, 1.0)
+		var col = HUD_C_DIM.lerp(hot.lightened(0.25), lit)
+		var cx = 3.0 + tw + n * 5.0
+		var rows = [0, 1, 2, 1, 0]
+		for r in range(rows.size()):
+			c.draw_rect(Rect2(cx + rows[r], 3 + r, 2, 1), col)
+	if tw > 0.0:
+		# a thin divider, then the text (drawn unmirrored, in screen pixels)
+		c.draw_rect(Rect2(tw + 1.0, 2, 1, h - 5), HUD_C_EDGE)
+		c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var f = _bubble_font()
+		if f:
+			var tpx = f.get_string_size(_edge_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+			var mid = ox + d * k * (1.0 + tw * 0.5)
+			c.draw_string(f, Vector2(round(mid - tpx * 0.5), round((h - 3.0) * 0.5 * k + 5.0)), _edge_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, HUD_C_TEXT if not urgent else hot.lightened(0.3))
+	c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func _draw_nav() -> void:
+	var t0 = Time.get_ticks_msec() / 1000.0
+	if _nav_text == "":
+		# only a big bouncing arrow
+		var d0 = _nav_dir
+		var bx0 = d0 * (6.0 * abs(sin(t0 * 5.0)))
+		var big = PackedVector2Array([Vector2(bx0 - 12 * d0, -14), Vector2(bx0 + 14 * d0, 0), Vector2(bx0 - 12 * d0, 14)])
+		var bigo = PackedVector2Array([Vector2(bx0 - 15 * d0, -18), Vector2(bx0 + 18 * d0, 0), Vector2(bx0 - 15 * d0, 18)])
+		_nav.draw_colored_polygon(bigo, Color.BLACK)
+		_nav.draw_colored_polygon(big, HUD_C_ORANGE)
+		return
+	var f = _bubble_font()
+	var fs := 11
+	var tw = f.get_string_size(_nav_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x if f else 80.0
+	var w = tw + 16.0
+	var t = Time.get_ticks_msec() / 1000.0
+	var urgent = _nav_text.begins_with("ЛИФТ!")
+	var col = HUD_C_ORANGE if not urgent else Color(1.0, 0.3 + 0.3 * abs(sin(t * 8.0)), 0.2)
+	var r = Rect2(-w * 0.5, -10, w, 18)
+	_nav.draw_rect(Rect2(r.position + Vector2(2, 2), r.size), Color(0, 0, 0, 0.45))
+	_nav.draw_rect(r, Color.BLACK)
+	_nav.draw_rect(r.grow(-1.0), HUD_C_BG)
+	_nav.draw_rect(Rect2(r.position.x + 1, r.end.y - 3, r.size.x - 2, 2), col)
+	if f:
+		_nav.draw_string(f, Vector2(-tw * 0.5, 3), _nav_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.96, 0.95, 0.9))
+	# the arrow beside the plate, bouncing toward the target
+	var d = _nav_dir
+	var bx = d * (w * 0.5 + 10.0 + 3.0 * abs(sin(t * 5.0)))
+	var pts = PackedVector2Array([Vector2(bx - 6 * d, -8), Vector2(bx + 7 * d, -1), Vector2(bx - 6 * d, 6)])
+	var outl = PackedVector2Array([Vector2(bx - 8 * d, -11), Vector2(bx + 10 * d, -1), Vector2(bx - 8 * d, 9)])
+	_nav.draw_colored_polygon(outl, Color.BLACK)
+	_nav.draw_colored_polygon(pts, col)
+
 func _setup_spotlight() -> void:
 	_spot = SPOTLIGHT.new()
 	add_child(_spot)
@@ -545,6 +738,10 @@ func _spot_show(title: String, body: String, keys: Array, target: Callable, dim:
 func _on_spot_key(ev: InputEvent) -> void:
 	if not _tut_frozen:
 		return
+	if ev is InputEventKey and ev.keycode == KEY_SPACE and _tut_wait_key == "":
+		_tut_skip_hit = true
+		if player and "block_jump" in player:
+			player.block_jump = true   # the skip press must not make the fish jump
 	if ev is InputEventKey:
 		if ev.keycode == KEY_ESCAPE:
 			get_viewport().set_input_as_handled()
@@ -585,9 +782,14 @@ func _tut_unfreeze() -> void:
 	tw.tween_property(Engine, "time_scale", _tut_prev_ts, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	await tw.finished
 
+var _tut_skip_hit: bool = false
+
 func _tut_wait(t: float, progress: bool = false) -> void:
 	var w := 0.0
+	_tut_skip_hit = false
 	while w < t:
+		if progress and _tut_skip_hit:
+			break
 		await _tree().process_frame
 		if not is_inside_tree():
 			return
@@ -617,7 +819,9 @@ func _player_screen_rect() -> Rect2:
 func _zone_screen_rect() -> Rect2:
 	if work_zone_rect == null:
 		return _player_screen_rect()
-	return _world_to_screen(Rect2(work_zone_rect.offset_left, work_zone_rect.offset_top, work_zone_rect.offset_right - work_zone_rect.offset_left, work_zone_rect.offset_bottom - work_zone_rect.offset_top))
+	# the floor strip that glows and the room for the fish above it (not the press body)
+	var bot = work_zone_rect.offset_bottom
+	return _world_to_screen(Rect2(work_zone_rect.offset_left, bot - 92.0, work_zone_rect.offset_right - work_zone_rect.offset_left, 100.0))
 
 func _mg_screen_rect() -> Rect2:
 	if mg_kind == MG.SLIDER and minigame_panel and minigame_panel.visible:
@@ -637,6 +841,14 @@ func _stress_screen_rect() -> Rect2:
 	return Rect2(_hud_panel.position + Vector2(2, 24) * HUD_PX, Vector2(HUD_W - 4, 9) * HUD_PX)
 
 func _guard_screen_rect() -> Rect2:
+	var r0 = _guard_screen_rect_raw()
+	# off screen: the light waits at the screen edge on his side
+	var c = r0.get_center()
+	c.x = clamp(c.x, 90.0, 1062.0)
+	c.y = clamp(c.y, 90.0, 558.0)
+	return Rect2(c - r0.size * 0.5, r0.size)
+
+func _guard_screen_rect_raw() -> Rect2:
 	if guard_sprite == null or not guard_sprite.visible:
 		return _world_to_screen(Rect2(GUARD_POSITION + Vector2(-30, -50), Vector2(60, 70)))
 	var r = _sprite_screen_rect(guard_sprite)
@@ -665,7 +877,7 @@ func _tut_basics_intro() -> void:
 	await _tut_freeze(true)
 	if not is_inside_tree():
 		return
-	_spot_show("ДВИЖЕНИЕ", "Ты очнулся. Сейчас тебе нужно заново научиться двигаться: пройди влево или вправо, или подпрыгни.", ["A", "D", "ПРОБЕЛ"], _player_screen_rect)
+	_spot_show("ДВИЖЕНИЕ", "Ты очнулся. Научись заново двигаться.", ["A", "D", "ПРОБЕЛ"], _player_screen_rect)
 	while is_inside_tree() and not _player_moving():
 		await _tree().process_frame
 	if not is_inside_tree():
@@ -678,10 +890,13 @@ func _tut_basics_intro() -> void:
 		player.process_mode = Node.PROCESS_MODE_INHERIT
 		if "ignore_pause" in player:
 			player.ignore_pause = false
-	_spot_show("БЕЗОПАСНАЯ ЗОНА", "Это безопасная зона. Если выйдешь из неё во время работы, охранник начнёт ругаться — так что лучше не выходи.", [], _zone_screen_rect)
+	_spot_show("БЕЗОПАСНАЯ ЗОНА", "Твоя зона у пресса. Вышел во время работы — охрана накажет.", [], _zone_screen_rect)
+	if _spot: _spot.skippable = true
 	await _tut_wait(5.0, true)
 	if not is_inside_tree():
 		return
+	_spot.done()
+	await _tut_wait(0.45)
 	_spot.hide_step()
 	await _tut_unfreeze()
 
@@ -700,10 +915,13 @@ func _tut_after_first_job() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("СТРЕСС", "Чем выше уровень стресса, тем сильнее трясутся руки и тем больше шанс промахнуться, даже если нажал вовремя. Каждый удар охранника добавляет стресса.", [], _stress_screen_rect)
+	_spot_show("СТРЕСС", "Больше стресса — больше шанс промаха. Удары его повышают, серии снижают.", [], _stress_screen_rect)
+	if _spot: _spot.skippable = true
 	await _tut_wait(5.0, true)
 	if not is_inside_tree():
 		return
+	_spot.done()
+	await _tut_wait(0.45)
 	_spot.hide_step()
 	await _tut_unfreeze()
 	if not is_inside_tree():
@@ -713,14 +931,22 @@ func _tut_after_first_job() -> void:
 	await _guard_wait_free()
 	if not is_inside_tree() or state == State.DEAD or state == State.SHIFT_END:
 		return
+	# time stops: the lesson first (5 s or space), only then the check and its jobs
+	await _tut_freeze(false)
+	if not is_inside_tree():
+		return
+	_spot_show("ПРОВЕРКА", "Охранник проверит две твои работы. Хорошо — стресс ниже, плохо — удар.", [], _guard_screen_rect)
+	if _spot: _spot.skippable = true
+	await _tut_wait(5.0, true)
+	if not is_inside_tree():
+		return
+	_spot.done()
+	await _tut_wait(0.45)
+	_spot.hide_step()
+	await _tut_unfreeze()
+	if not is_inside_tree() or state == State.DEAD or state == State.SHIFT_END:
+		return
 	_start_inspection(true)
-	_spot_show("ПРОВЕРКА", "Охранник пришёл с проверкой: он смотрит две твои работы. Пройдёшь хорошо — стресс снизится. Покажешь себя плохо — тебе несдобровать.", [], _guard_screen_rect)
-	var t := 0.0
-	while is_inside_tree() and t < 5.0 and not minigame_active and _inspection_active:
-		await _tree().process_frame
-		t += get_process_delta_time()
-	if _spot:
-		_spot.hide_step()
 	if _inspection_active:
 		await inspection_finished
 	if not is_inside_tree():
@@ -728,9 +954,70 @@ func _tut_after_first_job() -> void:
 	_tut_mark("basics")
 	_tut_stage = ""
 
+
+## Shift 2 starts with the inspect lesson: no work yet; time stops, inspect, look around, then
+## the clock runs fast to 9:00 where the guard leaves (the rest is _tut_inspect_flow).
+var _tut_s2_hold: bool = false
+var _tut_s2_pre: bool = false
+
+func _tut_shift2_start() -> void:
+	while is_inside_tree() and _shift_fade_lock:
+		await _tree().process_frame
+	await _tut_wait(0.6)
+	if not is_inside_tree():
+		return
+	await _tut_freeze(false)
+	if not is_inside_tree():
+		return
+	_spot_show("ОСМОТР", "Чтобы сбежать, надо узнать расписание охраны и снайпера. Для этого — режим осмотра.", [_key_name("inspect")], _act_screen_rect.bind(false))
+	await _tut_wait_for_key("inspect")
+	if not is_inside_tree():
+		return
+	_spot.done()
+	await _tut_unfreeze()
+	if not is_inside_tree():
+		return
+	_enter_inspect()
+	_spot_show("ВЗГЛЯД", "Осмотрись: взгляд двигается.", ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
+	var moved_t := 0.0
+	while is_inside_tree() and state == State.INSPECT and inspect_camera_offset.length() < 90.0 and moved_t < 12.0:
+		await _tree().process_frame
+		moved_t += get_process_delta_time() / max(0.05, Engine.time_scale)
+	if not is_inside_tree():
+		return
+	_spot.done()
+	await _tut_wait(0.6)
+	_spot.hide_step()
+	# the clock runs fast to the first guard change
+	_tut_s2_pre = true
+	var target: float = (GUARD_SHIFTS[0] - SHIFT_START_HOUR) / SHIFT_DURATION_HOURS
+	var from = shift_time
+	var tw = create_tween().set_ignore_time_scale(true)
+	tw.tween_method(func(v):
+		shift_time = v
+		_update_clock_label()
+		_update_wall_clock(), from, target, 1.6).set_trans(Tween.TRANS_SINE)
+	await tw.finished
+	_recompute_clock_speed()
+
+## After the clock was moved by hand: its speed so that it still reaches 18:00 with the last box.
+func _recompute_clock_speed() -> void:
+	var left_belt = float(TOTAL_CYCLES) * CYCLE_SLOT - _shift_elapsed
+	var slow_f := 0.0
+	var slow_s := 0.0
+	var h = _current_hour()
+	for q in _slow_periods():
+		if q[0] >= h:
+			slow_f += (q[1] - q[0]) / SHIFT_DURATION_HOURS
+			slow_s += q[2]
+	_clock_v = max(0.0005, (1.0 - shift_time - slow_f) / max(10.0, left_belt - slow_s))
+
 # ---------------------------------------------------------------- shift 2: inspect + journal
 func _tut_inspect_flow() -> void:
 	_halt += 1   # the belt and the clock wait for the lesson
+	if _tut_s2_pre:
+		await _tut_inspect_part2()
+		return
 	# let a running job finish first
 	while is_inside_tree() and (minigame_active or _inc_active or state == State.MINIGAME or state == State.DEAD):
 		await _tree().process_frame
@@ -753,6 +1040,17 @@ func _tut_inspect_flow() -> void:
 	if not is_inside_tree():
 		return
 	_enter_inspect()
+	await _tut_inspect_part2(true)
+
+## The guard leaves -> note it -> the journal.
+func _tut_inspect_part2(with_look: bool = false) -> void:
+	if not with_look:
+		if state != State.INSPECT and state == State.WORKING:
+			_enter_inspect()
+		_tut_wait_guard_note = true
+		_guard_shift_sequence()
+		await _tut_inspect_note_and_journal()
+		return
 	# moving the view around in inspect mode
 	_spot_show("ОСМОТР: ВЗГЛЯД", "В режиме осмотра рыба стоит, а взгляд можно двигать по всему цеху. Осмотрись.", ["A", "D", "W", "S"], func(): return Rect2(426, 150, 300, 240), false)
 	var moved_t := 0.0
@@ -767,8 +1065,11 @@ func _tut_inspect_flow() -> void:
 		return
 	_tut_wait_guard_note = true
 	_guard_shift_sequence()
+	await _tut_inspect_note_and_journal()
+
+func _tut_inspect_note_and_journal() -> void:
 	var gh: float = GUARD_SHIFTS[0]
-	_spot_show("ПЕРЕСМЕНКА", "Охранник уходит. Нажми на него мышкой (или на опустевший пост), чтобы записать время пересменки. Пока не запишешь — смены не будет.", [], _guard_or_post_rect, false)
+	_spot_show("ПЕРЕСМЕНКА", "Охранник уходит. Кликни на него или на пустой пост — время запишется.", [], _guard_or_post_rect, false)
 	var hinted_out := false
 	while is_inside_tree() and not guard_shifts_found.has(gh) and state != State.DEAD:
 		if state != State.INSPECT and not hinted_out:
@@ -788,7 +1089,7 @@ func _tut_inspect_flow() -> void:
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("ЖУРНАЛ", "Всё, что ты узнал, записывается в журнал: время пересменок охраны и снайпера и то, что ты осмотрел. Открой его.", [_key_name("journal")], _act_screen_rect.bind(true))
+	_spot_show("ЖУРНАЛ", "Всё найденное — в журнале. Открой его.", [_key_name("journal")], _act_screen_rect.bind(true))
 	await _tut_wait_for_key("journal")
 	if not is_inside_tree():
 		return
@@ -801,6 +1102,9 @@ func _tut_inspect_flow() -> void:
 		await _tree().process_frame
 	_tut_mark("inspect")
 	_halt = max(0, _halt - 1)
+	if _tut_s2_hold:
+		_tut_s2_hold = false
+		_halt = max(0, _halt - 1)
 
 # ---------------------------------------------------------------- the accident cutscene skip
 ## When the accident has been seen in this save: "ЗАЖМИ — ПРОПУСТИТЬ" in the corner (like the
@@ -899,21 +1203,28 @@ var _tut_maint_active: bool = false
 func _tut_maint_lesson() -> void:
 	_tut_maint_active = true
 	_tut_no_penalty = true
-	await _tut_wait(0.6)
+	await _tut_wait(0.35)   # the lesson comes together with the guard's announcement
 	if not is_inside_tree():
 		return
 	await _tut_freeze(false)
 	if not is_inside_tree():
 		return
-	_spot_show("КОНЕЦ СМЕНЫ", "Смена окончена — все рыбы идут в комнату техобслуживания. Иди за ними: стоять на месте или идти в другую сторону нельзя, охрана за этим следит.", [], _maint_screen_rect)
+	# no darkness: the guard's line stays readable next to the card
+	_spot_show("КОНЕЦ СМЕНЫ", "После смены все идут на техобслуживание. Иди за ними — стоять нельзя.", [], _maint_screen_rect, false)
+	if _spot:
+		_spot.skippable = true
+		_spot.card_corner = true
 	await _tut_wait(4.5, true)
 	if not is_inside_tree():
 		return
+	_spot.done()
+	await _tut_wait(0.45)
 	_spot.hide_step()
 	await _tut_unfreeze()
 	if not is_inside_tree():
 		return
-	_spot_show("КОНЕЦ СМЕНЫ", "Иди направо, к комнате техобслуживания.", ["D"], _maint_screen_rect, false)
+	_spot_show("КОНЕЦ СМЕНЫ", "Иди направо.", ["D"], _maint_screen_rect, false)
+	if _spot: _spot.card_corner = true   # out of the way, bottom-right
 	while is_inside_tree() and state == State.SHIFT_END and not _is_player_near_maintenance():
 		await _tree().process_frame
 	if not is_inside_tree():
@@ -924,6 +1235,38 @@ func _tut_maint_lesson() -> void:
 		_spot.hide_step()
 	_tut_mark("maint")
 	_tut_maint_active = false
+
+## A step was done: the card goes green for a moment, then away (unless a new step took it).
+func _spot_finish(delay: float = 0.6) -> void:
+	if _spot == null or not _spot.is_shown():
+		return
+	_spot.done()
+	var title = _spot._title.text
+	await _tree().create_timer(delay, true, false, true).timeout
+	if _spot and _spot.is_shown() and _spot._title.text == title and _spot._done_t >= 0.0:
+		_spot.hide_step()
+
+## The hint plate hugs its text and sits centred under the minigame (y < 0: under the
+## packing track). Called after the text is set; refits next frame if the text changes.
+var _hint_y: float = 418.0
+var _hint_last_text: String = ""
+func _hint_at(y: float) -> void:
+	_hint_y = y
+	_fit_hint()
+	call_deferred("_fit_hint")
+
+func _fit_hint() -> void:
+	if hint_label == null:
+		return
+	var y = _hint_y
+	if y < 0.0:
+		y = (minigame_panel.get_global_rect().end.y + 8.0) if minigame_panel else 330.0
+	hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hint_label.size = Vector2.ZERO
+	var s = hint_label.get_minimum_size()
+	s.x = max(s.x, 300.0)   # a real plate, not just a strip under the text
+	hint_label.size = s
+	hint_label.position = Vector2(round(576.0 - s.x * 0.5), round(y))
 
 func _maint_screen_rect() -> Rect2:
 	var p = maintenance_door.global_position if maintenance_door else Vector2(SAFE_ZONE_CENTER_X, 325)
@@ -941,6 +1284,8 @@ var _maint_notice: Control = null
 const MAINT_TEXT := "СМЕНА ОКОНЧЕНА — НА ТЕХОБСЛУЖИВАНИЕ"
 
 func _show_maint_notice() -> void:
+	if true:
+		return   # replaced by the arrow over the fish (_nav_arrow)
 	if _maint_notice == null:
 		_maint_notice = Control.new()
 		_maint_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1035,8 +1380,9 @@ func _restore_shift_progress() -> bool:
 	var sh = int(fs.get("shift", 1))
 	if sh < 2:
 		return false
-	guard_shifts_found = (fs.get("guard_found", []) as Array).duplicate()
-	sniper_shifts_found = (fs.get("sniper_found", []) as Array).duplicate()
+	# (old saves had other times: keep only the ones that still exist)
+	guard_shifts_found = (fs.get("guard_found", []) as Array).filter(func(h): return GUARD_SHIFTS.has(float(h)))
+	sniper_shifts_found = (fs.get("sniper_found", []) as Array).filter(func(h): return SNIPER_SHIFTS.has(float(h)))
 	journal_notes = (fs.get("notes", []) as Array).duplicate()
 	journal_notes_full = (fs.get("notes_full", {}) as Dictionary).duplicate()
 	elevator_inspected = bool(fs.get("elevator_inspected", false))
@@ -1067,6 +1413,7 @@ func _ready() -> void:
 	randomize()
 	_load_factory_state()
 	_setup_spotlight()
+	_add_side_walls()
 	_tut = TUTORIAL.new()
 	_tut.style = "factory"
 	add_child(_tut)
@@ -1377,8 +1724,10 @@ func _guard_free_at_post() -> bool:
 	return guard_sprite.position.distance_to(_guard_home()) <= 6.0
 
 ## Where the guard belongs right now: behind the player during an inspection, else his post.
+var _insp_wrapping: bool = false
+
 func _guard_home() -> Vector2:
-	if _inspection_active:
+	if _inspection_active or _insp_wrapping:
 		return Vector2(_inspection_x() - 64.0, GUARD_POSITION.y)
 	return GUARD_POSITION
 
@@ -1433,7 +1782,7 @@ func _guard_walk_to(target: Vector2) -> void:
 	# on the way he goes behind the presses and the food (he used to hide the sushi);
 	# when he stops (to hit or to watch) he is at the fish's level again
 	if dist > 40.0:
-		guard_sprite.z_index = Z_GUARD_WALK
+		_guard_set_z(Z_GUARD_WALK)
 	tween.tween_property(guard_sprite, "position", target, duration)
 	while my_id == _guard_walk_id and tween.is_valid() and tween.is_running():
 		await _tree().process_frame
@@ -1441,7 +1790,44 @@ func _guard_walk_to(target: Vector2) -> void:
 			return
 	if my_id == _guard_walk_id:
 		_guard_walking = false
-		guard_sprite.z_index = Z_CHARACTERS
+		_guard_set_z(Z_CHARACTERS)
+
+## Going behind / in front of the presses: a short cross-fade (a copy stays on the old layer
+## and fades out while he fades in on the new one) instead of a jump.
+var _guard_ghost: Node2D = null
+func _guard_set_z(z: int) -> void:
+	if guard_sprite == null or guard_sprite.z_index == z:
+		return
+	if _guard_ghost and is_instance_valid(_guard_ghost):
+		_guard_ghost.queue_free()
+	var ghost = guard_sprite.duplicate(0) as Node2D
+	if ghost == null:
+		guard_sprite.z_index = z
+		return
+	ghost.set_script(null)
+	guard_sprite.get_parent().add_child(ghost)
+	ghost.global_position = guard_sprite.global_position
+	_guard_ghost = ghost
+	guard_sprite.z_index = z
+	var dur := 0.28
+	var t := 0.0
+	while t < dur and is_instance_valid(ghost) and is_instance_valid(guard_sprite):
+		var k = t / dur
+		ghost.global_position = guard_sprite.global_position
+		ghost.modulate.a = 1.0 - k
+		guard_sprite.modulate.a = 0.35 + 0.65 * k
+		if ghost is AnimatedSprite2D and guard_sprite is AnimatedSprite2D:
+			ghost.animation = guard_sprite.animation
+			ghost.frame = guard_sprite.frame
+			ghost.flip_h = guard_sprite.flip_h
+		await _tree().process_frame
+		if not is_inside_tree():
+			return
+		t += get_process_delta_time()
+	if is_instance_valid(guard_sprite):
+		guard_sprite.modulate.a = 1.0
+	if is_instance_valid(ghost):
+		ghost.queue_free()
 
 func _ensure_death_screen() -> void:
 	var ds = get_node_or_null("DeathScreen")
@@ -1519,6 +1905,9 @@ func _collect_conveyor_sprites() -> void:
 		sp.region_enabled = true
 		sp.region_rect = Rect2(0, 0, tex_sz.x, belt_h)
 		sp.offset = -tex_sz * 0.5
+		# the tile stays in place, only the drawn belt scrolls inside it (texture repeat)
+		sp.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		sp.position.x = conveyor_base_x + i * conveyor_tile_width
 
 func _create_conveyor_floor() -> void:
 	conveyor_floor_rect = ColorRect.new()
@@ -1647,14 +2036,47 @@ func _create_vignette() -> void:
 	inspect_vignette.z_index = 50
 	inspect_vignette.visible = false
 	var shader = Shader.new()
+	# "Beyond"-style spirit vision: the world goes cold and pale blue, the edges ripple like
+	# heat haze and split into colour fringes, a slow ethereal mist drifts over it, the
+	# centre stays clear; the yellow highlights of the targets keep their colour.
 	shader.code = """
 shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+uniform float amount = 0.0;
+uniform float t = 0.0;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5); }
+float noise(vec2 p) {
+	vec2 i = floor(p); vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
 void fragment() {
-	vec2 uv = UV;
-	vec2 dist = abs(uv - 0.5) * 2.0;
-	float d = max(dist.x, dist.y);
-	float v = smoothstep(0.4, 1.0, d);
-	COLOR = vec4(0.0, 0.0, 0.0, v * 0.6);
+	vec2 uv = SCREEN_UV;
+	vec2 c = UV - 0.5;
+	float edge = smoothstep(0.18, 0.75, length(c * vec2(1.4, 1.0)));
+	// ripples, stronger at the edges, in whole pixels
+	vec2 px = 1.0 / vec2(textureSize(screen_tex, 0));
+	float w = sin(UV.y * 38.0 + t * 2.3) * 0.5 + sin(UV.x * 23.0 - t * 1.7) * 0.5;
+	vec2 off = vec2(w, -w * 0.6) * edge * amount * 1.6;
+	off = floor(off) * px;
+	// colour fringes toward the edges
+	vec2 ca = normalize(c + 0.0001) * edge * amount * 1.0 * px;
+	vec3 col;
+	col.r = texture(screen_tex, uv + off + ca).r;
+	col.g = texture(screen_tex, uv + off).g;
+	col.b = texture(screen_tex, uv + off - ca).b;
+	float lum = dot(col, vec3(0.3, 0.59, 0.11));
+	float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
+	float keep = smoothstep(0.35, 0.6, sat) * smoothstep(0.45, 0.7, max(col.r, col.g));   // the yellow outlines
+	vec3 spirit = vec3(0.03, 0.08, 0.13) + lum * vec3(0.6, 0.92, 1.12);
+	vec3 outc = mix(col, spirit, amount * 0.42 * (1.0 - keep));
+	// drifting mist
+	float m = noise(UV * vec2(5.0, 3.0) + vec2(t * 0.12, -t * 0.05)) * noise(UV * 9.0 - vec2(t * 0.08, t * 0.1));
+	outc += vec3(0.35, 0.65, 0.85) * m * 0.06 * amount * (0.3 + edge);
+	// soft dark-blue vignette, a slow breath
+	float breath = 0.5 + 0.5 * sin(t * 1.3);
+	outc = mix(outc, vec3(0.01, 0.03, 0.07), edge * amount * (0.32 + 0.06 * breath));
+	COLOR = vec4(outc, 1.0);
 }
 """
 	var mat = ShaderMaterial.new()
@@ -1662,9 +2084,11 @@ void fragment() {
 	inspect_vignette.material = mat
 	var canvas = CanvasLayer.new()
 	canvas.name = "InspectVignetteLayer"
-	canvas.layer = 5
+	# over the world but under the HUD / the fish's GUI (same layer 1, drawn first)
+	canvas.layer = 1
 	canvas.add_child(inspect_vignette)
 	add_child(canvas)
+	move_child(canvas, 0)
 	
 	low_hp_vignette = ColorRect.new()
 	low_hp_vignette.name = "LowHpVignette"
@@ -1692,6 +2116,42 @@ void fragment() {
 	pulse_canvas.layer = 6
 	pulse_canvas.add_child(low_hp_vignette)
 	add_child(pulse_canvas)
+	# a hit: an instant red vignette that fades quickly
+	_hit_vig = ColorRect.new()
+	_hit_vig.name = "HitVignette"
+	_hit_vig.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hit_vig.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hs = Shader.new()
+	hs.code = """
+shader_type canvas_item;
+uniform float amount = 0.0;
+void fragment() {
+	vec2 c = (UV - 0.5) * vec2(1.25, 1.0);
+	float d = smoothstep(0.22, 0.78, length(c));
+	COLOR = vec4(0.85, 0.02, 0.02, (0.12 + 0.88 * d) * amount);
+}
+"""
+	var hm = ShaderMaterial.new()
+	hm.shader = hs
+	_hit_vig.material = hm
+	_hit_vig.visible = false
+	pulse_canvas.add_child(_hit_vig)
+
+var _hit_vig: ColorRect = null
+var _hit_tw: Tween = null
+var _last_hp_seen: int = -1
+
+func _hit_flash() -> void:
+	if _hit_vig == null:
+		return
+	var m: ShaderMaterial = _hit_vig.material
+	if _hit_tw and _hit_tw.is_valid():
+		_hit_tw.kill()
+	_hit_vig.visible = true
+	m.set_shader_parameter("amount", 0.75)
+	_hit_tw = create_tween().set_ignore_time_scale(true)
+	_hit_tw.tween_method(func(v): m.set_shader_parameter("amount", v), 0.75, 0.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_hit_tw.tween_callback(func(): _hit_vig.visible = false)
 
 func _update_low_hp_pulse(delta: float) -> void:
 	if low_hp_vignette == null or player == null:
@@ -1701,6 +2161,9 @@ func _update_low_hp_pulse(delta: float) -> void:
 		hp = player.get_hp()
 	else:
 		hp = player.hp
+	if _last_hp_seen >= 0 and hp < _last_hp_seen:
+		_hit_flash()
+	_last_hp_seen = hp
 	# the fish HUD has its own copy of this glow; here it is drawn by the level instead (so it
 	# also stays while the HUD is hidden) - the HUD one is switched off to not double it
 	if player_gui and "glow_disabled" in player_gui:
@@ -1930,10 +2393,10 @@ func _build_minigame_bar() -> void:
 		hb.bg_color = Color(0.02, 0.03, 0.06, 0.78)
 		hb.border_color = Color(0.2, 0.23, 0.3, 0.9)
 		hb.set_border_width_all(1)
-		hb.content_margin_left = 10
-		hb.content_margin_right = 10
-		hb.content_margin_top = 4
-		hb.content_margin_bottom = 4
+		hb.content_margin_left = 22
+		hb.content_margin_right = 22
+		hb.content_margin_top = 9
+		hb.content_margin_bottom = 9
 		hint_label.add_theme_stylebox_override("normal", hb)
 		hint_label.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
 		hint_label.add_theme_constant_override("outline_size", 4)
@@ -2038,7 +2501,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			_mg_title.text = STATION_TITLE.get(station, "УПАКОВКА")
 			_mg_title.position = Vector2(376, 246)
 			hint_label.text = "НАЖМИ " + key + " В ЗЕЛЁНОЙ ЗОНЕ!"
-			hint_label.position = Vector2(326, 324)
+			_hint_at(-1.0)   # right under the packing track
 			zone_center = randf_range(0.3, 0.7)
 			zone_width = randf_range(0.32, 0.42)
 			var zw = round(TRACK_WIDTH * zone_width / MG_SCALE) * MG_SCALE
@@ -2064,7 +2527,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_pin_half = 0.42
 			mg_timeout = 4.5 * pins
 			hint_label.text = key + " — КОГДА СТРЕЛКА В ЗЕЛЁНОМ"
-			hint_label.position = Vector2(326, 418)
+			_hint_at(418.0)
 		MG.GAUGE:
 			_mg_title.text = STATION_TITLE.get(station, "ДАВЛЕНИЕ")
 			_mg_title.position = Vector2(376, 186)
@@ -2073,15 +2536,15 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			var lo = randf_range(0.5, 0.74)
 			mg_band = Vector2(lo, lo + 0.13)
 			hint_label.text = key + " — ОСТАНОВИ В ЗЕЛЁНОМ!"
-			hint_label.position = Vector2(326, 418)
+			_hint_at(418.0)
 		MG.RING:
 			_mg_title.text = STATION_TITLE.get(station, "СКРУТКА")
 			_mg_title.position = Vector2(376, 186)
 			mg_hits_need = 2
-			mg_ring_speed = 52.0 + 5.0 * current_shift
+			mg_ring_speed = 58.0 + 5.0 * current_shift
 			mg_ring_r = 86.0
 			hint_label.text = key + " — КОГДА КОЛЬЦО СОВПАДЁТ (2 РАЗА)"
-			hint_label.position = Vector2(326, 418)
+			_hint_at(418.0)
 		MG.CUT:
 			_mg_title.text = STATION_TITLE.get(station, "НАРЕЗКА")
 			_mg_title.position = Vector2(376, 236)
@@ -2094,7 +2557,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_hits_need = n
 			mg_speed = 0.36 + 0.025 * current_shift
 			hint_label.text = key + " — РЕЖЬ ПО МЕТКАМ"
-			hint_label.position = Vector2(326, 368)
+			_hint_at(368.0)
 	_mg_title.size = Vector2.ZERO
 	_mg_title.reset_size()
 	_center_mg_title()
@@ -2748,27 +3211,21 @@ func _create_inspect_targets() -> void:
 	_add_inspect_target("conveyor", Vector2(380, 368), Vector2(1240, 56),
 		"Конвейер", "Сколько еще таких заводов они построили?",
 		str(TOTAL_OBJECTS) + " коробок за смену", COLOR_HIGHLIGHT_BLUE, "")
-	_add_inspect_target("guard_shift_9", GUARD_POSITION, Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 09:00",
-		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 9.0)
-	_add_inspect_target("guard_shift_13", GUARD_POSITION, Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 13:00",
-		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 13.0)
-	_add_inspect_target("guard_shift_15_5", GUARD_POSITION, Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 15:30",
-		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 15.5)
-	_add_inspect_target("guard_shift_17", GUARD_POSITION, Vector2(80, 80),
-		"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в 17:00",
-		COLOR_HIGHLIGHT_YELLOW, "guard_shift", 17.0)
-	_add_inspect_target("sniper_shift_11", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 11:00",
-		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 11.0)
-	_add_inspect_target("sniper_shift_13", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 13:00",
-		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 13.0)
-	_add_inspect_target("sniper_shift_15", Vector2(1060, 60), Vector2(120, 80),
-		"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в 15:00",
-		COLOR_HIGHLIGHT_YELLOW, "sniper_shift", 15.0)
+	# one clickable target per change, made from the schedules (so they always match)
+	for h in GUARD_SHIFTS:
+		_add_inspect_target("guard_shift_" + _hour_id(h), GUARD_POSITION, Vector2(80, 80),
+			"Смена охранника", "Охранник сменился.. Нужно записать", "Смена охранника в " + _hour_text(h),
+			COLOR_HIGHLIGHT_YELLOW, "guard_shift", h)
+	for h in SNIPER_SHIFTS:
+		_add_inspect_target("sniper_shift_" + _hour_id(h), Vector2(1060, 60), Vector2(120, 80),
+			"Смена снайпера", "Снайпер сменился.. Нужно записать", "Смена снайпера в " + _hour_text(h),
+			COLOR_HIGHLIGHT_YELLOW, "sniper_shift", h)
+
+func _hour_id(h: float) -> String:
+	return str(int(h)) if is_equal_approx(h, floor(h)) else "%d_%d" % [int(h), int(round((h - floor(h)) * 10.0))]
+
+func _hour_text(h: float) -> String:
+	return "%02d:%02d" % [int(h), int(round((h - floor(h)) * 60.0))]
 
 func _add_inspect_target(id: String, pos: Vector2, size: Vector2, title: String, phrase: String, journal: String, color: Color, special_type: String = "", special_hour: float = -1.0) -> void:
 	if not (id in _all_target_ids):
@@ -2848,12 +3305,19 @@ func _add_frame_outline(area: Area2D, nodes: Array, pos: Vector2, size: Vector2)
 		if not first:
 			r = u
 	fr.set_meta("rect", r.grow(2.0))
+	fr.set_meta("round", inspect_target_data.get(area, {}).get("id", "") == "clock")
 	fr.draw.connect(func():
 		var rr: Rect2 = fr.get_meta("rect")
 		var data = inspect_target_data.get(area, {})
 		var col: Color = data.get("color", COLOR_HIGHLIGHT_BLUE)
 		var pulse = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0 * 5.0)
 		var c = Color(col.r * (1.6 + 0.8 * pulse), col.g * (1.6 + 0.8 * pulse), col.b * (1.6 + 0.8 * pulse), 0.75 + 0.25 * pulse)
+		if fr.get_meta("round", false):
+			# the round clock: a ring around it
+			var rad = max(rr.size.x, rr.size.y) * 0.5 + 1.0
+			fr.draw_arc(rr.get_center(), rad, 0.0, TAU, 48, c, 2.0)
+			fr.draw_arc(rr.get_center(), rad + 3.0, 0.0, TAU, 48, Color(c, 0.25 * pulse), 1.0)
+			return
 		var k = 2.0
 		fr.draw_rect(Rect2(rr.position, Vector2(rr.size.x, k)), c)
 		fr.draw_rect(Rect2(rr.position + Vector2(0, rr.size.y - k), Vector2(rr.size.x, k)), c)
@@ -3262,6 +3726,10 @@ func _process(delta: float) -> void:
 	_process_broken_boxes(delta)
 	_process_shift_end_npcs(delta)
 	_process_action_penalty(delta)
+	_nav_arrow_update()
+	if hint_label and hint_label.visible and hint_label.text != _hint_last_text:
+		_hint_last_text = hint_label.text
+		_fit_hint()
 	_process_follow_penalty(delta)
 	_process_inspect_notice(delta)
 	_update_stress_from_hp()
@@ -3306,6 +3774,13 @@ func _register_success(q: float) -> void:
 	_float_text(txt, Color(1.0, 0.86, 0.35) if perfect else Color(0.6, 1.0, 0.6))
 	if camera and camera.has_method("add_trauma") and perfect:
 		camera.add_trauma(0.06)
+	if _streak % 5 == 0:
+		var hp_now = player.get_hp() if player and player.has_method("get_hp") else 5
+		if STRESS_BY_HP.get(hp_now, 0) - _stress_relief > 0:
+			_stress_relief += 10
+			_relief_hp = hp_now
+			_update_stress_from_hp()
+			_float_text("СЕРИЯ: СТРЕСС -10%", Color(0.75, 1.0, 0.25), -14.0)
 	if _inspection_active and _insp_station < 0:
 		_inspection_step()
 	_update_streak_label()
@@ -3440,12 +3915,14 @@ func _inspection_step() -> void:
 func _end_inspection() -> void:
 	if not _inspection_active:
 		return
+	_insp_wrapping = true
 	_inspection_active = false
 	var checked_station = _insp_station
-	_insp_station = -1
 	_update_streak_label()
-	inspection_finished.emit()
 	if state == State.DEAD or state == State.SHIFT_END:
+		_insp_wrapping = false
+		_insp_station = -1
+		inspection_finished.emit()
 		return
 	if checked_station >= 0:
 		# a fish was checked: its mistakes were punished on the spot already
@@ -3461,7 +3938,7 @@ func _end_inspection() -> void:
 			_stress_relief += 20
 			_relief_hp = hp_now
 			_update_stress_from_hp()
-			_float_text("СТРЕСС -20%", Color(0.55, 0.85, 1.0), -14.0)
+			_float_text("СТРЕСС -20%", Color(0.75, 1.0, 0.25), -14.0)
 			UISounds.play_switch_on()
 	else:
 		# both wrong: one more hit on top, right where he stands
@@ -3472,7 +3949,16 @@ func _end_inspection() -> void:
 			return
 		_guard_extra_hit_pending = false
 		await _guard_hit_player()
+	# he stays until the punishments of the check are all dealt
+	while is_inside_tree() and (_guard_hits_queued > 0 or _guard_busy) and state != State.DEAD:
+		await _tree().process_frame
+	_insp_wrapping = false
+	_insp_station = -1
+	inspection_finished.emit()
 	if guard_changing or state == State.DEAD:
+		return
+	await _tree().create_timer(1.0, false).timeout
+	if not is_inside_tree() or guard_changing or state == State.DEAD:
 		return
 	_guard_busy = true
 	await _guard_walk_to(GUARD_POSITION)
@@ -3529,7 +4015,9 @@ func _player_moving() -> bool:
 const VIOL_YELL_2: float = 1.1
 const VIOL_GUARD: float = 2.0
 const VIOL_AIM: float = 3.0
-const VIOL_SHOOT: float = 3.75
+const VIOL_SHOOT: float = 4.0     # (aim start + aim time; the aim time is set per offence)
+var _sniper_aim_time: float = 1.0
+var _aim_started: float = -1.0
 var _viol_t: float = 0.0
 var _viol_ok_t: float = 0.0
 var _viol_stage: int = 0
@@ -3547,7 +4035,7 @@ func _process_action_penalty(delta: float) -> void:
 	var hour = _current_hour()
 	var bad = false
 	if not (abs(hour - 13.0) < 0.5 or _is_player_in_zone() or _is_player_near_maintenance()):
-		bad = _player_moving()
+		bad = _player_moving() or _viol_stage >= 2
 	_violation_tick(bad, delta, false)
 
 func _process_follow_penalty(delta: float) -> void:
@@ -3574,32 +4062,51 @@ func _violation_tick(bad: bool, delta: float, after_shift: bool) -> void:
 	if not bad:
 		if _viol_t > 0.0:
 			_viol_ok_t += dt
-			if _viol_ok_t >= 0.45:
+			if _viol_ok_t >= (0.05 if _viol_stage == 4 else 0.45):
 				_viol_reset()
+		return
+	# after the shift: no nagging while the guard is still announcing the end, a moment of
+	# grace before the first yell, and a slower course (the lines used to pile up)
+	if after_shift and (Time.get_ticks_msec() - _shift_end_ms) < 4500:
 		return
 	_viol_ok_t = 0.0
 	_viol_t += dt
+	var pre = 0.8 if after_shift else 0.0
+	var k = 2.0 if after_shift else 1.0
 	if _viol_stage == 0:
+		if _viol_t < pre:
+			return
 		_viol_stage = 1
 		if after_shift:
-			_show_guard_dialog("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!", 2.0)
+			_guard_yell("ЧЕГО ВСТАЛ?! БЕГОМ НА ТЕХОБСЛУЖИВАНИЕ!", 2.0)
 		else:
-			_show_guard_dialog("ЭЙ! А НУ ВЕРНУЛСЯ К ПРЕССУ!", 2.0)
-	elif _viol_stage == 1 and _viol_t >= VIOL_YELL_2:
+			_guard_yell("ЭЙ! А НУ ВЕРНУЛСЯ К ПРЕССУ!", 2.0)
+	elif _viol_stage == 1 and _viol_t >= pre + VIOL_YELL_2 * k:
 		_viol_stage = 2
-		_show_guard_dialog("Я КОМУ СКАЗАЛ?!" if not after_shift else "ОГЛОХ?! ШЕВЕЛИСЬ!", 1.6)
-	elif _viol_stage == 2 and _viol_t >= VIOL_GUARD:
+		_guard_yell("Я КОМУ СКАЗАЛ?!" if not after_shift else "ОГЛОХ?! ШЕВЕЛИСЬ!", 1.6)
+	elif _viol_stage == 2 and _viol_t >= pre + VIOL_GUARD * k:
 		_viol_stage = 3
 		if guard_sprite and guard_sprite.visible and not guard_changing:
 			_guard_hit_player()
-	elif _viol_stage == 3 and _viol_t >= VIOL_AIM:
+	elif _viol_stage == 3 and _viol_t >= pre + VIOL_AIM * k:
 		_viol_stage = 4
-		_laser_on()
-	elif _viol_stage == 4 and _viol_t >= VIOL_SHOOT:
+		_aim_started = _viol_t
+		_laser_on(true)
+	elif _viol_stage == 4 and _viol_t >= _aim_started + _sniper_aim_time:
 		_viol_stage = 5
 		_sniper_kill_player()
 
+## The violation yells have their own bubble: a new one replaces the old (no pile-up).
+func _guard_yell(text: String, duration: float) -> void:
+	_speech(guard_sprite if (guard_sprite and guard_sprite.visible) else null, NAME_GUARD, COLOR_NAME_GUARD, text, duration, true, "viol")
+
+var _shift_end_ms: int = -100000
+
 func _viol_reset() -> void:
+	if _viol_stage == 4 and state != State.DEAD:
+		# he was aiming and the fish made it back: rifle down, but next time he is quicker
+		_sniper_aim_time = 0.25
+		_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, "ПОВЕЗЛО. В СЛЕДУЮЩИЙ РАЗ — СРАЗУ.", 1.4, true, "sniper")
 	_viol_t = 0.0
 	_viol_ok_t = 0.0
 	_viol_stage = 0
@@ -3614,7 +4121,7 @@ func _sniper_muzzle() -> Vector2:
 	return sp + Vector2(-22, 8)
 
 ## The sniper takes aim: a thin red beam from the roof and a dot on the fish.
-func _laser_on() -> void:
+func _laser_on(_aiming: bool = false) -> void:
 	if _laser and is_instance_valid(_laser):
 		return
 	if sniper_sprite == null or not sniper_sprite.visible:
@@ -3722,7 +4229,7 @@ func _process_conveyor_scroll(delta: float) -> void:
 		conveyor_scroll_offset -= conveyor_tile_width
 	for i in range(conveyor_sprites.size()):
 		var s: Sprite2D = conveyor_sprites[i]
-		s.position.x = conveyor_base_x + i * conveyor_tile_width - conveyor_scroll_offset
+		s.region_rect.position.x = conveyor_scroll_offset / max(abs(s.scale.x), 0.001)
 
 ## The shift clock: 25 boxes are spread over 8:00 - 18:00 (the 25th one is packed exactly
 ## at 18:00). Inside one belt step the clock runs at a steady speed (from the average step
@@ -3733,7 +4240,7 @@ func _process_conveyor_scroll(delta: float) -> void:
 ## The clock runs at one steady speed, except in a few stretched periods: the escape window
 ## 13:00 - 13:15 lasts 12 s, every other guard / sniper change lasts 6 s. On a mistake it
 ## stands still until the guard is back at his place.
-const CYCLE_SLOT: float = 2.8
+const CYCLE_SLOT: float = 3.5
 const CHANGE_REAL: float = 6.0
 var _shift_elapsed: float = 0.0   # running (not held) time of this shift
 
@@ -3909,24 +4416,21 @@ func _on_guard_shift_change(_hour: float) -> void:
 	_guard_shift_sequence()
 
 const GUARD_LEAVE_LINES := [
-	"ВСЁ, МОЯ СМЕНА КОНЧИЛАСЬ. НЕ СКУЧАЙТЕ, РЫБКИ.",
-	"ПОЙДУ ПОЖРУ. СМЕНЩИК ВАС БЫСТРО ПОСТРОИТ.",
-	"СМЕНА! КТО ДЁРНЕТСЯ — ПОЖАЛЕЕТ.",
-	"ЛИФТ ЖДЁТ. А ВЫ ЖДИТЕ МЕНЯ, ХЕ-ХЕ.",
+	"СМЕНА КОНЧИЛАСЬ. Я УШЁЛ.",
+	"ПЕРЕСМЕНКА. НЕ ДЁРГАТЬСЯ!",
+	"ВСЁ, Я НА ОБЕД.",
 ]
 const GUARD_ARRIVE_LINES := [
-	"ТАК, КТО ТУТ БЕЗ МЕНЯ РАССЛАБИЛСЯ?",
-	"НОВАЯ СМЕНА — СТАРЫЕ ПРАВИЛА. РАБОТАТЬ!",
-	"Я НА МЕСТЕ. ГЛАЗА У МЕНЯ ВЕЗДЕ.",
+	"Я НА МЕСТЕ. РАБОТАТЬ!",
+	"НОВАЯ СМЕНА. ГЛАЗА ВЕЗДЕ.",
 ]
 const SNIPER_LEAVE_LINES := [
-	"УХОЖУ НА ПЕРЕКУР. ПРИЦЕЛ ОСТАЁТСЯ ТЁПЛЫМ.",
-	"СМЕНА. НЕ РАДУЙТЕСЬ — Я ВЕРНУСЬ.",
-	"ГЛАЗА УСТАЛИ... СМЕНЩИК УЖЕ НА КРЫШЕ.",
+	"УХОЖУ НА ПЕРЕКУР.",
+	"СМЕНА. Я ВЕРНУСЬ.",
 ]
 const SNIPER_ARRIVE_LINES := [
-	"НА ПОЗИЦИИ. ВАС ВСЕХ ВИДНО.",
-	"СНАЙПЕР НА ПОСТУ. ОДИН ШАГ НЕ ТУДА — И ВСЁ.",
+	"НА ПОЗИЦИИ.",
+	"СНАЙПЕР НА ПОСТУ.",
 ]
 const NAME_SNIPER := "СНАЙПЕР"
 const COLOR_NAME_SNIPER := Color(0.75, 0.85, 1.0)
@@ -3934,6 +4438,13 @@ const COLOR_NAME_SNIPER := Color(0.75, 0.85, 1.0)
 func _guard_shift_sequence() -> void:
 	if guard_sprite == null:
 		guard_changing = false
+		return
+	# a running check is finished first (with its punishment)
+	var w0 := 0.0
+	while (_inspection_active or _insp_wrapping or _guard_hits_queued > 0) and w0 < 25.0 and is_inside_tree():
+		await _tree().create_timer(0.1, false).timeout
+		w0 += 0.1
+	if not is_inside_tree():
 		return
 	_inspection_active = false
 	_insp_station = -1
@@ -4086,7 +4597,7 @@ func _start_belt() -> void:
 		if _belt_stopped(gen):
 			return
 		# the belt keeps the clock's rhythm: the next step starts at its time slot
-		while _shift_elapsed < float(_cycles_done) * CYCLE_SLOT and not _belt_stopped(gen):
+		while (_shift_elapsed < float(_cycles_done) * CYCLE_SLOT or (_tut_s2_hold and _halt > 0)) and not _belt_stopped(gen):
 			await _tree().process_frame
 			if not is_inside_tree():
 				return
@@ -4183,7 +4694,7 @@ func _job_fish(it: Dictionary, st: int, fish: Node) -> void:
 	await _play_npc_attack(fish, st)
 	if state == State.DEAD or state == State.SHIFT_END:
 		return
-	var mistake = randf() < NPC_MISTAKE_CHANCE and _guard_free_at_post()
+	var mistake = current_shift != 1 and randf() < NPC_MISTAKE_CHANCE and _guard_free_at_post()   # no NPC mistakes in shift 1
 	var node = it["node"]
 	var checked = _inspection_active and _insp_station == st
 	if mistake:
@@ -4219,6 +4730,11 @@ func _job_player(it: Dictionary) -> void:
 			await _tree().process_frame
 		if not is_inside_tree() or state == State.DEAD:
 			return
+		if _spot:
+			_spot.done()
+		await _tree().create_timer(0.45, false).timeout
+		if not is_inside_tree():
+			return
 	if not _is_player_in_zone():
 		await _player_press_result(false)
 		return
@@ -4248,15 +4764,21 @@ func _job_player(it: Dictionary) -> void:
 		await _player_press_result(ok)
 		return
 	# the very first job (tutorial) and the first job at a new station can't go wrong
+	if _tut_stage == "check":
+		while is_inside_tree() and (_tut_frozen or (_spot and _spot.is_shown())):
+			await _tree().process_frame   # the lesson card first
+		await _tree().create_timer(0.6, false).timeout
+		if not is_inside_tree():
+			return
 	var forgive = _tut_stage == "first_job" or (_tut_done("basics") and not _tut_done("st_%d" % player_station))
 	_start_minigame(player_station, forgive)
 	if _tut_stage == "first_job":
-		_spot_show("РАБОТА", "Ты работаешь на заводе. Нажми " + _key_name("interact") + ", когда ползунок в ЗЕЛЁНОЙ зоне — так выполняется работа.", [_key_name("interact")], _mg_screen_rect)
+		_spot_show("РАБОТА", "Жми " + _key_name("interact") + ", когда ползунок в ЗЕЛЁНОЙ зоне.", [_key_name("interact")], _mg_screen_rect)
 	elif forgive:
-		_spot_show("НОВЫЙ СТАНОК: " + String(STATION_TITLE.get(player_station, "")), "Здесь другая работа. Пока учишься — промахи не считаются, просто попробуй ещё раз.", [_key_name("interact")], _mg_screen_rect, false)
+		_spot_show("НОВЫЙ СТАНОК: " + String(STATION_TITLE.get(player_station, "")), "Новая работа. Пока учишься — промахи не считаются.", [_key_name("interact")], _mg_screen_rect, false)
 	await player_job_finished
 	if forgive and _spot and _spot.is_shown() and _tut_stage != "first_job":
-		_spot.hide_step()
+		_spot_finish()
 
 
 ## The 4th box of the first shift: the fish punches the button, the press shorts out and
@@ -4368,8 +4890,10 @@ func _spawn_sparks(at: Vector2, count: int) -> void:
 ## SHORTS out, or its button gets STUCK. Each one is a small minigame of its own (only the
 ## interact key). Handled -> the box goes through (green). Failed -> our mistake (red).
 func _roll_incident() -> int:
-	if randf() >= INCIDENT_CHANCE:
+	_jobs_since_incident += 1
+	if _jobs_since_incident < INCIDENT_MIN_GAP or randf() >= INCIDENT_CHANCE:
 		return MGE_NONE
+	_jobs_since_incident = 0
 	return [MGE_FIRE, MGE_SHORT, MGE_STUCK][randi() % 3]
 
 
@@ -4464,7 +4988,7 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 	_mg_title.position = Vector2(376, 186)
 	_mg_title.modulate = Color.WHITE
 	_mg_title.visible = true
-	hint_label.position = Vector2(326, 418)
+	_hint_at(418.0)
 	hint_label.visible = not forgive
 	var fire: Node2D = null
 	var explain := ""
@@ -4543,7 +5067,10 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 		_incident_setup(kind, hard)
 		_mg_title.text = {MGE_FIRE: "ПОЖАР НА КОНВЕЙЕРЕ!", MGE_SHORT: "ЗАМЫКАНИЕ ПРЕССА!", MGE_STUCK: "КНОПКУ ЗАКЛИНИЛО!"}.get(kind, "")
 	if forgive and _spot:
-		_spot.hide_step()
+		if ok:
+			_spot_finish()
+		else:
+			_spot.hide_step()
 	_inc_forgive_on = false
 	_inc_active = false
 	_inc_flash = 1.0
@@ -4992,7 +5519,8 @@ func _draw_fire_mg(c: Control, _green: Color, blue: Color, red: Color, _rim: Col
 				var hh = h * s * fl * pow(top, 0.65)
 				var lick = sin(u * 9.0 + _inc_t * 12.0 + k) * 2.5 * s * top
 				pts.append(Vector2(cx + rx * (1.0 - 0.55 * top) + sway * top * top + lick, 131.0 - hh))
-			c.draw_colored_polygon(pts, col)
+			if not Geometry2D.triangulate_polygon(pts).is_empty():
+				c.draw_colored_polygon(pts, col)
 		# sparks flying up out of it
 		for e in range(4):
 			var ph = fmod(_inc_t * (1.1 + e * 0.2) + k * 0.37 + e * 0.29, 1.0)
@@ -5592,6 +6120,8 @@ func _process_minigame(delta: float) -> void:
 	delta *= _mg_pace()
 	match mg_kind:
 		MG.SLIDER:
+			if mg_time < 0.175:
+				return   # a short pause before it starts
 			slider_pos += slider_dir * MINIGAME_SLIDER_SPEED * delta
 			if slider_pos >= 1.0:
 				slider_pos = 1.0
@@ -5783,7 +6313,7 @@ func _guard_hit_player() -> void:
 	if not is_inside_tree():
 		return
 	# another hit is coming (the extra one after a bad check): he stays right here
-	if not guard_changing and _guard_hits_queued == 0 and not _guard_extra_hit_pending:
+	if not guard_changing and _guard_hits_queued == 0 and not _guard_extra_hit_pending and not _insp_wrapping:
 		await _guard_walk_to(_guard_home())
 		guard_sprite.scale.x = orig_flip if not _inspection_active else abs(guard_sprite.scale.x)
 	if guard_sprite.sprite_frames.has_animation("idle"):
@@ -5932,9 +6462,9 @@ func _sniper_kill_player() -> void:
 	if _mg_title:
 		_mg_title.visible = false
 	hint_label.visible = false
-	if _laser == null or not is_instance_valid(_laser):
+	if (_laser == null or not is_instance_valid(_laser)) and sniper_sprite and sniper_sprite.visible:
 		_laser_on()
-		await _tree().create_timer(0.35).timeout
+		await _tree().create_timer(0.25).timeout
 		if not is_inside_tree():
 			return
 	if sniper_sprite and sniper_sprite.sprite_frames and sniper_sprite.sprite_frames.has_animation("fire"):
@@ -6042,6 +6572,7 @@ func _end_shift() -> void:
 	if journal_open:
 		_on_journal_close()
 	state = State.SHIFT_END
+	_shift_end_ms = Time.get_ticks_msec()
 	_halt = 0
 	_update_clock_label()
 	_update_wall_clock()
@@ -6051,7 +6582,8 @@ func _end_shift() -> void:
 	npc_walk_delays.clear()
 	for i in range(npc_fishes.size()):
 		npc_walk_delays.append(randf_range(NPC_WALK_DELAY_MIN, NPC_WALK_DELAY_MAX))
-	_show_guard_dialog("РАБОТА НА СЕГОДНЯ ВЫПОЛНЕНА! ВСЕ НА ТЕХОБСЛУЖИВАНИЕ И НАЗАД!", 3.0)
+	# own channel: nothing else may cut the announcement off
+	_speech(guard_sprite if (guard_sprite and guard_sprite.visible) else null, NAME_GUARD, COLOR_NAME_GUARD, "СМЕНА ОКОНЧЕНА! ВСЕ НА ТЕХОБСЛУЖИВАНИЕ!", 3.2, true, "shiftend")
 	_show_maint_notice()
 	if not _tut_done("maint"):
 		_tut_maint_lesson()
@@ -6119,7 +6651,15 @@ func _randomize_npc_positions() -> void:
 
 func _get_player_shift_spawn() -> Vector2:
 	# 50%: packing (the usual place); otherwise one of the 4 presses - its fish goes to packing
-	if current_shift >= 2 and randf() >= 0.5:
+	var worked: Array = Global.factory_state.get("stations", [])
+	var fresh: Array = []
+	for st in range(NUM_NPC_FISHES + 1):
+		if not (st in worked):
+			fresh.append(st)
+	if current_shift >= 2 and not fresh.is_empty() and fresh.size() < NUM_NPC_FISHES + 1:
+		# until every press has been tried, a new shift puts you at one you haven't worked at
+		player_station = fresh[randi() % fresh.size()]
+	elif current_shift >= 2 and randf() >= 0.5:
 		player_station = randi() % NUM_NPC_FISHES
 	else:
 		player_station = STATION_PACK
@@ -6162,6 +6702,8 @@ func _face_player_to_press() -> void:
 
 func _start_new_shift() -> void:
 	_hide_maint_notice()
+	if current_shift == 1 and not _tut_done("inspect"):
+		_tut_s2_hold = true   # no work before the inspect lesson is over
 	current_shift += 1
 	current_object_index = 0
 	correct_count = 0
@@ -6236,8 +6778,12 @@ func _start_new_shift() -> void:
 	_update_escape_hint()
 	_viol_reset()
 	state = State.WORKING
+	if _tut_s2_hold:
+		_halt += 1
 	_save_shift_state()
 	_spawn_next_object()
+	if _tut_s2_hold:
+		_tut_shift2_start()
 
 ## Every guard and every sniper change has been written down.
 func _schedule_known() -> bool:
@@ -6330,7 +6876,7 @@ func _update_escape_hint() -> void:
 			_esc_banner.visible = false
 		return
 	if escape_info_shift == current_shift:
-		_escape_banner("ДОЖДАТЬСЯ СМЕНЫ НА УПАКОВКЕ", "ПОБЕГ В ОКНО 13:00 - 13:15")
+		_escape_banner("ПОБЕГ ЧЕРЕЗ ЛИФТ", "ОКНО 13:00 - 13:15 — СЛЕДУЙ ЗА СТРЕЛКОЙ")
 		return
 	if elevator_inspected:
 		_escape_banner("13:00 - 13:15", "ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ")
@@ -6356,9 +6902,39 @@ func _enter_inspect() -> void:
 		_zoom_camera(Vector2(1.5, 1.5), 0.5)
 	if inspect_vignette:
 		inspect_vignette.visible = true
+		_inspect_fx_fade(1.0)
 	_set_slowmo(true)
 
 var _cam_zoom_tw: Tween = null
+var _insp_fx_tw: Tween = null
+var _insp_fx_amount: float = 0.0
+
+## The spirit-vision look fades in / out (real time) and its waves keep moving.
+func _inspect_fx_fade(to: float) -> void:
+	if inspect_vignette == null or not (inspect_vignette.material is ShaderMaterial):
+		return
+	var m: ShaderMaterial = inspect_vignette.material
+	if _insp_fx_tw and _insp_fx_tw.is_valid():
+		_insp_fx_tw.kill()
+	inspect_vignette.visible = true
+	_insp_fx_tw = create_tween().set_ignore_time_scale(true)
+	_insp_fx_tw.tween_method(func(v):
+		_insp_fx_amount = v
+		m.set_shader_parameter("amount", v), _insp_fx_amount, to, 0.45 if to > 0.0 else 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if to <= 0.0:
+		_insp_fx_tw.tween_callback(func(): inspect_vignette.visible = false)
+	_insp_fx_time_loop()
+
+var _insp_fx_looping: bool = false
+func _insp_fx_time_loop() -> void:
+	if _insp_fx_looping:
+		return
+	_insp_fx_looping = true
+	var m: ShaderMaterial = inspect_vignette.material
+	while is_inside_tree() and inspect_vignette and inspect_vignette.visible:
+		m.set_shader_parameter("t", Time.get_ticks_msec() / 1000.0)
+		await _tree().process_frame
+	_insp_fx_looping = false
 
 func _zoom_camera(z: Vector2, t: float) -> void:
 	if camera == null:
@@ -6400,7 +6976,7 @@ func _exit_inspect(forced: bool = false) -> void:
 		elif player:
 			camera.global_position = player.global_position
 	if inspect_vignette:
-		inspect_vignette.visible = false
+		_inspect_fx_fade(0.0)
 	_set_slowmo(false, 0.09 if forced else 0.25)
 
 ## ---------------------------------------------------------------- inspect slow motion
@@ -6838,6 +7414,8 @@ func _kick_out_of_journal() -> void:
 func _open_journal() -> void:
 	if current_shift < 2:
 		return
+	if state == State.INSPECT:
+		_exit_inspect()   # the journal replaces the inspect mode
 	# no reading in the middle of a job (or right before one)
 	if minigame_active or _inc_active or state == State.MINIGAME or _job_imminent():
 		_inspect_kick_fx()
@@ -7006,6 +7584,7 @@ func _show_guard_dialog(text: String, duration: float, alert: bool = false) -> v
 ## Aquarium-style speech bubble in the world: the same nine-patch box, a shadow, a tail to
 ## the speaker, a name tag, pop-in, typewriter text with voice blips and a soft fade out.
 var _chan_bubbles: Dictionary = {}   # channel -> [node, gen]
+var _bub_last_us: Dictionary = {}
 
 func _speech(speaker: Node2D, who: String, who_color: Color, text: String, duration: float, guard_voice: bool, channel: String = "main", alert: bool = false) -> void:
 	# lines only break between whole words: no break after a hyphen either ("ХЕ-ХЕ")
@@ -7096,7 +7675,18 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 		var badge = Control.new()
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		badge.size = Vector2(13, 15)
-		badge.position = Vector2(sz.x + 3, -6)
+		badge.position = Vector2(-7, -10) if who == NAME_SNIPER else Vector2(sz.x - 6, -10)
+		badge.pivot_offset = Vector2(6, 7)
+		var frame = Control.new()
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.size = sz
+		frame.draw.connect(func():
+			var p2 = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 110.0)
+			var fc = Color(1.0, 0.82, 0.2, 0.55 + 0.45 * p2)
+			frame.draw_rect(Rect2(Vector2(-3, -3), sz + Vector2(6, 6)), fc, false, 2.0))
+		root.add_child(frame)
+		var ft = frame.create_tween().set_loops()
+		ft.tween_callback(frame.queue_redraw).set_delay(0.05)
 		badge.draw.connect(func():
 			var p = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 110.0)
 			var col = Color(1.0, 0.82, 0.2).lerp(Color(1.0, 0.45, 0.2), p)
@@ -7108,6 +7698,14 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 		root.add_child(badge)
 		var bt = badge.create_tween().set_loops()
 		bt.tween_callback(badge.queue_redraw).set_delay(0.05)
+		# a pop + a little jump now and then, so the eye goes there
+		badge.scale = Vector2(0.2, 0.2)
+		var pop = badge.create_tween()
+		pop.tween_property(badge, "scale", Vector2(1.6, 1.6), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		pop.tween_property(badge, "scale", Vector2.ONE, 0.2)
+		var jump = badge.create_tween().set_loops()
+		jump.tween_property(badge, "scale", Vector2(1.3, 1.3), 0.12).set_delay(0.5)
+		jump.tween_property(badge, "scale", Vector2.ONE, 0.18)
 	# rich text: the type-in effect drops every letter in as it is printed; the whole line is
 	# laid out from the start, so words never jump to the next line while typing
 	var lbl = RichTextLabel.new()
@@ -7164,9 +7762,12 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 			return
 		if my_chan == "main" and gen != _bubble_gen and b != _bubble:
 			return
-		if _tree().paused:
-			continue
-		var dt = get_process_delta_time()
+		var now_us = Time.get_ticks_usec()
+		var real_dt = clamp((now_us - _bub_last_us.get(b, now_us)) / 1000000.0, 0.0, 0.05)
+		_bub_last_us[b] = now_us
+		if _tree().paused and my_chan != "shiftend":
+			continue   # (the end-of-shift line keeps typing while the lesson stops time)
+		var dt = real_dt if _tree().paused else get_process_delta_time()
 		t += dt
 		shake = max(0.0, shake - dt)
 		var n = min(total, int(t * BUBBLE_CPS))
@@ -7181,6 +7782,7 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 				shake = 0.25
 			shown = n
 			typein.grow_to(n)
+	_bub_last_us.erase(b)
 	var out = create_tween()
 	out.tween_property(root, "modulate:a", 0.0, 0.25)
 	out.parallel().tween_property(root, "scale", Vector2(0.9, 0.9) * BUBBLE_SCALE, 0.25)
@@ -7244,6 +7846,8 @@ func _place_bubble(b: Node2D, sz: Vector2, speaker: Node2D, tail_o: Polygon2D, t
 					best_d = d
 					best = o
 			pos = best
+	if speaker != null and speaker == sniper_sprite:
+		pos.y += 12.0   # the sniper's bubble sits a little lower
 	pos.y += round(sin(t * 2.2) * 1.0)
 	if shake > 0.0:
 		pos.x += round(sin(t * 80.0) * 2.0)
@@ -7376,6 +7980,11 @@ func _input(event: InputEvent) -> void:
 				_exit_inspect()
 				get_viewport().set_input_as_handled()
 				return
+			if _is_action_key(event, "journal") and _tut_wait_key == "":
+				# straight from the inspect mode into the journal
+				get_viewport().set_input_as_handled()
+				_open_journal()
+				return
 		return
 	if event.is_action_pressed("interact"):
 		if _inc_active:
@@ -7463,11 +8072,129 @@ func _enter_elevator() -> void:
 		Achievements.unlock_freedom()
 		if not was:
 			_show_freedom_achievement()
-	_show_dialog("ПОБЕГ...", 1.5)
+	await _escape_cutscene()
+
+## The escape: the doors open, the fish slips in, the guard notices too late, the doors shut,
+## the elevator drops (shake, darkness), a title card - then the hallway.
+var _escaping: bool = false
+
+func _escape_cutscene() -> void:
+	if _escaping:
+		return
+	_escaping = true
+	_tut_no_penalty = true
+	_laser_off()
+	_viol_reset()
+	if state == State.INSPECT:
+		_exit_inspect()
+	if journal_open:
+		_on_journal_close()
+	minigame_active = false
+	conveyor_paused = true
+	if player:
+		if player.has_method("set_movement_blocked"):
+			player.set_movement_blocked(true)
+		player.set_process_input(false)
+		if "velocity" in player:
+			player.velocity = Vector2.ZERO
+	if _nav:
+		_nav.visible = false
+	if _esc_banner:
+		_esc_banner.visible = false
+	UISounds.play_switch_on()
 	await _await_elevator_anim("open")
-	await _tree().create_timer(1.0).timeout
 	if not is_inside_tree():
 		return
+	# the fish walks into the cabin
+	var ex = elevator_button.global_position.x if elevator_button else player.global_position.x
+	if player:
+		var ps = player_sprite
+		if ps and ps.sprite_frames and ps.sprite_frames.has_animation("Run"):
+			ps.play("Run")
+			ps.flip_h = ex < player.global_position.x
+		var tw = create_tween()
+		tw.tween_property(player, "global_position:x", ex, clamp(abs(ex - player.global_position.x) / 220.0, 0.25, 1.4))
+		await tw.finished
+		if ps and ps.sprite_frames and ps.sprite_frames.has_animation("Idle"):
+			ps.play("Idle")
+	if not is_inside_tree():
+		return
+	# he notices - too late
+	if guard_sprite and guard_sprite.visible:
+		_show_guard_dialog("ЭЙ! А НУ СТОЯТЬ!", 1.6)
+	if camera:
+		_zoom_camera(Vector2(1.25, 1.25), 0.6)
+	await _tree().create_timer(0.5).timeout
+	if not is_inside_tree():
+		return
+	if player:
+		var tp = create_tween()
+		tp.tween_property(player, "modulate:a", 0.0, 0.35)
+	await _await_elevator_anim("close")
+	if not is_inside_tree():
+		return
+	UISounds.play_hit()
+	if camera and camera.has_method("add_trauma"):
+		camera.add_trauma(0.45)
+	# going down: a rumble, the light dies
+	var layer = CanvasLayer.new()
+	layer.layer = 90
+	add_child(layer)
+	var black = ColorRect.new()
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	black.color = Color(0, 0, 0, 0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(black)
+	for i in range(4):
+		if camera and camera.has_method("add_trauma"):
+			camera.add_trauma(0.25)
+		await _tree().create_timer(0.25).timeout
+		if not is_inside_tree():
+			return
+	var tw2 = create_tween()
+	tw2.tween_property(black, "color:a", 1.0, 0.9).set_trans(Tween.TRANS_SINE)
+	await tw2.finished
+	if not is_inside_tree():
+		return
+	# title card
+	var title = Label.new()
+	title.text = "ПОБЕГ"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var f = _bubble_font()
+	if f:
+		title.add_theme_font_override("font", f)
+	title.add_theme_font_size_override("font_size", 46)
+	title.add_theme_color_override("font_color", HUD_C_ORANGE)
+	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	title.add_theme_constant_override("outline_size", 8)
+	title.modulate.a = 0.0
+	layer.add_child(title)
+	var sub = Label.new()
+	sub.text = "лифт едет вниз..."
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.position = Vector2(0, 360)
+	sub.size = Vector2(1152, 30)
+	if f:
+		sub.add_theme_font_override("font", f)
+	sub.add_theme_font_size_override("font_size", 16)
+	sub.add_theme_color_override("font_color", Color(0.75, 0.78, 0.85))
+	sub.modulate.a = 0.0
+	layer.add_child(sub)
+	var tw3 = create_tween().set_parallel(true)
+	tw3.tween_property(title, "modulate:a", 1.0, 0.6)
+	tw3.tween_property(sub, "modulate:a", 1.0, 0.9).set_delay(0.4)
+	await _tree().create_timer(2.2).timeout
+	if not is_inside_tree():
+		return
+	var tw4 = create_tween().set_parallel(true)
+	tw4.tween_property(title, "modulate:a", 0.0, 0.5)
+	tw4.tween_property(sub, "modulate:a", 0.0, 0.5)
+	await tw4.finished
+	if not is_inside_tree():
+		return
+	Engine.time_scale = 1.0
 	Global.autosave(Global.SCENE_HALLWAY)
 	Global.goto_scene(Global.SCENE_HALLWAY)
 

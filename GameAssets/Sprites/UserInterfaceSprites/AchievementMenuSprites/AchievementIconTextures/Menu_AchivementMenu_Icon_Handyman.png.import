@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3y4ucp2yx6ox"
-path="res://.godot/imported/icon.PNG-f00859738d1571b1908d86aaf1382cd1.ctex"
+uid="uid://buicsuf34hbv8"
+path="res://.godot/imported/Menu_AchivementMenu_Icon_Handyman.png-08b3bfa5eb44ac226d65cf297e48b752.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://icon.PNG"
-dest_files=["res://.godot/imported/icon.PNG-f00859738d1571b1908d86aaf1382cd1.ctex"]
+source_file="res://GameAssets/Sprites/UserInterfaceSprites/AchievementMenuSprites/AchievementIconTextures/Menu_AchivementMenu_Icon_Handyman.png"
+dest_files=["res://.godot/imported/Menu_AchivementMenu_Icon_Handyman.png-08b3bfa5eb44ac226d65cf297e48b752.ctex"]
 
 [params]
 

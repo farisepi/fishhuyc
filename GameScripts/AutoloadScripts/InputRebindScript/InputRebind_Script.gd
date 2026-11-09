@@ -119,26 +119,66 @@ func _keycode_to_string(keycode: Key) -> String:
 				return result.to_upper()
 			return result
 
+signal rebind_started(action: String)
+signal rebind_finished(action: String)
+
+## Waits for the next key. Every key event is taken while waiting (also releases and
+## repeats), so nothing leaks to the focused button and re-starts the wait - that used to
+## make some presses "not count". The first press counts at once; Esc cancels (except for
+## the pause action itself); a key already used by another action is swapped with it.
 func start_rebind(action: String) -> void:
 	rebinding_action = action
-	rebind_delay = 0.2
+	rebind_delay = 0.0
+	rebind_started.emit(action)
+
+func cancel_rebind() -> void:
+	var a = rebinding_action
+	rebinding_action = ""
+	if a != "":
+		rebind_finished.emit(a)
+		keybinds_updated.emit()
 
 func _input(event: InputEvent) -> void:
 	if rebinding_action.is_empty():
 		return
-	
-	if event is InputEventKey and event.pressed:
-		if rebind_delay > 0:
-			return
-		
-		_clear_action(rebinding_action)
-		var new_event = InputEventKey.new()
-		new_event.keycode = event.keycode
-		InputMap.action_add_event(rebinding_action, new_event)
-		rebinding_action = ""
-		save_keybinds()
-		keybinds_updated.emit()
-		get_viewport().set_input_as_handled()
+	if not (event is InputEventKey):
+		return
+	get_viewport().set_input_as_handled()
+	if not event.pressed or event.echo:
+		return
+	var code: Key = event.keycode
+	if code == KEY_NONE:
+		code = DisplayServer.keyboard_get_keycode_from_physical(event.physical_keycode)
+	if code == KEY_NONE:
+		return
+	var action = rebinding_action
+	if code == KEY_ESCAPE and action != "ui_cancel":
+		cancel_rebind()
+		return
+	# the key belongs to another action: that one gets this action's old key
+	var old_code: Key = KEY_NONE
+	for e in InputMap.action_get_events(action):
+		if e is InputEventKey:
+			old_code = e.keycode
+			break
+	for other in action_names.keys():
+		if other == action or not InputMap.has_action(other):
+			continue
+		for e in InputMap.action_get_events(other):
+			if e is InputEventKey and e.keycode == code:
+				_clear_action(other)
+				if old_code != KEY_NONE:
+					var swap = InputEventKey.new()
+					swap.keycode = old_code
+					InputMap.action_add_event(other, swap)
+				break
+	_clear_action(action)
+	var new_event = InputEventKey.new()
+	new_event.keycode = code
+	InputMap.action_add_event(action, new_event)
+	rebinding_action = ""
+	save_keybinds()
+	rebind_finished.emit(action)
 
 func _clear_action(action: String) -> void:
 	var events = InputMap.action_get_events(action).duplicate()

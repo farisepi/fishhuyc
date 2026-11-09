@@ -70,6 +70,9 @@ var only_basic_moves: bool = false
 var minigame_lock: bool = false
 ## The level stopped time but this fish may still move (factory tutorial).
 var ignore_pause: bool = false
+## Set by a level when space was used for something else (tutorial skip): no jump until
+## the key is released.
+var block_jump: bool = false
 
 ## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
 ## further. Levels can scale it down.
@@ -373,6 +376,8 @@ func _physics_process(delta):
 		move_and_slide()
 		_update_death_fish(delta)
 		return
+	if block_jump and not Input.is_action_pressed("jump"):
+		block_jump = false
 	if get_tree().paused and not ignore_pause:
 		return
 
@@ -516,7 +521,7 @@ func _physics_process(delta):
 		else:
 			velocity.x = 0
 
-	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_sliding and not _is_getting_up:
+	if Input.is_action_just_pressed("jump") and not block_jump and is_on_floor() and not is_sliding and not _is_getting_up:
 		velocity.y = jump_velocity
 		_play_anim("Jump", true)
 
@@ -912,8 +917,8 @@ func die():
 		sprite.frame = last_frame
 		if not _death_fish_spawned:
 			_spawn_death_fish()
-		# let the little fish land before the death screen
-		await _safe_timer(0.8)
+		# let the little fish land and slide before the death screen
+		await _safe_timer(1.3)
 		if not is_inside_tree():
 			return
 	else:
@@ -1070,7 +1075,7 @@ func _try_ladder_climb():
 			break
 		if not is_instance_valid(nearby_ladder):
 			break
-		if Input.is_action_just_pressed("jump"):
+		if Input.is_action_just_pressed("jump") and not block_jump:
 			is_on_ladder = false
 			velocity.y = jump_velocity
 			break
@@ -1167,7 +1172,7 @@ func _spawn_death_fish() -> void:
 	var away = -side
 	if _knock_dir != 0.0:
 		away = _knock_dir
-	_death_fish_v = Vector2(away * randf_range(95.0, 130.0), -randf_range(230.0, 270.0))
+	_death_fish_v = Vector2(away * randf_range(120.0, 150.0), -randf_range(240.0, 275.0))
 	_death_fish_floor = sprite.to_global(Vector2(0, 36.0)).y
 	_death_fish_bounces = 0
 	# a few water drops from the cracked dome
@@ -1187,21 +1192,57 @@ func _spawn_death_fish() -> void:
 		tw.tween_callback(d.queue_free)
 
 
+## The little fish flies out of the dome in an arc (spinning, a bit floaty), hits the floor,
+## bounces lower each time, then slides along the floor on its belly and stops.
+## _death_fish_bounces: 0..2 in the air, 3 = sliding, 4 = lying still.
 func _update_death_fish(delta: float) -> void:
 	if _death_fish == null or not is_instance_valid(_death_fish):
 		return
-	if _death_fish_bounces >= 3:
+	if _death_fish_bounces >= 4:
 		return
-	_death_fish_v.y += 900.0 * delta
-	_death_fish.global_position += _death_fish_v * delta
-	_death_fish.rotation += _death_fish_v.x * 0.05 * delta
-	if _death_fish.global_position.y >= _death_fish_floor and _death_fish_v.y > 0.0:
-		_death_fish.global_position.y = _death_fish_floor
-		_death_fish_bounces += 1
-		if _death_fish_bounces >= 3 or absf(_death_fish_v.y) < 60.0:
-			_death_fish_bounces = 3
+	if _death_fish_bounces == 3:
+		# sliding: friction slows it down, it settles flat
+		var s = signf(_death_fish_v.x)
+		_death_fish_v.x = s * maxf(0.0, absf(_death_fish_v.x) - 260.0 * delta)
+		_death_fish.global_position.x += _death_fish_v.x * delta
+		_death_fish.rotation = lerp_angle(_death_fish.rotation, 0.0, 1.0 - exp(-14.0 * delta))
+		if randf() < absf(_death_fish_v.x) / 900.0:
+			_death_fish_dust(_death_fish.global_position + Vector2(-s * 6.0, 4.0))
+		if absf(_death_fish_v.x) < 4.0:
+			_death_fish_bounces = 4
 			_death_fish_v = Vector2.ZERO
 			_death_fish.rotation = 0.0
 			_death_fish.speed_scale = 0.5   # lies there, flopping
+		return
+	_death_fish_v.y += 760.0 * delta
+	_death_fish.global_position += _death_fish_v * delta
+	# spins in the air, faster while it goes up
+	_death_fish.rotation += _death_fish_v.x * 0.045 * delta * (1.4 if _death_fish_v.y < 0.0 else 1.0)
+	if _death_fish.global_position.y >= _death_fish_floor and _death_fish_v.y > 0.0:
+		_death_fish.global_position.y = _death_fish_floor
+		_death_fish_bounces += 1
+		_death_fish_dust(_death_fish.global_position + Vector2(0, 4))
+		if _death_fish_bounces >= 3 or absf(_death_fish_v.y) < 110.0:
+			_death_fish_bounces = 3
+			_death_fish_v = Vector2(_death_fish_v.x * 0.9, 0.0)
 		else:
-			_death_fish_v = Vector2(_death_fish_v.x * 0.55, -_death_fish_v.y * 0.38)
+			_death_fish_v = Vector2(_death_fish_v.x * 0.8, -_death_fish_v.y * 0.36)
+			# every hit knocks it half-flat
+			_death_fish.rotation = lerp_angle(_death_fish.rotation, 0.0, 0.6)
+
+func _death_fish_dust(at: Vector2) -> void:
+	var host = _death_fish.get_parent()
+	if host == null:
+		return
+	for i in range(2):
+		var d = ColorRect.new()
+		d.size = Vector2(2, 2)
+		d.color = Color(0.75, 0.75, 0.8, 0.7)
+		d.z_as_relative = false
+		d.z_index = _death_fish.z_index - 1
+		host.add_child(d)
+		d.global_position = at + Vector2(randf_range(-3, 3), 0)
+		var tw = d.create_tween()
+		tw.tween_property(d, "global_position", d.global_position + Vector2(randf_range(-8, 8), -randf_range(3, 8)), 0.35).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(d, "modulate:a", 0.0, 0.35)
+		tw.tween_callback(d.queue_free)

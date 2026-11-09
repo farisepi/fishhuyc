@@ -15,23 +15,49 @@ const BODY_SIZE := 13
 const KEY_SIZE := 13
 
 const SHADER_SRC := """shader_type canvas_item;
+// A lamp beam from above: dark room, a slanted cone of warm light falling on the spot,
+// dust floating in the light, a soft stepped falloff (pixel art) and a faint warm glow.
 uniform vec2 screen = vec2(1152.0, 648.0);
 uniform vec2 hole_c = vec2(576.0, 324.0);
 uniform vec2 hole_r = vec2(80.0, 80.0);
 uniform float dark = 0.0;
 uniform float flick = 1.0;
+uniform float t = 0.0;
+float hash(vec2 v) { return fract(sin(dot(v, vec2(127.1, 311.7))) * 43758.5453); }
 void fragment() {
-	vec2 p = floor(UV * screen / 3.0) * 3.0 + 1.5;   // chunky pixels, like the art
-	vec2 q = (p - hole_c) / max(hole_r, vec2(1.0));
-	float d = length(q);
-	float a = smoothstep(0.9, 1.25, d);
-	a = floor(a * 6.0 + 0.5) / 6.0;                  // stepped falloff
-	// darkness outside, a warm rim of light around the spot
-	vec3 warm = vec3(1.0, 0.8, 0.45);
-	float ring = 1.0 - smoothstep(0.0, 0.06, abs(d - 0.97));
-	ring = floor(ring * 3.0 + 0.5) / 3.0;
-	COLOR.rgb = mix(vec3(0.0, 0.0, 0.02), warm, ring);
-	COLOR.a = max(a * dark * flick, ring * 0.45 * dark);
+	vec2 px = floor(UV * screen / 3.0);
+	vec2 p = px * 3.0 + 1.5;                         // chunky pixels, like the art
+	vec2 r = max(hole_r, vec2(1.0));
+	// the spot: an ellipse, light strongest in the middle
+	float d = length((p - hole_c) / r);
+	float spot = 1.0 - smoothstep(0.55, 1.15, d);
+	// the beam: from a lamp above the screen, leaning towards the screen centre
+	vec2 src = vec2(mix(hole_c.x, screen.x * 0.5, 0.35), -90.0);
+	vec2 axis = hole_c - src;
+	float len_a = max(length(axis), 1.0);
+	vec2 dir = axis / len_a;
+	float along = dot(p - src, dir) / len_a;          // 0 at the lamp, 1 at the spot
+	float side = abs(dot(p - src, vec2(-dir.y, dir.x)));
+	float width = mix(10.0, r.x * 0.95, clamp(along, 0.0, 1.0));
+	float beam = (1.0 - smoothstep(width * 0.7, width * 1.05, side)) * smoothstep(0.0, 0.25, along) * (1.0 - smoothstep(0.92, 1.05, along));
+	// soft rays inside the beam
+	float rays = 0.75 + 0.25 * sin(side / max(width, 1.0) * 9.0 + t * 0.7);
+	beam *= 0.55 * rays;
+	float light = clamp(max(spot, beam), 0.0, 1.0);
+	light = floor(light * 7.0 + 0.5) / 7.0;          // stepped falloff
+	// dust in the light
+	vec2 cell = floor((p + vec2(t * 7.0, -t * 11.0)) / 9.0);
+	float h = hash(cell);
+	float dust = step(0.985, h) * (0.5 + 0.5 * sin(t * 3.0 + h * 40.0)) * light;
+	// darkness with a little grain, a warm glow where the light is
+	float grain = (hash(px + floor(t * 12.0)) - 0.5) * 0.04;
+	float a_dark = clamp((1.0 - light) * (0.92 + grain), 0.0, 1.0) * dark * flick;
+	float a_warm = (light * (0.07 + 0.16 * spot) + beam * 0.12) * dark + dust * 0.6 * dark;
+	vec3 warm = vec3(1.0, 0.82, 0.5);
+	vec3 shade = vec3(0.01, 0.012, 0.03);
+	float a = clamp(a_dark + a_warm, 0.0, 1.0);
+	COLOR.rgb = mix(shade, warm, a_warm / max(a, 0.0001));
+	COLOR.a = a;
 }
 """
 
@@ -98,17 +124,24 @@ func _label(size: int) -> Label:
 	return l
 
 
+## A tiny space-bar key under the card's bottom-right corner (like the dialog skip).
+var skippable: bool = false
+
 ## Shows a step. keys: texts of the key caps ("A", "ПРОБЕЛ", ...).
 func show_step(title: String, body: String, keys: Array, target: Callable, dim: bool = true) -> void:
 	_target = target
 	dim_outside = dim
 	_keys = keys.duplicate()
+	skippable = false
+	card_corner = false
+	_card_placed = false
+	_step_t = 0.0
 	_title.text = title
 	_body.text = body.replace("-", "-⁠")
 	_progress = -1.0
 	_done_t = -1.0
 	_tag = "ОБУЧЕНИЕ"
-	_dark_to = 0.82 if dim else 0.0
+	_dark_to = 0.9 if dim else 0.0
 	_card_to = 1.0
 	_layout_card()
 	_card.visible = true
@@ -192,12 +225,24 @@ func _input(event: InputEvent) -> void:
 			key_event.emit(event)
 
 
+var _last_us: int = 0
+var _last_dt: float = 0.016
+var _card_placed: bool = false
+var _step_t: float = 0.0
+var _card_xy: Vector2 = Vector2.ZERO
+## true: the card sits in the bottom-right corner instead of next to the light
+var card_corner: bool = false
+
 func _process(delta: float) -> void:
 	var blocked = block_check.is_valid() and block_check.call()
 	visible = not blocked
 	if blocked:
 		return
-	var dt = min(delta, 0.05)
+	# real time: the game's slow motion (inspect, the freeze) must not slow the light down
+	var now = Time.get_ticks_usec()
+	var dt = 0.016 if _last_us == 0 else clamp((now - _last_us) / 1000000.0, 0.0, 0.05)
+	_last_us = now
+	_last_dt = dt
 	_t += dt
 	if _done_t >= 0.0:
 		_done_t += dt
@@ -216,6 +261,7 @@ func _process(delta: float) -> void:
 		_mat.set_shader_parameter("hole_c", _hole_c)
 		_mat.set_shader_parameter("hole_r", _hole_r)
 		_mat.set_shader_parameter("dark", _dark)
+		_mat.set_shader_parameter("t", _t)
 		# the light trembles a little, like a real flashlight
 		_mat.set_shader_parameter("flick", 0.97 + 0.03 * sin(_t * 23.0) * sin(_t * 7.0))
 	_veil.visible = _dark > 0.005
@@ -230,6 +276,9 @@ func _process(delta: float) -> void:
 ## The card goes under the spot if there is room, else over it; it never covers the spot.
 func _place_card() -> void:
 	var sz = _card.size
+	if card_corner:
+		_card.position = Vector2(round(SCREEN.x - sz.x - 22.0), round(SCREEN.y - sz.y - 30.0 + sin(_t * 2.2) * 1.5))
+		return
 	var x = clamp(_hole_c.x - sz.x * 0.5, 14.0, SCREEN.x - sz.x - 14.0)
 	var below = _hole_c.y + _hole_r.y + 14.0
 	var above = _hole_c.y - _hole_r.y - 14.0 - sz.y
@@ -245,7 +294,16 @@ func _place_card() -> void:
 			x = clamp(_hole_c.x - _hole_r.x - sz.x - 14.0, 14.0, SCREEN.x - sz.x - 14.0)
 		else:
 			x = clamp(_hole_c.x + _hole_r.x + 14.0, 14.0, SCREEN.x - sz.x - 14.0)
-	_card.position = Vector2(round(x), round(y + sin(_t * 2.2) * 1.5))
+	# the card picks its place once per step and then only glides sideways after the light:
+	# it no longer jumps up and down when the fish jumps or the light moves
+	_step_t += _last_dt
+	if not _card_placed:
+		_card_xy = Vector2(x, y)
+		if _step_t > 0.45:   # the light has settled on its target: the place is fixed now
+			_card_placed = true
+	else:
+		_card_xy.x = lerp(_card_xy.x, x, 1.0 - exp(-6.0 * _last_dt))
+	_card.position = Vector2(round(_card_xy.x), round(_card_xy.y + sin(_t * 2.2) * 1.5))
 
 
 func _draw_card() -> void:
@@ -288,6 +346,18 @@ func _draw_card() -> void:
 				var tw = _font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, KEY_SIZE).x
 				c.draw_string(_font, Vector2(kx + (kw - tw) * 0.5, ky + 14.0 + dip), key, HORIZONTAL_ALIGNMENT_LEFT, -1, KEY_SIZE, Color8(28, 30, 38))
 			kx += kw + 4.0
+	# the tiny skip key (same look as in the dialogs, x2)
+	if skippable and not ok:
+		var k2 = 0.5 + 0.5 * sin(_t * 4.0)
+		var o = Vector2(sz.x - 36.0, sz.y + 4.0)
+		c.draw_rect(Rect2(o + Vector2(0, 2), Vector2(34, 14)), Color(0.06, 0.07, 0.1, 0.9))
+		c.draw_rect(Rect2(o + Vector2(2, 0), Vector2(30, 12)), Color(0.06, 0.07, 0.1))
+		c.draw_rect(Rect2(o + Vector2(4, 2), Vector2(26, 8)), Color(0.93, 0.94, 0.96))
+		c.draw_rect(Rect2(o + Vector2(4, 8), Vector2(26, 2)), Color(0.7, 0.72, 0.78))
+		var ink = Color(0.2, 0.24, 0.32).lerp(Color(0.1, 0.45, 0.7), k2)
+		c.draw_rect(Rect2(o + Vector2(10, 4), Vector2(2, 4)), ink)
+		c.draw_rect(Rect2(o + Vector2(22, 4), Vector2(2, 4)), ink)
+		c.draw_rect(Rect2(o + Vector2(10, 6), Vector2(14, 2)), ink)
 	# time bar
 	if _progress >= 0.0:
 		c.draw_rect(Rect2(3, sz.y - 6, sz.x - 6, 3), Color8(36, 40, 50))

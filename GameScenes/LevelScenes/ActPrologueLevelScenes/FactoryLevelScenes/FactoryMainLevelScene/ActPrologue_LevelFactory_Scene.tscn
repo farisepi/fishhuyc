@@ -20,21 +20,210 @@
 [ext_resource type="Texture2D" uid="uid://dx3oktm8jpjt6" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_HydraulicPress_Down_SpriteList_Animation.png" id="26_pdown"]
 [ext_resource type="Texture2D" uid="uid://bkn77yoat4ah8" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Window_Texture.png" id="30_mg_window"]
 [ext_resource type="Texture2D" uid="uid://drklf34ic6ixs" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Zone_Texture.png" id="31_mg_zone"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_ClockFace_Texture.png" id="fx_tx_clockface"]
 [ext_resource type="Texture2D" uid="uid://cghyeyawqqo0t" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMiniGameTextures/ActPrologue_LevelFactory_MiniGame_Slider_Texture.png" id="32_mg_slider"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_IndustrialWall_Shader.gdshader" id="fx_sh_wall"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_IndustrialFloor_Shader.gdshader" id="fx_sh_floor"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
-[ext_resource type="Shader" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_HangingLamp_Texture.png" id="fx_tx_lamp"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_WallLamp_Texture.png" id="fx_tx_walllamp"]
-[ext_resource type="Texture2D" uid="uid://52jrlyi5kq18" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png" id="fx_tx_door"]
+[ext_resource type="Shader" uid="uid://d1rnprj64sac6" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
+[ext_resource type="Shader" uid="uid://bnd70aigya00x" path="res://GameShaders/SharedShaders/Shared_IndustrialFloor_Shader.gdshader" id="fx_sh_floor"]
+[ext_resource type="Shader" uid="uid://oycp5pyns0mn" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
+[ext_resource type="Shader" uid="uid://ce1ofbir3f6iy" path="res://GameShaders/SharedShaders/Shared_IndustrialWall_Shader.gdshader" id="fx_sh_wall"]
+[ext_resource type="Texture2D" uid="uid://cjtj4pyp0gie7" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_ClockFace_Texture.png" id="fx_tx_clockface"]
 [ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png" id="fx_tx_cone"]
+[ext_resource type="Texture2D" uid="uid://52jrlyi5kq18" path="res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png" id="fx_tx_door"]
+[ext_resource type="Texture2D" uid="uid://8da31j6540ay" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_HangingLamp_Texture.png" id="fx_tx_lamp"]
 [ext_resource type="Texture2D" uid="uid://deqs8kq7hgy18" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option10_Texture.png" id="fx_tx_round"]
 [ext_resource type="Texture2D" uid="uid://52iambft5nuq" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option12_Texture.png" id="fx_tx_spot"]
+[ext_resource type="Texture2D" uid="uid://xry8xc5rrmit" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_WallLamp_Texture.png" id="fx_tx_walllamp"]
+
+[sub_resource type="ShaderMaterial" id="M_Wall"]
+shader = ExtResource("fx_sh_wall")
+shader_parameter/pixel_size = 2.0
+shader_parameter/col_seam = Color(0.045, 0.04, 0.05, 1)
+shader_parameter/col_base = Color(0.12, 0.115, 0.13, 1)
+shader_parameter/col_light = Color(0.19, 0.185, 0.2, 1)
+shader_parameter/col_rust = Color(0.27, 0.15, 0.09, 1)
+shader_parameter/col_pipe = Color(0.21, 0.23, 0.25, 1)
+shader_parameter/col_stripe = Color(0.42, 0.3, 0.08, 1)
+shader_parameter/panel_size = Vector2(64, 48)
+shader_parameter/column_spacing = 400.0
+shader_parameter/column_width = 22.0
+shader_parameter/pipe_y1 = 150.0
+shader_parameter/pipe_y2 = 196.0
+shader_parameter/pipe_radius = 7.0
+shader_parameter/stripe_y = 232.0
+shader_parameter/stripe_height = 12.0
+shader_parameter/gloom_y = 150.0
+shader_parameter/gloom_length = 320.0
+shader_parameter/rust_amount = 0.4
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2000, 40)
+
+[sub_resource type="ShaderMaterial" id="M_Floor"]
+shader = ExtResource("fx_sh_floor")
+shader_parameter/pixel_size = 2.0
+shader_parameter/col_top = Color(0.58, 0.55, 0.5, 1)
+shader_parameter/col_plate = Color(0.27, 0.25, 0.24, 1)
+shader_parameter/col_dark = Color(0.09, 0.08, 0.08, 1)
+shader_parameter/col_rust = Color(0.36, 0.19, 0.1, 1)
+shader_parameter/col_stripe = Color(0.85, 0.62, 0.12, 1)
+shader_parameter/plate_width = 64.0
+shader_parameter/plate_depth = 30.0
+shader_parameter/hazard_edge = true
+shader_parameter/girder = true
+shader_parameter/rust_amount = 0.35
+
+[sub_resource type="ShaderMaterial" id="M_WallDark"]
+shader = ExtResource("fx_sh_wall")
+shader_parameter/pixel_size = 2.0
+shader_parameter/col_seam = Color(0.045, 0.04, 0.05, 1)
+shader_parameter/col_base = Color(0.07, 0.065, 0.075, 1)
+shader_parameter/col_light = Color(0.11, 0.105, 0.12, 1)
+shader_parameter/col_rust = Color(0.26, 0.14, 0.08, 1)
+shader_parameter/col_pipe = Color(0.21, 0.23, 0.25, 1)
+shader_parameter/col_stripe = Color(0.42, 0.3, 0.08, 1)
+shader_parameter/panel_size = Vector2(48, 96)
+shader_parameter/column_spacing = 9999.0
+shader_parameter/column_width = 0.0
+shader_parameter/pipe_y1 = -99999.0
+shader_parameter/pipe_y2 = -99999.0
+shader_parameter/pipe_radius = 9.0
+shader_parameter/stripe_y = -99999.0
+shader_parameter/stripe_height = 18.0
+shader_parameter/gloom_y = 200.0
+shader_parameter/gloom_length = 300.0
+shader_parameter/rust_amount = 0.2
+
+[sub_resource type="ShaderMaterial" id="M_Beam0"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 1.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam1"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 4.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam2"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 7.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam3"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.12
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.03
+shader_parameter/seed = 10.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam4"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 13.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam5"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 16.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Beam6"]
+shader = ExtResource("fx_sh_beam")
+shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
+shader_parameter/intensity = 0.24
+shader_parameter/top_width = 0.12
+shader_parameter/bottom_width = 0.95
+shader_parameter/falloff = 1.4
+shader_parameter/rect_size = Vector2(240, 250)
+shader_parameter/pixel_size = 2.0
+shader_parameter/flicker_amount = 0.06
+shader_parameter/flicker_speed = 6.0
+shader_parameter/dropout_chance = 0.006
+shader_parameter/seed = 19.0
+shader_parameter/dust_density = 0.012
+
+[sub_resource type="ShaderMaterial" id="M_Post"]
+shader = ExtResource("fx_sh_post")
+shader_parameter/vignette_strength = 0.55
+shader_parameter/vignette_radius = 0.78
+shader_parameter/shadow_tint = Color(0.1, 0.14, 0.2, 1)
+shader_parameter/highlight_tint = Color(1, 0.86, 0.66, 1)
+shader_parameter/grade_amount = 0.55
+shader_parameter/contrast = 1.12
+shader_parameter/saturation = 0.92
+shader_parameter/aberration = 0.0014
+shader_parameter/grain_amount = 0.04
+shader_parameter/grain_pixel = 3.0
+shader_parameter/scanline_amount = 0.035
+
+[sub_resource type="ShaderMaterial" id="M_Balcony"]
+shader = ExtResource("fx_sh_floor")
+shader_parameter/pixel_size = 2.0
+shader_parameter/col_top = Color(0.55, 0.55, 0.58, 1)
+shader_parameter/col_plate = Color(0.24, 0.24, 0.27, 1)
+shader_parameter/col_dark = Color(0.09, 0.08, 0.08, 1)
+shader_parameter/col_rust = Color(0.36, 0.19, 0.1, 1)
+shader_parameter/col_stripe = Color(0.85, 0.62, 0.12, 1)
+shader_parameter/plate_width = 48.0
+shader_parameter/plate_depth = 10.0
+shader_parameter/hazard_edge = true
+shader_parameter/girder = true
+shader_parameter/rust_amount = 0.35
 
 [sub_resource type="AtlasTexture" id="eb_close_0"]
 atlas = ExtResource("22_ebc")
@@ -702,14 +891,6 @@ region = Rect2(308, 0, 44, 35)
 atlas = ExtResource("26_pdown")
 region = Rect2(352, 0, 44, 35)
 
-[sub_resource type="AtlasTexture" id="pdown_9"]
-atlas = ExtResource("26_pdown")
-region = Rect2(396, 0, 44, 35)
-
-[sub_resource type="AtlasTexture" id="pdown_10"]
-atlas = ExtResource("26_pdown")
-region = Rect2(440, 0, 44, 35)
-
 [sub_resource type="SpriteFrames" id="SF_press"]
 animations = [{
 "frames": [{
@@ -740,7 +921,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("pdown_8")
 }],
-"loop": false,
+"loop": 0,
 "name": &"press_down",
 "speed": 22.0
 }, {
@@ -772,145 +953,13 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("pdown_0")
 }],
-"loop": false,
+"loop": 0,
 "name": &"press_up",
 "speed": 15.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stopzone"]
 size = Vector2(40, 40)
-
-[sub_resource type="ShaderMaterial" id="M_Wall"]
-shader = ExtResource("fx_sh_wall")
-shader_parameter/pixel_size = 2.0
-shader_parameter/panel_size = Vector2(64, 48)
-shader_parameter/column_spacing = 400.0
-shader_parameter/column_width = 22.0
-shader_parameter/pipe_y1 = 150.0
-shader_parameter/pipe_y2 = 196.0
-shader_parameter/pipe_radius = 7.0
-shader_parameter/stripe_y = 232.0
-shader_parameter/stripe_height = 12.0
-shader_parameter/gloom_y = 150.0
-shader_parameter/gloom_length = 320.0
-shader_parameter/col_base = Color(0.12, 0.115, 0.13, 1.0)
-shader_parameter/col_light = Color(0.19, 0.185, 0.2, 1.0)
-shader_parameter/col_rust = Color(0.27, 0.15, 0.09, 1.0)
-shader_parameter/rust_amount = 0.4
-
-[sub_resource type="ShaderMaterial" id="M_WallDark"]
-shader = ExtResource("fx_sh_wall")
-shader_parameter/pixel_size = 2.0
-shader_parameter/panel_size = Vector2(48, 96)
-shader_parameter/column_spacing = 9999.0
-shader_parameter/column_width = 0.0
-shader_parameter/gloom_y = 200.0
-shader_parameter/gloom_length = 300.0
-shader_parameter/col_base = Color(0.07, 0.065, 0.075, 1.0)
-shader_parameter/col_light = Color(0.11, 0.105, 0.12, 1.0)
-shader_parameter/rust_amount = 0.2
-
-[sub_resource type="ShaderMaterial" id="M_Floor"]
-shader = ExtResource("fx_sh_floor")
-shader_parameter/pixel_size = 2.0
-shader_parameter/plate_width = 64.0
-shader_parameter/plate_depth = 30.0
-shader_parameter/hazard_edge = true
-shader_parameter/col_plate = Color(0.27, 0.25, 0.24, 1.0)
-shader_parameter/col_top = Color(0.58, 0.55, 0.5, 1.0)
-
-[sub_resource type="ShaderMaterial" id="M_Balcony"]
-shader = ExtResource("fx_sh_floor")
-shader_parameter/pixel_size = 2.0
-shader_parameter/plate_width = 48.0
-shader_parameter/plate_depth = 10.0
-shader_parameter/hazard_edge = true
-shader_parameter/col_plate = Color(0.24, 0.24, 0.27, 1.0)
-shader_parameter/col_top = Color(0.55, 0.55, 0.58, 1.0)
-
-[sub_resource type="ShaderMaterial" id="M_Post"]
-shader = ExtResource("fx_sh_post")
-shader_parameter/vignette_strength = 0.55
-shader_parameter/grade_amount = 0.55
-shader_parameter/grain_amount = 0.04
-shader_parameter/aberration = 0.0014
-
-[sub_resource type="ShaderMaterial" id="M_Beam0"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 1.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
-
-[sub_resource type="ShaderMaterial" id="M_Beam1"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 4.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
-
-[sub_resource type="ShaderMaterial" id="M_Beam2"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 7.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
-
-[sub_resource type="ShaderMaterial" id="M_Beam3"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 10.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.12
-shader_parameter/dropout_chance = 0.03
-
-[sub_resource type="ShaderMaterial" id="M_Beam4"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 13.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
-
-[sub_resource type="ShaderMaterial" id="M_Beam5"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 16.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
-
-[sub_resource type="ShaderMaterial" id="M_Beam6"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/rect_size = Vector2(240, 250)
-shader_parameter/pixel_size = 2.0
-shader_parameter/intensity = 0.24
-shader_parameter/seed = 19.0
-shader_parameter/top_width = 0.12
-shader_parameter/bottom_width = 0.95
-shader_parameter/flicker_amount = 0.06
-shader_parameter/dropout_chance = 0.006
 
 [node name="Act2FactoryLevel" type="Node2D" unique_id=1891776122]
 script = ExtResource("2_main")
@@ -940,7 +989,7 @@ offset_bottom = 900.0
 mouse_filter = 2
 
 [node name="Lighting" type="CanvasModulate" parent="." unique_id=960000001]
-color = Color(0.47, 0.46, 0.54, 1.0)
+color = Color(0.47, 0.46, 0.54, 1)
 
 [node name="Decor" type="Node2D" parent="." unique_id=960000002]
 z_index = -6
@@ -952,7 +1001,6 @@ offset_top = -2000.0
 offset_right = -420.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="BulkheadRight" type="ColorRect" parent="Decor" unique_id=960000004]
 material = SubResource("M_WallDark")
@@ -961,7 +1009,6 @@ offset_top = -2000.0
 offset_right = 4000.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="BulkheadLeftEdge" type="ColorRect" parent="Decor" unique_id=960000005]
 offset_left = -426.0
@@ -969,7 +1016,7 @@ offset_top = -2000.0
 offset_right = -414.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1.0)
+color = Color(0.05, 0.05, 0.06, 1)
 
 [node name="BulkheadRightEdge" type="ColorRect" parent="Decor" unique_id=960000006]
 offset_left = 1614.0
@@ -977,7 +1024,7 @@ offset_top = -2000.0
 offset_right = 1626.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1.0)
+color = Color(0.05, 0.05, 0.06, 1)
 
 [node name="ElevatorFrame" type="ColorRect" parent="Decor" unique_id=960000007]
 offset_left = -350.0
@@ -985,7 +1032,7 @@ offset_top = 258.0
 offset_right = -230.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.16, 0.16, 0.19, 1.0)
+color = Color(0.16, 0.16, 0.19, 1)
 
 [node name="ElevatorFrameInner" type="ColorRect" parent="Decor" unique_id=960000008]
 offset_left = -344.0
@@ -993,7 +1040,7 @@ offset_top = 264.0
 offset_right = -236.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.05, 0.05, 0.065, 1.0)
+color = Color(0.05, 0.05, 0.065, 1)
 
 [node name="ElevatorStripe" type="ColorRect" parent="Decor" unique_id=960000009]
 offset_left = -350.0
@@ -1001,7 +1048,7 @@ offset_top = 252.0
 offset_right = -230.0
 offset_bottom = 258.0
 mouse_filter = 2
-color = Color(0.85, 0.62, 0.12, 1.0)
+color = Color(0.85, 0.62, 0.12, 1)
 
 [node name="MaintenanceFrame" type="ColorRect" parent="Decor" unique_id=960000010]
 offset_left = 1176.0
@@ -1009,7 +1056,7 @@ offset_top = 264.0
 offset_right = 1284.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.17, 0.15, 0.15, 1.0)
+color = Color(0.17, 0.15, 0.15, 1)
 
 [node name="MaintenanceDoor" type="Sprite2D" parent="Decor" unique_id=960000011]
 position = Vector2(1230, 326)
@@ -1022,9 +1069,9 @@ scale = Vector2(2, 2)
 texture = ExtResource("fx_tx_walllamp")
 
 [node name="ElevatorLamp" type="Sprite2D" parent="Decor" unique_id=960000013]
+modulate = Color(0.55, 1, 0.6, 1)
 position = Vector2(-290, 246)
 scale = Vector2(2, 2)
-modulate = Color(0.55, 1, 0.6, 1.0)
 texture = ExtResource("fx_tx_walllamp")
 
 [node name="ClockPlate" type="ColorRect" parent="Decor" unique_id=960000014]
@@ -1033,7 +1080,7 @@ offset_top = 72.0
 offset_right = 604.0
 offset_bottom = 128.0
 mouse_filter = 2
-color = Color(0.1, 0.1, 0.11, 1.0)
+color = Color(0.1, 0.1, 0.11, 1)
 
 [node name="WallClock" type="Sprite2D" parent="Decor" unique_id=960000015]
 position = Vector2(576, 100)
@@ -1047,7 +1094,7 @@ offset_top = 70.0
 offset_right = 1210.0
 offset_bottom = 74.0
 mouse_filter = 2
-color = Color(0.36, 0.36, 0.4, 1.0)
+color = Color(0.36, 0.36, 0.4, 1)
 
 [node name="BalconyPost0" type="ColorRect" parent="Decor" unique_id=960000017]
 z_index = 7
@@ -1056,7 +1103,7 @@ offset_top = 74.0
 offset_right = 895.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost1" type="ColorRect" parent="Decor" unique_id=960000018]
 z_index = 7
@@ -1065,7 +1112,7 @@ offset_top = 74.0
 offset_right = 934.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost2" type="ColorRect" parent="Decor" unique_id=960000019]
 z_index = 7
@@ -1074,7 +1121,7 @@ offset_top = 74.0
 offset_right = 973.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost3" type="ColorRect" parent="Decor" unique_id=960000020]
 z_index = 7
@@ -1083,7 +1130,7 @@ offset_top = 74.0
 offset_right = 1012.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost4" type="ColorRect" parent="Decor" unique_id=960000021]
 z_index = 7
@@ -1092,7 +1139,7 @@ offset_top = 74.0
 offset_right = 1051.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost5" type="ColorRect" parent="Decor" unique_id=960000022]
 z_index = 7
@@ -1101,7 +1148,7 @@ offset_top = 74.0
 offset_right = 1090.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost6" type="ColorRect" parent="Decor" unique_id=960000023]
 z_index = 7
@@ -1110,7 +1157,7 @@ offset_top = 74.0
 offset_right = 1129.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost7" type="ColorRect" parent="Decor" unique_id=960000024]
 z_index = 7
@@ -1119,7 +1166,7 @@ offset_top = 74.0
 offset_right = 1168.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyPost8" type="ColorRect" parent="Decor" unique_id=960000025]
 z_index = 7
@@ -1128,7 +1175,7 @@ offset_top = 74.0
 offset_right = 1207.0
 offset_bottom = 96.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconyMidRail" type="ColorRect" parent="Decor" unique_id=960000026]
 z_index = 7
@@ -1137,7 +1184,7 @@ offset_top = 84.0
 offset_right = 1210.0
 offset_bottom = 86.0
 mouse_filter = 2
-color = Color(0.22, 0.22, 0.25, 1.0)
+color = Color(0.22, 0.22, 0.25, 1)
 
 [node name="BalconySupport0" type="ColorRect" parent="Decor" unique_id=960000027]
 offset_left = 904.0
@@ -1145,7 +1192,7 @@ offset_top = 124.0
 offset_right = 914.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.13, 0.13, 0.15, 1.0)
+color = Color(0.13, 0.13, 0.15, 1)
 
 [node name="BalconySupportHL0" type="ColorRect" parent="Decor" unique_id=960000028]
 offset_left = 906.0
@@ -1153,7 +1200,7 @@ offset_top = 124.0
 offset_right = 908.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.24, 0.24, 0.27, 1.0)
+color = Color(0.24, 0.24, 0.27, 1)
 
 [node name="BalconySupport1" type="ColorRect" parent="Decor" unique_id=960000029]
 offset_left = 1188.0
@@ -1161,7 +1208,7 @@ offset_top = 124.0
 offset_right = 1198.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.13, 0.13, 0.15, 1.0)
+color = Color(0.13, 0.13, 0.15, 1)
 
 [node name="BalconySupportHL1" type="ColorRect" parent="Decor" unique_id=960000030]
 offset_left = 1190.0
@@ -1169,7 +1216,7 @@ offset_top = 124.0
 offset_right = 1192.0
 offset_bottom = 380.0
 mouse_filter = 2
-color = Color(0.24, 0.24, 0.27, 1.0)
+color = Color(0.24, 0.24, 0.27, 1)
 
 [node name="LampCable0" type="ColorRect" parent="Decor" unique_id=960000031]
 offset_left = -161.0
@@ -1177,10 +1224,88 @@ offset_top = -400.0
 offset_right = -159.0
 offset_bottom = 128.0
 mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
+color = Color(0.06, 0.06, 0.07, 1)
 
 [node name="Lamp0" type="Sprite2D" parent="Decor" unique_id=960000032]
 position = Vector2(-160, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable1" type="ColorRect" parent="Decor" unique_id=960000035]
+offset_left = 119.0
+offset_top = -400.0
+offset_right = 121.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp1" type="Sprite2D" parent="Decor" unique_id=960000036]
+position = Vector2(120, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable2" type="ColorRect" parent="Decor" unique_id=960000039]
+offset_left = 399.0
+offset_top = -400.0
+offset_right = 401.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp2" type="Sprite2D" parent="Decor" unique_id=960000040]
+position = Vector2(400, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable3" type="ColorRect" parent="Decor" unique_id=960000043]
+offset_left = 679.0
+offset_top = -400.0
+offset_right = 681.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp3" type="Sprite2D" parent="Decor" unique_id=960000044]
+position = Vector2(680, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable4" type="ColorRect" parent="Decor" unique_id=960000047]
+offset_left = 959.0
+offset_top = -400.0
+offset_right = 961.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp4" type="Sprite2D" parent="Decor" unique_id=960000048]
+position = Vector2(960, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable5" type="ColorRect" parent="Decor" unique_id=960000051]
+offset_left = 1239.0
+offset_top = -400.0
+offset_right = 1241.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp5" type="Sprite2D" parent="Decor" unique_id=960000052]
+position = Vector2(1240, 136)
+scale = Vector2(2, 2)
+texture = ExtResource("fx_tx_lamp")
+
+[node name="LampCable6" type="ColorRect" parent="Decor" unique_id=960000055]
+offset_left = 1499.0
+offset_top = -400.0
+offset_right = 1501.0
+offset_bottom = 128.0
+mouse_filter = 2
+color = Color(0.06, 0.06, 0.07, 1)
+
+[node name="Lamp6" type="Sprite2D" parent="Decor" unique_id=960000056]
+position = Vector2(1500, 136)
 scale = Vector2(2, 2)
 texture = ExtResource("fx_tx_lamp")
 
@@ -1192,61 +1317,30 @@ offset_top = 144.0
 offset_right = -40.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight0" type="PointLight2D" parent="." unique_id=960000034]
 position = Vector2(-160, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable1" type="ColorRect" parent="Decor" unique_id=960000035]
-offset_left = 119.0
-offset_top = -400.0
-offset_right = 121.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp1" type="Sprite2D" parent="Decor" unique_id=960000036]
-position = Vector2(120, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam1" type="ColorRect" parent="." unique_id=960000037]
 z_index = 26
 material = SubResource("M_Beam1")
-offset_left = 0.0
 offset_top = 144.0
 offset_right = 240.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight1" type="PointLight2D" parent="." unique_id=960000038]
 position = Vector2(120, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable2" type="ColorRect" parent="Decor" unique_id=960000039]
-offset_left = 399.0
-offset_top = -400.0
-offset_right = 401.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp2" type="Sprite2D" parent="Decor" unique_id=960000040]
-position = Vector2(400, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam2" type="ColorRect" parent="." unique_id=960000041]
 z_index = 26
@@ -1256,29 +1350,14 @@ offset_top = 144.0
 offset_right = 520.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight2" type="PointLight2D" parent="." unique_id=960000042]
 position = Vector2(400, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable3" type="ColorRect" parent="Decor" unique_id=960000043]
-offset_left = 679.0
-offset_top = -400.0
-offset_right = 681.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp3" type="Sprite2D" parent="Decor" unique_id=960000044]
-position = Vector2(680, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam3" type="ColorRect" parent="." unique_id=960000045]
 z_index = 26
@@ -1288,29 +1367,15 @@ offset_top = 144.0
 offset_right = 800.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight3" type="PointLight2D" parent="." unique_id=960000046]
 position = Vector2(680, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
+color = Color(1, 0.8, 0.58, 1)
 energy = 0.8
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable4" type="ColorRect" parent="Decor" unique_id=960000047]
-offset_left = 959.0
-offset_top = -400.0
-offset_right = 961.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp4" type="Sprite2D" parent="Decor" unique_id=960000048]
-position = Vector2(960, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam4" type="ColorRect" parent="." unique_id=960000049]
 z_index = 26
@@ -1320,29 +1385,14 @@ offset_top = 144.0
 offset_right = 1080.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight4" type="PointLight2D" parent="." unique_id=960000050]
 position = Vector2(960, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable5" type="ColorRect" parent="Decor" unique_id=960000051]
-offset_left = 1239.0
-offset_top = -400.0
-offset_right = 1241.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp5" type="Sprite2D" parent="Decor" unique_id=960000052]
-position = Vector2(1240, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam5" type="ColorRect" parent="." unique_id=960000053]
 z_index = 26
@@ -1352,29 +1402,14 @@ offset_top = 144.0
 offset_right = 1360.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight5" type="PointLight2D" parent="." unique_id=960000054]
 position = Vector2(1240, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
-
-[node name="LampCable6" type="ColorRect" parent="Decor" unique_id=960000055]
-offset_left = 1499.0
-offset_top = -400.0
-offset_right = 1501.0
-offset_bottom = 128.0
-mouse_filter = 2
-color = Color(0.06, 0.06, 0.07, 1.0)
-
-[node name="Lamp6" type="Sprite2D" parent="Decor" unique_id=960000056]
-position = Vector2(1500, 136)
-scale = Vector2(2, 2)
-texture = ExtResource("fx_tx_lamp")
 
 [node name="LampBeam6" type="ColorRect" parent="." unique_id=960000057]
 z_index = 26
@@ -1384,27 +1419,25 @@ offset_top = 144.0
 offset_right = 1620.0
 offset_bottom = 394.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="LampLight6" type="PointLight2D" parent="." unique_id=960000058]
 position = Vector2(1500, 140)
 rotation = 1.5707964
-color = Color(1, 0.8, 0.58, 1.0)
-energy = 1.0
+color = Color(1, 0.8, 0.58, 1)
 texture = ExtResource("fx_tx_cone")
 offset = Vector2(150, 0)
 texture_scale = 1.5
 
 [node name="ElevatorGlow" type="PointLight2D" parent="." unique_id=960000059]
 position = Vector2(-290, 248)
-color = Color(0.4, 1, 0.5, 1.0)
+color = Color(0.4, 1, 0.5, 1)
 energy = 0.7
 texture = ExtResource("fx_tx_round")
 texture_scale = 0.35
 
 [node name="MaintenanceGlow" type="PointLight2D" parent="." unique_id=960000060]
 position = Vector2(1230, 260)
-color = Color(1, 0.65, 0.3, 1.0)
+color = Color(1, 0.65, 0.3, 1)
 energy = 0.8
 texture = ExtResource("fx_tx_round")
 texture_scale = 0.4
@@ -1412,7 +1445,7 @@ texture_scale = 0.4
 [node name="SniperSpot" type="PointLight2D" parent="." unique_id=960000061]
 position = Vector2(1030, 72)
 rotation = 2.15
-color = Color(1, 0.35, 0.3, 1.0)
+color = Color(1, 0.35, 0.3, 1)
 energy = 0.55
 texture = ExtResource("fx_tx_spot")
 offset = Vector2(128, 0)
@@ -1426,7 +1459,6 @@ offset_top = -10000.0
 offset_right = 10000.0
 offset_bottom = 10000.0
 mouse_filter = 2
-color = Color(1, 1, 1, 1.0)
 
 [node name="Elevator" type="ColorRect" parent="." unique_id=1353459969]
 offset_left = -320.0
@@ -1560,34 +1592,34 @@ texture = ExtResource("3_conveyor")
 [node name="Fish1" type="AnimatedSprite2D" parent="NPCParent" unique_id=1789915601]
 z_index = 25
 position = Vector2(406.5, 344)
-flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
+flip_h = true
 
 [node name="Fish2" type="AnimatedSprite2D" parent="NPCParent" unique_id=1235570946]
 z_index = 25
 position = Vector2(576.5, 344)
-flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
+flip_h = true
 
 [node name="Fish3" type="AnimatedSprite2D" parent="NPCParent" unique_id=2003939102]
 z_index = 25
 position = Vector2(746.5, 344)
-flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
+flip_h = true
 
 [node name="Fish4" type="AnimatedSprite2D" parent="NPCParent" unique_id=523706984]
 z_index = 25
 position = Vector2(916.5, 344)
-flip_h = true
 sprite_frames = SubResource("SpriteFrames_idle")
 animation = &"idle"
 autoplay = "idle"
+flip_h = true
 
 [node name="Mecha_Fish" parent="." unique_id=221706649 instance=ExtResource("4_vhxde")]
 position = Vector2(236.5, 350)

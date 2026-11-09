@@ -19,8 +19,8 @@ const ALL_STATIONS := [0, 1, 2, 3, 4]
 ## Achievements added after the menus were drawn: the menus build their rows from this list
 ## (copies of the last row). icon "" = no icon yet, a "?" badge is shown instead.
 const EXTRA := [
-	{"id": "chase", "name": "Погоня", "desc": "Пройти пролог", "icon": ""},
-	{"id": "handyman", "name": "Разнорабочий", "desc": "Поработать на всех станках", "icon": ""},
+	{"id": "chase", "name": "Погоня", "desc": "Пройти пролог", "icon": "Menu_AchivementMenu_Icon_Chase.png"},
+	{"id": "handyman", "name": "Разнорабочий", "desc": "Поработать на всех станках", "icon": "Menu_AchivementMenu_Icon_Handyman.png"},
 ]
 
 const TITLES := {
@@ -80,6 +80,8 @@ const ICONS := {
 	"worker_of_month": "Menu_AchivementMenu_Icon_EmployeeOfTheMonth.png",
 	"scout": "Menu_AchivementMenu_Icon_Scout.png",
 	"freedom": "Menu_AchivementMenu_Icon_Freedom.png",
+	"chase": "Menu_AchivementMenu_Icon_Chase.png",
+	"handyman": "Menu_AchivementMenu_Icon_Handyman.png",
 }
 const C_GOLD := Color(1.0, 0.78, 0.3)
 const POPUP_SCALE := 0.5

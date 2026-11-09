@@ -63,6 +63,7 @@ var unlocked_count: int = 0
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
+	call_deferred("_add_header")
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
 	
@@ -78,6 +79,7 @@ func _ready() -> void:
 		back_btn.pressed.connect(_on_back_button_pressed)
 	
 	_extra_rows = Achievements.build_extra_rows(get_node_or_null("AchievementsScroll/AchievementsList"), freedom_achievement)
+	_setup_icons()
 	total_achievements = Achievements.total_count()
 	_setup_progress_bar()
 	update_achievements()
@@ -206,14 +208,32 @@ func update_achievements() -> void:
 		progress_label.text = str(unlocked_count) + "/" + str(total_achievements)
 
 func _set_bright(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
-	if ach: ach.modulate = Color.WHITE
-	if icon: icon.modulate = Color.WHITE
+	if ach:
+		ach.modulate = Color.WHITE
+		for ch in ach.get_children():
+			if ch is CanvasItem:
+				ch.modulate = Color.WHITE
+	if icon:
+		icon.modulate = Color.WHITE
+		icon.set_meta("unlocked", true)
+		if icon.material is ShaderMaterial:
+			icon.material.set_shader_parameter("locked", 0.0)
+			icon.material.set_shader_parameter("ring", Color(1.0, 0.78, 0.3))
 	if check: check.visible = true
 	if name_label: name_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2))
 
 func _set_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: Label) -> void:
-	if ach: ach.modulate = Color(0.4, 0.4, 0.4, 1.0)
-	if icon: icon.modulate = Color(0.4, 0.4, 0.4, 1.0)
+	if ach:
+		ach.modulate = Color.WHITE
+		for ch in ach.get_children():
+			if ch is CanvasItem and ch != icon:
+				ch.modulate = Color(0.4, 0.4, 0.4, 1.0)
+	if icon:
+		icon.modulate = Color.WHITE
+		icon.set_meta("unlocked", false)
+		if icon.material is ShaderMaterial:
+			icon.material.set_shader_parameter("locked", 1.0)
+			icon.material.set_shader_parameter("ring", Color(0.42, 0.44, 0.5))
 	if check: check.visible = false
 	if name_label: name_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
@@ -293,3 +313,141 @@ func _make_menu_bubble() -> void:
 	alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 1.0)
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
+
+## A big title like in the pause menu instead of the small label.
+func _add_header() -> void:
+	var acc = MenuHeader.accent_for(self)
+	var old_c := -1.0
+	for n in ["Title", "TitleLabel"]:
+		var t = get_node_or_null(n) as Control
+		if t:
+			t.visible = false
+			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
+	MenuHeader.attach(self, "ДОСТИЖЕНИЯ", acc, 16.0, 26, 180.0)
+	var pb = get_node_or_null("ProgressBar") as Control
+	var pl2 = get_node_or_null("ProgressLabel") as Control
+	for c in [pb, pl2]:
+		if c:
+			c.position.y = 64.0
+			c.size.y = 26.0
+	for n in ["DividingLine1", "DividingLine2"]:
+		var d = get_node_or_null(n) as ColorRect
+		if d:
+			d.color = Color(acc, 0.35)
+
+
+# ---------------------------------------------------------------- icons
+## Every achievement gets its pixel icon (x2, crisp) on a round badge: unlocked - a gold
+## ring with a soft breathing glow and two sparkles running around it; locked - a dim ring
+## (no extra marks: grey is enough).
+var _badges: Array = []
+
+const ICON_SHADER := """
+shader_type canvas_item;
+// round pixel badge: the 20x20 icon cut to a circle on its own pixel grid, a 1-texel ring
+// (gold when unlocked, steel when locked), locked ones grey and dim
+uniform float locked = 0.0;
+uniform vec4 ring : source_color = vec4(1.0, 0.78, 0.3, 1.0);
+void fragment() {
+	vec2 n = vec2(textureSize(TEXTURE, 0));
+	vec2 px = floor(UV * n) + 0.5;
+	float d = length(px - n * 0.5);
+	float r = n.x * 0.5;
+	vec4 c = texture(TEXTURE, UV);
+	float g = dot(c.rgb, vec3(0.3, 0.59, 0.11));
+	c.rgb = mix(c.rgb, vec3(g) * vec3(0.75, 0.78, 0.9) * 0.7, locked);
+	if (d >= r) { c.a = 0.0; }
+	else if (d >= r - 1.0) { c = ring; }
+	else if (d >= r - 2.0) { c.rgb *= 0.55; }   // a dark inner edge under the ring
+	COLOR = c;
+}
+"""
+var _icon_shader: Shader = null
+
+func _setup_icons() -> void:
+	var map = [[coffee_icon, "coffee"], [flashback_icon, "flashback"], [pop_star_icon, "pop_star"],
+		[rebel_icon, "rebel"], [acrobat_icon, "acrobat"], [worker_icon, "worker_of_month"],
+		[scout_icon, "scout"], [freedom_icon, "freedom"]]
+	for r in _extra_rows:
+		map.append([r["icon"], r["id"]])
+	for m in map:
+		_style_icon(m[0], m[1])
+
+func _style_icon(icon: TextureRect, id: String) -> void:
+	if icon == null:
+		return
+	var p = Achievements.ICON_DIR + String(Achievements.ICONS.get(id, ""))
+	if Achievements.ICONS.has(id) and ResourceLoader.exists(p):
+		icon.texture = load(p)
+		var q = icon.get_node_or_null("NoIcon")
+		if q:
+			q.queue_free()
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if _icon_shader == null:
+		_icon_shader = Shader.new()
+		_icon_shader.code = ICON_SHADER
+	if not (icon.material is ShaderMaterial):
+		var m = ShaderMaterial.new()
+		m.shader = _icon_shader
+		icon.material = m
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# inside the banner, on its left; the texts move right to make room
+	icon.position = Vector2(78, 15)
+	icon.size = Vector2(44, 44)
+	var row = icon.get_parent()
+	if row and not row.has_meta("text_moved"):
+		row.set_meta("text_moved", true)
+		for n in ["NameLabel", "DescLabel"]:
+			var l = row.get_node_or_null(n) as Control
+			if l:
+				l.offset_left += 48.0
+	icon.pivot_offset = icon.size * 0.5
+	if icon.get_node_or_null("Badge") == null:
+		var back = Control.new()
+		back.name = "Badge"
+		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		back.show_behind_parent = true
+		back.size = icon.size
+		back.draw.connect(_draw_badge.bind(back, icon, false))
+		icon.add_child(back)
+		var front = Control.new()
+		front.name = "BadgeFront"
+		front.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		front.size = icon.size
+		front.draw.connect(_draw_badge.bind(front, icon, true))
+		icon.add_child(front)
+		_badges.append(back)
+		_badges.append(front)
+	# a little pop when the row comes into view, unlocked ones a bit later and bouncier
+	icon.scale = Vector2(0.6, 0.6)
+	var tw = create_tween()
+	tw.tween_interval(0.05 * _badges.size() / 2.0)
+	tw.tween_property(icon, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _draw_badge(c: Control, icon: TextureRect, front: bool) -> void:
+	var on = bool(icon.get_meta("unlocked", false))
+	var t = Time.get_ticks_msec() / 1000.0
+	var ctr = c.size * 0.5
+	var gold = Color(1.0, 0.78, 0.3)
+	if not front:
+		if on:
+			var k = 0.5 + 0.5 * sin(t * 2.2 + icon.get_instance_id() % 7)
+			for i in range(4):
+				c.draw_circle(ctr, 26.0 + i * 2.5, Color(gold, (0.10 - i * 0.022) * (0.6 + 0.6 * k)))
+		# a soft drop shadow under the round badge
+		c.draw_circle(ctr + Vector2(2, 3), 22.5, Color(0, 0, 0, 0.45))
+		return
+	# ring
+	if on:
+		for s in range(2):
+			var a = t * 1.3 + s * PI
+			var p = (ctr + Vector2.from_angle(a) * 22.0).round()
+			c.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), Color(1, 0.95, 0.75))
+			c.draw_rect(Rect2(p - Vector2(3, 0), Vector2(7, 1)), Color(1, 0.9, 0.6, 0.6))
+			c.draw_rect(Rect2(p - Vector2(0, 3), Vector2(1, 7)), Color(1, 0.9, 0.6, 0.6))
+
+func _process(_delta: float) -> void:
+	for b in _badges:
+		if is_instance_valid(b):
+			b.queue_redraw()

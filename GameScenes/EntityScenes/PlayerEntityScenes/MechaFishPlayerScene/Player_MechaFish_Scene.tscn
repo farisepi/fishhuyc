@@ -1308,13 +1308,13 @@ offset_right = 1157.0
 offset_bottom = 652.0
 
 [node name="SuitIcon" type="Sprite2D" parent="GUI/UI_Container" unique_id=10592403]
-position = Vector2(66.0, 144.0)
+position = Vector2(66, 144)
 scale = Vector2(3.2, 3.2976)
 texture = ExtResource("13_7xaar")
 
 [node name="HP_Bar" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1711761751]
 position = Vector2(145.971, 61.6)
-scale = Vector2(4.0, 4.82)
+scale = Vector2(4, 4.82)
 sprite_frames = SubResource("SpriteFrames_bhunq")
 animation = &"HP_Bar"
 frame_progress = 0.23424393
@@ -1323,7 +1323,7 @@ frame_progress = 0.23424393
 
 [node name="Hearts" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1346073706]
 position = Vector2(145.971, 61.64)
-scale = Vector2(4.0, 4.82)
+scale = Vector2(4, 4.82)
 sprite_frames = SubResource("SpriteFrames_riqys")
 animation = &"Hp"
 
@@ -1331,7 +1331,7 @@ animation = &"Hp"
 
 [node name="Stamina" type="AnimatedSprite2D" parent="GUI/UI_Container" unique_id=1544490365]
 position = Vector2(146.002, 63.086)
-scale = Vector2(4.0, 4.82)
+scale = Vector2(4, 4.82)
 sprite_frames = SubResource("SpriteFrames_sn0t7")
 animation = &"Stamina"
 frame_progress = 0.3426

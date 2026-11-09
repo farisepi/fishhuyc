@@ -24,6 +24,7 @@ var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEnt
 
 
 func _ready() -> void:
+	call_deferred("_add_header")
 	custom_font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	if custom_font:
 		custom_font.fixed_size = 10
@@ -118,6 +119,7 @@ func _on_slot_pressed(index: int):
 			Global.shards_blue = 0
 			Global.shards_green = 0
 			Global.shards_cyan = 0
+			DirAccess.remove_absolute("user://tutorial_%d.cfg" % index)   # a new save: the hints again
 			Global.autosave(Global.SCENE_AQUARIUM)
 			var new_slot = grid.get_child(index) as Button
 			if new_slot: _update_slot_text(new_slot, index)
@@ -332,6 +334,7 @@ func _load_game(index: int):
 func _delete_save(index: int):
 	var save_path = SAVE_DIR + "save_" + str(index) + ".cfg"
 	DirAccess.remove_absolute(save_path)
+	DirAccess.remove_absolute("user://tutorial_%d.cfg" % index)
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
 
@@ -367,3 +370,18 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		else:
 			_on_back_pressed()
+
+## A big title like in the pause menu instead of the small label.
+func _add_header() -> void:
+	var acc = MenuHeader.accent_for(self)
+	var old_c := -1.0
+	for n in ["Title", "TitleLabel"]:
+		var t = get_node_or_null(n) as Control
+		if t:
+			t.visible = false
+			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
+	MenuHeader.attach(self, "СОХРАНЕНИЯ", acc, (old_c - 23.0) if old_c >= 0.0 else 30.0, 32)
+	for n in ["DividingLine1", "DividingLine2"]:
+		var d = get_node_or_null(n) as ColorRect
+		if d:
+			d.color = Color(acc, 0.35)

@@ -240,7 +240,157 @@ func _ready() -> void:
 ## every window size and fullscreen look the same, only bigger or smaller; other aspect
 ## ratios get black bars instead of a stretched or cut interface.
 const BASE_SIZE := Vector2i(1152, 648)
-const RESOLUTIONS: Array[Vector2i] = [Vector2i(1920, 1080), Vector2i(1280, 720), Vector2i(854, 480)]
+## All window sizes the game knows; only the ones that fit the screen are offered.
+const RES_CANDIDATES: Array[Vector2i] = [
+	Vector2i(3840, 2160), Vector2i(3200, 1800), Vector2i(2560, 1440), Vector2i(2304, 1296),
+	Vector2i(1920, 1080), Vector2i(1600, 900), Vector2i(1366, 768), Vector2i(1280, 720),
+	Vector2i(1152, 648), Vector2i(1024, 576), Vector2i(854, 480)]
+## the old fixed list (configs saved before used an index into it)
+const OLD_RESOLUTIONS: Array[Vector2i] = [Vector2i(1920, 1080), Vector2i(1280, 720), Vector2i(854, 480)]
+var RESOLUTIONS: Array[Vector2i] = []
+
+## The sizes for the current screen, biggest first (at least one).
+func get_resolutions() -> Array[Vector2i]:
+	var scr := _screen_size()
+	var out: Array[Vector2i] = []
+	for r in RES_CANDIDATES:
+		if scr.x <= 0 or (r.x <= scr.x and r.y <= scr.y):
+			out.append(r)
+	if out.is_empty():
+		out.append(Vector2i(854, 480))
+	RESOLUTIONS = out
+	return out
+
+func resolution_names() -> Array[String]:
+	var out: Array[String] = []
+	var scr := _screen_size()
+	for r in get_resolutions():
+		out.append("%dx%d%s" % [r.x, r.y, " ★" if r == scr else ""])
+	return out
+
+## The index (in get_resolutions()) of the size saved in the settings.
+func saved_resolution_index(config: ConfigFile) -> int:
+	var list = get_resolutions()
+	var want := Vector2i.ZERO
+	var s = String(config.get_value("graphics", "resolution_size", ""))
+	if "x" in s:
+		want = Vector2i(int(s.get_slice("x", 0)), int(s.get_slice("x", 1)))
+	elif config.has_section_key("graphics", "resolution"):
+		want = OLD_RESOLUTIONS[clampi(int(config.get_value("graphics", "resolution", 0)), 0, OLD_RESOLUTIONS.size() - 1)]
+	return _closest_resolution(want, list)
+
+func _closest_resolution(want: Vector2i, list: Array[Vector2i]) -> int:
+	if want == Vector2i.ZERO:
+		# nothing saved: the biggest one that leaves room for the taskbar
+		var us := _usable_size()
+		for i in range(list.size()):
+			if list[i].x <= us.x * 0.96 and list[i].y <= us.y * 0.92:
+				return i
+		return list.size() - 1
+	var best := 0
+	var best_d := INF
+	for i in range(list.size()):
+		var d = abs(list[i].x - want.x) + abs(list[i].y - want.y)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
+
+func resolution_size_text(index: int) -> String:
+	var list = RESOLUTIONS if not RESOLUTIONS.is_empty() else get_resolutions()
+	var r = list[clampi(index, 0, list.size() - 1)]
+	return "%dx%d" % [r.x, r.y]
+
+func _screen_size() -> Vector2i:
+	var w = get_window()
+	return DisplayServer.screen_get_size(w.current_screen if w else -1)
+
+func _usable_size() -> Vector2i:
+	var w = get_window()
+	var u = DisplayServer.screen_get_usable_rect(w.current_screen if w else -1).size
+	return u if u.x > 0 else _screen_size()
+
+## The refresh rate of the screen the window is on (60 if unknown).
+func screen_hz() -> float:
+	var w = get_window()
+	var hz = DisplayServer.screen_get_refresh_rate(w.current_screen if w else -1)
+	return hz if hz > 1.0 else 60.0
+
+var vsync_on: bool = true
+## frame-rate limit from the settings: 0 = the monitor's Hz, -1 = none, else that many FPS
+var fps_limit: int = 0
+
+## VSync on: frames follow the screen. VSync off: capped at the screen's own Hz (no
+## wasted frames above what the monitor can show, no stutter from a wrong fixed cap).
+func apply_frame_pacing() -> void:
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync_on else DisplayServer.VSYNC_DISABLED)
+	var hz = int(round(screen_hz()))
+	if fps_limit > 0:
+		Engine.max_fps = fps_limit if (not vsync_on or fps_limit < hz) else 0
+	elif fps_limit < 0:
+		Engine.max_fps = 0
+	else:
+		Engine.max_fps = 0 if vsync_on else hz
+
+func set_vsync(on: bool) -> void:
+	vsync_on = on
+	apply_frame_pacing()
+
+func is_fullscreen() -> bool:
+	var w = get_window()
+	return w != null and (w.mode == Window.MODE_FULLSCREEN or w.mode == Window.MODE_EXCLUSIVE_FULLSCREEN)
+
+## Fullscreen on the screen the window is on (borderless, the screen's own size and Hz).
+## Off: back to a normal window of the chosen size, centred.
+func set_fullscreen(on: bool, res_index: int = -1) -> void:
+	var w = get_window()
+	if w == null:
+		return
+	if on:
+		if not is_fullscreen():
+			w.borderless = false
+			w.mode = Window.MODE_FULLSCREEN
+	else:
+		if w.mode != Window.MODE_WINDOWED:
+			w.mode = Window.MODE_WINDOWED
+			w.borderless = false
+			# the OS needs a frame or two to leave fullscreen before the size sticks
+			await get_tree().process_frame
+			await get_tree().process_frame
+		if res_index < 0:
+			var cfg = ConfigFile.new()
+			cfg.load("user://settings.cfg")
+			res_index = saved_resolution_index(cfg)
+		apply_resolution(res_index)
+	apply_frame_pacing()
+
+## F11 / Alt+Enter: switch fullscreen anywhere and remember it.
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
+			get_viewport().set_input_as_handled()
+			var on = not is_fullscreen()
+			set_fullscreen(on)
+			var cfg = ConfigFile.new()
+			cfg.load("user://settings.cfg")
+			cfg.set_value("graphics", "fullscreen", on)
+			cfg.save("user://settings.cfg")
+			fullscreen_changed.emit(on)
+
+signal fullscreen_changed(on: bool)
+
+## The window moved to another monitor: follow its refresh rate.
+var _hz_check_t: float = 0.0
+var _last_screen: int = -1
+func _process(delta: float) -> void:
+	_hz_check_t += delta
+	if _hz_check_t < 1.0:
+		return
+	_hz_check_t = 0.0
+	var w = get_window()
+	if w and w.current_screen != _last_screen:
+		_last_screen = w.current_screen
+		apply_frame_pacing()
 
 func setup_scaling() -> void:
 	var w = get_window()
@@ -260,7 +410,10 @@ func apply_resolution(index: int) -> void:
 		return
 	if w.mode == Window.MODE_FULLSCREEN or w.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
 		return
-	var want: Vector2i = RESOLUTIONS[clampi(index, 0, RESOLUTIONS.size() - 1)]
+	if w.mode != Window.MODE_WINDOWED:
+		w.mode = Window.MODE_WINDOWED   # maximized / minimized: a real window first
+	var list = get_resolutions()
+	var want: Vector2i = list[clampi(index, 0, list.size() - 1)]
 	var usable: Vector2i = DisplayServer.screen_get_usable_rect(w.current_screen).size
 	if usable.x > 0 and usable.y > 0:
 		var k = min(1.0, min(float(usable.x) * 0.96 / want.x, float(usable.y) * 0.92 / want.y))
@@ -280,7 +433,8 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 			if is_dev_run():
 				_apply_dev_window()
 			else:
-				apply_resolution(0)
+				apply_resolution(_closest_resolution(Vector2i.ZERO, get_resolutions()))
+			apply_frame_pacing()
 		return
 	
 	_apply_audio_bus("Master", config.get_value("audio", "master_volume", 1.0))
@@ -299,22 +453,16 @@ func _apply_all_settings_from_config(apply_window: bool = true) -> void:
 	if not apply_window:
 		return
 	
-	var vsync_enabled = config.get_value("graphics", "vsync", true)
-	DisplayServer.window_set_vsync_mode(
-		DisplayServer.VSYNC_ENABLED if vsync_enabled else DisplayServer.VSYNC_DISABLED
-	)
+	vsync_on = bool(config.get_value("graphics", "vsync", true))
+	fps_limit = int(config.get_value("graphics", "fps_limit", 0))
+	apply_frame_pacing()
 	
 	var fullscreen = config.get_value("graphics", "fullscreen", false)
 	# started from the Godot editor (F5 / F6, debug run): always a normal window
 	if is_dev_run():
 		_apply_dev_window()
 		return
-	if fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-	
-	apply_resolution(int(config.get_value("graphics", "resolution", 0)))
+	set_fullscreen(bool(fullscreen), saved_resolution_index(config))
 
 
 ## The game was started from the editor (or is a debug build): no fullscreen, ever.

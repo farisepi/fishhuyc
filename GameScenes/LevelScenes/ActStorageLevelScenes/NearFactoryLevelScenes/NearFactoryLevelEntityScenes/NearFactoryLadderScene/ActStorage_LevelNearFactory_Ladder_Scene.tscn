@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://bot41jsp3sjpc"]
 
 [ext_resource type="Script" uid="uid://0xiya771qi81" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/NearFactoryLadderScript/ActSrorage_LevelNearFactory_Ladder_Script.gd" id="1_ladder"]
 [ext_resource type="Texture2D" uid="uid://cxc7fljchhsfq" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Ladder_Texture.png" id="2_tex"]
@@ -6,15 +6,14 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ladder"]
 size = Vector2(24, 63)
 
-[node name="Ladder" type="Area2D"]
+[node name="Ladder" type="Area2D" unique_id=1175068982]
 monitorable = false
 script = ExtResource("1_ladder")
-climb_speed = 120.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=499849624]
 shape = SubResource("RectangleShape2D_ladder")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1547026508]
 position = Vector2(0, 1)
 scale = Vector2(3, 3)
 texture = ExtResource("2_tex")

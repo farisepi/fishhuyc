@@ -1,6 +1,6 @@
 extends CanvasLayer
-## Small contextual tutorial hints - one at a time. Each hint is shown once (remembered in
-## user://tutorial.cfg), stays at least `min_time` and goes away when its condition is met
+## Small contextual tutorial hints - one at a time. Each hint is shown once (remembered per save slot in
+## user://tutorial_<slot>.cfg), stays at least `min_time` and goes away when its condition is met
 ## (a green "ГОТОВО" tick) or after `max_time`.
 ##
 ## Look: a compact card that slides in from the left edge (factory: under the HP bar; aquarium:
@@ -10,7 +10,8 @@ extends CanvasLayer
 ## The text is "TITLE|explanation" ("|" optional).
 
 const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
-const SAVE_PATH := "user://tutorial.cfg"
+## one file per save slot: every new save shows the hints again
+var SAVE_PATH: String = "user://tutorial.cfg"
 const CARD_W := 300.0
 const TITLE_SIZE := 15
 const BODY_SIZE := 12
@@ -37,6 +38,8 @@ var _shown_count := 0
 func _ready() -> void:
 	layer = 30
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	var slot = Global.save_slot if has_node("/root/Global") else 0
+	SAVE_PATH = "user://tutorial_%d.cfg" % slot
 	_cfg.load(SAVE_PATH)
 	_font = ResourceLoader.load(FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
 	if _font:
@@ -124,7 +127,8 @@ func _process(delta: float) -> void:
 	var e_out = out_k * out_k
 	_panel.modulate.a = min(e_in, 1.0 - e_out)
 	var base = _anchor_pos()
-	_panel.position = Vector2(round(base.x - (1.0 - e_in) * 40.0 - e_out * 40.0), round(base.y))
+	var sd = 1.0 if (style == "aquarium" and anchor.x < 0.0) else -1.0   # slides in from its own edge
+	_panel.position = Vector2(round(base.x + sd * ((1.0 - e_in) * 40.0 + e_out * 40.0)), round(base.y))
 	_panel.queue_redraw()
 
 
@@ -132,7 +136,8 @@ func _anchor_pos() -> Vector2:
 	if anchor.x >= 0.0:
 		return anchor
 	if style == "aquarium":
-		return Vector2(16, 16)
+		# bottom-right corner, out of the way of the fish and the lab
+		return Vector2(1152.0 - _panel.size.x - 16.0, 648.0 - _panel.size.y - 18.0)
 	return Vector2(16, 186)   # factory: under the suit / HP panel
 
 
