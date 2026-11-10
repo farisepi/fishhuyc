@@ -24,7 +24,10 @@ const INTRO_START_X: float = -1400.0
 const INTRO_FADE_X: float = -1100.0
 const INTRO_CAPTURE_X: float = -150.0
 const INTRO_FADE_TIME: float = 3.5
-const INTRO_RUN_TIME: float = 6.5
+const INTRO_RUN_TIME: float = 6.5     # больше не используется: рыба бежит с катсценной скоростью (run_speed * FL_FISH_SPEED_MULT)
+const INTRO_CAM_LEAD: float = 60.0    # камера чуть впереди рыбы, но погоня сзади остаётся в кадре
+const INTRO_CAM_ZOOM: float = 0.85    # как в катсцене с погрузчиком
+const INTRO_QTE_ZOOM: float = 0.92    # на захвате камера слегка наезжает на рыбу (сильнее — плашка E уходит под полосу)
 const ENEMY_MIN_GAP: float = 100.0
 const ENEMY_SPACING: float = 55.0
 const ENEMY_CATCHUP: float = 0.14
@@ -32,6 +35,7 @@ const FORKLIFT_PLAYER_TARGET_X: float = 4000.0
 const FORKLIFT_TARGET_X: float = 7500.0
 
 const CUTSCENE_BARS_HEIGHT: float = 140.0
+const CUTSCENE_CAM_DROP: float = 45.0   # насколько опускать камеру в катсценах, чтобы рыбу не резали полосы
 
 const DEATH_SCREEN_SCENE: PackedScene = preload("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn")
 
@@ -75,6 +79,7 @@ var _last_ticks: int = 0
 var _cam_base_offset: Vector2 = Vector2.ZERO
 var _cam_track: Node2D = null
 var _cam_track_offset: Vector2 = Vector2.ZERO
+var _intro_start_zoom: Vector2 = Vector2.ONE
 var _aim_active: bool = false
 var _aim_width: float = 10.0
 var _aim_blink: float = 0.0
@@ -185,6 +190,7 @@ func _ready():
 
 	_setup_parry_scene()
 	_setup_entrance_gate()
+	_setup_hints_and_arena()
 	_last_ticks = Time.get_ticks_msec()
 	if camera:
 		_cam_base_offset = camera.offset
@@ -401,13 +407,16 @@ func _set_passage_hint(on: bool):
 			return
 		_passage_hint = _make_world_hint("E — протиснуться")
 	if on:
-		_passage_hint.position = to_local(player.global_position + Vector2(-60, -80))
+		_passage_hint.position = to_local(player.global_position + Vector2(-_passage_hint.size.x * 0.5, -80))
 	_passage_hint.modulate.a = move_toward(_passage_hint.modulate.a, 1.0 if on else 0.0, 0.12)
 
 func _on_passage_completed():
 	passage_done = true
 
 func _start_intro():
+	# Катсцена в стиле остальных: полосы, камера отцеплена от игрока и мягко ведёт рыбу
+	# с небольшим упреждением и отдалением, кадр опущен на CUTSCENE_CAM_DROP.
+	# Рыба бежит с той же скоростью, что в катсцене с погрузчиком.
 	if _intro_started:
 		return
 	_intro_started = true
@@ -418,23 +427,61 @@ func _start_intro():
 		player.sprite.play("Run")
 		player.sprite.scale.x = 1
 
-	var total_time = INTRO_RUN_TIME
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_LINEAR)
-	tween.tween_property(player, "global_position:x", INTRO_CAPTURE_X, total_time)
-
-	var fade_delay = total_time * ((INTRO_FADE_X - INTRO_START_X) / (INTRO_CAPTURE_X - INTRO_START_X))
+	var intro_speed = player.run_speed * FL_FISH_SPEED_MULT
+	var fade_delay = (INTRO_FADE_X - INTRO_START_X) / intro_speed
 	_start_fade_after(fade_delay)
 
-	await tween.finished
-	if not is_inside_tree():
-		return
+	if camera:
+		var cam_from = _get_camera_target()
+		_disable_camera_for_cutscene()
+		_intro_start_zoom = camera.zoom
+		_cam_track = player
+		_cam_track_offset = Vector2(INTRO_CAM_LEAD, cam_from.y - player.global_position.y + CUTSCENE_CAM_DROP)
+		camera.global_position = player.global_position + _cam_track_offset
+		camera.zoom = _intro_start_zoom * INTRO_CAM_ZOOM
+		camera.reset_smoothing()
+		# экран ещё чёрный — полосы ставим сразу
+		_show_cutscene_bars(0.01)
+
+	while player.global_position.x < INTRO_CAPTURE_X:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		player.global_position.x = min(player.global_position.x + intro_speed * get_process_delta_time(), INTRO_CAPTURE_X)
 
 	if player.sprite:
 		player.sprite.stop()
 		player.sprite.play("Idle")
 
+	if camera:
+		# захват: камера чуть наезжает на рыбу
+		var zt = create_tween()
+		zt.set_ignore_time_scale(true)
+		zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		zt.tween_property(camera, "zoom", _intro_start_zoom * INTRO_QTE_ZOOM, 0.6)
+		var ot = create_tween()
+		ot.set_ignore_time_scale(true)
+		ot.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		ot.tween_property(self, "_cam_track_offset:x", 0.0, 0.6)
+
 	_start_qte_grab()
+
+func _end_intro_camera() -> void:
+	# возвращаем обычную камеру так же, как после погрузчика
+	if not camera:
+		return
+	_cam_track = null
+	if "look_offset" in camera:
+		camera.look_offset = Vector2.ZERO
+	_cam_tween(_get_camera_target(), _intro_start_zoom, 0.8)
+	_hide_cutscene_bars(0.7)
+	await _wait(0.8)
+	if not is_inside_tree():
+		return
+	_cam_original_position = _get_camera_target()
+	_cam_original_zoom = _intro_start_zoom
+	_cam_original_offset = _cam_base_offset
+	_restore_camera_after_cutscene()
 
 func _start_fade_after(delay: float):
 	var canvas = CanvasLayer.new()
@@ -499,7 +546,7 @@ func _start_qte_grab():
 	player.modulate = Color(1, 0.5, 0.5, 1)
 	_lock_player_input(true)
 
-	var success = await _run_e_button_qte_at(player.global_position + Vector2(0, -120))
+	var success = await _run_e_button_qte_at(player.global_position + Vector2(0, -72))
 
 	if not is_inside_tree():
 		return
@@ -539,6 +586,10 @@ func _start_qte_grab():
 			player.sprite.stop()
 			player.sprite.modulate = Color.WHITE
 			player.sprite.play("Idle")
+
+		await _end_intro_camera()
+		if not is_inside_tree():
+			return
 
 		state = State.RUNNING
 		_lock_player_input(false)
@@ -612,6 +663,9 @@ func _restore_camera_after_cutscene():
 	camera.reset_smoothing()
 
 func _play_sniper_cutscene():
+	# Рыба бежит — на ней загорается красная точка лазера. Рыба оборачивается, камера
+	# скользит по лучу к снайперу, бликует оптика. Камера резко возвращается, и снайпер
+	# делает предупредительный выстрел в пол у её ног. Затем — подсказка про SHIFT.
 	state = State.SNIPER_CUTSCENE
 
 	_lock_player_input(true)
@@ -625,44 +679,92 @@ func _play_sniper_cutscene():
 	_show_cutscene_bars(0.6)
 
 	var player_cam_pos = _get_camera_target()
-
+	var restore_pos = player_cam_pos
 	_disable_camera_for_cutscene()
-
-	var sniper_pos = sniper.global_position
 	var start_zoom = camera.zoom
-
 	camera.global_position = player_cam_pos
 	camera.reset_smoothing()
-
-	var t1 = create_tween().set_parallel(true)
-	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t1.tween_property(camera, "global_position", sniper_pos, 1.6)
-	t1.tween_property(camera, "zoom", Vector2(1.4, 1.4), 1.6)
-	await t1.finished
-	if not is_inside_tree():
-		return
-
-	await get_tree().create_timer(2.0).timeout
-	if not is_inside_tree():
-		return
+	# кадр чуть ниже, чтобы рыба не пряталась за нижней полосой
+	player_cam_pos += Vector2(0, CUTSCENE_CAM_DROP)
+	var drop = create_tween()
+	drop.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	drop.tween_property(camera, "global_position", player_cam_pos, 0.6)
 
 	if is_instance_valid(sniper):
 		sniper.visible = true
 
-	await get_tree().create_timer(1.5).timeout
+	# 1) лазер нашёл рыбу
+	_start_sniper_aim()
+	await _wait(0.7)
+	if not is_inside_tree():
+		return
+	# рыба оборачивается на свет
+	if player.sprite:
+		player.sprite.scale.x = -1
+	await _wait(0.45)
 	if not is_inside_tree():
 		return
 
+	# 2) камера скользит вдоль луча к снайперу
+	var sniper_pos = _sniper_muzzle_pos()
+	var t1 = create_tween().set_parallel(true)
+	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# снайпер у левого края кадра — за краем уровня пустота, её не показываем
+	t1.tween_property(camera, "global_position", sniper_pos + Vector2(285, 0), 1.5)
+	t1.tween_property(camera, "zoom", start_zoom * 0.8, 1.5)
+	await t1.finished
+	if not is_inside_tree():
+		return
+	_scope_glint(sniper_pos)
+	await _wait(1.0)
+	if not is_inside_tree():
+		return
+
+	# 3) резко обратно к рыбе
 	var t2 = create_tween().set_parallel(true)
-	t2.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	t2.tween_property(camera, "global_position", player_cam_pos, 1.4)
-	t2.tween_property(camera, "zoom", start_zoom, 1.4)
+	t2.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN_OUT)
+	t2.tween_property(camera, "global_position", player_cam_pos, 0.8)
+	t2.tween_property(camera, "zoom", start_zoom, 0.8)
 	await t2.finished
 	if not is_inside_tree():
 		return
 
-	_hide_cutscene_bars(0.6)
+	# 4) предупредительный выстрел в пол за спиной рыбы
+	_stop_sniper_aim()
+	var floor_top = _floor_top_y()
+	var hit = Vector2(player.global_position.x - 34.0, floor_top if not is_nan(floor_top) else player.global_position.y + 26.0)
+	_start_bullet()
+	await _bullet_fly_to(hit, 0.12)
+	if not is_inside_tree():
+		return
+	_spawn_sparks(hit, Color(1, 0.75, 0.3), 18)
+	_add_shake(0.35)
+	_flash(Color(1, 1, 1, 0.15), 0.15)
+	# рыба вздрагивает
+	if player.sprite:
+		player.sprite.play("Jump")
+	var base_y = player.global_position.y
+	var hop = create_tween()
+	hop.tween_property(player, "global_position:y", base_y - 14.0, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	hop.tween_property(player, "global_position:y", base_y, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await hop.finished
+	if not is_inside_tree():
+		return
+	if player.sprite:
+		player.sprite.play("Idle")
+	await _wait(0.5)
+	if not is_inside_tree():
+		return
+	if player.sprite:
+		player.sprite.scale.x = 1
 
+	var back = create_tween()
+	back.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	back.tween_property(camera, "global_position", restore_pos, 0.6)
+	_hide_cutscene_bars(0.6)
+	await back.finished
+	if not is_inside_tree():
+		return
 	_restore_camera_after_cutscene()
 
 	if shift_tutorial and shift_tutorial.has_method("show_tutorial"):
@@ -727,6 +829,7 @@ func _process_gameplay(delta):
 
 		_update_shelf_hint()
 		_update_passage_entry()
+		_update_hints_and_arena(delta)
 
 		if forklift_ready_for_throw and not forklift_stopped:
 			var dist = player.global_position.distance_to(forklift.global_position)
@@ -755,38 +858,80 @@ func _process_gameplay(delta):
 		elevator_timer -= delta
 		if elevator_timer <= 0:
 			state = State.ELEVATOR_GO
-			
-			if elevator.sprite_frames.has_animation("Open"):
-				elevator.play("Open")
-			else:
-				elevator.modulate = Color.GREEN
-				
-			var t = create_tween()
-			t.tween_property(player, "global_position:x", elevator.global_position.x, 0.5)
-			await t.finished
-			if not is_inside_tree(): return
-			
-			player.visible = false
-			
-			if elevator.sprite_frames.has_animation("Close"):
-				elevator.play("Close")
-			
-			await get_tree().create_timer(0.5).timeout
-			if not is_inside_tree(): return
-			
-			var lt = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			lt.tween_property(elevator, "global_position:y", elevator.global_position.y - 400, 1.5)
-			# тёмный ColorRect внутри лифта уезжает вместе с ним
-			var interior = get_node_or_null("EndAct/ColorRect")
-			if interior:
-				lt.parallel().tween_property(interior, "position:y", interior.position.y - 400, 1.5)
-			await lt.finished
-			if not is_inside_tree(): return
-			
-			await get_tree().create_timer(0.5).timeout
-			if not is_inside_tree(): return
-			_win()
+			_play_elevator_exit()
 
+
+
+# Лифт никуда не едет: двери открываются, рыба заходит, двери закрываются,
+# лёгкая тряска «поехали» и затемнение — дальше следующий уровень.
+func _play_elevator_exit() -> void:
+	if elevator.sprite_frames.has_animation("Open"):
+		await _play_elevator_anim("Open")
+		if not is_inside_tree(): return
+	else:
+		elevator.modulate = Color.GREEN
+
+	await _wait(0.25)
+	if not is_inside_tree(): return
+
+	# рыба заходит внутрь
+	var to_x = elevator.global_position.x
+	if player.sprite:
+		player.sprite.scale.x = 1 if to_x >= player.global_position.x else -1
+		player.sprite.play("Run")
+	var dist = abs(to_x - player.global_position.x)
+	var t = create_tween()
+	t.tween_property(player, "global_position:x", to_x, clamp(dist / (player.run_speed * 0.6), 0.25, 1.2))
+	await t.finished
+	if not is_inside_tree(): return
+	if player.sprite:
+		player.sprite.play("Idle")
+	# в глубину кабины: рыба темнеет и пропадает
+	var dim = create_tween()
+	dim.tween_property(player, "modulate", Color(0.25, 0.25, 0.3, 0.0), 0.35)
+	await dim.finished
+	if not is_inside_tree(): return
+	player.visible = false
+
+	await _wait(0.2)
+	if not is_inside_tree(): return
+	if elevator.sprite_frames.has_animation("Close"):
+		await _play_elevator_anim("Close")
+		if not is_inside_tree(): return
+
+	# «поехали»: лифт стоит на месте, только лёгкая тряска и затемнение
+	await _wait(0.3)
+	if not is_inside_tree(): return
+	_add_shake(0.35)
+	var canvas = CanvasLayer.new()
+	canvas.layer = 95
+	add_child(canvas)
+	var black = ColorRect.new()
+	black.color = Color(0, 0, 0, 0)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(black)
+	var ft = create_tween()
+	ft.tween_property(black, "color:a", 1.0, 1.2).set_delay(0.4)
+	await ft.finished
+	if not is_inside_tree(): return
+	await _wait(0.3)
+	if not is_inside_tree(): return
+	_win()
+
+# проигрывает анимацию лифта один раз (в сцене они зациклены) и оставляет последний кадр
+func _play_elevator_anim(anim: String) -> void:
+	var frames: SpriteFrames = elevator.sprite_frames
+	if frames.get_animation_loop(anim):
+		frames = frames.duplicate()
+		frames.set_animation_loop(anim, false)
+		elevator.sprite_frames = frames
+	elevator.play(anim)
+	var fps = max(frames.get_animation_speed(anim) * abs(elevator.speed_scale), 0.01)
+	var dur = 0.0
+	for i in frames.get_frame_count(anim):
+		dur += frames.get_frame_duration(anim, i) / fps
+	await _wait(dur + 0.05)
 
 func _check_enemy_collision():
 	if state != State.RUNNING:
@@ -821,7 +966,8 @@ func _activate_forklift():
 	if forklift_activated:
 		return
 	forklift_activated = true
-	_play_forklift_cutscene()
+	# из коллбэка физики нельзя создавать тела (снайпер) — запускаем кадром позже
+	_play_forklift_cutscene.call_deferred()
 
 # =====================================================================
 #                       КАТСЦЕНА С ПОГРУЗЧИКОМ
@@ -918,7 +1064,7 @@ func _play_forklift_cutscene():
 
 	# --- камера мягко ведёт рыбу с упреждением и чуть отдаляется
 	_cam_track = player
-	_cam_track_offset = Vector2(120.0, cam_from.y - player.global_position.y)
+	_cam_track_offset = Vector2(120.0, cam_from.y - player.global_position.y + CUTSCENE_CAM_DROP)
 	var zt = create_tween()
 	zt.set_ignore_time_scale(true)
 	zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -1084,7 +1230,6 @@ func _forklift_success(start_zoom: Vector2) -> void:
 	if not is_inside_tree():
 		return
 	_deactivate_sniper()
-	_show_shelf_hint(_shelf_rect())
 	await _wait(1.2)
 	if not is_inside_tree():
 		return
@@ -1130,9 +1275,9 @@ func _fish_dash(dist: float, dur: float) -> void:
 	t.set_ignore_time_scale(true)
 	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.tween_property(player, "global_position:x", player.global_position.x + dist, dur)
+	# шлейф — по таймерам, не блокируя; ждём только сам рывок
 	for i in 4:
-		_spawn_ghost()
-		await _wait(dur / 4.0)
+		get_tree().create_timer(dur * i / 4.0, true, false, true).timeout.connect(_spawn_ghost)
 	await t.finished
 
 func _spawn_ghost():
@@ -1180,6 +1325,10 @@ func _drop_shelf() -> void:
 	if col:
 		col.set_deferred("disabled", false)
 	falling_shelf.add_to_group("climbable")
+	# лазание рыбы (E) ищет препятствия в Barriers — кладём стеллаж туда
+	var barriers = get_node_or_null("Barriers")
+	if barriers and falling_shelf.get_parent() != barriers:
+		falling_shelf.reparent(barriers)
 	shelf_climbed = false
 
 func _shelf_rect() -> Rect2:
@@ -1284,6 +1433,27 @@ func _update_fx(rd: float):
 			camera.offset = _cam_base_offset
 			_was_shaking = false
 
+# блик оптики: крестик-звёздочка, вспыхивает и гаснет
+func _scope_glint(pos: Vector2):
+	var g = Node2D.new()
+	g.z_index = 95
+	add_child(g)
+	g.global_position = pos
+	for ang in [0.0, PI / 2.0, PI / 4.0, -PI / 4.0]:
+		var l = Line2D.new()
+		var ln = 16.0 if is_equal_approx(fmod(ang, PI / 2.0), 0.0) else 8.0
+		l.points = PackedVector2Array([Vector2(-ln, 0).rotated(ang), Vector2(ln, 0).rotated(ang)])
+		l.width = 2.0
+		l.default_color = Color(1, 1, 0.9, 1)
+		g.add_child(l)
+	g.scale = Vector2.ZERO
+	var t = create_tween()
+	t.set_ignore_time_scale(true)
+	t.tween_property(g, "scale", Vector2(1.3, 1.3), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(g, "rotation", PI / 4.0, 0.5)
+	t.tween_property(g, "scale", Vector2.ZERO, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_callback(g.queue_free)
+
 func _spawn_sparks(pos: Vector2, col: Color, amount: int):
 	var p = CPUParticles2D.new()
 	p.z_index = 80
@@ -1309,23 +1479,50 @@ func _spawn_sparks(pos: Vector2, col: Color, amount: int):
 
 # ---------- подсказки в мире ----------
 
+const HINT_FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
+var _hint_font: FontFile = null
+
+# подсказка в мире в стиле фабрики: тёмная плашка, янтарная полоска слева, пиксельный шрифт
 func _make_world_hint(text: String) -> Label:
+	if _hint_font == null:
+		_hint_font = ResourceLoader.load(HINT_FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
+		if _hint_font:
+			_hint_font.fixed_size = 0
 	var l = Label.new()
 	l.text = text
 	l.z_index = 60
+	l.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if _hint_font:
+		l.add_theme_font_override("font", _hint_font)
 	l.add_theme_font_size_override("font_size", 10)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	l.add_theme_constant_override("outline_size", 4)
+	l.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.06, 0.09, 0.96)
+	sb.border_color = Color(0.97, 0.76, 0.26)
+	sb.border_width_left = 3
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.content_margin_left = 7
+	sb.content_margin_right = 6
+	sb.content_margin_top = 3
+	sb.content_margin_bottom = 3
+	sb.shadow_color = Color(0, 0, 0, 0.5)
+	sb.shadow_size = 0
+	sb.shadow_offset = Vector2(1, 2)
+	l.add_theme_stylebox_override("normal", sb)
 	l.size = Vector2(120, 16)
 	l.modulate.a = 0.0
 	add_child(l)
+	l.reset_size()
 	return l
 
 func _show_shelf_hint(r: Rect2):
 	if _shelf_hint == null:
-		_shelf_hint = _make_world_hint("ПРОБЕЛ — перелезть")
-	_shelf_hint.position = to_local(Vector2(r.get_center().x - 60.0, r.position.y - 30.0))
+		_shelf_hint = _make_world_hint("E — залезть")
+	_shelf_hint.position = to_local(Vector2(r.get_center().x - _shelf_hint.size.x * 0.5, r.position.y - 30.0))
 	var t = create_tween()
 	t.tween_property(_shelf_hint, "modulate:a", 1.0, 0.3)
 
@@ -1344,7 +1541,7 @@ func _set_elevator_hint(on: bool):
 			return
 		_elevator_hint = _make_world_hint("E — вызвать лифт")
 	if on:
-		_elevator_hint.position = to_local(elevator_button.global_position + Vector2(268 - 60, -40))
+		_elevator_hint.position = to_local(elevator_button.global_position + Vector2(268 - _elevator_hint.size.x * 0.5, -40))
 	var target = 1.0 if on else 0.0
 	if abs(_elevator_hint.modulate.a - target) > 0.01:
 		_elevator_hint.modulate.a = move_toward(_elevator_hint.modulate.a, target, 0.1)
@@ -1533,3 +1730,967 @@ func _run_e_button_qte_at(world_pos: Vector2) -> bool:
 		qte_button.qte_result.disconnect(callback)
 
 	return state_dict["result"]
+
+# =====================================================================
+#                  ПОДСКАЗКИ + БОЕВЫЕ ЗОНЫ
+# Подсказка «залезть по E» — у первого ящика после катсцены со снайпером.
+# Зона 1 (между Obstacle2 и Obstacle3): 2–3 наземных врага по очереди, лазание выключено.
+# Зона 2 (после прохода и Obstacle9, большая): собака и обезьяна по одному на полу,
+#   а на балконе второго этажа — голубь-снайпер. Луч замер — рывок (SHIFT). Под балконом
+#   пули не достают, наверх — по E. Камера на время боя отдаляется.
+# Пока идёт бой: впереди лазерные ворота, снайпер коридора молчит.
+# Враги — готовые сцены из папок проекта (собака, обезьяна, голубь со склада).
+# =====================================================================
+
+const TUTORIAL_HINTS_SCRIPT := preload("res://GameScripts/UIScripts/TutorialScripts/Tutorial_Hints.gd")
+const ARENA_DOG := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaDogScenes/Enemy_MechaDog_Storage_Scene.tscn")
+const ARENA_MONKEY := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaMonkeyScenes/Enemy_MechaMonkey_Storage_Scene.tscn")
+const ARENA_PIGEON := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaPigeonScenes/Enemy_MechaPigeon_Storage_Scene.tscn")
+
+const ARENA_ENEMY_HP: int = 3            # в прологе враги слабее, чем на складе (там 5)
+const ARENA_SPAWN_GAP: float = 3.5       # следующий наземный враг выходит через столько секунд…
+const ARENA_HEAL: int = 2                # награда за зачистку
+
+# «не такие буйные»: вход в зону с паузой, предупреждение перед каждым врагом,
+# враги медленнее, после каждого попадания по рыбе — передышка
+const ARENA_INTRO_DELAY: float = 1.3     # ворота закрылись — пауза до первого врага
+const ARENA_DROP_WARN: float = 0.8       # красная метка на полу до того, как враг спрыгнет
+const ARENA_LANDING_STUN: float = 1.0    # приземлился — секунду приходит в себя
+const ARENA_SPEED_MULT: float = 0.74     # бег и рывки врагов медленнее, чем на складе
+const ARENA_HIT_BREATHER: float = 1.6    # после попадания по рыбе враги ждут перед новой атакой
+
+# предметы во второй зоне: паллет можно взять (E) и бросить во врага (E) — оглушение
+const ITEM_SCENE := preload("res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayGrabbableItemScene/ActPrologue_LevelHallway_GrabbableItem_Scene.tscn")
+const ITEM_PICK_RADIUS: float = 46.0
+const ITEM_STUN_TIME: float = 2.0
+const ITEM_THROW_SPEED: float = 620.0
+const ITEM_THROW_RANGE: float = 650.0
+const ITEM_RESPAWN_TIME: float = 7.0
+
+# зона 1 (между Obstacle2 и Obstacle3)
+const ARENA1_MIN_ENEMIES: int = 2
+const ARENA1_MAX_ENEMIES: int = 3
+const ARENA1_MAX_ALIVE: int = 2          # живых наземных одновременно
+
+# зона 2 (после прохода и Obstacle9): трое на полу по очереди, голубь-снайпер на балконе (не в счёт, неубиваемый)
+const ARENA2_GAP_AFTER_O9: float = 140.0 # отступ от Obstacle9
+const ARENA2_WIDTH: float = 1100.0
+const ARENA2_MAX_ALIVE: int = 1          # наземные выходят строго по одному — голубь и так давит
+const BALCONY_ABOVE_TILES: float = 20.0  # балкон на столько пикселей выше самого высокого тайла (стеллажей)
+const BALCONY_WIDTH: float = 230.0
+const BALCONY_X_FROM_LEFT: float = 640.0 # центр балкона от левого края зоны
+# голубь на балконе — обычный складской, без послаблений, и в счёт врагов не входит.
+# Когда трое на полу убиты, ему звонят: бубнит в трубку (диалоговое окно) и уходит в дверь.
+const CHATTER_SCENE := preload("res://GameScenes/UIScenes/ChatterScenes/DialogueNode.tscn")
+const SNIPER_CALL_LINES := [
+	"...Алло? Да, шеф. На позиции.",
+	"Какая пересменка? Уже?! Я ж её почти снял...",
+	"Да понял я, понял. Иду.",
+]
+const SNIPER_RING_TIME: float = 1.6     # сколько звонит телефон, прежде чем голубь ответит
+const ARENA2_VIEW_MARGIN_TOP: float = 80.0   # сколько места над балконом держать в кадре (голубь)
+const ARENA2_VIEW_MARGIN_BOTTOM: float = 30.0
+
+enum Arena { WAITING, FIGHT, CLEARED }
+var _arenas: Array = []
+var _hints: CanvasLayer = null
+var _climb_hint_queued: bool = false
+var _arena_node: Node2D = null
+var _arena_counter: Label = null
+var _arena_counter_layer: CanvasLayer = null
+var _balcony: StaticBody2D = null
+var _balcony_rect: Rect2 = Rect2()
+var _balcony_h: float = 0.0
+## только для тестов: принудительный состав наземных врагов первой зоны
+var arena_debug_queue: Array = []
+
+var _player_barriers: Node = null
+var _items: Array = []            # [{node, spot, respawn}]
+var _item_arena: Dictionary = {}
+var _held_item_tex: Texture2D = null
+var _item_hint: Label = null
+var _thrown_once: bool = false
+
+func _setup_hints_and_arena():
+	_hints = TUTORIAL_HINTS_SCRIPT.new()
+	_hints.name = "TutorialHints"
+	add_child(_hints)
+
+	_arena_node = Node2D.new()
+	_arena_node.name = "ArenaEnemies"
+	add_child(_arena_node)
+	if "barriers_node" in player:
+		_player_barriers = player.barriers_node
+
+	var o2 = get_node_or_null("Barriers/Obstacle2")
+	var o3 = get_node_or_null("Barriers/Obstacle3")
+	if o2 and o3:
+		var n = randi_range(ARENA1_MIN_ENEMIES, ARENA1_MAX_ENEMIES)
+		var ground = [ARENA_DOG, ARENA_MONKEY, ARENA_DOG] if n >= 3 else [ARENA_DOG, [ARENA_DOG, ARENA_MONKEY].pick_random()]
+		var left = _node_rect(o2).end.x
+		var right = _node_rect(o3).position.x
+		_arenas.append(_new_arena("arena1", left, right, ground, ARENA1_MAX_ALIVE,
+			[right - 80.0, right - 170.0, left + 60.0], true, false))
+
+	var o9 = get_node_or_null("Barriers/Obstacle9")
+	var btn = elevator_button
+	if o9:
+		var left2 = _node_rect(o9).end.x + ARENA2_GAP_AFTER_O9
+		var right2 = left2 + ARENA2_WIDTH
+		if btn:
+			right2 = min(right2, btn.global_position.x + 268.0 - 220.0)
+		_build_balcony(left2 + BALCONY_X_FROM_LEFT)
+		# на полу трое по очереди (голубь на балконе не в счёт)
+		_arenas.append(_new_arena("arena2", left2, right2, [ARENA_DOG, ARENA_MONKEY, ARENA_DOG], ARENA2_MAX_ALIVE,
+			[right2 - 90.0, left2 + 60.0, right2 - 160.0], false, true))
+
+func _new_arena(id: String, left: float, right: float, ground: Array, max_alive: int,
+		spots: Array, block_climb: bool, with_balcony_sniper: bool) -> Dictionary:
+	return {
+		"id": id, "left": left, "right": right, "ground": ground.duplicate(),
+		"max_alive": max_alive, "spots": spots, "block_climb": block_climb,
+		"sniper": with_balcony_sniper, "state": Arena.WAITING, "enemies": [],
+		"queue": [], "total": 0, "killed": 0, "next_timer": 0.0, "spawn_i": 0,
+		"saved_barriers": null, "gate": null, "wall": null, "zoom": Vector2.ZERO,
+		"intro_t": 0.0, "pending": 0, "last_hp": -1, "items": with_balcony_sniper,
+		"sniper_leaving": false,
+	}
+
+func _node_rect(o: Node) -> Rect2:
+	var out := Rect2()
+	for c in o.get_children():
+		if c is CollisionShape2D and c.shape is RectangleShape2D:
+			var h: Vector2 = c.shape.size / 2.0
+			var r := Rect2(c.global_position - h, c.shape.size)
+			out = r if not out.has_area() else out.merge(r)
+	return out
+
+## Вызывается каждый кадр в RUNNING.
+func _update_hints_and_arena(delta: float):
+	if not _climb_hint_queued and _hints and sniper_cutscene_played:
+		var o1 = get_node_or_null("Barriers/Obstacle")
+		if o1 and player.global_position.x > _node_rect(o1).position.x - 260.0:
+			_climb_hint_queued = true
+			var past_x = _arenas[0]["left"] if _arenas.size() > 0 else INF
+			_hints.hint("climb", "ЗАЛЕЗТЬ|Встань вплотную к ящику — рыба вскарабкается наверх", ["interact"],
+				func(): return player.is_climbing_animation or player.global_position.x > past_x, 1.5, 9.0)
+
+	for a in _arenas:
+		match a["state"]:
+			Arena.WAITING:
+				if player.global_position.x > a["left"] + 70.0 and player.global_position.x < a["right"] \
+						and player.is_on_floor() and not player.is_dead:
+					_start_arena(a)
+			Arena.FIGHT:
+				_update_arena(a, delta)
+
+func _start_arena(a: Dictionary):
+	a["state"] = Arena.FIGHT
+	a["queue"] = a["ground"].duplicate()
+	if a["id"] == "arena1" and not arena_debug_queue.is_empty():
+		a["queue"] = arena_debug_queue.duplicate()
+	a["total"] = a["queue"].size()   # голубь-снайпер в счёт не входит
+	a["killed"] = 0
+	a["enemies"] = []
+	a["spawn_i"] = 0
+
+	_deactivate_sniper()
+	if a["block_climb"] and "barriers_node" in player:
+		a["saved_barriers"] = player.barriers_node
+		player.barriers_node = null
+	_make_arena_gate(a)
+	_make_arena_counter()
+	_add_shake(0.25)
+
+	if a["sniper"]:
+		_arena_spawn_balcony_sniper(a)
+		if _hints:
+			_hints.hint("throw", "БРОСОК|Подбери паллет и швырни во врага — он оглушён на 2 секунды", ["interact"],
+				func(): return _thrown_once or a["state"] == Arena.CLEARED, 2.0, 10.0)
+		if camera:
+			_frame_camera_for_balcony(a)
+		if _hints:
+			_hints.hint("balcony", "СНАЙПЕР НА БАЛКОНЕ|Его не достать. Луч замер — жми рывок, под балконом пули не долетят", ["Run"],
+				func(): return a["state"] == Arena.CLEARED, 2.5, 11.0)
+	elif _hints:
+		_hints.hint("fight", "ДРАТЬСЯ|Враги перекрыли путь. ЛКМ — удар, SHIFT — увернуться", ["ЛКМ"],
+			func(): return a["state"] == Arena.CLEARED, 2.0, 10.0)
+
+	if a["items"]:
+		_start_items(a)
+	# сначала пауза: ворота закрылись, рыба осматривается — враги чуть позже
+	a["intro_t"] = ARENA_INTRO_DELAY
+	a["next_timer"] = ARENA_SPAWN_GAP
+	a["last_hp"] = player.hp if "hp" in player else -1
+
+## Камера отдаляется и поднимается так, чтобы в кадре были и пол, и голубь на балконе.
+func _frame_camera_for_balcony(a: Dictionary):
+	var floor_top = _floor_top_y()
+	if is_nan(floor_top) or not _balcony_rect.has_area():
+		return
+	a["zoom"] = camera.zoom
+	var view_top = _balcony_rect.position.y - ARENA2_VIEW_MARGIN_TOP
+	var view_bottom = floor_top + ARENA2_VIEW_MARGIN_BOTTOM
+	var half_h = (view_bottom - view_top) * 0.5
+	var vp = get_viewport_rect().size
+	var z = clamp(vp.y * 0.5 / half_h, 0.8, camera.zoom.x)
+	var zt = create_tween().set_parallel(true)
+	zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	zt.tween_property(camera, "zoom", Vector2(z, z), 0.9)
+	if "camera_offset" in camera:
+		a["cam_offset"] = camera.camera_offset
+		var center_y = (view_top + view_bottom) * 0.5
+		var fish_floor_y = player.global_position.y
+		zt.tween_property(camera, "camera_offset", Vector2(camera.camera_offset.x, center_y - fish_floor_y), 0.9)
+
+func _setup_arena_enemy(e: Node, a: Dictionary):
+	if "max_hp" in e:
+		e.max_hp = ARENA_ENEMY_HP
+	if "hp" in e:
+		e.hp = ARENA_ENEMY_HP
+	# спокойнее, чем на складе
+	for k in ["run_speed", "quad_speed", "speed"]:
+		if k in e:
+			e.set(k, e.get(k) * ARENA_SPEED_MULT)
+	if "quad_cooldown" in e:
+		e.quad_cooldown = 4.0
+	if e.has_method("hear_alert"):
+		e.hear_alert(player)
+	a["enemies"].append(e)
+
+## Следующий враг: сначала красная метка на полу, через ARENA_DROP_WARN он спрыгивает
+## и ещё секунду приходит в себя.
+func _arena_spawn_next(a: Dictionary):
+	if a["queue"].is_empty() or not is_inside_tree():
+		return
+	var spots: Array = a["spots"]
+	var x = clamp(spots[min(a["spawn_i"], spots.size() - 1)], a["left"] + 40.0, a["right"] - 40.0)
+	a["spawn_i"] += 1
+	var scene: PackedScene = a["queue"].pop_front()
+	var floor_top = _floor_top_y()
+	if is_nan(floor_top):
+		floor_top = player.global_position.y + 28.0
+	a["pending"] += 1
+	var marker = _drop_marker(Vector2(x, floor_top))
+	await get_tree().create_timer(ARENA_DROP_WARN).timeout
+	if is_instance_valid(marker):
+		marker.queue_free()
+	if not is_inside_tree() or a["state"] != Arena.FIGHT:
+		a["pending"] -= 1
+		return
+	var e = scene.instantiate()
+	_arena_node.add_child(e)
+	e.global_position = Vector2(x, floor_top - 150.0)
+	if "patrol_range" in e:
+		e.patrol_range = 60.0
+	_setup_arena_enemy(e, a)
+	if e.has_method("stun"):
+		e.stun(ARENA_LANDING_STUN)
+	a["pending"] -= 1
+	_spawn_sparks(Vector2(x, floor_top), Color(0.7, 0.68, 0.65, 0.9), 10)
+	_update_arena_counter(a)
+
+func _drop_marker(at: Vector2) -> Node2D:
+	var m = Node2D.new()
+	m.z_index = 55
+	add_child(m)
+	m.global_position = at
+	var bar = ColorRect.new()
+	bar.color = Color(1, 0.2, 0.15, 0.8)
+	bar.position = Vector2(-20, -3)
+	bar.size = Vector2(40, 3)
+	m.add_child(bar)
+	var arrow = Polygon2D.new()
+	arrow.color = Color(1, 0.25, 0.2, 0.95)
+	arrow.polygon = PackedVector2Array([Vector2(-7, -30), Vector2(7, -30), Vector2(0, -20)])
+	m.add_child(arrow)
+	var t = create_tween().set_loops()
+	t.bind_node(m)
+	t.tween_property(m, "modulate:a", 0.35, 0.12)
+	t.tween_property(m, "modulate:a", 1.0, 0.12)
+	return m
+
+func _arena_spawn_balcony_sniper(a: Dictionary):
+	var e = ARENA_PIGEON.instantiate()
+	e.set_meta("arena_sniper", true)
+	_arena_node.add_child(e)
+	e.global_position = Vector2(_balcony_rect.get_center().x + 50.0, _balcony_rect.position.y - 60.0)
+	# голубь стоит на балконе: края балкона — невидимые бортики только для него
+	e.collision_mask |= 16
+	if "patrol_range" in e:
+		e.patrol_range = 30.0
+	if "pistol_keep_min" in e:
+		e.pistol_keep_min = 0.0       # не пытается отходить — некуда
+	# обычный складской голубь: урон, прицел, HP и скорость — как в его сцене
+	if e.has_method("hear_alert"):
+		e.hear_alert(player)
+	# его не убить: удары рыбы ищут цели в группе "enemies" — голубя там нет,
+	# и паллетом в него тоже не целимся. Уйдёт сам после звонка.
+	if e.is_in_group("enemies"):
+		e.remove_from_group("enemies")
+	a["enemies"].append(e)
+	_spawn_sparks(e.global_position, Color(0.6, 0.85, 1.0, 0.9), 8)
+
+## Трое на полу убиты — голубю звонят. Он перестаёт стрелять, бубнит в трубку
+## (диалоговое окно из ChatterScenes) и уходит «в дверь» в глубине балкона. Потом зона открыта.
+var _call_cam_on: bool = false
+var _call_start_zoom: Vector2 = Vector2.ONE
+
+func _sniper_phone_call(a: Dictionary, e: Node) -> void:
+	_sniper_stand_down(e)
+	await _call_cam_begin(e)
+	if not is_inside_tree():
+		return
+	# звонок: «дзынь» над головой, голубь подрагивает
+	var ring = _ring_label(e)
+	var t_ring := 0.0
+	while t_ring < SNIPER_RING_TIME:
+		await get_tree().process_frame
+		if not is_inside_tree() or not is_instance_valid(e):
+			_finish_sniper_leave(a, ring)
+			return
+		var d = get_process_delta_time()
+		t_ring += d
+		if is_instance_valid(ring):
+			ring.global_position = e.global_position + Vector2(-ring.size.x * 0.5 + randf_range(-1.5, 1.5), -62.0 + randf_range(-1.0, 1.0))
+		if e.sprite:
+			e.sprite.position.x = randf_range(-0.8, 0.8) if fmod(t_ring, 0.5) < 0.3 else 0.0
+	if is_instance_valid(ring):
+		ring.queue_free()
+	if e.sprite:
+		e.sprite.position.x = 0.0
+
+	# бубнит себе под нос
+	var chatter = CHATTER_SCENE.instantiate()
+	chatter.name = "SniperCallChatter"
+	var lines: Array[ChatterLine] = []
+	for txt in SNIPER_CALL_LINES:
+		var l = ChatterLine.new()
+		l.speaker = ChatterLine.Speaker.SCIENTIST
+		l.text = txt
+		l.display_time = 1.1
+		lines.append(l)
+	chatter.lines = lines
+	chatter.loop = false
+	chatter.typing_speed = 0.035
+	chatter.scientist_node = (e.sprite if e.sprite else e).get_path()
+	add_child(chatter)
+	# окно диалога считает позиции в мировых координатах, а корень уровня сдвинут по Y
+	if chatter is Node2D:
+		chatter.global_position = Vector2.ZERO
+	var box = chatter.find_child("ChatterBox", true, false)
+	if box:
+		if "force_near" in box:
+			box.force_near = true
+		if "bubble_scale" in box:
+			box.bubble_scale = 0.85
+	chatter.start()
+	var tmax := 14.0
+	while chatter.is_active() and tmax > 0.0:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		tmax -= get_process_delta_time()
+		if not is_instance_valid(e):
+			break
+	chatter.stop()
+	chatter.queue_free()
+	if not is_instance_valid(e):
+		_finish_sniper_leave(a, null)
+		return
+
+	await _sniper_exit_through_door(e)
+	_finish_sniper_leave(a, null)
+
+func _finish_sniper_leave(a: Dictionary, ring: Node) -> void:
+	if ring and is_instance_valid(ring):
+		ring.queue_free()
+	await _call_cam_end()
+	if not is_inside_tree():
+		return
+	if a["state"] == Arena.FIGHT:
+		_clear_arena(a)
+
+## Мини-катсцена звонка: полосы, рыба стоит, камера берёт в кадр рыбу, голубя и «дверь».
+func _call_cam_begin(e: Node) -> void:
+	# сначала даём рыбе приземлиться, если она в прыжке
+	var tw := 0.0
+	while not player.is_on_floor() and tw < 1.5:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		tw += get_process_delta_time()
+	_lock_player_input(true)
+	if player.sprite:
+		player.sprite.play("Idle")
+	if not camera:
+		return
+	_call_cam_on = true
+	_call_start_zoom = camera.zoom
+	var from = _get_camera_target()
+	_disable_camera_for_cutscene()
+	camera.global_position = from
+	camera.reset_smoothing()
+	_show_cutscene_bars(0.6)
+	# камера поднимается к голубю на балкон (как в катсцене со снайпером в начале):
+	# полосы большие, рыба и балкон в один кадр не помещаются
+	var left = min(e.global_position.x - 110.0, _balcony_rect.position.x)
+	var right = _balcony_rect.end.x + 40.0
+	var top = _balcony_rect.position.y - 80.0
+	var bottom = _balcony_rect.position.y + 50.0
+	var vp = get_viewport_rect().size
+	var usable_h = vp.y - CUTSCENE_BARS_HEIGHT * 2.0 - 16.0
+	var z = min(vp.x * 0.9 / max(right - left, 1.0), usable_h / max(bottom - top, 1.0))
+	z = clamp(z, 1.2, 2.3)
+	var center = Vector2((left + right) * 0.5, (top + bottom) * 0.5)
+	_cam_tween(center, Vector2(z, z), 0.9)
+	await _wait(0.9)
+
+func _call_cam_end() -> void:
+	if not _call_cam_on:
+		if _input_locked and state == State.RUNNING:
+			_lock_player_input(false)
+		return
+	_call_cam_on = false
+	if "look_offset" in camera:
+		camera.look_offset = Vector2.ZERO
+	_cam_tween(_get_camera_target(), _call_start_zoom, 0.8)
+	_hide_cutscene_bars(0.7)
+	await _wait(0.8)
+	if not is_inside_tree():
+		return
+	_cam_original_position = _get_camera_target()
+	_cam_original_zoom = _call_start_zoom
+	_cam_original_offset = _cam_base_offset
+	_restore_camera_after_cutscene()
+	_lock_player_input(false)
+
+## Голубь больше не воюет: лазер и пули убраны, его не задеть.
+func _sniper_stand_down(e: Node) -> void:
+	e.set_physics_process(false)
+	if e.has_method("_hide_aim"):
+		e._hide_aim()
+	if "_bullets" in e:
+		for b in e._bullets:
+			if b is Dictionary and b.has("node") and is_instance_valid(b["node"]):
+				b["node"].queue_free()
+		e._bullets.clear()
+	e.velocity = Vector2.ZERO
+	if e.is_in_group("enemies"):
+		e.remove_from_group("enemies")
+	e.collision_layer = 0
+	# замирает с «трубкой» у головы
+	if e.sprite:
+		if e.sprite.sprite_frames and e.sprite.sprite_frames.has_animation("idle_aim"):
+			e.sprite.play("idle_aim")
+			e.sprite.pause()
+
+func _ring_label(e: Node) -> Label:
+	var l = Label.new()
+	l.text = "♪ дзынь-дзынь ♪"
+	l.z_index = 60
+	if ResourceLoader.exists(HINT_FONT_PATH):
+		l.add_theme_font_override("font", load(HINT_FONT_PATH))
+	l.add_theme_font_size_override("font_size", 10)
+	l.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
+	l.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.07))
+	l.add_theme_constant_override("outline_size", 4)
+	add_child(l)
+	l.reset_size()
+	l.global_position = e.global_position + Vector2(-l.size.x * 0.5, -62.0)
+	var t = create_tween().set_loops(4)
+	t.bind_node(l)
+	t.tween_property(l, "modulate:a", 0.35, 0.18)
+	t.tween_property(l, "modulate:a", 1.0, 0.18)
+	return l
+
+## «Дверь» без спрайтов: в глубине балкона приоткрывается полоска света, голубь уходит
+## в неё, темнеет и пропадает, полоска схлопывается.
+func _sniper_exit_through_door(e: Node) -> void:
+	var door_x = _balcony_rect.end.x - 26.0
+	var floor_y = _balcony_rect.position.y
+	var door = Node2D.new()
+	door.z_index = 2   # за перилами балкона (у них 3), но перед стеной
+	add_child(door)
+	door.global_position = Vector2(door_x, floor_y)
+	var frame = ColorRect.new()
+	frame.color = Color(0.03, 0.03, 0.05, 0.95)
+	frame.size = Vector2(0, 48)
+	frame.position = Vector2(0, -48)
+	door.add_child(frame)
+	var glow = ColorRect.new()
+	glow.color = Color(1.0, 0.78, 0.45, 0.55)
+	glow.size = Vector2(0, 46)
+	glow.position = Vector2(0, -47)
+	door.add_child(glow)
+	var open = create_tween().set_parallel(true)
+	open.tween_property(frame, "size:x", 24.0, 0.35)
+	open.tween_property(frame, "position:x", -12.0, 0.35)
+	open.tween_property(glow, "size:x", 18.0, 0.35)
+	open.tween_property(glow, "position:x", -9.0, 0.35)
+	await open.finished
+	if not is_instance_valid(e):
+		door.queue_free()
+		return
+
+	if e.sprite:
+		e.sprite.scale.x = abs(e.sprite.scale.x) * (-1.0 if door_x < e.global_position.x else 1.0)
+		if e.sprite.sprite_frames and e.sprite.sprite_frames.has_animation("run_fast"):
+			e.sprite.play("run_fast")
+	var dist = abs(door_x - e.global_position.x)
+	var walk = create_tween()
+	walk.tween_property(e, "global_position:x", door_x, clamp(dist / 110.0, 0.3, 2.5))
+	await walk.finished
+	if not is_instance_valid(e):
+		door.queue_free()
+		return
+	var fade = create_tween()
+	fade.tween_property(e, "modulate", Color(0.15, 0.15, 0.2, 0.0), 0.45)
+	await fade.finished
+	if is_instance_valid(e):
+		e.queue_free()
+	var close = create_tween().set_parallel(true)
+	close.tween_property(glow, "size:x", 0.0, 0.25)
+	close.tween_property(glow, "position:x", 0.0, 0.25)
+	close.tween_property(frame, "size:x", 0.0, 0.3)
+	close.tween_property(frame, "position:x", 0.0, 0.3)
+	await close.finished
+	door.queue_free()
+
+func _update_arena(a: Dictionary, delta: float):
+	if a["items"] and not a["sniper_leaving"]:
+		_update_items(a, delta)
+	# передышка: рыбу ударили — все враги зоны отходят на секунду-другую
+	if "hp" in player:
+		if a["last_hp"] >= 0 and player.hp < a["last_hp"]:
+			for e in a["enemies"]:
+				if is_instance_valid(e) and not e.get("is_dead") and not e.has_meta("arena_sniper"):
+					if "cooldown" in e:
+						e.cooldown = max(e.cooldown, ARENA_HIT_BREATHER)
+					if "quad_cooldown" in e:
+						e.quad_cooldown = max(e.quad_cooldown, ARENA_HIT_BREATHER * 2.0)
+		a["last_hp"] = player.hp
+	if a["intro_t"] > 0.0:
+		a["intro_t"] -= delta
+		if a["intro_t"] <= 0.0:
+			_arena_spawn_next(a)
+			a["next_timer"] = ARENA_SPAWN_GAP
+		return
+	var alive_ground: int = a["pending"]
+	var ground_spawned := 0
+	var pigeon: Node = null
+	for e in a["enemies"]:
+		var is_sniper = is_instance_valid(e) and e.has_meta("arena_sniper")
+		if is_sniper:
+			if not e.get("is_dead"):
+				pigeon = e
+			continue
+		ground_spawned += 1
+		if is_instance_valid(e) and not e.get("is_dead"):
+			alive_ground += 1
+	a["killed"] = ground_spawned - (alive_ground - a["pending"])
+	_update_arena_counter(a)
+	if a["sniper_leaving"]:
+		return
+
+	if not a["queue"].is_empty():
+		a["next_timer"] -= delta
+		if alive_ground == 0 or (a["next_timer"] <= 0.0 and alive_ground < a["max_alive"]):
+			_arena_spawn_next(a)
+			a["next_timer"] = ARENA_SPAWN_GAP
+		return
+
+	if alive_ground == 0 and a["pending"] == 0 and ground_spawned > 0:
+		if pigeon:
+			a["sniper_leaving"] = true
+			_sniper_phone_call(a, pigeon)
+		else:
+			_clear_arena(a)
+
+func _clear_arena(a: Dictionary):
+	a["state"] = Arena.CLEARED
+	if a["items"]:
+		_stop_items()
+	if a["block_climb"] and "barriers_node" in player and a["saved_barriers"]:
+		player.barriers_node = a["saved_barriers"]
+	if player.has_method("set_hp") and "hp" in player:
+		player.set_hp(player.hp + ARENA_HEAL)
+	_flash(Color(0.6, 1.0, 0.6, 0.12), 0.4)
+	if a["wall"] and is_instance_valid(a["wall"]):
+		a["wall"].queue_free()
+	var gate = a["gate"]
+	if gate and is_instance_valid(gate):
+		var t = create_tween()
+		for i in 3:
+			t.tween_property(gate, "modulate:a", 0.15, 0.06)
+			t.tween_property(gate, "modulate:a", 1.0, 0.06)
+		t.tween_property(gate, "modulate:a", 0.0, 0.2)
+		t.tween_callback(gate.queue_free)
+	if a["zoom"] != Vector2.ZERO and camera:
+		var zt = create_tween().set_parallel(true)
+		zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		zt.tween_property(camera, "zoom", a["zoom"], 1.0)
+		if "camera_offset" in camera and a.has("cam_offset"):
+			zt.tween_property(camera, "camera_offset", a["cam_offset"], 1.0)
+	if _arena_counter:
+		_arena_counter.text = "ПУТЬ СВОБОДЕН"
+		_arena_counter.reset_size()
+		_center_counter()
+		var t2 = create_tween()
+		t2.tween_interval(1.4)
+		t2.tween_property(_arena_counter, "modulate:a", 0.0, 0.4)
+	# снайпер коридора снова на позиции, пока рыба не ушла дальше
+	if sniper and is_instance_valid(sniper) and player.global_position.x < escape_sniper_x:
+		sniper.set_process(true)
+		if sniper.has_method("activate"):
+			sniper.activate()
+		sniper_active = true
+
+## Лазерные ворота на правой границе зоны. Первая зона — над Obstacle3 (дальше не залезть,
+## лазание выключено), вторая — на полу + невидимая стена.
+func _make_arena_gate(a: Dictionary):
+	var gx: float = a["right"]
+	var bottom = _floor_top_y()
+	if is_nan(bottom):
+		bottom = player.global_position.y + 28.0
+	var height := 200.0
+	var beams := 4
+	var span := 40.0
+	if a["id"] == "arena1":
+		var o3 = get_node_or_null("Barriers/Obstacle3")
+		if o3:
+			var r = _node_rect(o3)
+			gx = r.get_center().x
+			bottom = r.position.y
+			height = 170.0
+			beams = 3
+			span = r.size.x - 20.0
+	var gate = Node2D.new()
+	gate.z_index = 50
+	add_child(gate)
+	for i in beams:
+		var x = gx - span * 0.5 + i * span / float(beams - 1)
+		var l = Line2D.new()
+		l.width = 2.0
+		l.default_color = Color(1, 0.2, 0.15, 0.85)
+		l.points = PackedVector2Array([to_local(Vector2(x, bottom - height)), to_local(Vector2(x, bottom))])
+		gate.add_child(l)
+		var cap = ColorRect.new()
+		cap.color = Color(0.12, 0.12, 0.14)
+		cap.size = Vector2(8, 5)
+		cap.position = to_local(Vector2(x - 4, bottom - height - 4.0))
+		gate.add_child(cap)
+	var pulse = create_tween().set_loops()
+	pulse.bind_node(gate)
+	pulse.tween_property(gate, "modulate:a", 0.6, 0.25)
+	pulse.tween_property(gate, "modulate:a", 1.0, 0.25)
+	a["gate"] = gate
+	if a["id"] != "arena1":
+		var wall = StaticBody2D.new()
+		var cs = CollisionShape2D.new()
+		var rs = RectangleShape2D.new()
+		rs.size = Vector2(16, 420)
+		cs.shape = rs
+		wall.add_child(cs)
+		add_child(wall)
+		wall.global_position = Vector2(gx, bottom - 210.0)
+		a["wall"] = wall
+
+## Балкон второго этажа: платформа (в Barriers — на неё можно залезть по E), опоры, перила.
+func _build_balcony(cx: float):
+	var floor_top = _floor_top_y()
+	if is_nan(floor_top):
+		return
+	var barriers = get_node_or_null("Barriers")
+	if barriers == null:
+		return
+	var thick := 12.0
+	var top = min(_tiles_top_y() - BALCONY_ABOVE_TILES, floor_top - 100.0)
+	_balcony_h = floor_top - top
+	_balcony_rect = Rect2(Vector2(cx - BALCONY_WIDTH * 0.5, top), Vector2(BALCONY_WIDTH, thick))
+
+	_balcony = StaticBody2D.new()
+	_balcony.name = "Balcony2F"
+	barriers.add_child(_balcony)
+	_balcony.global_position = _balcony_rect.get_center()
+	var cs = CollisionShape2D.new()
+	var rs = RectangleShape2D.new()
+	rs.size = _balcony_rect.size
+	cs.shape = rs
+	_balcony.add_child(cs)
+
+	# вид: металлический настил, полоса опасности, опоры до пола и перила
+	var vis = Node2D.new()
+	vis.z_index = 3
+	_balcony.add_child(vis)
+	var w = BALCONY_WIDTH
+	var deck = ColorRect.new()
+	deck.color = Color(0.26, 0.27, 0.31)
+	deck.position = Vector2(-w * 0.5, -thick * 0.5)
+	deck.size = Vector2(w, thick)
+	vis.add_child(deck)
+	var lip = ColorRect.new()
+	lip.color = Color(0.55, 0.57, 0.62)
+	lip.position = Vector2(-w * 0.5, -thick * 0.5)
+	lip.size = Vector2(w, 2)
+	vis.add_child(lip)
+	var n_stripes = int(w / 16.0)
+	for i in n_stripes:
+		var st = ColorRect.new()
+		st.color = Color(0.85, 0.62, 0.12) if i % 2 == 0 else Color(0.08, 0.08, 0.09)
+		st.position = Vector2(-w * 0.5 + i * 16.0, thick * 0.5 - 4.0)
+		st.size = Vector2(16, 3)
+		vis.add_child(st)
+	for sx in [-w * 0.5 + 8.0, w * 0.5 - 14.0]:
+		var post = ColorRect.new()
+		post.color = Color(0.2, 0.21, 0.24)
+		post.position = Vector2(sx, thick * 0.5)
+		post.size = Vector2(6, _balcony_h - thick)
+		vis.add_child(post)
+	var rail_h := 22.0
+	var rail = Line2D.new()
+	rail.width = 2.0
+	rail.default_color = Color(0.6, 0.62, 0.68)
+	rail.points = PackedVector2Array([Vector2(-w * 0.5 + 2, -thick * 0.5), Vector2(-w * 0.5 + 2, -thick * 0.5 - rail_h),
+		Vector2(w * 0.5 - 2, -thick * 0.5 - rail_h), Vector2(w * 0.5 - 2, -thick * 0.5)])
+	vis.add_child(rail)
+	var x = -w * 0.5 + 20.0
+	while x < w * 0.5 - 10.0:
+		var bar = Line2D.new()
+		bar.width = 1.0
+		bar.default_color = Color(0.45, 0.47, 0.52)
+		bar.points = PackedVector2Array([Vector2(x, -thick * 0.5), Vector2(x, -thick * 0.5 - rail_h)])
+		vis.add_child(bar)
+		x += 18.0
+
+	# бортики по краям — только для голубя (слой 16, рыба его не видит),
+	# не внутри Barriers, чтобы рыба не пыталась на них лазить
+	for ex in [_balcony_rect.position.x - 4.0, _balcony_rect.end.x + 4.0]:
+		var edge = StaticBody2D.new()
+		edge.collision_layer = 16
+		edge.collision_mask = 0
+		var ecs = CollisionShape2D.new()
+		var ers = RectangleShape2D.new()
+		ers.size = Vector2(8, 80)
+		ecs.shape = ers
+		edge.add_child(ecs)
+		add_child(edge)
+		edge.global_position = Vector2(ex, top - 40.0)
+
+## Верхний край самого высокого тайла во всех TileMapLayer уровня (глобальная Y).
+func _tiles_top_y() -> float:
+	var best := INF
+	for n in get_children():
+		if n is TileMapLayer and n.visible:
+			var half = Vector2(n.tile_set.tile_size) * 0.5 if n.tile_set else Vector2(8, 8)
+			for c in n.get_used_cells():
+				var y = n.to_global(n.map_to_local(c) - half).y
+				if y < best:
+					best = y
+	return best
+
+func _make_arena_counter():
+	if _arena_counter_layer == null:
+		_arena_counter_layer = CanvasLayer.new()
+		_arena_counter_layer.layer = 25
+		add_child(_arena_counter_layer)
+		_arena_counter = _make_world_hint("")
+		_arena_counter.get_parent().remove_child(_arena_counter)
+		_arena_counter_layer.add_child(_arena_counter)
+		_arena_counter.add_theme_font_size_override("font_size", 13)
+	_arena_counter.modulate.a = 1.0
+
+func _update_arena_counter(a: Dictionary):
+	if _arena_counter == null or a["state"] != Arena.FIGHT:
+		return
+	var txt = "ВРАГИ  %d / %d" % [a["killed"], a["total"]]
+	if _arena_counter.text != txt:
+		_arena_counter.text = txt
+		_arena_counter.reset_size()
+	_center_counter()
+
+func _center_counter():
+	var vp = get_viewport_rect().size
+	_arena_counter.position = Vector2(round((vp.x - _arena_counter.size.x) * 0.5), 18.0)
+
+# ---------- предметы: взять / бросить ----------
+
+func _start_items(a: Dictionary):
+	_item_arena = a
+	_items.clear()
+	var floor_top = _floor_top_y()
+	if is_nan(floor_top):
+		return
+	var xs = [a["left"] + 160.0, a["left"] + 360.0, a["right"] - 170.0]
+	for x in xs:
+		var en = {"node": null, "spot": Vector2(x, floor_top - 9.25), "respawn": 0.0}
+		_items.append(en)
+		_spawn_item(en)
+
+func _spawn_item(en: Dictionary):
+	var it = ITEM_SCENE.instantiate()
+	if it is RigidBody2D:
+		it.freeze = true
+	if it is CollisionObject2D:
+		it.collision_layer = 0
+		it.collision_mask = 0
+	add_child(it)
+	it.global_position = en["spot"] - Vector2(24, 6)
+	en["node"] = it
+	it.scale = Vector2(0.2, 0.2)
+	var t = create_tween()
+	t.tween_property(it, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _item_texture(it: Node) -> Texture2D:
+	var spr = it.get_node_or_null("Sprite2D")
+	return spr.texture if spr else null
+
+func _update_items(_a: Dictionary, delta: float):
+	for en in _items:
+		if en["node"] == null:
+			en["respawn"] -= delta
+			if en["respawn"] <= 0.0:
+				_spawn_item(en)
+	var holding: bool = player.has_item
+	var near = null
+	if not holding and player.is_on_floor():
+		var best = ITEM_PICK_RADIUS
+		for en in _items:
+			if en["node"] and is_instance_valid(en["node"]):
+				var d = (player.global_position + Vector2(0, 20)).distance_to(en["spot"])
+				if d < best:
+					best = d
+					near = en
+	# рядом с паллетом или с паллетом в руках E — это «взять/бросить», а не «залезть»
+	if "barriers_node" in player:
+		player.barriers_node = null if (near != null or holding) else _player_barriers
+	_set_item_hint(near != null or holding, tr("E — бросить") if holding else tr("E — взять"))
+	if Input.is_action_just_pressed("interact") and not player.is_dead and not player.movement_blocked:
+		if holding:
+			_throw_item()
+		elif near != null:
+			_pick_item(near)
+
+func _pick_item(en: Dictionary):
+	var it = en["node"]
+	_held_item_tex = _item_texture(it)
+	it.queue_free()
+	en["node"] = null
+	en["respawn"] = ITEM_RESPAWN_TIME
+	player.has_item = true
+	if player.held_icon:
+		player.held_icon.texture = _held_item_tex
+		player.held_icon.visible = true
+
+func _throw_target(dir: int) -> Node2D:
+	var best: Node2D = null
+	var best_d := ITEM_THROW_RANGE
+	var fallback: Node2D = null
+	var fb_d := ITEM_THROW_RANGE
+	for e in _item_arena.get("enemies", []):
+		if not is_instance_valid(e) or e.get("is_dead") or e.has_meta("arena_sniper"):
+			continue
+		var d = player.global_position.distance_to(e.global_position)
+		if (e.global_position.x - player.global_position.x) * dir > -10.0:
+			if d < best_d:
+				best_d = d
+				best = e
+		elif d < fb_d:
+			fb_d = d
+			fallback = e
+	return best if best else fallback
+
+func _throw_item():
+	player.has_item = false
+	if player.held_icon:
+		player.held_icon.visible = false
+	_thrown_once = true
+	var dir: int = 1 if player.facing_direction >= 0 else -1
+	var from = player.global_position + Vector2(dir * 10.0, -40.0)
+	var target = _throw_target(dir)
+	var to = target.global_position + Vector2(0, -12) if target else from + Vector2(dir * 340.0, 60.0)
+	var proj = Sprite2D.new()
+	proj.texture = _held_item_tex
+	proj.z_index = 60
+	add_child(proj)
+	proj.global_position = from
+	var dist = from.distance_to(to)
+	var dur = clamp(dist / ITEM_THROW_SPEED, 0.18, 0.7)
+	var lift = min(80.0, dist * 0.25)
+	var t = create_tween()
+	# самонаведение: летит дугой в ТЕКУЩУЮ позицию цели, даже если та сместилась
+	t.tween_method(_proj_move.bind(proj, from, lift, target, to), 0.0, 1.0, dur)
+	t.parallel().tween_property(proj, "rotation", dir * TAU * 1.5, dur)
+	await t.finished
+	if not is_inside_tree():
+		return
+	var hit_pos = proj.global_position
+	proj.queue_free()
+	_spawn_sparks(hit_pos, Color(0.62, 0.45, 0.28, 0.95), 14)
+	if target and is_instance_valid(target) and not target.get("is_dead"):
+		if target.has_method("stun"):
+			target.stun(ITEM_STUN_TIME)
+		# видно, что оглушён: останавливается, играет «удар», отдаёт очередь на атаку
+		if "velocity" in target:
+			target.velocity.x = 0.0
+		if target.has_method("_release_token"):
+			target._release_token()
+		if target.has_method("_play"):
+			target._play("hit", true)
+		_stun_stars(target, ITEM_STUN_TIME)
+		_add_shake(0.2)
+
+func _proj_move(k: float, proj: Sprite2D, a: Vector2, lift: float, target, fallback: Vector2) -> void:
+	if not is_instance_valid(proj):
+		return
+	var c = fallback
+	if target and is_instance_valid(target):
+		c = target.global_position + Vector2(0, -12)
+	var b = (a + c) * 0.5 + Vector2(0, -lift)
+	proj.global_position = a.lerp(b, k).lerp(b.lerp(c, k), k)
+
+## Звёздочки над оглушённым врагом
+func _stun_stars(e: Node2D, time: float):
+	var holder = Node2D.new()
+	holder.z_index = 70
+	holder.position = Vector2(0, -52)
+	e.add_child(holder)
+	for i in 3:
+		var star = Polygon2D.new()
+		star.color = Color(1.0, 0.9, 0.3)
+		star.polygon = PackedVector2Array([Vector2(0, -3), Vector2(1, -1), Vector2(3, 0), Vector2(1, 1), Vector2(0, 3), Vector2(-1, 1), Vector2(-3, 0), Vector2(-1, -1)])
+		star.position = Vector2(14, 0).rotated(TAU * i / 3.0)
+		holder.add_child(star)
+	var spin = create_tween().set_loops()
+	spin.bind_node(holder)
+	spin.tween_property(holder, "rotation", TAU, 0.6).from(0.0)
+	get_tree().create_timer(time).timeout.connect(func():
+		if is_instance_valid(holder):
+			holder.queue_free())
+
+func _set_item_hint(on: bool, text: String):
+	if _item_hint == null:
+		if not on:
+			return
+		_item_hint = _make_world_hint(text)
+	if _item_hint.text != text:
+		_item_hint.text = text
+		_item_hint.reset_size()
+	if on:
+		_item_hint.position = to_local(player.global_position + Vector2(-_item_hint.size.x * 0.5, -86))
+	_item_hint.modulate.a = move_toward(_item_hint.modulate.a, 1.0 if on else 0.0, 0.15)
+
+func _stop_items():
+	for en in _items:
+		if en["node"] and is_instance_valid(en["node"]):
+			en["node"].queue_free()
+	_items.clear()
+	if player.has_item:
+		player.has_item = false
+		if player.held_icon:
+			player.held_icon.visible = false
+	if "barriers_node" in player:
+		player.barriers_node = _player_barriers
+	_set_item_hint(false, "")
+	if _item_hint:
+		_item_hint.modulate.a = 0.0

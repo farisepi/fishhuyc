@@ -73,6 +73,11 @@ var ignore_pause: bool = false
 ## Set by a level when space was used for something else (tutorial skip): no jump until
 ## the key is released.
 var block_jump: bool = false
+## Уровень может выключить блок (F) и парирование (ПКМ) — в Hallway их рано показывать.
+var allow_block: bool = true
+var allow_parry: bool = true
+## Падение в яму (DeathZone Hallway)
+var is_falling_into_pit: bool = false
 
 ## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
 ## further. Levels can scale it down.
@@ -362,6 +367,8 @@ func _end_parry() -> void:
 		_play_anim("Idle")
 
 func _physics_process(delta):
+	if is_falling_into_pit:
+		return
 	if is_on_ladder:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -689,11 +696,11 @@ func _input(event: InputEvent) -> void:
 		# factory: only walking and jumping (read in physics) - no attacks, blocks, parries, dashes
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-		if is_on_floor():
+		if allow_parry and is_on_floor():
 			_start_parry()
 		return
 
-	if event is InputEventKey and event.keycode == KEY_F and not event.echo:
+	if event is InputEventKey and event.keycode == KEY_F and not event.echo and allow_block:
 		if is_stunned or is_dead or is_dying or is_parrying:
 			return
 		if not is_on_floor():
@@ -1104,6 +1111,76 @@ func on_death_zone_entered():
 
 func set_hp(value: int):
 	hp = clamp(value, 0, max_hp)
+
+## Вызывается уровнем после катсцен: сразу «прилипнуть» к полу, без падения и Landing.
+func snap_to_floor_now() -> void:
+	if is_dead or is_falling_into_pit:
+		return
+	velocity = Vector2(0, 60)
+	move_and_slide()
+	velocity = Vector2.ZERO
+	was_on_floor_last_frame = true
+	is_landing = false
+	if sprite and sprite.animation in ["Falling", "Jump", "Landing"]:
+		_play_anim("Idle", true)
+
+## Падение в яму (DeathZone): проваливаемся сквозь пол, темнеем, затем экран смерти.
+func fall_into_pit(zone: Node2D = null):
+	if is_dead or is_dying or is_falling_into_pit:
+		return
+	is_falling_into_pit = true
+	is_dying = true
+	movement_blocked = true
+	is_dashing = false
+	is_sliding = false
+	is_vaulting = false
+	is_climbing = false
+	is_climbing_animation = false
+	is_attacking = false
+	is_landing = false
+	_set_blocking(false)
+	Engine.time_scale = 1.0
+	var body_shape = get_node_or_null("CollisionShape2D")
+	if body_shape:
+		body_shape.set_deferred("disabled", true)
+
+	var pit := Rect2()
+	if zone:
+		var zc = zone.get_node_or_null("CollisionShape2D")
+		if zc and zc.shape is RectangleShape2D:
+			var hs = zc.shape.size / 2.0
+			pit = Rect2(zc.global_position - hs, zc.shape.size)
+
+	var vx = clamp(velocity.x, -160.0, 160.0)
+	var vy = min(velocity.y, 0.0) + 60.0
+	if camera and "follow_enabled" in camera:
+		camera.follow_enabled = false
+	_shake_camera(0.2)
+	if sprite:
+		_play_anim("Falling", true)
+		var spin = create_tween()
+		spin.tween_property(sprite, "rotation", deg_to_rad(28.0) * (1.0 if vx >= 0.0 else -1.0), 0.9)
+	var dark = create_tween()
+	dark.tween_property(self, "modulate", Color(0.05, 0.05, 0.07, 1.0), 0.6).set_delay(0.15)
+
+	var t := 0.0
+	while t < 1.0:
+		await get_tree().physics_frame
+		if not is_inside_tree():
+			return
+		var d = get_physics_process_delta_time()
+		t += d
+		vy += gravity * d
+		vx = move_toward(vx, 0.0, 260.0 * d)
+		var nx = global_position.x + vx * d
+		if pit.has_area():
+			nx = clamp(nx, pit.position.x + 14.0, pit.end.x - 14.0)
+		global_position = Vector2(nx, global_position.y + vy * d)
+
+	is_dead = true
+	velocity = Vector2.ZERO
+	set_physics_process(false)
+	_show_death_screen()
 
 func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
