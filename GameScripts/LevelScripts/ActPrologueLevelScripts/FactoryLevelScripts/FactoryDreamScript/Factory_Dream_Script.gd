@@ -37,6 +37,8 @@ func is_on() -> bool:
 	return _on
 
 # ---------------------------------------------------------------- white fade
+var _white_tw: Tween = null
+
 func white(on: bool, t: float = 0.9) -> void:
 	if _white == null:
 		_white_layer = CanvasLayer.new()
@@ -48,9 +50,14 @@ func white(on: bool, t: float = 0.9) -> void:
 		_white.color = Color(1, 1, 1, 0)
 		_white_layer.add_child(_white)
 	if t <= 0.0:
+		if _white_tw and _white_tw.is_valid():
+			_white_tw.kill()
 		_white.color.a = 1.0 if on else 0.0
 		return
-	var tw = create_tween().set_ignore_time_scale(true)
+	if _white_tw and _white_tw.is_valid():
+		_white_tw.kill()
+	var tw = create_tween().set_ignore_time_scale(true).set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_white_tw = tw
 	tw.tween_property(_white, "color:a", 1.0 if on else 0.0, t).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await tw.finished
 
@@ -69,6 +76,7 @@ func enter(station: int) -> void:
 	_saved_gui = L.player_gui.visible if L.player_gui else false
 	L.player_station = station
 	L.state = L.State.WORKING
+	L._update_escape_hint()   # (hidden while dreaming)
 	var press: Node2D = L.presses[station] if station < L.presses.size() else null
 	_belt_x = L._get_stop_zone_x(station)
 	# the hall disappears: only the fish, its press and the zone stay
@@ -96,7 +104,8 @@ func enter(station: int) -> void:
 	# guard and sniper wait until they are introduced
 	for a in [L.guard_sprite, L.sniper_sprite]:
 		if a:
-			_saved_vis[a] = a.visible
+			if not _saved_vis.has(a):   # (already hidden above as a child of the level: keep
+				_saved_vis[a] = a.visible   #  the visibility it had BEFORE the dream)
 			a.visible = false
 	var bg = L.get_node_or_null("Background") as ColorRect
 	if bg and ResourceLoader.exists(DREAM_SHADER):
@@ -140,6 +149,15 @@ func leave() -> void:
 		return
 	_clear_targets()
 	set_process(false)
+	# whatever happened in the dream (inspect, journal, a lesson card), time runs normally again
+	if L.journal_open:
+		L._on_journal_close()
+	if L.get("_tut_frozen"):
+		L._tut_unfreeze()
+	Engine.time_scale = 1.0
+	AudioServer.playback_speed_scale = 1.0
+	if L.pausemenu == null or not L.pausemenu.visible:
+		get_tree().paused = false
 	_balcony_a = 0.0
 	if L.inspect_text_panel:
 		L.inspect_text_panel.visible = false
@@ -187,6 +205,7 @@ func leave() -> void:
 	L.state = _saved_state
 	L._dream_on = false
 	L._dream_allow_inspect = false
+	L._update_escape_hint()
 	if L._spot:
 		L._spot.hide_step()
 	_on = false
@@ -236,7 +255,7 @@ func _t() -> SceneTree:
 	return L._tree()
 
 func _wait(sec: float) -> void:
-	await _t().create_timer(sec, false).timeout
+	await _t().create_timer(sec, false, false, true).timeout   # (real seconds: the inspect slow motion does not stretch the lessons)
 
 func _until(cond: Callable, max_t: float = 1e9) -> void:
 	var t := 0.0
@@ -253,9 +272,7 @@ func _task(title: String, body: String, keys: Array, target: Callable, cond: Cal
 	await _until(cond)
 	if not is_instance_valid(L) or not L.is_inside_tree():
 		return
-	if L._spot:
-		L._spot.done()
-	await _wait(0.45)
+	# done: the card goes at once (as in the game), no lingering
 	if L._spot:
 		L._spot.hide_step()
 
@@ -409,10 +426,10 @@ func run_first() -> void:
 	_balcony_a = 0.0
 	create_tween().tween_property(self, "_balcony_a", 1.0, 0.6)
 	await _appear(L.sniper_sprite, _sniper_spot())
-	await _read(tr("СНАЙПЕР"), tr("Над цехом сидит снайпер. Если ты так и не вернулся к станку — он стреляет. Одного выстрела хватает."), func(): return L._sprite_screen_rect(L.sniper_sprite).grow(14.0))
+	await _read(tr("СНАЙПЕР"), tr("Над цехом сидит снайпер. Если ты так и не вернулся к станку — он стреляет. Одного выстрела хватает."), func(): return L._world_to_screen(L._sprite_screen_rect(L.sniper_sprite)).grow(14.0))
 	await _read(tr("КОНЕЦ СМЕНЫ"), tr("В 18:00 работа кончается, и все идут в комнату техобслуживания. Иди за остальными — стоять нельзя. Там можно спокойно отдохнуть и лечь спать на свою койку."), Callable(), false)
 	await _read(tr("ПОРА ПРОСЫПАТЬСЯ"), tr("Ты приходишь в себя у станка. Смена продолжается — теперь ты знаешь, что делать."), Callable(), false)
-	for f in ["basics", "dream1", "st_%d" % L.player_station]:
+	for f in ["basics", "dream1", "maint", "st_%d" % L.player_station]:
 		L._tut_mark(f)
 	await white(true, 1.0)
 	leave()
@@ -431,12 +448,18 @@ func night_incident(sh: int) -> int:
 func night_has_lessons(sh: int, st: int) -> bool:
 	var inc = night_incident(sh)
 	return (sh >= 2 and not L._tut_done("inspect")) or not L._tut_done("st_%d" % st) \
+		or (sh == L.ESCAPE_FROM_SHIFT and not L._tut_done("escape_eve")) \
 		or (inc != L.MGE_NONE and not L._tut_done("inc_%d" % inc))
 
 func run_night(sh: int, st: int) -> void:
 	white(true, 0.0)
 	L.fade_rect.color.a = 0.0
 	enter(st)
+	# the shift panel is part of the lessons now (the first dream showed it)
+	L._set_hud_visible(true)
+	if L.player_gui:
+		L.player_gui.visible = true
+	L._place_air_bar()
 	await _wait(0.4)
 	await white(false, 1.4)
 	var key = L._key_name("interact")
@@ -449,11 +472,19 @@ func run_night(sh: int, st: int) -> void:
 		await practice(st, 2, tr(String(L.STATION_TITLE.get(st, ""))), _howto(st))
 	var inc = night_incident(sh)
 	if inc != L.MGE_NONE and not L._tut_done("inc_%d" % inc):
+		var food = _practice_item(st)   # (the goods that will burn / jam on the belt)
 		var names = {L.MGE_FIRE: tr("ПОЖАР"), L.MGE_STUCK: tr("ЗАКЛИНИЛО КНОПКУ"), L.MGE_SHORT: tr("ЗАМЫКАНИЕ")}
 		await _read(tr("АВАРИЯ: ") + String(names.get(inc, "")), tr("С этой смены у станка может случиться авария. Тогда работа встаёт, и её надо ликвидировать самому. Сейчас попробуешь — подсказка будет рядом с окном аварии."), L._zone_screen_rect)
 		await L._run_incident(inc, true)
 		L._tut_mark("inc_%d" % inc)
+		if is_instance_valid(food["node"]):
+			var ftw = food["node"].create_tween()
+			ftw.tween_property(food["node"], "modulate:a", 0.0, 0.4)
+			ftw.tween_callback(food["node"].queue_free)
 		await _wait(0.6)
+	if sh == L.ESCAPE_FROM_SHIFT and not L._tut_done("escape_eve"):
+		await _read(tr("ВАЖНАЯ СМЕНА"), tr("Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись."), Callable(), false)
+		L._tut_mark("escape_eve")
 	await _read(tr("ПОРА ВСТАВАТЬ"), tr("Скоро подъём. Впереди смена %d.") % sh, Callable(), false)
 	await white(true, 1.0)
 	leave()

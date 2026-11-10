@@ -47,14 +47,27 @@ func show_death():
 	_fx_start()
 
 func hide_death():
+	_pause_pending = false
 	_fx_t = -1.0
 	hide()
 	can_interact = false
 	fading_in = false
 	set_process(false)
 
+var _pause_pending: bool = false
+
+func _air_still_draining() -> bool:
+	var scene = get_tree().current_scene
+	var p = scene.get_node_or_null("Mecha_Fish") if scene else null
+	if p == null or not ("_death_air_out" in p):
+		return false
+	return p._death_fish_spawned and not p._death_air_out
+
 func _process(delta):
 	_fx_process(delta)
+	if _pause_pending and not _air_still_draining():
+		_pause_pending = false
+		get_tree().paused = true
 	if not fading_in:
 		return
 	
@@ -88,7 +101,8 @@ func _process(delta):
 			if appear_timer >= 2.0:
 				fading_in = false
 				can_interact = true
-				get_tree().paused = true
+				# the world freezes only after the fish's air balloon has run dry
+				_pause_pending = true
 
 func _on_restart_button_pressed():
 	if not can_interact:

@@ -157,6 +157,15 @@ func enter() -> void:
 	_morning = false
 	_emotes.clear()
 	L._room_on = true
+	L._update_escape_hint()
+	# no leftover speech from the hall
+	if L._bubble and is_instance_valid(L._bubble):
+		L._bubble.queue_free()
+	for ch in L._chan_bubbles.keys():
+		var old = L._chan_bubbles[ch]
+		if old.size() > 0 and is_instance_valid(old[0]):
+			old[0].queue_free()
+	L._chan_bubbles.clear()
 	_view.visible = true
 	_front().visible = true
 	_body.process_mode = Node.PROCESS_MODE_INHERIT
@@ -175,7 +184,7 @@ func enter() -> void:
 		L._nav.visible = false
 	if L._act_strip:
 		_saved_strip_vis = L._act_strip.visible
-		L._act_strip.visible = L._tut_done("journal")
+		L._act_strip.visible = true   # the journal can be read here
 	if L.player:
 		_saved_player_pos = L.player.global_position
 		L.player.global_position = Vector2(DOOR_X + 30.0, 350.0)
@@ -198,6 +207,7 @@ func leave() -> void:
 	set_process(false)
 	set_process_input(false)
 	L._room_on = false
+	L._update_escape_hint()
 	var lt = L.get_node_or_null("Lighting") as CanvasModulate
 	if lt:
 		lt.color = _saved_light
@@ -314,7 +324,7 @@ func _first_visit_card() -> void:
 	await get_tree().create_timer(0.9, false).timeout
 	if not _on:
 		return
-	var j = (tr(" Журнал — %s.") % L._key_name("journal")) if L._tut_done("journal") else ""
+	var j = tr(" Журнал — %s.") % L._key_name("journal")
 	await L._tut_read(tr("КОМНАТА ТЕХОБСЛУЖИВАНИЯ"),
 		tr("Здесь рыбы спят между сменами. Охраны нет, время не идёт — ходи, сколько хочешь.") + j + "\n" + tr("Когда будешь готов, подойди к своей койке (она подсвечена) и нажми %s.") % L._key_name("interact"),
 		func(): return L._world_to_screen(Rect2(_bed_pos() + Vector2(-60, -112), Vector2(120, 116))), false)
@@ -334,15 +344,16 @@ func _process(delta: float) -> void:
 		if on and not (_my_bunk.material is ShaderMaterial):
 			L._ensure_outline(_my_bunk, L.COLOR_HIGHLIGHT_YELLOW)
 		if _my_bunk.material is ShaderMaterial:
-			_my_bunk.material.set_shader_parameter("active", (0.55 + 0.45 * sin(_t * 3.0)) if on else 0.0)
+			_my_bunk.material.set_shader_parameter("active", 1.0 if on else 0.0)   # (steady, like in inspect)
 	var flick = 0.92 + 0.08 * sin(_t * 1.7) * sin(_t * 0.43 + 1.0)
 	for c in _lamp_cones:
 		c.modulate.a = 0.22 * flick
 	if _view:
 		_view.queue_redraw()
 		_front().queue_redraw()
-	if _morning and not _busy and L.player and L.player.global_position.x < DOOR_X + 26.0:
-		_go_out()
+
+func _near_door() -> bool:
+	return L.player != null and abs(L.player.global_position.x - DOOR_X) < 46.0
 
 func _near_bed() -> bool:
 	return L.player != null and abs(L.player.global_position.x - _bed_pos().x) < 60.0
@@ -370,6 +381,10 @@ func _input(event: InputEvent) -> void:
 	if not _morning and _near_bed():
 		get_viewport().set_input_as_handled()
 		_sleep()
+		return
+	if _morning and _near_door():
+		get_viewport().set_input_as_handled()
+		_go_out()
 		return
 	var f = _near_fish()
 	if f:
@@ -411,7 +426,7 @@ func _sleep() -> void:
 		await L._dream.run_night(sh, st)
 		L._room_on = true
 		if L._act_strip:
-			L._act_strip.visible = L._tut_done("journal")
+			L._act_strip.visible = true
 		L._set_hud_visible(false)
 		if L.player_gui:
 			L.player_gui.visible = false
@@ -433,7 +448,7 @@ func _sleep() -> void:
 	_busy = false
 	_walk_fish_out()
 	if not L._tut_done("morning"):
-		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро начнётся. Выходи за остальными — дверь слева."), ["A"],
+		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.") % L._key_name("interact"), ["A", L._key_name("interact")],
 			func(): return L._world_to_screen(Rect2(DOOR_X - 40, CEIL_Y + 60, 80, FLOOR_Y - CEIL_Y - 56)), false)
 		L._tut_mark("morning")
 
@@ -504,11 +519,7 @@ func _go_out() -> void:
 	_busy = true
 	if L._spot:
 		L._spot.hide_step()
-	if L.player and L.player.has_method("set_movement_blocked"):
-		L.player.set_movement_blocked(true)
 	await L._fade_black(true, 0.9)
-	if L.player and L.player.has_method("set_movement_blocked"):
-		L.player.set_movement_blocked(false)
 	finished.emit()
 
 # ---------------------------------------------------------------- drawing
@@ -527,6 +538,26 @@ func _draw_room() -> void:
 		bx += 72.0
 	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 9), Color(0.1, 0.11, 0.14))
 	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 3), Color(0.16, 0.17, 0.21))
+	# the room's own side walls (beyond them: thick steel, not a black hole)
+	for side in [-1.0, 1.0]:
+		var wx = x0 - 340.0 if side < 0 else x0 + w
+		v.draw_rect(Rect2(wx, CEIL_Y - 300.0, 340.0, 800.0), Color(0.1, 0.115, 0.15))
+		var py = CEIL_Y - 300.0
+		while py < FLOOR_Y + 500.0:
+			v.draw_rect(Rect2(wx, py, 340.0, 3), Color(0.06, 0.07, 0.1))
+			for rx in range(int(wx) + 12, int(wx + 340.0), 72):
+				v.draw_rect(Rect2(rx, py + 9, 3, 3), Color(0.18, 0.2, 0.25))
+			py += 66.0
+		# a thick pillar right at the edge of the room, with a hazard band
+		var pxl = x0 - 24.0 if side < 0 else x0 + w
+		v.draw_rect(Rect2(pxl, CEIL_Y - 300.0, 24.0, 800.0), Color(0.2, 0.22, 0.26))
+		v.draw_rect(Rect2(pxl + (21.0 if side < 0 else 0.0), CEIL_Y - 300.0, 3.0, 800.0), Color(0.3, 0.32, 0.37))
+		for hy in range(0, 4):
+			var yy = FLOOR_Y - 60.0 + hy * 6.0
+			v.draw_rect(Rect2(pxl, yy, 24.0, 3.0), Color(0.95, 0.6, 0.3) if hy % 2 == 0 else Color(0.08, 0.08, 0.08))
+		# pipes running into the wall
+		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 9.0), Color(0.36, 0.2, 0.15))
+		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 3.0), Color(0.5, 0.3, 0.22))
 	var fy = FLOOR_Y + (100.0 - BACK_FLOOR) * PX
 	v.draw_rect(Rect2(x0, fy, w, 400.0), Color(0.12, 0.125, 0.13))
 	var fx = x0
@@ -543,6 +574,40 @@ func _draw_room() -> void:
 	v.draw_rect(Rect2(lp, Vector2(12, 6)), lc)
 	v.draw_rect(Rect2(lp, Vector2(12, 2)), lc.lightened(0.4))
 
+## The interact key drawn like in the aquarium: a white key cap that is pressed now and then,
+## a soft glow and a ring around it, and a word under it.
+func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> void:
+	var f = L._bubble_font()
+	var key = L._key_name("interact")
+	if key.length() > 3:
+		key = key.substr(0, 3)
+	var t = _t
+	var pressed = fmod(t, 1.1) > 0.85
+	var dip = 2.0 if pressed else 0.0
+	var w = max(17.0, 6.0 * key.length() + 9.0)
+	var x0 = round(at.x - w / 2.0)
+	var y0 = round(at.y - 8.0)
+	var pulse = 0.5 + 0.5 * sin(t * 4.0)
+	for i in range(3):
+		c.draw_circle(at, 15.0 - i * 3.0, Color(accent, (0.05 + 0.03 * i) * (0.6 + 0.4 * pulse)))
+	var rt = fmod(t, 1.4) / 1.4
+	c.draw_arc(at, 9.0 + rt * 12.0, 0.0, TAU, 40, Color(accent.lightened(0.3), 0.55 * (1.0 - rt)), 1.0)
+	var o = Color(0.08, 0.09, 0.12)
+	c.draw_rect(Rect2(x0, y0 + 1, w, 15), o)
+	c.draw_rect(Rect2(x0 + 1, y0, w - 2, 17), o)
+	c.draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 15), Color(0.35, 0.39, 0.48))
+	c.draw_rect(Rect2(x0 + 1, y0 + 1 + dip, w - 2, 6), Color(0.95, 0.96, 0.98))
+	c.draw_rect(Rect2(x0 + 1, y0 + 7 + dip, w - 2, 5), Color(0.83, 0.86, 0.91))
+	c.draw_rect(Rect2(x0 + 2, y0 + 2 + dip, w - 4, 1), Color(1, 1, 1))
+	c.draw_rect(Rect2(x0 + 1, y0 + 12 + dip, w - 2, 1), Color(0.65, 0.69, 0.77))
+	if f:
+		var tw = f.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		var base_y = y0 + 3 + dip + f.get_ascent(8)
+		c.draw_string(f, Vector2(round(at.x - tw / 2.0), base_y), key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.16, 0.18, 0.25))
+		var ww = f.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		c.draw_rect(Rect2(round(at.x - ww / 2.0) - 3, y0 + 21, ww + 6, 11), Color(0.04, 0.05, 0.07, 0.8))
+		c.draw_string(f, Vector2(round(at.x - ww / 2.0), y0 + 29), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, accent)
+
 func _draw_front(front: Node2D) -> void:
 	var f = L._bubble_font()
 	# my bunk: a glowing outline, the label and a bobbing arrow (until morning)
@@ -557,11 +622,7 @@ func _draw_front(front: Node2D) -> void:
 			front.draw_rect(Rect2(bp.x - sw * 0.5 - 4, ay - 16, sw + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
 			front.draw_string(f, Vector2(bp.x - sw * 0.5, ay - 6), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
 			if _on and not _busy and _near_bed():
-				var p = tr("%s — СПАТЬ") % L._key_name("interact")
-				var pw = f.get_string_size(p, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
-				var py = FLOOR_Y - 138.0
-				front.draw_rect(Rect2(bp.x - pw * 0.5 - 4, py - 10, pw + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
-				front.draw_string(f, Vector2(bp.x - pw * 0.5, py), p, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1, 1, 1))
+				_draw_key_prompt(front, Vector2(bp.x, FLOOR_Y - 150.0), tr("СПАТЬ"), Color(1.0, 0.84, 0.35))
 	else:
 		# morning: the way out
 		var bob2 = sin(_t * 4.0) * 3.0
@@ -573,6 +634,8 @@ func _draw_front(front: Node2D) -> void:
 			var sw2 = f.get_string_size(lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
 			front.draw_rect(Rect2(ax - sw2 * 0.5 - 4, ay2 - 16, sw2 + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
 			front.draw_string(f, Vector2(ax - sw2 * 0.5, ay2 - 6), lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.5, 1.0, 0.6))
+		if _on and not _busy and _near_door():
+			_draw_key_prompt(front, Vector2(ax, FLOOR_Y - 86.0), tr("ВЫЙТИ"), Color(0.5, 1.0, 0.6))
 	# the sleepers breathe out little "z"s
 	if f:
 		for l in _lie_sprites:

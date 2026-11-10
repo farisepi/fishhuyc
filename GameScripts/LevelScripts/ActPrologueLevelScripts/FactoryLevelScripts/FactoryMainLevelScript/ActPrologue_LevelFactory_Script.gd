@@ -48,11 +48,76 @@ const REAL_SHIFT_DURATION: float = 150.0   # ~25 boxes; only used for the guard 
 const SHIFT_CHANGE_HOURS: float = 0.25
 const SHIFT_CHANGE_REAL: float = (SHIFT_CHANGE_HOURS / SHIFT_DURATION_HOURS) * REAL_SHIFT_DURATION
 
-const GUARD_SHIFTS: Array = [9.0, 11.0, 13.0, 15.5]   # spread over the whole shift
-const SNIPER_SHIFTS: Array = [10.0, 13.0, 16.5]   # only 13:00 is shared with the guard
+## The change times are random for every save (rolled once, kept in the save): the guard
+## changes 4 times, the sniper 3 times, and exactly ONE time is shared - that is the escape
+## window (nobody on post for 15 minutes). See _gen_schedule().
+var GUARD_SHIFTS: Array = [9.0, 11.0, 13.0, 15.5]
+var SNIPER_SHIFTS: Array = [10.0, 13.0, 16.5]
 
-const ESCAPE_WINDOW_START: float = 13.0
-const ESCAPE_WINDOW_END: float = 13.25
+var ESCAPE_WINDOW_START: float = 13.0
+var ESCAPE_WINDOW_END: float = 13.25
+## the sniper leaves his post (and so the escape window opens) from this shift on
+const ESCAPE_FROM_SHIFT: int = 3
+
+func _escape_on() -> bool:
+	return current_shift >= ESCAPE_FROM_SHIFT
+
+func _gen_schedule() -> Dictionary:
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	for _try in range(2000):
+		var esc = [11.5, 12.0, 12.5, 13.0, 13.5, 14.0][rng.randi() % 6]
+		var g: Array = [esc]
+		var sn: Array = [esc]
+		var ok = true
+		for k in range(3):
+			var placed = false
+			for _t2 in range(60):
+				var h = 9.0 + rng.randi_range(0, 31) * 0.25   # 9:00 .. 16:45
+				if k == 0:
+					h = 9.0 + rng.randi_range(0, 5) * 0.25     # the first one early (9:00 - 10:15)
+				var good = abs(h - esc) >= 1.0
+				for x in g:
+					if abs(h - x) < 1.25:
+						good = false
+				if good:
+					g.append(h)
+					placed = true
+					break
+			ok = ok and placed
+		for k in range(2):
+			var placed2 = false
+			for _t3 in range(60):
+				var h2 = 9.5 + rng.randi_range(0, 29) * 0.25
+				var good2 = abs(h2 - esc) >= 1.0
+				for x in sn:
+					if abs(h2 - x) < 1.25:
+						good2 = false
+				for x in g:
+					if abs(h2 - x) < 0.75:   # never together with the guard (only the escape)
+						good2 = false
+				if good2:
+					sn.append(h2)
+					placed2 = true
+					break
+			ok = ok and placed2
+		if ok:
+			g.sort()
+			sn.sort()
+			return {"guard": g, "sniper": sn, "escape": esc}
+	return {"guard": [9.0, 11.0, 13.0, 15.5], "sniper": [10.0, 13.0, 16.5], "escape": 13.0}
+
+func _apply_schedule() -> void:
+	var fs: Dictionary = Global.factory_state
+	var sc = fs.get("sched", null)
+	if not (sc is Dictionary) or not sc.has("escape"):
+		sc = _gen_schedule()
+		fs["sched"] = sc
+		Global.factory_state = fs
+	GUARD_SHIFTS = (sc["guard"] as Array).map(func(h): return float(h))
+	SNIPER_SHIFTS = (sc["sniper"] as Array).map(func(h): return float(h))
+	ESCAPE_WINDOW_START = float(sc["escape"])
+	ESCAPE_WINDOW_END = ESCAPE_WINDOW_START + 0.25
 const ESCAPE_WINDOW_REAL: float = 10.0   # the 15 minutes 13:00 - 13:15 last 10 real seconds
 ## the 13:00 change starts this much earlier (game hours) so that at 13:00 the guard is already
 ## in the lift and the sniper gone: from 13:00 to 13:15 nobody is on post at all
@@ -573,11 +638,14 @@ func _nav_arrow_update() -> void:
 	elif escape_info_shift != -1 and current_shift >= escape_info_shift and state != State.DEAD and state != State.SHIFT_END and elevator_button:
 		var h = _current_hour()
 		target_x = elevator_button.global_position.x
-		if h < 13.0:
-			var mins = int(round((13.0 - h) * 60.0))
-			txt = tr("ЛИФТ  %d:%02d") % [mins / 60, mins % 60]
-		elif h < 13.25:
-			var real_left = (13.25 - h) / 0.25 * ESCAPE_WINDOW_REAL
+		if not _escape_on() or h < ESCAPE_WINDOW_START - 1.0:
+			target_x = INF   # (the arrow and the timer show up one hour before the window)
+		elif h < ESCAPE_WINDOW_START:
+			# a countdown in REAL seconds: it ticks down evenly, one per second
+			var left = int(ceil(_real_until(ESCAPE_WINDOW_START)))
+			txt = tr("ЛИФТ  %d:%02d") % [left / 60, left % 60]
+		elif h < ESCAPE_WINDOW_END:
+			var real_left = (ESCAPE_WINDOW_END - h) / 0.25 * ESCAPE_WINDOW_REAL
 			txt = tr("ЛИФТ!  %d СЕК") % int(ceil(real_left))
 		else:
 			target_x = INF
@@ -654,7 +722,8 @@ func _edge_arrow_update(target_x: float, text: String = "") -> void:
 	if player:
 		sy = (get_viewport().get_canvas_transform() * (player.global_position + Vector2(0, -40))).y
 	var slide = (1.0 - _edge_a) * 30.0
-	var x = (1152.0 - _edge.size.x - 14.0 + slide) if _edge_dir > 0.0 else (14.0 - slide)
+	# (on the right it stops left of the air balloon)
+	var x = (1152.0 - _edge.size.x - 48.0 + slide) if _edge_dir > 0.0 else (14.0 - slide)
 	_edge.position = Vector2(round(x), round(clamp(sy - _edge.size.y * 0.5, 120.0, 560.0)))
 	_edge.queue_redraw()
 
@@ -760,6 +829,7 @@ func _setup_spotlight() -> void:
 
 func _spot_show(title: String, body: String, keys: Array, target: Callable, dim: bool = true) -> void:
 	if _spot:
+		_spot.next_key = _key_name("interact")
 		_spot.show_step(title, body, keys, target, dim)
 		# minigame / incident windows: the explanation sits right beside the window
 		if target == _mg_screen_rect or target == _inc_screen_rect:
@@ -767,7 +837,7 @@ func _spot_show(title: String, body: String, keys: Array, target: Callable, dim:
 
 func _on_spot_key(ev: InputEvent) -> void:
 	if _tut_reading and _tut_wait_key == "":
-		var go = (ev is InputEventKey and ev.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]) \
+		var go = (ev is InputEventKey and ev.keycode in [KEY_ENTER, KEY_KP_ENTER]) \
 			or (ev is InputEventKey and _is_action_key(ev, "interact")) \
 			or (ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT)
 		if go and not minigame_active and not _inc_active:
@@ -778,7 +848,7 @@ func _on_spot_key(ev: InputEvent) -> void:
 			return
 	if not _tut_frozen:
 		return
-	if ev is InputEventKey and ev.keycode == KEY_SPACE and _tut_wait_key == "":
+	if ev is InputEventKey and _is_action_key(ev, "interact") and _tut_wait_key == "":
 		_tut_skip_hit = true
 		if player and "block_jump" in player:
 			player.block_jump = true   # the skip press must not make the fish jump
@@ -856,6 +926,7 @@ func _tut_wait(t: float, progress: bool = false) -> void:
 func _tut_wait_read() -> void:
 	_tut_reading = true
 	if _spot:
+		_spot.next_key = _key_name("interact")
 		_spot.set_skippable(true)
 	var t := 0.0
 	_tut_skip_hit = false
@@ -1352,10 +1423,7 @@ func _fit_hint() -> void:
 	var s = hint_label.get_minimum_size()
 	s.x = max(s.x, 300.0)   # a real plate, not just a strip under the text
 	hint_label.size = s
-	# at the bottom edge of the screen, out of the scene (the minigame window stays clear)
-	y = 648.0 - s.y - 16.0
-	if minigame_panel and minigame_panel.is_visible_in_tree():
-		y = max(y, minigame_panel.get_global_rect().end.y + 8.0)
+	# right under the minigame window (like a caption under it)
 	hint_label.position = Vector2(round(576.0 - s.x * 0.5), round(min(y, 648.0 - s.y - 4.0)))
 
 func _maint_screen_rect() -> Rect2:
@@ -1447,6 +1515,7 @@ func _skip_blackout(on: bool) -> void:
 
 # ---------------------------------------------------------------- save state (every shift)
 func _load_factory_state() -> void:
+	_apply_schedule()
 	var fs: Dictionary = Global.factory_state
 	_tut_flags = (fs.get("tut", {}) as Dictionary).duplicate() if fs.get("tut", {}) is Dictionary else {}
 
@@ -1550,6 +1619,9 @@ func _ready() -> void:
 	_create_work_zone()
 	_create_maintenance_safe_zone()
 	_setup_hall_background()
+	_make_sniper_door()
+	# the inspect loop's extra views follow the final camera of each frame
+	RenderingServer.frame_pre_draw.connect(_on_frame_pre_draw)
 	_create_vignette()
 	_create_hud()
 	_create_shift_bars()
@@ -1969,6 +2041,8 @@ func _restore_actions_on_exit() -> void:
 	InputMap.action_add_event("Parry", mouse_ev)
 
 func _exit_tree() -> void:
+	if RenderingServer.frame_pre_draw.is_connected(_on_frame_pre_draw):
+		RenderingServer.frame_pre_draw.disconnect(_on_frame_pre_draw)
 	_restore_actions_on_exit()
 	_reset_slowmo_now()
 
@@ -2080,7 +2154,29 @@ const ZONE_C_OUT := Color(1.0, 0.2, 0.16)
 var _zone_col: Color = ZONE_C_IN
 var _zone_k: float = 1.0   # 1 = inside (green), 0 = outside (red)
 
+var _maint_k: float = 0.0
+
+## Which aura is lit: the press's only while the shift is on (green in it / red away), the
+## maintenance one only after the shift (red until the fish gets there, then green).
+func _update_zone_lights() -> void:
+	var dt = get_process_delta_time() / max(0.05, Engine.time_scale)
+	var shift_on = state != State.SHIFT_END and state != State.INTRO and state != State.DEAD
+	if work_zone_rect:
+		work_zone_rect.modulate.a = move_toward(work_zone_rect.modulate.a, 1.0 if shift_on else 0.0, dt * 3.0)
+	if maintenance_safe_zone_rect:
+		var after = state == State.SHIFT_END and not _room_on
+		maintenance_safe_zone_rect.modulate.a = move_toward(maintenance_safe_zone_rect.modulate.a, 1.0 if after else 0.0, dt * 3.0)
+		_maint_k = move_toward(_maint_k, 1.0 if _is_player_near_maintenance() else 0.0, dt * 4.0)
+		var mc = ZONE_C_OUT.lerp(ZONE_C_IN, _maint_k)
+		maintenance_safe_zone_rect.color = Color(mc, 0.85 + (1.0 - _maint_k) * 0.3)
+		var mp = maintenance_safe_zone_rect.get_node_or_null("AuraParticles") as CPUParticles2D
+		if mp and mp.color_ramp:
+			mp.color_ramp.set_color(0, Color(mc, 0.0))
+			mp.color_ramp.set_color(1, Color(mc, 0.9))
+			mp.color_ramp.set_color(2, Color(mc, 0.0))
+
 func _update_zone_marks() -> void:
+	_update_zone_lights()
 	if _zone_marks == null:
 		return
 	var show = work_zone_rect != null and work_zone_rect.visible and state != State.SHIFT_END and state != State.INTRO and state != State.DEAD
@@ -3115,7 +3211,7 @@ func _act_half_w() -> int:
 func _update_action_strip(delta: float) -> void:
 	if _act_strip == null:
 		return
-	var want_show = current_shift >= 2 and _hud_on and state != State.DEAD
+	var want_show = ((current_shift >= 2 and _hud_on) or _room_on or _dream_allow_inspect) and state != State.DEAD
 	if _act_strip.visible != want_show:
 		_act_strip.visible = want_show
 		if want_show:
@@ -3972,7 +4068,9 @@ func _setup_hall_background() -> void:
 	_hall_mat = m
 
 func _process(delta: float) -> void:
-	if _hall_mat and camera:
+	# (in the inspect loop the far layers stop following the camera: both sides of the seam
+	# then show the same picture)
+	if _hall_mat and camera and state != State.INSPECT:
 		_hall_mat.set_shader_parameter("cam_pos", camera.get_screen_center_position())
 	_apply_pre_accident_lock()
 	_update_cinema_bars(delta)
@@ -4392,6 +4490,29 @@ func _violation_tick(bad: bool, delta: float, after_shift: bool) -> void:
 	# grace before the first yell, and a slower course (the lines used to pile up)
 	if after_shift and not _walkin_active and (Time.get_ticks_msec() - _shift_end_ms) < 4500:
 		return
+	# the guard is away from his post: nobody yells. If the sniper is up there, he takes aim at
+	# once - one second to get back, then he fires. If both are away, nobody punishes at all.
+	var g_here = guard_sprite != null and guard_sprite.visible and not guard_changing
+	var s_here = sniper_sprite != null and sniper_sprite.visible and not sniper_changing
+	if not g_here and _viol_stage < 3:
+		if not s_here:
+			if _viol_t > 0.0:
+				_viol_reset()
+			return
+		_viol_ok_t = 0.0
+		_viol_t += dt
+		if _viol_stage < 4:
+			_viol_stage = 4
+			_aim_started = _viol_t
+			_laser_on(true)
+		return
+	if not g_here and _viol_stage == 4:
+		_viol_ok_t = 0.0
+		_viol_t += dt
+		if _viol_t >= _aim_started + 1.0:
+			_viol_stage = 5
+			_sniper_kill_player()
+		return
 	_viol_ok_t = 0.0
 	_viol_t += dt
 	# while the fish is out of its zone the guard keeps on him, hit after hit, without going home
@@ -4504,27 +4625,134 @@ func _process_inspect_camera(delta: float) -> void:
 		return
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	inspect_camera_offset += dir * 375 * delta / max(0.05, Engine.time_scale)   # camera keeps real speed
-	# the look never reaches the ends of the hall (no bare walls, belt ends or void): past an
-	# edge it comes back in from the opposite one - up and out = in from below, and so on
+	# The hall is a closed loop for the look, like turning a ball: past the right end the left
+	# end simply continues (no jump, no flash) - the view is wrapped inside INSPECT_LOOP and the
+	# part of the screen beyond its edge shows the other side (_wrap_views).
 	var c = inspect_camera_original_pos + inspect_camera_offset
-	var w = INSPECT_VIEW.size
-	var wrapped := false
-	if c.x > INSPECT_VIEW.end.x:
-		c.x -= w.x; wrapped = true
-	elif c.x < INSPECT_VIEW.position.x:
-		c.x += w.x; wrapped = true
-	if c.y > INSPECT_VIEW.end.y:
-		c.y -= w.y; wrapped = true
-	elif c.y < INSPECT_VIEW.position.y:
-		c.y += w.y; wrapped = true
+	var w = INSPECT_LOOP.size
+	var moved := false
+	while c.x >= INSPECT_LOOP.end.x:
+		c.x -= w.x; moved = true
+	while c.x < INSPECT_LOOP.position.x:
+		c.x += w.x; moved = true
+	while c.y >= INSPECT_LOOP.end.y:
+		c.y -= w.y; moved = true
+	while c.y < INSPECT_LOOP.position.y:
+		c.y += w.y; moved = true
 	inspect_camera_offset = c - inspect_camera_original_pos
 	camera.global_position = c
-	if wrapped:
+	if moved:
 		camera.reset_smoothing()
-		_inspect_wrap_flash()
 
-## Where the centre of the inspect view may be (zoom 1.5): the screen stays inside the hall.
-const INSPECT_VIEW := Rect2(-30, 80, 1260, 380)
+## The loop the inspect look runs in: the whole hall, wall to wall and from the dark under the
+## roof down below the floor.
+const INSPECT_LOOP := Rect2(-414, -260, 2028, 820)
+const INSPECT_VIEW := INSPECT_LOOP
+
+## Three extra views of the same world (shifted by one loop to the side / up-down / both), each
+## shown only on the part of the screen that lies beyond the loop's edge.
+var _wrap_layer: CanvasLayer = null
+var _wrap_views: Array = []   # [SubViewport, TextureRect, ShaderMaterial]
+const WRAP_MASK_SHADER := """
+shader_type canvas_item;
+uniform vec4 show_rect;   // screen pixels: x0, y0, x1, y1
+uniform vec2 size = vec2(1152.0, 648.0);
+void fragment() {
+	vec2 p = UV * size;
+	if (p.x < show_rect.x || p.x >= show_rect.z || p.y < show_rect.y || p.y >= show_rect.w) {
+		discard;
+	}
+	COLOR = texture(TEXTURE, UV);
+}
+"""
+
+func _wrap_setup() -> void:
+	if _wrap_layer:
+		return
+	_wrap_layer = CanvasLayer.new()
+	_wrap_layer.name = "InspectWrapLayer"
+	_wrap_layer.layer = 1   # over the world, under the inspect vignette (same layer, drawn first)
+	add_child(_wrap_layer)
+	move_child(_wrap_layer, 0)
+	var sh = Shader.new()
+	sh.code = WRAP_MASK_SHADER
+	var vsize = get_viewport().get_visible_rect().size
+	for i in range(3):
+		var vp = SubViewport.new()
+		vp.size = Vector2i(vsize)
+		vp.world_2d = get_viewport().world_2d
+		vp.transparent_bg = false
+		vp.disable_3d = true
+		vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+		vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		add_child(vp)
+		var trc = TextureRect.new()
+		trc.texture = vp.get_texture()
+		trc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		trc.position = Vector2.ZERO
+		trc.size = vsize
+		trc.stretch_mode = TextureRect.STRETCH_SCALE
+		var m = ShaderMaterial.new()
+		m.shader = sh
+		m.set_shader_parameter("size", vsize)
+		trc.material = m
+		trc.visible = false
+		_wrap_layer.add_child(trc)
+		_wrap_views.append([vp, trc, m])
+
+func _on_frame_pre_draw() -> void:
+	if is_inside_tree():
+		_update_wrap_views()
+
+func _update_wrap_views() -> void:
+	var on = state == State.INSPECT and camera != null
+	if not on:
+		for v in _wrap_views:
+			v[1].visible = false
+			v[0].render_target_update_mode = SubViewport.UPDATE_DISABLED
+		return
+	_wrap_setup()
+	var M: Transform2D = get_viewport().get_canvas_transform()
+	var vsize = get_viewport().get_visible_rect().size
+	var inv = M.affine_inverse()
+	var v0 = inv * Vector2.ZERO
+	var v1 = inv * vsize
+	var L = INSPECT_LOOP
+	var sx := 0.0
+	var sy := 0.0
+	var x_cut := 0.0   # screen x where the loop edge is
+	var y_cut := 0.0
+	if v1.x > L.end.x:
+		sx = 1.0
+		x_cut = (M * Vector2(L.end.x, 0)).x
+	elif v0.x < L.position.x:
+		sx = -1.0
+		x_cut = (M * Vector2(L.position.x, 0)).x
+	if v1.y > L.end.y:
+		sy = 1.0
+		y_cut = (M * Vector2(0, L.end.y)).y
+	elif v0.y < L.position.y:
+		sy = -1.0
+		y_cut = (M * Vector2(0, L.position.y)).y
+	var xr = Vector2(x_cut, vsize.x) if sx > 0 else Vector2(0, x_cut)
+	var yr = Vector2(y_cut, vsize.y) if sy > 0 else Vector2(0, y_cut)
+	# [shift in world, screen rect]
+	var jobs = [
+		[Vector2(sx * L.size.x, 0), Vector4(xr.x, 0, xr.y, vsize.y), sx != 0.0],
+		[Vector2(0, sy * L.size.y), Vector4(0, yr.x, vsize.x, yr.y), sy != 0.0],
+		[Vector2(sx * L.size.x, sy * L.size.y), Vector4(xr.x, yr.x, xr.y, yr.y), sx != 0.0 and sy != 0.0],
+	]
+	for i in range(_wrap_views.size()):
+		var vp: SubViewport = _wrap_views[i][0]
+		var trc: TextureRect = _wrap_views[i][1]
+		var job = jobs[i]
+		trc.visible = job[2]
+		vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if job[2] else SubViewport.UPDATE_DISABLED
+		if not job[2]:
+			continue
+		# a screen pixel beyond the edge shows the world point one loop back
+		vp.canvas_transform = M * Transform2D(0.0, job[0])
+		_wrap_views[i][2].set_shader_parameter("show_rect", job[1])
 
 func _inspect_wrap_flash() -> void:
 	var layer = CanvasLayer.new()
@@ -4609,14 +4837,14 @@ var _shift_elapsed: float = 0.0   # running (not held) time of this shift
 
 ## [start_hour, end_hour, real_seconds] of the stretched periods of this shift.
 func _slow_periods() -> Array:
-	var p: Array = [[ESCAPE_WINDOW_START, ESCAPE_WINDOW_END, ESCAPE_WINDOW_REAL]]
+	var p: Array = [[ESCAPE_WINDOW_START, ESCAPE_WINDOW_END, ESCAPE_WINDOW_REAL]] if _escape_on() else []
 	var hours: Array = []
 	if current_shift >= 2:
 		hours.append_array(GUARD_SHIFTS)
 	if current_shift >= 3:
 		hours.append_array(SNIPER_SHIFTS)
 	for h in hours:
-		if h >= ESCAPE_WINDOW_START and h < ESCAPE_WINDOW_END:
+		if _escape_on() and h >= ESCAPE_WINDOW_START and h < ESCAPE_WINDOW_END:
 			continue
 		var dup = false
 		for q in p:
@@ -4626,12 +4854,41 @@ func _slow_periods() -> Array:
 			p.append([h, h + SHIFT_CHANGE_HOURS, CHANGE_REAL])
 	return p
 
+## Real seconds the clock needs from now to reach hour h (normal speed + stretched periods).
+func _real_until(h: float) -> float:
+	var now = _current_hour()
+	if h <= now:
+		return 0.0
+	var v_norm = max(_clock_v, 0.00001) * SHIFT_DURATION_HOURS   # game hours per real second
+	var periods = _slow_periods()
+	var t := 0.0
+	var x = now
+	var guard := 0
+	while x < h - 0.00001 and guard < 64:
+		guard += 1
+		var rate = v_norm
+		var seg_end = h
+		for q in periods:
+			if x >= q[0] and x < q[1]:
+				rate = (q[1] - q[0]) / q[2]
+				seg_end = min(seg_end, q[1])
+			elif q[0] > x:
+				seg_end = min(seg_end, q[0])
+		t += (seg_end - x) / rate
+		x = seg_end
+	return t
+
 func _process_clock(delta: float) -> void:
 	if state == State.DEAD or state == State.INTRO:
 		return
+	if _walkin_active and shift_time < 0.0:
+		shift_time = min(0.0, shift_time + (-WALKIN_START) * delta / max(0.05, Engine.time_scale) / WALKIN_REAL)
+		_update_clock_label()
+		_update_wall_clock()
+		return
 	_cycle_game_t += delta
 	var hnow = _current_hour()
-	var in_esc = hnow >= ESCAPE_WINDOW_START and hnow < ESCAPE_WINDOW_END and current_shift >= 2
+	var in_esc = hnow >= ESCAPE_WINDOW_START and hnow < ESCAPE_WINDOW_END and _escape_on()
 	# the escape window always runs on: its countdown never freezes or jumps
 	var held = state != State.SHIFT_END and not in_esc and _clock_on_hold()
 	if held:
@@ -4659,7 +4916,7 @@ func _process_clock(delta: float) -> void:
 	var next_t = min(shift_time + v * delta, cap)
 	# 13:00 only comes once the guard is in the lift and the sniper has left the balcony
 	var esc_t = (ESCAPE_WINDOW_START - SHIFT_START_HOUR) / SHIFT_DURATION_HOURS
-	if current_shift >= 2 and shift_time < esc_t and next_t >= esc_t and not _post_empty():
+	if _escape_on() and shift_time < esc_t and next_t >= esc_t and not _post_empty():
 		next_t = esc_t - 0.0004
 	shift_time = next_t
 	_update_clock_label()
@@ -4758,7 +5015,7 @@ func _update_clock_label() -> void:
 		_hud_panel.queue_redraw()
 
 func _change_trigger_hour(h: float) -> float:
-	return h - ESCAPE_LEAD_H if is_equal_approx(h, ESCAPE_WINDOW_START) else h
+	return h - ESCAPE_LEAD_H if (_escape_on() and is_equal_approx(h, ESCAPE_WINDOW_START)) else h
 
 func _process_shift_changes() -> void:
 	var hour = _current_hour()
@@ -4769,8 +5026,8 @@ func _process_shift_changes() -> void:
 	guard_last_checked_hour = hour
 	for shift_hour in SNIPER_SHIFTS:
 		var t = _change_trigger_hour(shift_hour)
-		# (the sniper's own schedule matters from shift 3; the 13:00 window empties his balcony always)
-		var active = current_shift >= 3 or (current_shift >= 2 and is_equal_approx(shift_hour, ESCAPE_WINDOW_START))
+		# (the sniper leaves his post only from shift 3 on)
+		var active = current_shift >= ESCAPE_FROM_SHIFT
 		if sniper_last_checked_hour < t and hour >= t and active:
 			_on_sniper_shift_change(shift_hour)
 	sniper_last_checked_hour = hour
@@ -4783,13 +5040,13 @@ func _post_empty() -> bool:
 
 ## Nobody is on post: from the moment the guard leaves for the 13:00 change until 13:15.
 func _escape_free_time(hour: float) -> bool:
-	return hour >= ESCAPE_WINDOW_START - ESCAPE_LEAD_H and hour < ESCAPE_WINDOW_END
+	return _escape_on() and hour >= ESCAPE_WINDOW_START - ESCAPE_LEAD_H and hour < ESCAPE_WINDOW_END
 
 ## 13:15: the window is shut. A fish that is not back at its press is shot at once - the
 ## sniper comes back aiming, no warnings from the guard.
 var _esc_end_done: bool = false
 func _process_escape_window_end(hour: float) -> void:
-	if _esc_end_done or hour < ESCAPE_WINDOW_END or current_shift < 2:
+	if _esc_end_done or hour < ESCAPE_WINDOW_END or not _escape_on():
 		return
 	if hour > ESCAPE_WINDOW_END + 0.5:
 		_esc_end_done = true   # (loaded later in the day)
@@ -4864,7 +5121,7 @@ func _guard_shift_sequence() -> void:
 	if guard_sprite == null:
 		guard_changing = false
 		return
-	var escape_change = is_equal_approx(_guard_change_hour, ESCAPE_WINDOW_START)
+	var escape_change = _escape_on() and is_equal_approx(_guard_change_hour, ESCAPE_WINDOW_START)
 	# a running check is finished first (with its punishment) - not before the escape window
 	var w0 := 0.0 if not escape_change else 25.0
 	while (_inspection_active or _insp_wrapping or _guard_hits_queued > 0) and w0 < 25.0 and is_inside_tree():
@@ -4948,7 +5205,7 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		return
 	sniper_changing = true
 	# at 13:00 the guard changes too: both say their line at the same moment (own bubbles)
-	var with_guard = is_equal_approx(_hour, 13.0) and current_shift >= 2 and (guard_changing or GUARD_SHIFTS.has(13.0))
+	var with_guard = is_equal_approx(_hour, ESCAPE_WINDOW_START) and _escape_on() and (guard_changing or GUARD_SHIFTS.has(ESCAPE_WINDOW_START))
 	if with_guard:
 		# (states, not signals: a signal fired a moment before we started waiting was lost)
 		await _wait_until(func(): return _guard_leave_said or not guard_changing, 12.0)
@@ -4963,9 +5220,7 @@ func _on_sniper_shift_change(_hour: float) -> void:
 	if not is_inside_tree():
 		return
 	if sniper_sprite:
-		var tw = create_tween()
-		tw.tween_property(sniper_sprite, "modulate:a", 0.0, 0.4)
-		await tw.finished
+		await _sniper_walk(SNIPER_DOOR_X, true)
 		sniper_sprite.visible = false
 		sniper_sprite.modulate.a = 1.0
 	if with_guard:
@@ -4976,12 +5231,57 @@ func _on_sniper_shift_change(_hour: float) -> void:
 	if not is_inside_tree():
 		return
 	if sniper_sprite:
+		sniper_sprite.position = Vector2(SNIPER_DOOR_X, SNIPER_POSITION.y)
 		sniper_sprite.modulate.a = 0.0
 		sniper_sprite.visible = true
-		var tw2 = create_tween()
-		tw2.tween_property(sniper_sprite, "modulate:a", 1.0, 0.4)
+		await _sniper_walk(SNIPER_POSITION.x, false)
+		if not is_inside_tree():
+			return
 	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_ARRIVE_LINES[randi() % SNIPER_ARRIVE_LINES.size()], 1.6, true, "sniper")
 	sniper_changing = false
+
+## The sniper's door on the balcony (the hall's iron door, a bit smaller): he walks to it and
+## goes out for a change, and comes back the same way.
+const SNIPER_DOOR_X := 1163.0
+const IRON_DOOR_TEX := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png"
+var _sniper_door: Sprite2D = null
+
+func _make_sniper_door() -> void:
+	if _sniper_door or not ResourceLoader.exists(IRON_DOOR_TEX):
+		return
+	_sniper_door = Sprite2D.new()
+	_sniper_door.name = "SniperDoor"
+	_sniper_door.texture = load(IRON_DOOR_TEX)
+	_sniper_door.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_sniper_door.centered = false
+	_sniper_door.scale = Vector2(2, 2)
+	var sz = _sniper_door.texture.get_size() * 2.0
+	_sniper_door.position = Vector2(SNIPER_DOOR_X - sz.x * 0.5, 96.0 - sz.y)
+	add_child(_sniper_door)
+	if sniper_sprite:
+		move_child(_sniper_door, sniper_sprite.get_index())   # (behind him)
+
+func _sniper_walk(to_x: float, fade_out: bool) -> void:
+	if sniper_sprite == null:
+		return
+	var from = sniper_sprite.position.x
+	sniper_sprite.flip_h = to_x < from
+	for a in ["walk", "run", "jogging"]:
+		if sniper_sprite.sprite_frames and sniper_sprite.sprite_frames.has_animation(a):
+			sniper_sprite.play(a)
+			break
+	var tw = create_tween()
+	if not fade_out:
+		tw.tween_property(sniper_sprite, "modulate:a", 1.0, 0.25)
+	tw.tween_property(sniper_sprite, "position:x", to_x, abs(to_x - from) / 70.0)
+	if fade_out:
+		tw.tween_property(sniper_sprite, "modulate:a", 0.0, 0.25)
+	await tw.finished
+	if not is_inside_tree():
+		return
+	sniper_sprite.flip_h = true   # (on post he looks down into the hall)
+	if sniper_sprite.sprite_frames and sniper_sprite.sprite_frames.has_animation("idle"):
+		sniper_sprite.play("idle")
 
 func _process_working(delta: float) -> void:
 	if _belt_move_left <= 0.0:
@@ -6566,11 +6866,11 @@ func _player_press_result(success: bool, punish: bool = true) -> void:
 		_halt = max(0, _halt - 1)
 	player_job_finished.emit()
 
-## The air balloon: a slim gauge down the left edge, under the suit icon - away from the
-## shift panel and the action strip (right), the hint cards (top middle), the minigame and its
-## manual (middle), the thoughts (bottom middle). Full while the suit is whole; it drains when
-## the fish is thrown out of it.
-const AIR_POS := Vector2(30.0, 340.0)
+## The air balloon: a slim gauge down the RIGHT edge, under the shift panel and the action
+## strip - the minigame manuals dock left of it (Tutorial_Spotlight.RIGHT_RESERVE), the hint
+## cards are top middle, the thoughts bottom middle. Full while the suit is whole; it drains
+## when the fish is thrown out of it.
+const AIR_POS := Vector2(1130.0, 400.0)
 const AIR_SCALE := Vector2(1.5, 1.5)
 
 func _place_air_bar() -> void:
@@ -7117,14 +7417,13 @@ func _fade_and_new_shift() -> void:
 	# (the room faded to black at the door)
 	_room.leave()
 	_start_new_shift(true)
-	if player and player.has_method("set_movement_blocked"):
-		player.set_movement_blocked(true)
+	# (the fish can already walk while the picture fades in)
+	if player and player.has_method("set_movement_blocked") and state != State.INSPECT:
+		player.set_movement_blocked(false)
 	await _fade_black(false)
 	if not is_inside_tree():
 		return
 	_shift_fade_lock = false
-	if player and player.has_method("set_movement_blocked") and state != State.INSPECT:
-		player.set_movement_blocked(false)
 
 ## The level's black fade (on = to black).
 func _fade_black(on: bool, t: float = 1.0) -> void:
@@ -7318,10 +7617,19 @@ func _start_new_shift(walk_in: bool = false) -> void:
 	if _tut_s2_hold:
 		_tut_shift2_start()
 
+## Morning: the fish come out of the maintenance room at 7:30 and have until 8:00 (WALKIN_REAL
+## real seconds) to get to their presses; the belt starts at 8:00.
+const WALKIN_START := -0.05   # shift_time of 7:30
+const WALKIN_REAL := 16.0
+
 func _begin_walk_in() -> void:
 	_walkin_active = true
 	_walkin_t = 0.0
-	_halt += 1   # nothing moves before the fish is at its press
+	_halt += 1   # the belt waits for 8:00
+	shift_time = WALKIN_START
+	_clock_text = ""
+	_update_clock_label()
+	_update_wall_clock()
 	var door_x = maintenance_door.global_position.x + (maintenance_door.size.x * 0.5 if maintenance_door is Control else 0.0)
 	if player:
 		player.global_position = Vector2(door_x - 10.0, player.global_position.y)
@@ -7353,10 +7661,10 @@ func _begin_walk_in() -> void:
 	_walkin_wait()
 
 func _walkin_wait() -> void:
-	while is_inside_tree() and _walkin_active and state != State.DEAD:
-		if _is_player_in_zone():
-			break
+	# the clock runs from 7:30 to 8:00 by itself (see _process_clock); work starts at 8:00
+	while is_inside_tree() and _walkin_active and state != State.DEAD and shift_time < 0.0:
 		await _tree().process_frame
+	shift_time = max(shift_time, 0.0)
 	if not is_inside_tree() or state == State.DEAD:
 		return
 	_walkin_active = false
@@ -7449,18 +7757,19 @@ func _draw_escape_banner() -> void:
 func _update_escape_hint() -> void:
 	if _esc_banner:
 		_esc_banner.queue_redraw()
-	if not _schedule_known():
+	if not _schedule_known() or _dream_on or _room_on:
+		# (no escape banner in the dream or the maintenance room)
 		escape_hint.visible = false
 		if _esc_banner:
 			_esc_banner.visible = false
 		return
 	if escape_info_shift != -1 and current_shift >= escape_info_shift:
-		_escape_banner(tr("ПОБЕГ ЧЕРЕЗ ЛИФТ"), tr("ОКНО 13:00 - 13:15 — СЛЕДУЙ ЗА СТРЕЛКОЙ"))
+		_escape_banner(tr("ПОБЕГ ЧЕРЕЗ ЛИФТ"), tr("ОКНО %s - %s — СЛЕДУЙ ЗА СТРЕЛКОЙ") % [_hhmm(ESCAPE_WINDOW_START), _hhmm(ESCAPE_WINDOW_END)])
 		return
 	if elevator_inspected:
-		_escape_banner("13:00 - 13:15", tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ"))
+		_escape_banner("%s - %s" % [_hhmm(ESCAPE_WINDOW_START), _hhmm(ESCAPE_WINDOW_END)], tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА ЧЕРЕЗ ЛИФТ"))
 	else:
-		_escape_banner("13:00 - 13:15", tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА"))
+		_escape_banner("%s - %s" % [_hhmm(ESCAPE_WINDOW_START), _hhmm(ESCAPE_WINDOW_END)], tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА"))
 
 func _enter_inspect() -> void:
 	if current_shift < 2 and not _dream_allow_inspect:
@@ -7969,7 +8278,7 @@ func _build_journal() -> void:
 			scroll.position = Vector2(84, 112)
 			scroll.size = Vector2(JOURNAL_SIZE.x - 168, 330)
 			scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-			MenuHeader.style_scrolls(scroll, false)
+			_journal_scroll_style(scroll)
 		journal_list.custom_minimum_size = Vector2(JOURNAL_SIZE.x - 184, 0)
 		journal_list.add_theme_constant_override("separation", 6)
 		var close = bg.get_node_or_null("CloseButton") as Button
@@ -8033,7 +8342,7 @@ func _kick_out_of_journal() -> void:
 		_zoom_camera(inspect_camera_original_zoom, 0.3)
 
 func _open_journal() -> void:
-	if current_shift < 2 and not _dream_allow_inspect:
+	if current_shift < 2 and not _dream_allow_inspect and not _room_on:
 		return
 	if state == State.INSPECT:
 		_exit_inspect()   # the journal replaces the inspect mode
@@ -8139,10 +8448,10 @@ func _update_journal_options() -> void:
 	# 1. the escape plan is pinned on top as soon as it is known
 	if _schedule_known():
 		_journal_header(tr("ВАЖНАЯ ПОМЕТКА"))
-		var t = tr("13:00–13:15 на посту нет ни охраны, ни снайпера. Это единственное окно для побега")
+		var t = tr("%s–%s на посту нет ни охраны, ни снайпера. Это единственное окно для побега") % [_hhmm(ESCAPE_WINDOW_START), _hhmm(ESCAPE_WINDOW_END)]
 		if elevator_inspected:
 			t += tr(" — через лифт")
-		t += tr(". В 13:15 они вернутся, и выход закроется.")
+		t += tr(". В %s они вернутся, и выход закроется.") % _hhmm(ESCAPE_WINDOW_END)
 		_journal_entry(t, INK_RED, false, 17, not journal_seen.has(ESCAPE_NOTE_ID))
 	# 2. shift changes: tick boxes for every time you can find out
 	_journal_header(tr("ПЕРЕСМЕНКИ"))
@@ -8232,23 +8541,64 @@ func _journal_new_stamp() -> Control:
 	st.add_child(nl)
 	return st
 
-func _journal_ticks(who: String, hours: Array, found: Array, seen_prefix: String = "") -> void:
+## The journal's scroll line looks like it was drawn on the paper: a thin pencil line and a
+## small ink blot that slides along it.
+func _journal_scroll_style(scroll: ScrollContainer) -> void:
+	var bar = scroll.get_v_scroll_bar()
+	if bar == null:
+		return
+	var track = StyleBoxFlat.new()
+	track.bg_color = Color(INK_SOFT, 0.0)
+	track.border_color = Color(INK_SOFT, 0.45)
+	track.border_width_left = 1
+	track.content_margin_left = 5
+	track.content_margin_right = 5
+	var grab = StyleBoxFlat.new()
+	grab.bg_color = Color(INK, 0.75)
+	grab.set_corner_radius_all(4)
+	grab.content_margin_left = 3
+	grab.content_margin_right = 3
+	grab.content_margin_top = 10
+	grab.content_margin_bottom = 10
+	var grab_h = grab.duplicate()
+	grab_h.bg_color = Color(INK_RED, 0.85)
+	bar.add_theme_stylebox_override("scroll", track)
+	bar.add_theme_stylebox_override("scroll_focus", track)
+	bar.add_theme_stylebox_override("grabber", grab)
+	bar.add_theme_stylebox_override("grabber_highlight", grab_h)
+	bar.add_theme_stylebox_override("grabber_pressed", grab_h)
+	bar.custom_minimum_size = Vector2(11, 0)
+
+## One row of change times: noted times in blue ink, the ones shared by the guard AND the
+## sniper (the escape) in red and underlined, the not-yet-noted ones as an empty "--:--".
+func _journal_ticks(who: String, hours: Array, found: Array, _seen_prefix: String = "") -> void:
 	var row = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 12)
 	var name_l = _journal_label(who + ":", 14, INK)
 	name_l.custom_minimum_size = Vector2(104, 0)
 	row.add_child(name_l)
-	# the time is only written down once it was noted; the empty boxes just wait
 	var sorted_found = found.duplicate()
 	sorted_found.sort()
 	for i in range(hours.size()):
 		var got = i < sorted_found.size()
-		var txt = ("[x]" + _hhmm(sorted_found[i])) if got else "[ ]--:--"
-		var fresh = got and seen_prefix != "" and not journal_seen.has(seen_prefix + _hour_id(sorted_found[i]))
-		if fresh:
-			txt += "*"
-		var l = _journal_label(txt, 13, INK_RED if fresh else (INK_BLUE if got else INK_SOFT))
-		row.add_child(l)
+		if not got:
+			row.add_child(_journal_label("--:--", 13, INK_SOFT))
+			continue
+		var h = float(sorted_found[i])
+		var shared = guard_shifts_found.has(h) and sniper_shifts_found.has(h)
+		var l = _journal_label(_hhmm(h), 13, INK_RED if shared else INK_BLUE)
+		if shared:
+			var box = VBoxContainer.new()
+			box.add_theme_constant_override("separation", 0)
+			box.add_child(l)
+			var line = ColorRect.new()
+			line.color = INK_RED
+			line.custom_minimum_size = Vector2(0, 2)
+			line.size_flags_horizontal = Control.SIZE_FILL
+			box.add_child(line)
+			row.add_child(box)
+		else:
+			row.add_child(l)
 	journal_list.add_child(row)
 
 func _hhmm(h: float) -> String:
@@ -8718,7 +9068,7 @@ func _input(event: InputEvent) -> void:
 				_enter_inspect()
 			get_viewport().set_input_as_handled()
 		elif _is_action_key(event, "journal"):
-			if current_shift < 2 and not _dream_allow_inspect:
+			if current_shift < 2 and not _dream_allow_inspect and not _room_on:
 				return
 			if _dream_on and not _dream_allow_inspect:
 				return
@@ -8788,7 +9138,7 @@ func _update_elevator_prompt(delta: float) -> void:
 		_elev_text = tr("%s — ВОЙТИ") % _key_name("interact")
 	else:
 		var mins = int(round((ESCAPE_WINDOW_START - h) * 60.0)) if h < ESCAPE_WINDOW_START else 0
-		_elev_text = (tr("ЛИФТ · %d:%02d") % [mins / 60, mins % 60]) if mins > 0 else tr("ЛИФТ · 13:00")
+		_elev_text = (tr("ЛИФТ · %d:%02d") % [mins / 60, mins % 60]) if mins > 0 else (tr("ЛИФТ · ") + _hhmm(ESCAPE_WINDOW_START))
 	_elev_prompt_a = move_toward(_elev_prompt_a, 1.0 if show else 0.0, delta * 6.0)
 	_elev_prompt.visible = _elev_prompt_a > 0.01
 	if not _elev_prompt.visible:
@@ -8820,7 +9170,7 @@ func _enter_elevator() -> void:
 	var hour = _current_hour()
 	var in_window = hour >= ESCAPE_WINDOW_START and hour <= ESCAPE_WINDOW_END
 	if not in_window:
-		_show_dialog(tr("ЛИФТ ЗАКРЫТ. НУЖНО ДОЖДАТЬСЯ 13:00."), 2.5)
+		_show_dialog(tr("ЛИФТ ЗАКРЫТ. НУЖНО ДОЖДАТЬСЯ %s.") % _hhmm(ESCAPE_WINDOW_START), 2.5)
 		return
 	if not _schedule_known():
 		_show_dialog(tr("Я НЕ ЗНАЮ РАСПИСАНИЯ. НУЖНО БОЛЬШЕ РАЗВЕДКИ."), 2.5)

@@ -97,6 +97,7 @@ var dock_beside: bool = false
 var fixed_place: bool = true
 const DOCK_GAP := 14.0
 const DOCK_MAX_W := 420.0
+const RIGHT_RESERVE := 40.0   # the air balloon hangs at the right edge
 
 func set_dock_beside(v: bool) -> void:
 	dock_beside = v
@@ -189,6 +190,8 @@ func set_text(title: String, body: String, keys: Array = []) -> void:
 func set_progress(v: float) -> void:
 	_progress = v
 
+var next_key: String = "E"   # the interact key's name (set by the level)
+
 func set_skippable(v: bool) -> void:
 	if skippable != v:
 		skippable = v
@@ -230,6 +233,12 @@ func _layout_card() -> void:
 	var w = clamp(max(base_w, title_w + 40.0, keys_w + 40.0), CARD_W, 640.0)
 	if dock_beside:
 		w = clamp(max(base_w, title_w + 40.0, keys_w + 40.0), CARD_W, DOCK_MAX_W)
+		# always on the RIGHT of the window: narrower (and taller) if the room there is short
+		if _target.is_valid():
+			var tr_ = _target.call()
+			if tr_ is Rect2:
+				var room = SCREEN.x - EDGE_M - RIGHT_RESERVE - (tr_.end.x + DOCK_GAP)
+				w = clamp(room, 240.0, w)
 	_title.position = Vector2(16, 22)
 	_title.size = Vector2(w - 30, 22)
 	_body.position = Vector2(16, 46)
@@ -349,7 +358,7 @@ func _dock_pos(sz: Vector2):
 	if not (t is Rect2):
 		return null
 	var x = t.end.x + DOCK_GAP
-	if x + sz.x > SCREEN.x - EDGE_M:
+	if x + sz.x > SCREEN.x - EDGE_M - RIGHT_RESERVE + 1.0:
 		x = t.position.x - DOCK_GAP - sz.x
 		if x < EDGE_M:
 			return null
@@ -453,7 +462,7 @@ func _draw_card() -> void:
 			kx += kw + 4.0
 	# the tiny skip key (same look as in the dialogs, x2)
 	if skippable and not ok and _font:
-		var nx = tr("ПРОБЕЛ — ДАЛЬШЕ")
+		var nx = tr("%s — ДАЛЬШЕ") % next_key
 		var nw = _font.get_string_size(nx, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
 		var a2 = 0.6 + 0.4 * sin(_t * 3.0)
 		c.draw_rect(Rect2(sz.x - nw - 22.0, sz.y - 22.0, nw + 14.0, 16.0), Color(0.06, 0.07, 0.1, 0.9))

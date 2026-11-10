@@ -67,9 +67,12 @@ func show_menu() -> void:
 		_framing.modulate.a = 0.0
 	for btn in _buttons:
 		if is_instance_valid(btn):
-			btn.modulate.a = 0.0
+			btn.modulate = Color(1, 1, 1, 0)
 			btn.scale = Vector2(0.85, 0.85)
 			btn.pivot_offset = btn.size / 2.0
+			btn.mouse_filter = Control.MOUSE_FILTER_STOP
+			if btn.has_meta("fx_keep_alpha"):
+				btn.remove_meta("fx_keep_alpha")
 	_animate_in()
 
 func _animate_in() -> void:
@@ -107,8 +110,18 @@ func hide_menu() -> void:
 	
 	for btn in _buttons:
 		if is_instance_valid(btn):
-			_anim_tween.parallel().tween_property(btn, "modulate:a", 0.0, 0.16)
-			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.92, 0.92), 0.16)
+			# a hovered button runs its own colour loop (ButtonEffects) that kept it visible a
+			# moment longer than the others: stop it, so all of them fade out together
+			for m in ["color_tween", "glass_tween"]:
+				if btn.has_meta(m):
+					var t = btn.get_meta(m)
+					if t is Tween and t.is_valid():
+						t.kill()
+			btn.set_meta("fx_keep_alpha", true)
+			btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			btn.release_focus()
+			_anim_tween.parallel().tween_property(btn, "modulate", Color(1, 1, 1, 0), 0.2)
+			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.92, 0.92), 0.2)
 	
 	if _bg_rect:
 		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.32)
@@ -151,12 +164,11 @@ func _build_fx() -> void:
 	var accent = Color8(130, 210, 255) if aqua else Color8(255, 168, 60)
 	if _framing:
 		_framing_scale = _framing.scale
-		if ResourceLoader.exists(RUST_SHADER):
+		# the rust shader is only for the factory's rusty frame; the aquarium frame stays as
+		# it was drawn (and keeps its slow breathing)
+		if not aqua and ResourceLoader.exists(RUST_SHADER):
 			var fm = ShaderMaterial.new()
 			fm.shader = load(RUST_SHADER)
-			if aqua:
-				fm.set_shader_parameter("glint_color", Color(0.7, 0.9, 1.0))
-				fm.set_shader_parameter("rim_color", Color(0.4, 0.75, 1.0))
 			_framing.material = fm
 	# backdrop
 	var sh = load(BACKDROP_SHADER) if ResourceLoader.exists(BACKDROP_SHADER) else null
@@ -281,6 +293,8 @@ func _process(delta: float) -> void:
 	if _fx_title and not _is_closing:
 		var p = 0.5 + 0.5 * sin(_fx_t * 2.2)
 		_fx_title.add_theme_constant_override("shadow_outline_size", int(16 + 10 * p))
+	if _framing and not _is_closing and _in_aquarium():
+		_framing.scale = _framing_scale * (1.0 + 0.004 * sin(_fx_t * 1.3))
 
 func _input(event: InputEvent) -> void:
 	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).

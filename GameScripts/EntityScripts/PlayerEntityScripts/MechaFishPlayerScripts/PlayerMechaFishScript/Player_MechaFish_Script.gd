@@ -450,7 +450,13 @@ func _physics_process(delta):
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
 	if is_dashing or movement_blocked or minigame_lock:
-		velocity = Vector2.ZERO
+		# held in place - but never hanging in the air (a job that starts mid-jump lets the
+		# fish land first)
+		velocity.x = 0.0
+		if not is_dashing and not is_on_floor() and not is_falling_into_pit:
+			velocity.y = min(velocity.y + gravity * delta, 900.0)
+		else:
+			velocity.y = 0.0
 		move_and_slide()
 		return
 	if is_vaulting or is_climbing or is_climbing_animation:
@@ -930,12 +936,9 @@ func die():
 		sprite.frame = last_frame
 		if not _death_fish_spawned:
 			_spawn_death_fish()
-		# the death screen waits until the fish has run out of air and lies still
-		var waited := 0.0
-		while is_inside_tree() and _death_fish_spawned and not _death_air_out and waited < DEATH_AIR_TIME + 3.0:
-			await get_tree().process_frame
-			waited += get_process_delta_time()
-		await _safe_timer(0.8 if _death_air_out else 1.3)
+		# the death screen comes at once; the balloon is part of the HUD like the rest, so it
+		# goes under the death screen together with it (the fish still runs out of air behind)
+		await _safe_timer(0.7)
 		if not is_inside_tree():
 			return
 	else:

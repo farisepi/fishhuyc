@@ -167,6 +167,23 @@ static func attach_grade(host: Node) -> void:
 	r.material = m
 	layer.add_child(r)
 	host.add_child(layer)
+	# buttons and the logo a little dimmer, so they don't shine out of the dark room
+	var dim = func():
+		if not is_instance_valid(host):
+			return
+		_dim_controls(host)
+		var lg = host.get_node_or_null("LogoArea/LogoAnimation")
+		if lg is CanvasItem:
+			lg.self_modulate = Color(0.8, 0.8, 0.82)
+	if host.is_inside_tree():
+		host.get_tree().process_frame.connect(dim, CONNECT_ONE_SHOT)
+
+static func _dim_controls(n: Node) -> void:
+	for c in n.get_children():
+		if c is BaseButton:
+			c.self_modulate = Color(0.82, 0.82, 0.84)
+		if not (c is CanvasLayer and c.name == "MenuGradeLayer"):
+			_dim_controls(c)
 
 
 ## ---------------------------------------------------------------- scroll bars

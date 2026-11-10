@@ -376,13 +376,61 @@ func _clamp_corner(a: Vector2, vis: Vector2, side: float) -> Vector2:
 	return a
 
 
+var _arrow_on: bool = false
+var _arrow_k: float = 0.0
+var _far_arrow: Node2D = null
+var _far_arrow_col: Color = Color.WHITE
+var _far_arrow_dir: Vector2 = Vector2.RIGHT
+
+## The "too far" arrow: a little pointer with an outline in the speaker's colour, hugging the
+## screen edge on the speaker's side, with three dots blinking in it while he talks.
+func _update_far_arrow(speaker: Node2D, cam: Camera2D, is_mech: bool) -> void:
+	if _far_arrow == null:
+		if _near_panel == null or _near_panel.get_parent() == null:
+			return
+		_far_arrow = Node2D.new()
+		_far_arrow.name = "FarArrow"
+		_far_arrow.z_index = 101
+		_far_arrow.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_far_arrow.draw.connect(_draw_far_arrow)
+		_near_panel.get_parent().add_child(_far_arrow)
+	_far_arrow.visible = _arrow_k > 0.01 and speaker != null and cam != null and _near_panel.visible
+	if not _far_arrow.visible:
+		return
+	var c = _cam_center(cam)
+	var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
+	var d = speaker.global_position - c
+	_far_arrow_dir = d.normalized() if d.length() > 1.0 else Vector2.RIGHT
+	var m = 16.0 / cam.zoom.x
+	var k = min((half.x - m) / max(0.001, abs(d.x)), (half.y - m) / max(0.001, abs(d.y)))
+	_far_arrow.global_position = c + d * min(1.0, k)
+	_far_arrow.scale = Vector2.ONE / cam.zoom.x * 2.0
+	_far_arrow.modulate.a = _arrow_k
+	_far_arrow_col = COLOR_MECHANIC if is_mech else COLOR_SCIENTIST
+	_far_arrow.queue_redraw()
+
+func _draw_far_arrow() -> void:
+	var dir = _far_arrow_dir
+	var sd = Vector2(-dir.y, dir.x)
+	var tip = dir * 9.0
+	var poly = PackedVector2Array([tip, -dir * 5.0 + sd * 7.0, -dir * 2.0, -dir * 5.0 - sd * 7.0])
+	var outl = PackedVector2Array([tip + dir * 1.5, -dir * 6.5 + sd * 8.5, -dir * 2.0 - dir * 1.0, -dir * 6.5 - sd * 8.5])
+	_far_arrow.draw_colored_polygon(outl, Color(0.08, 0.09, 0.12))
+	_far_arrow.draw_colored_polygon(poly, _far_arrow_col)
+	# "talking" dots behind the pointer
+	var t = _time
+	for i in range(3):
+		var on = int(t * 4.0) % 3 == i
+		var pp = -dir * (12.0 + i * 4.0)
+		_far_arrow.draw_rect(Rect2(pp - Vector2(1, 1), Vector2(2, 2)), Color(_far_arrow_col, 1.0 if on else 0.35))
+
 ## Same size on screen at any zoom, smaller when the speakers are far away.
 func _bubble_scale_target() -> float:
 	var cam = get_viewport().get_camera_2d()
 	var zoom_k := 1.0
 	if cam:
 		zoom_k = clamp(REF_ZOOM / max(0.01, cam.zoom.x), 0.3, 1.4) * bubble_scale
-	return zoom_k * lerp(1.0, 0.5, _far_k)
+	return zoom_k * lerp(1.0, 0.62, _far_k)
 
 
 ## Keeps the whole (scaled) bubble, given by its bottom centre, inside the camera view.
@@ -449,16 +497,26 @@ func _decorate_near() -> void:
 	var is_mech = _controller.get_current_speaker() == ChatterLine.Speaker.MECHANIC
 	var speaker: Node2D = _controller._mechanic if is_mech else _controller._scientist
 	var target_far := 0.0
+	var r_far := 0.0
 	if cam:
 		if speaker:
 			var half = get_viewport().get_visible_rect().size / cam.zoom / 2.0
 			var d = speaker.global_position - _cam_center(cam)
-			var r = max(abs(d.x) / max(1.0, half.x), abs(d.y) / max(1.0, half.y))
-			target_far = clamp((r - 0.85) / 0.6, 0.0, 1.0)
+			r_far = max(abs(d.x) / max(1.0, half.x), abs(d.y) / max(1.0, half.y))
+			target_far = clamp((r_far - 0.85) / 0.6, 0.0, 1.0)
 	if force_near:
 		target_far = 0.0
+		r_far = 0.0
 	_far_k = move_toward(_far_k, target_far, get_process_delta_time() * 2.5)
-	var text_a = 1.0 - smoothstep(0.25, 0.7, _far_k)
+	# farther away the bubble only gets smaller (the text stays readable, it shrinks with it);
+	# REALLY far away the bubble turns into an arrow at the screen edge pointing at the speaker
+	if r_far > 2.3:
+		_arrow_on = true
+	elif r_far < 2.0:
+		_arrow_on = false
+	_arrow_k = move_toward(_arrow_k, 1.0 if _arrow_on else 0.0, get_process_delta_time() * 4.0)
+	_update_far_arrow(speaker, cam, is_mech)
+	var text_a = 1.0
 
 	var base = p.position
 	base.y += round(sin(_time * 2.2) * 1.0) - (1.0 - e) * 6.0
@@ -473,7 +531,7 @@ func _decorate_near() -> void:
 	p.position = base
 	p.rotation = rot
 	p.scale = Vector2.ONE * (0.8 + 0.2 * e + jolt) * _bubble_scale()
-	p.modulate.a = e * lerp(1.0, 0.85, _far_k)
+	p.modulate.a = e * lerp(1.0, 0.9, _far_k) * (1.0 - _arrow_k)
 	_near_label.modulate.a = text_a
 	if _shadow:
 		_shadow.visible = true
@@ -623,6 +681,7 @@ func _hide_decorations() -> void:
 
 func _hide_all() -> void:
 	if _near_panel:    _near_panel.visible = false
+	if _far_arrow:     _far_arrow.visible = false
 	_hide_decorations()
 	_hide_far()
 

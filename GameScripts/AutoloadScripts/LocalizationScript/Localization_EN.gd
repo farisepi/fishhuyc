@@ -528,6 +528,17 @@ const EN := {
 	"Чтобы сбежать, нужно знать, когда охрана и снайпер уходят с поста. Для этого есть режим осмотра и журнал.": "To escape you need to know when the guard and the sniper leave their posts. That's what inspect mode and the journal are for.",
 	"Шланг сам качается над тремя очагами. 1) Жди, пока он окажется НАД ОГНЁМ. 2) ЗАЖМИ %s — льётся пена, огонь гаснет. 3) Пена в баке кончилась — отпусти, бак сам наполнится. Потуши все три очага, пока товар не сгорел.": "The hose swings over three fires by itself. 1) Wait until it's OVER THE FIRE. 2) HOLD %s — foam pours, the fire goes out. 3) The foam tank is empty — let go, it refills by itself. Put out all three fires before the goods burn.",
 	"Это здоровье твоего меха-костюма. Удары охраны и аварии его снимают. Кончится — костюм рухнет, и тебя выбросит наружу.": "This is your mech suit's health. Guard hits and accidents take it away. When it runs out, the suit collapses and you're thrown out.",
+	"%s — ДАЛЬШЕ": "%s — NEXT",
+	"%s–%s на посту нет ни охраны, ни снайпера. Это единственное окно для побега": "%s–%s there is neither guard nor sniper on post. This is the only window to escape",
+	". В %s они вернутся, и выход закроется.": ". At %s they come back and the way out closes.",
+	"ВАЖНАЯ СМЕНА": "AN IMPORTANT SHIFT",
+	"ВЫЙТИ": "EXIT",
+	"ЛИФТ · ": "LIFT · ",
+	"ЛИФТ ЗАКРЫТ. НУЖНО ДОЖДАТЬСЯ %s.": "THE LIFT IS CLOSED. I HAVE TO WAIT FOR %s.",
+	"ОКНО %s - %s — СЛЕДУЙ ЗА СТРЕЛКОЙ": "WINDOW %s - %s — FOLLOW THE ARROW",
+	"СПАТЬ": "SLEEP",
+	"Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись.": "The next shift is very important. From it on the sniper leaves his post too. If the guard and the sniper leave at the same time, the post is empty — and that is the only chance to escape. Watch closely and don't make a mistake.",
+	"Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.": "The shift starts soon. Follow the others to the door on the left and press %s.",
 }
 
 static var _installed: bool = false

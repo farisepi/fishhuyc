@@ -65,6 +65,7 @@ func _ready() -> void:
 	if logo:
 		logo_original_y = logo.position.y
 		logo_original_scale = logo.scale
+		logo.self_modulate = Color(0.86, 0.88, 0.9)   # a little dimmer: it sits in the scene
 
 	_fit_logo_area()
 	if logo_area:
@@ -150,23 +151,25 @@ func _logo_jelly_effect() -> void:
 func _spawn_logo_bubbles() -> void:
 	if not bubble_scene:
 		return
-	var spawn_points = [Vector2(-250, 0), Vector2(-120, 0), Vector2(120, 0), Vector2(250, 0)]
+	# a lively burst: more bubbles, faster, flying out from all along the logo and rising
+	var spawn_points = [Vector2(-270, 0), Vector2(-180, 0), Vector2(-90, 0), Vector2(0, 0), Vector2(90, 0), Vector2(180, 0), Vector2(270, 0)]
 	for point in spawn_points:
-		for i in range(randi_range(1, 2)):
+		for i in range(randi_range(2, 3)):
 			var bubble = bubble_scene.instantiate()
 			add_child(bubble)
 			bubble.z_index = -5
 			var offset = Vector2(randf_range(-35, 35), randf_range(-25, 25))
 			bubble.global_position = logo.global_position + point + offset
-			bubble.scale = Vector2.ONE * randf_range(0.6, 1.5)
-			bubble.speed = randf_range(40.0, 90.0)
+			bubble.scale = Vector2.ONE * randf_range(0.6, 1.7)
+			bubble.speed = randf_range(110.0, 220.0)
 			bubble.clickable = true
 			bubble.modulate.a = 0.0
 			var alpha_tween = create_tween()
-			alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.01, 0.75), 0.4)
-			var dir = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5)).normalized()
+			alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.35, 0.85), 0.15)
+			var out = (point + offset).normalized() if (point + offset).length() > 1.0 else Vector2.UP
+			var dir = (out + Vector2(randf_range(-0.6, 0.6), randf_range(-1.6, -0.4))).normalized()
 			bubble.set_direction(dir)
-			bubble.start_life(randf_range(2.0, 5.0))
+			bubble.start_life(randf_range(1.6, 3.6))
 
 func _kill_tween(node: Node, key: String) -> void:
 	if node.has_meta(key):
