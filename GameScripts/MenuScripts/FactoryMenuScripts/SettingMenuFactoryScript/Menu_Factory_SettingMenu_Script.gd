@@ -85,6 +85,8 @@ var dynamic_range_arrow: TextureRect = null
 var _suppress_switch_sound: bool = false
 
 func _ready() -> void:
+	MenuHeader.style_scrolls.call_deferred(self, false, true)   # the game's scroll line + scroller
+	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
 	

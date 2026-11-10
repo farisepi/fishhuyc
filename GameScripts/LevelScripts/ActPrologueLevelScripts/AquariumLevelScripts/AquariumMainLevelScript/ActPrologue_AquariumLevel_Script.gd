@@ -84,6 +84,10 @@ func _ready():
 	
 	_setup_character_animations()
 	_spawn_bubbles()
+	# the fish is in water here: no air meter
+	var air = player.get_node_or_null("GUI/UI_Container/Air_Bar") if player else null
+	if air:
+		air.visible = false
 	# the fish stays put until the intro camera has zoomed out
 	if player and "can_move" in player:
 		player.can_move = false

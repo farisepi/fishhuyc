@@ -12,9 +12,9 @@ signal key_event(ev: InputEvent)
 
 const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 const SCREEN := Vector2(1152, 648)
-const CARD_W := 340.0
+const CARD_W := 400.0
 const TITLE_SIZE := 16
-const BODY_SIZE := 13
+const BODY_SIZE := 15
 const KEY_SIZE := 13
 
 const SHADER_SRC := """shader_type canvas_item;
@@ -52,9 +52,8 @@ void fragment() {
 	vec2 cell = floor((p + vec2(t * 7.0, -t * 11.0)) / 9.0);
 	float h = hash(cell);
 	float dust = step(0.985, h) * (0.5 + 0.5 * sin(t * 3.0 + h * 40.0)) * light;
-	// darkness with a little grain, a warm glow where the light is
-	float grain = (hash(px + floor(t * 12.0)) - 0.5) * 0.04;
-	float a_dark = clamp((1.0 - light) * (0.92 + grain), 0.0, 1.0) * dark * flick;
+	// darkness, a warm glow where the light is
+	float a_dark = clamp((1.0 - light) * 0.92, 0.0, 1.0) * dark * flick;
 	float a_warm = (light * (0.07 + 0.16 * spot) + beam * 0.12) * dark + dust * 0.6 * dark;
 	vec3 warm = vec3(1.0, 0.82, 0.5);
 	vec3 shade = vec3(0.01, 0.012, 0.03);
@@ -94,6 +93,8 @@ const EDGE_M := 16.0
 ## Minigame / incident steps: the card is docked right beside the window (like an open
 ## manual next to it), on its right, else on its left - never on top of it.
 var dock_beside: bool = false
+## true: every card sits in the same spot (top middle), only minigame cards dock beside
+var fixed_place: bool = true
 const DOCK_GAP := 14.0
 const DOCK_MAX_W := 420.0
 
@@ -188,12 +189,17 @@ func set_text(title: String, body: String, keys: Array = []) -> void:
 func set_progress(v: float) -> void:
 	_progress = v
 
+func set_skippable(v: bool) -> void:
+	if skippable != v:
+		skippable = v
+		_layout_card()
+
 
 ## A green "ГОТОВО" for a moment.
 func done() -> void:
 	_done_t = 0.0
 	_tag = tr("ГОТОВО")
-	if has_node("/root/UISounds"):
+	if is_inside_tree() and has_node("/root/UISounds"):
 		get_node("/root/UISounds").play_click()
 
 
@@ -237,7 +243,7 @@ func _layout_card() -> void:
 		hb = lines * (_font.get_height(BODY_SIZE) + 2.0) + 8.0
 	_body.size = Vector2(w - 30, hb)
 	var hk = 30.0 if not _keys.is_empty() else 0.0
-	_card.size = Vector2(w, 52.0 + hb + hk + 10.0)
+	_card.size = Vector2(w, 52.0 + hb + hk + 10.0 + (14.0 if skippable else 0.0))
 	_card.pivot_offset = _card.size * 0.5
 	_title.add_theme_color_override("font_color", Color(0.98, 0.97, 0.94))
 	_body.add_theme_color_override("font_color", Color(0.8, 0.82, 0.88))
@@ -294,7 +300,7 @@ func _process(delta: float) -> void:
 		_mat.set_shader_parameter("dark", _dark)
 		_mat.set_shader_parameter("t", _t)
 		# the light trembles a little, like a real flashlight
-		_mat.set_shader_parameter("flick", 0.97 + 0.03 * sin(_t * 23.0) * sin(_t * 7.0))
+		_mat.set_shader_parameter("flick", 1.0)   # (a steady light - trembling tired the eyes)
 	_veil.visible = _dark > 0.005
 	_card.visible = _card_a > 0.01
 	if _card.visible:
@@ -362,12 +368,12 @@ func _place_card() -> void:
 				_card_xy = d
 			_slot = 99
 			_card_xy = _card_xy.lerp(d, 1.0 - exp(-14.0 * _last_dt))
-			_card.position = Vector2(round(_card_xy.x), round(_card_xy.y + sin(_t * 2.2) * 1.5))
+			_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
 			return
 	var slots = _slots(sz)
 	var want: int
-	if card_corner:
-		want = 2   # bottom right
+	if fixed_place:
+		want = 3   # the hints always live in ONE place: top middle (minigames are docked instead)
 	else:
 		var best = 0
 		var best_c = INF
@@ -396,7 +402,7 @@ func _place_card() -> void:
 		_card_xy = target
 	else:
 		_card_xy = _card_xy.lerp(target, 1.0 - exp(-10.0 * _last_dt))
-	_card.position = Vector2(round(_card_xy.x), round(_card_xy.y + sin(_t * 2.2) * 1.5))
+	_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
 
 ## The card's rect on screen (for the level: keep other plates off it).
 func card_rect() -> Rect2:
@@ -446,7 +452,13 @@ func _draw_card() -> void:
 				c.draw_string(_font, Vector2(kx + (kw - tw) * 0.5, ky + 14.0 + dip), key, HORIZONTAL_ALIGNMENT_LEFT, -1, KEY_SIZE, Color8(28, 30, 38))
 			kx += kw + 4.0
 	# the tiny skip key (same look as in the dialogs, x2)
-	if skippable and not ok:
+	if skippable and not ok and _font:
+		var nx = tr("ПРОБЕЛ — ДАЛЬШЕ")
+		var nw = _font.get_string_size(nx, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
+		var a2 = 0.6 + 0.4 * sin(_t * 3.0)
+		c.draw_rect(Rect2(sz.x - nw - 22.0, sz.y - 22.0, nw + 14.0, 16.0), Color(0.06, 0.07, 0.1, 0.9))
+		c.draw_string(_font, Vector2(sz.x - nw - 15.0, sz.y - 10.0), nx, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.95, 0.85, 0.55, a2))
+	if false:
 		var k2 = 0.5 + 0.5 * sin(_t * 4.0)
 		var o = Vector2(sz.x - 36.0, sz.y + 4.0)
 		c.draw_rect(Rect2(o + Vector2(0, 2), Vector2(34, 14)), Color(0.06, 0.07, 0.1, 0.9))

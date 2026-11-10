@@ -66,6 +66,7 @@ func _ready() -> void:
 		logo_original_y = logo.position.y
 		logo_original_scale = logo.scale
 
+	_fit_logo_area()
 	if logo_area:
 		logo_area.mouse_entered.connect(_on_logo_mouse_entered)
 		logo_area.mouse_exited.connect(_on_logo_mouse_exited)
@@ -80,6 +81,26 @@ func _process(delta: float) -> void:
 		logo_float_time += delta * 0.5
 		logo.position.y = logo_original_y + sin(logo_float_time) * 2.0
 		logo.rotation = sin(logo_float_time) * 0.005
+
+## The click area is the logo as it is actually drawn (the scene's rect sat half above it, so
+## the lower half of the logo did not react). The logo keeps its place on screen.
+func _fit_logo_area() -> void:
+	if logo_area == null or logo == null or logo.sprite_frames == null:
+		return
+	var tex = logo.sprite_frames.get_frame_texture(logo.animation, 0)
+	if tex == null:
+		return
+	var used = tex.get_image().get_used_rect()
+	var full = tex.get_size()
+	var sc = logo.scale.abs()
+	var logo_g = logo.global_position
+	var top_left = logo_g - full * sc * 0.5 + Vector2(used.position) * sc
+	var r = Rect2(top_left, Vector2(used.size) * sc).grow(10.0)
+	logo_area.global_position = r.position
+	logo_area.size = r.size
+	logo.global_position = logo_g
+	logo_original_y = logo.position.y
+	logo_area.mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _on_logo_mouse_entered() -> void:
 	if not logo:

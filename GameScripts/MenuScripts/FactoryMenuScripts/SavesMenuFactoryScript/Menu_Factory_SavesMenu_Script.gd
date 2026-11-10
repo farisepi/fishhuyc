@@ -24,6 +24,8 @@ var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEnt
 
 
 func _ready() -> void:
+	MenuHeader.style_scrolls.call_deferred(self, false, true)   # the game's scroll line + scroller
+	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
 	call_deferred("_add_header")
 	custom_font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	if custom_font:

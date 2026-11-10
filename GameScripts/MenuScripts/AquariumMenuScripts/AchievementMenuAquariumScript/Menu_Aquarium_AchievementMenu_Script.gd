@@ -64,6 +64,7 @@ const BubbleScript = preload("res://GameScripts/EntityScripts/BubbleEntityScript
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
+	MenuHeader.style_scrolls.call_deferred(self, true, true)   # the game's scroll line + scroller
 	call_deferred("_add_header")
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()

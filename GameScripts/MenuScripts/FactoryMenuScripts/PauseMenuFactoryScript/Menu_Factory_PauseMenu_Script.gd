@@ -15,6 +15,8 @@ var _transitioning: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# above every in-game layer (HUD, arrows, hints), below the black scene transitions
+	layer = 50
 	
 	_bg_rect = get_node_or_null("ColorRect")
 	_framing = get_node_or_null("Framing")
@@ -101,17 +103,18 @@ func hide_menu() -> void:
 	
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_anim_tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	
 	for btn in _buttons:
 		if is_instance_valid(btn):
-			_anim_tween.parallel().tween_property(btn, "modulate:a", 0.0, 0.1)
-			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.9, 0.9), 0.1)
+			_anim_tween.parallel().tween_property(btn, "modulate:a", 0.0, 0.16)
+			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.92, 0.92), 0.16)
 	
 	if _bg_rect:
-		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.15)
+		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.32)
 	if _framing:
-		_anim_tween.parallel().tween_property(_framing, "modulate:a", 0.0, 0.15)
+		# the rusty frame melts away softly (its shader keeps the node's alpha now)
+		_anim_tween.parallel().tween_property(_framing, "modulate:a", 0.0, 0.34)
 	_fx_out()
 	
 	await _anim_tween.finished
@@ -129,8 +132,10 @@ func hide_menu() -> void:
 ## ---------------------------------------------------------------- pause effects
 ## Behind the menu the frozen game blurs and goes cold (shader on the screen), dust motes
 ## (factory) or bubbles (aquarium) drift through the frame, a big "ПАУЗА" title drops in and
-## glows, a light line runs across it, and the frame breathes slowly.
+## glows, a light line runs across it. The rusty frame does not breathe: a shader slides a
+## glint over the metal now and then.
 const BACKDROP_SHADER := "res://GameShaders/SharedShaders/Shared_PauseBackdrop_Shader.gdshader"
+const RUST_SHADER := "res://GameShaders/SharedShaders/Shared_RustFrame_Shader.gdshader"
 const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 var _fx_rect: ColorRect = null
 var _fx_mat: ShaderMaterial = null
@@ -146,6 +151,13 @@ func _build_fx() -> void:
 	var accent = Color8(130, 210, 255) if aqua else Color8(255, 168, 60)
 	if _framing:
 		_framing_scale = _framing.scale
+		if ResourceLoader.exists(RUST_SHADER):
+			var fm = ShaderMaterial.new()
+			fm.shader = load(RUST_SHADER)
+			if aqua:
+				fm.set_shader_parameter("glint_color", Color(0.7, 0.9, 1.0))
+				fm.set_shader_parameter("rim_color", Color(0.4, 0.75, 1.0))
+			_framing.material = fm
 	# backdrop
 	var sh = load(BACKDROP_SHADER) if ResourceLoader.exists(BACKDROP_SHADER) else null
 	if sh:
@@ -255,9 +267,9 @@ func _fx_out() -> void:
 	_fx_tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	if _fx_mat:
 		var from = float(_fx_mat.get_shader_parameter("amount"))
-		_fx_tw.tween_method(func(v): _fx_mat.set_shader_parameter("amount", v), from, 0.0, 0.15)
+		_fx_tw.tween_method(func(v): _fx_mat.set_shader_parameter("amount", v), from, 0.0, 0.32)
 	if _fx_title:
-		_fx_tw.tween_property(_fx_title, "modulate:a", 0.0, 0.12)
+		_fx_tw.tween_property(_fx_title, "modulate:a", 0.0, 0.2)
 	if _fx_line:
 		_fx_tw.tween_property(_fx_line, "modulate:a", 0.0, 0.12)
 
@@ -269,8 +281,6 @@ func _process(delta: float) -> void:
 	if _fx_title and not _is_closing:
 		var p = 0.5 + 0.5 * sin(_fx_t * 2.2)
 		_fx_title.add_theme_constant_override("shadow_outline_size", int(16 + 10 * p))
-	if _framing and not _is_closing:
-		_framing.scale = _framing_scale * (1.0 + 0.004 * sin(_fx_t * 1.3))
 
 func _input(event: InputEvent) -> void:
 	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).

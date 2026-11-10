@@ -21,6 +21,7 @@ var can_click_logo: bool = true
 const BOX_TEXTURE_PATH: String = "res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuBoxTextures/Menu_Factory_Box_Texture.png"
 
 func _ready() -> void:
+	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
 	
@@ -66,6 +67,7 @@ func _ready() -> void:
 		logo_original_scale = logo.scale
 
 	_setup_logo_click_anim()
+	_fit_logo_area()
 	if logo_area:
 		logo_area.mouse_entered.connect(_on_logo_mouse_entered)
 		logo_area.mouse_exited.connect(_on_logo_mouse_exited)
@@ -78,6 +80,26 @@ func _process(delta: float) -> void:
 		logo_float_time += delta * 0.5
 		logo.position.y = logo_original_y + sin(logo_float_time) * 2.0
 		logo.rotation = sin(logo_float_time) * 0.005
+
+## The click area is the logo as it is actually drawn (the scene's rect sat half above it, so
+## the lower half of the logo did not react). The logo keeps its place on screen.
+func _fit_logo_area() -> void:
+	if logo_area == null or logo == null or logo.sprite_frames == null:
+		return
+	var tex = logo.sprite_frames.get_frame_texture(logo.animation, 0)
+	if tex == null:
+		return
+	var used = tex.get_image().get_used_rect()
+	var full = tex.get_size()
+	var sc = logo.scale.abs()
+	var logo_g = logo.global_position
+	var top_left = logo_g - full * sc * 0.5 + Vector2(used.position) * sc
+	var r = Rect2(top_left, Vector2(used.size) * sc).grow(10.0)
+	logo_area.global_position = r.position
+	logo_area.size = r.size
+	logo.global_position = logo_g
+	logo_original_y = logo.position.y
+	logo_area.mouse_filter = Control.MOUSE_FILTER_STOP
 
 func _on_logo_mouse_entered() -> void:
 	if not logo:
@@ -107,7 +129,7 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		_logo_jelly_effect()
 		_play_logo_click_anim()
 		_spawn_logo_boxes()
-		await get_tree().create_timer(2.5).timeout
+		await get_tree().create_timer(0.6).timeout
 		can_click_logo = true
 
 ## "Logo click": a puff of steam bursts out around the logo (10-frame sheet, 209 x 105,

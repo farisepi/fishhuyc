@@ -450,7 +450,7 @@ func _target_time_for_slide_start(index: int) -> float:
 
 ## ---------------------------------------------------------------- intro effects
 ## Old-film look: every slide slowly pushes in (Ken Burns), a slide change comes with a short
-## colour-split glitch, a soft vignette, flickering film grain, a thin frame around the
+## colour-split glitch, a soft vignette, a thin frame around the
 ## picture and dust drifting in the projector light.
 const IMAGE_FX := """
 shader_type canvas_item;
@@ -474,9 +474,7 @@ float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 void fragment() {
 	vec2 cc = UV - 0.5;
 	float vig = smoothstep(0.35, 0.85, length(cc * vec2(1.2, 1.0)));
-	vec2 gp = floor(FRAGCOORD.xy / 3.0);
-	float g = h(gp + floor(TIME * 18.0) * 7.31);
-	float a = vig * 0.75 + (g - 0.5) * 0.08;
+	float a = vig * 0.75;   // (no flickering grain: it tired the eyes)
 	COLOR = vec4(vec3(0.0), clamp(a, 0.0, 1.0) * strength);
 }
 """

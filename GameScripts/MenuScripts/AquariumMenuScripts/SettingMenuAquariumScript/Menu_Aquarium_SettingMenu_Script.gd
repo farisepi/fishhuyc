@@ -88,6 +88,7 @@ var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEnt
 var _suppress_switch_sound: bool = false
 
 func _ready() -> void:
+	MenuHeader.style_scrolls.call_deferred(self, true, true)   # the game's scroll line + scroller
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
 	

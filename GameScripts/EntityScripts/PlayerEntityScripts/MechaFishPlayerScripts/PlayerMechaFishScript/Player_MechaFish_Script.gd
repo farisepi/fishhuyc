@@ -96,6 +96,12 @@ var _death_fish_v: Vector2 = Vector2.ZERO
 var _death_fish_floor: float = 0.0
 var _death_fish_bounces: int = 0
 var _death_fish_spawned: bool = false
+## Out of the suit the fish has only its air balloon: it drains, the fish flops slower and
+## slower, and when the air is gone it lies still.
+const DEATH_AIR_TIME := 4.5
+var _death_air_t: float = -1.0
+var _death_air_out: bool = false
+var _death_air_bar: AnimatedSprite2D = null
 var dash_cooldown: float = 0.0
 var is_dashing: bool = false
 var is_shift_held: bool = false
@@ -924,8 +930,12 @@ func die():
 		sprite.frame = last_frame
 		if not _death_fish_spawned:
 			_spawn_death_fish()
-		# let the little fish land and slide before the death screen
-		await _safe_timer(1.3)
+		# the death screen waits until the fish has run out of air and lies still
+		var waited := 0.0
+		while is_inside_tree() and _death_fish_spawned and not _death_air_out and waited < DEATH_AIR_TIME + 3.0:
+			await get_tree().process_frame
+			waited += get_process_delta_time()
+		await _safe_timer(0.8 if _death_air_out else 1.3)
 		if not is_inside_tree():
 			return
 	else:
@@ -1252,6 +1262,7 @@ func _spawn_death_fish() -> void:
 	_death_fish_v = Vector2(away * randf_range(120.0, 150.0), -randf_range(240.0, 275.0))
 	_death_fish_floor = sprite.to_global(Vector2(0, 36.0)).y
 	_death_fish_bounces = 0
+	_start_death_air()
 	# a few water drops from the cracked dome
 	for i in range(8):
 		var d = ColorRect.new()
@@ -1272,9 +1283,61 @@ func _spawn_death_fish() -> void:
 ## The little fish flies out of the dome in an arc (spinning, a bit floaty), hits the floor,
 ## bounces lower each time, then slides along the floor on its belly and stops.
 ## _death_fish_bounces: 0..2 in the air, 3 = sliding, 4 = lying still.
+func _start_death_air() -> void:
+	_death_air_t = 0.0
+	_death_air_out = false
+	var gui = get_node_or_null("GUI") as CanvasLayer
+	var cont = gui.get_node_or_null("UI_Container") if gui else null
+	_death_air_bar = cont.get_node_or_null("Air_Bar") as AnimatedSprite2D if cont else null
+	if _death_air_bar == null:
+		return
+	gui.visible = true
+	cont.visible = true
+	cont.modulate.a = 1.0
+	# (the balloon already hangs on the left edge of the factory HUD; it simply starts to drain)
+	var was = _death_air_bar.visible
+	_death_air_bar.visible = true
+	_death_air_bar.stop()
+	_death_air_bar.animation = &"AirBalloon"
+	_death_air_bar.frame = 0
+	if not was:
+		_death_air_bar.modulate = Color(1, 1, 1, 0)
+		_death_air_bar.create_tween().tween_property(_death_air_bar, "modulate:a", 1.0, 0.25)
+
+func _update_death_air(delta: float) -> void:
+	if _death_air_t < 0.0 or _death_air_out:
+		return
+	_death_air_t += delta
+	var k = clamp(_death_air_t / DEATH_AIR_TIME, 0.0, 1.0)
+	if _death_air_bar and is_instance_valid(_death_air_bar) and _death_air_bar.sprite_frames:
+		var last = _death_air_bar.sprite_frames.get_frame_count(_death_air_bar.animation) - 1
+		_death_air_bar.frame = int(round(k * last))
+		# the last fifth blinks red
+		if k > 0.8:
+			var on = int(Time.get_ticks_msec() / 160) % 2 == 0
+			_death_air_bar.modulate = Color(1.0, 0.45, 0.45) if on else Color.WHITE
+	# the fish flops slower and slower while the air goes
+	if _death_fish and is_instance_valid(_death_fish) and _death_fish_bounces >= 4:
+		_death_fish.speed_scale = lerp(0.9, 0.15, k)
+	if k >= 1.0:
+		_death_air_out = true
+		if _death_air_bar and is_instance_valid(_death_air_bar):
+			_death_air_bar.modulate = Color(1.0, 0.45, 0.45)
+		if _death_fish and is_instance_valid(_death_fish):
+			# one last twitch, then it does not move any more
+			var tw = _death_fish.create_tween()
+			tw.tween_property(_death_fish, "rotation", 0.12, 0.08)
+			tw.tween_property(_death_fish, "rotation", 0.0, 0.18)
+			tw.tween_callback(func():
+				if is_instance_valid(_death_fish):
+					_death_fish.stop()
+					_death_fish.frame = 0
+					_death_fish.modulate = Color(0.8, 0.8, 0.85))
+
 func _update_death_fish(delta: float) -> void:
 	if _death_fish == null or not is_instance_valid(_death_fish):
 		return
+	_update_death_air(delta)
 	if _death_fish_bounces >= 4:
 		return
 	if _death_fish_bounces == 3:

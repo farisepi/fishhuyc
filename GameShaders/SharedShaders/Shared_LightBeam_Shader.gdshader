@@ -10,7 +10,7 @@ uniform float bottom_width = 0.95;   // cone width at the bottom
 uniform float falloff = 1.4;
 uniform vec2 rect_size = vec2(240.0, 300.0);
 uniform float pixel_size = 3.0;
-uniform float flicker_amount = 0.10;
+uniform float flicker_amount = 0.04;
 uniform float flicker_speed = 6.0;
 uniform float dropout_chance = 0.012; // chance per tick that the lamp stutters
 uniform float seed = 0.0;
@@ -32,8 +32,6 @@ void fragment() {
 
 	float t = TIME * flicker_speed + seed * 13.7;
 	float flick = 1.0 - flicker_amount * (0.5 + 0.5 * sin(t) * sin(t * 2.3 + 1.7));
-	float tick = floor(TIME * 10.0);
-	if (hash(vec2(tick, seed)) < dropout_chance) flick *= 0.35;
 
 	float a = (cone * 0.75 + core * 0.35) * fall * intensity * flick;
 

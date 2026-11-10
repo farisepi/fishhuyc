@@ -61,6 +61,8 @@ var _extra_rows: Array = []
 var unlocked_count: int = 0
 
 func _ready() -> void:
+	MenuHeader.style_scrolls.call_deferred(self, false, true)   # the game's scroll line + scroller
+	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
 	call_deferred("_add_header")
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()

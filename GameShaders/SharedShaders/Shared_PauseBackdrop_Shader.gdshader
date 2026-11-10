@@ -31,10 +31,8 @@ void fragment() {
 	float g = dot(c, vec3(0.299, 0.587, 0.114));
 	vec3 grey = mix(vec3(g), tint.rgb * g * 1.2, 0.35);
 	c = mix(c, grey, 0.8 * amount);
-	// scanlines + a slow diagonal light sweep
-	float scan = 0.94 + 0.06 * sin(FRAGCOORD.y * 1.6);
+	// a slow diagonal light sweep (no scanlines)
 	float sweep = smoothstep(0.08, 0.0, abs(fract(TIME * 0.12) * 1.6 - 0.3 - (uv.x * 0.7 + uv.y * 0.3)));
-	c *= mix(1.0, scan, amount);
 	c += tint.rgb * sweep * 0.07 * amount;
 	// vignette
 	float vig = smoothstep(0.85, 0.25, length(cc * vec2(1.25, 1.0)));
