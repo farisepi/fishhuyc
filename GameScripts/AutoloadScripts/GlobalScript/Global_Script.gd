@@ -203,7 +203,7 @@ func _ready() -> void:
 	
 	print("=== CREATING SEAWEEDSTATE ===")
 	var seaweed_path = "res://GameScripts/MenuScripts/MainMenuScripts/MainMenuButtonsAttributesStateScript/Menu_MainMenu_ButtonsAttributesState_Script.gd"
-	if FileAccess.file_exists(seaweed_path):
+	if ResourceLoader.exists(seaweed_path):
 		seaweed_state = load(seaweed_path).new()
 		add_child(seaweed_state)
 		seaweed_state.name = "SeaweedState"
@@ -211,7 +211,7 @@ func _ready() -> void:
 	
 	var font_path = "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 	
-	if FileAccess.file_exists(font_path):
+	if ResourceLoader.exists(font_path):   # (in the exported game the .ttf itself is not there, only its import)
 		_font = load(font_path)
 		if _font:
 			_font.fixed_size = 10
@@ -668,7 +668,7 @@ func _force_apply_seaweed(scene: Node) -> void:
 	
 	if not has_node("SeaweedState"):
 		var seaweed_path = "res://GameScripts/MenuScripts/MainMenuScripts/MainMenuButtonsAttributesStateScript/Menu_MainMenu_ButtonsAttributesState_Script.gd"
-		if FileAccess.file_exists(seaweed_path):
+		if ResourceLoader.exists(seaweed_path):
 			seaweed_state = load(seaweed_path).new()
 			add_child(seaweed_state)
 			seaweed_state.name = "SeaweedState"

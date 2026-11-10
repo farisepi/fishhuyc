@@ -87,10 +87,10 @@ var _suppress_switch_sound: bool = false
 func _ready() -> void:
 	MenuHeader.style_scrolls.call_deferred(self, false, true)   # the game's scroll line + scroller
 	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
-	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
-		Fade.fade_in()
-	
-	UISounds.stop_everything_gameplay()
+	if not has_meta("overlay"):
+		if is_instance_valid(Fade) and Fade.has_method("fade_in"):
+			Fade.fade_in()
+		UISounds.stop_everything_gameplay()
 	
 	if Global.came_from == Global.MenuSource.GAME:
 		pass
@@ -950,6 +950,14 @@ func _rebind_blink(btn: Button, action: String) -> void:
 	update_key_labels()
 
 func _exit_to_main_menu() -> void:
+	if has_meta("overlay"):
+		# opened over the paused game from its pause menu: just close
+		var host = get_parent()
+		if host is CanvasLayer:
+			host.queue_free()
+		else:
+			queue_free()
+		return
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		var target = Global.scene_to_save

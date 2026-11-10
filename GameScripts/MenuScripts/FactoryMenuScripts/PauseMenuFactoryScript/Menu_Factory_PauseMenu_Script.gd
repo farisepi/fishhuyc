@@ -299,7 +299,7 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).
 	# While the menu is open the level is paused, so closing it with Esc is handled here.
-	if not visible or _transitioning:
+	if not visible or _transitioning or _settings_layer != null:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -373,10 +373,34 @@ func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
-	if _in_aquarium():
-		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn")
-	else:
-		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn")
+	# the settings open OVER the paused game (no scene change): coming back the game goes on
+	# from exactly where it was paused, not from the last save
+	var path = "res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn" if _in_aquarium() \
+		else "res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn"
+	var sc = load(path).instantiate()
+	for cam in sc.find_children("*", "Camera2D", true, false):
+		cam.get_parent().remove_child(cam)
+		cam.free()
+	sc.set_meta("overlay", true)
+	sc.process_mode = Node.PROCESS_MODE_ALWAYS
+	_settings_layer = CanvasLayer.new()
+	_settings_layer.name = "SettingsOverlay"
+	_settings_layer.layer = 90
+	_settings_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(_settings_layer)
+	_settings_layer.add_child(sc)
+	_settings_layer.tree_exited.connect(_on_settings_closed)
+	visible = false
+
+var _settings_layer: CanvasLayer = null
+
+func _on_settings_closed() -> void:
+	_settings_layer = null
+	if not is_inside_tree():
+		return
+	visible = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	show_menu()
 
 func _on_exit_pressed() -> void:
 	if _transitioning:

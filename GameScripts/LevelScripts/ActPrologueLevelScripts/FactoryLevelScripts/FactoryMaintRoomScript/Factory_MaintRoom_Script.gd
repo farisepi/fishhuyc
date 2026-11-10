@@ -56,6 +56,11 @@ var _zz_layer: CanvasLayer = null
 var _zz: Label = null
 var _saved_light: Color = Color.WHITE
 var _my_bunk: Sprite2D = null
+var _bunks: Array = []     # the other bunks
+var _lockers: Array = []
+var _stands: Array = []
+var _looked: Dictionary = {}
+var _fish_tweens: Array = []   # the morning walk to the door (stopped when we leave)   # room things already looked at (this visit)
 var _lie_sprites: Array = []       # [Sprite2D, npc]
 var _lamp_cones: Array = []
 
@@ -101,10 +106,12 @@ func _build() -> void:
 		var bs = _spr(TEX_DIR + tex, Vector2(BUNK_XS[b] - BUNK_W * PX * 0.5, FLOOR_Y - BUNK_H * PX), -6)
 		if b == MY_BUNK:
 			_my_bunk = bs
-	_spr(TEX_DIR + "Factory_MaintRoom_StandMug_Texture.png", Vector2(RX - 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6)
-	_spr(TEX_DIR + "Factory_MaintRoom_StandLamp_Texture.png", Vector2(RX + 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6)
+		else:
+			_bunks.append(bs)
+	_stands.append(_spr(TEX_DIR + "Factory_MaintRoom_StandMug_Texture.png", Vector2(RX - 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6))
+	_stands.append(_spr(TEX_DIR + "Factory_MaintRoom_StandLamp_Texture.png", Vector2(RX + 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6))
 	for k in range(2):
-		_spr(TEX_DIR + "Factory_MaintRoom_Locker_Texture.png", Vector2(LOCKER_X - 24.0 + k * 48.0, FLOOR_Y - 41.0 * PX), -6)
+		_lockers.append(_spr(TEX_DIR + "Factory_MaintRoom_Locker_Texture.png", Vector2(LOCKER_X - 24.0 + k * 48.0, FLOOR_Y - 41.0 * PX), -6))
 	# two lamps over the nightstands, with a soft warm cone
 	for lx in [RX - 95.0, RX + 95.0]:
 		var lamp = _spr(LAMP_TEX, Vector2(lx - 21.0, CEIL_Y + 21.0), -5)
@@ -184,7 +191,7 @@ func enter() -> void:
 		L._nav.visible = false
 	if L._act_strip:
 		_saved_strip_vis = L._act_strip.visible
-		L._act_strip.visible = true   # the journal can be read here
+		L._act_strip.visible = L._tut_done("journal")   # (after the first shift there is none yet)
 	if L.player:
 		_saved_player_pos = L.player.global_position
 		L.player.global_position = Vector2(DOOR_X + 30.0, 350.0)
@@ -217,6 +224,10 @@ func leave() -> void:
 	if _body:
 		for cs in _body.get_children():
 			cs.set_deferred("disabled", true)
+	for tw in _fish_tweens:
+		if tw and tw.is_valid():
+			tw.kill()
+	_fish_tweens.clear()
 	for s in _saved_npc:
 		var n = s[0]
 		if not is_instance_valid(n):
@@ -231,6 +242,11 @@ func leave() -> void:
 			n.play(s[3])
 	_saved_npc.clear()
 	_sleepers.clear()
+	for t in _room_targets():
+		var nn = t["node"]
+		if is_instance_valid(nn) and nn.material is ShaderMaterial:
+			nn.material.set_shader_parameter("active", 0.0)
+	_looked.clear()
 	for l in _lie_sprites:
 		if is_instance_valid(l[0]):
 			l[0].queue_free()
@@ -324,7 +340,9 @@ func _first_visit_card() -> void:
 	await get_tree().create_timer(0.9, false).timeout
 	if not _on:
 		return
-	var j = tr(" Журнал — %s.") % L._key_name("journal")
+	var j = (tr(" Журнал — %s.") % L._key_name("journal")) if L._tut_done("journal") else ""
+	if L._tut_done("inspect"):
+		j += tr(" Осмотреть комнату — %s.") % L._key_name("inspect")
 	await L._tut_read(tr("КОМНАТА ТЕХОБСЛУЖИВАНИЯ"),
 		tr("Здесь рыбы спят между сменами. Охраны нет, время не идёт — ходи, сколько хочешь.") + j + "\n" + tr("Когда будешь готов, подойди к своей койке (она подсвечена) и нажми %s.") % L._key_name("interact"),
 		func(): return L._world_to_screen(Rect2(_bed_pos() + Vector2(-60, -112), Vector2(120, 116))), false)
@@ -339,8 +357,9 @@ func _process(delta: float) -> void:
 	for l in _lie_sprites:
 		if is_instance_valid(l[0]):
 			l[0].frame = 1 if fmod(_t + l[2], 3.2) < 1.4 else 0
+	_update_room_outlines()
 	if _my_bunk:
-		var on = not _morning and not _busy
+		var on = not _morning and not _busy and L.state != L.State.INSPECT
 		if on and not (_my_bunk.material is ShaderMaterial):
 			L._ensure_outline(_my_bunk, L.COLOR_HIGHLIGHT_YELLOW)
 		if _my_bunk.material is ShaderMaterial:
@@ -351,6 +370,69 @@ func _process(delta: float) -> void:
 	if _view:
 		_view.queue_redraw()
 		_front().queue_redraw()
+
+# ---------------------------------------------------------------- the room in inspect mode
+## What can be looked at here: the bunks, the lockers, the nightstands, and the fish (only the
+## ones not looked at during a shift - those go to the journal like in the hall).
+func view_rect() -> Rect2:
+	return Rect2(LEFT - 20.0, CEIL_Y - 40.0, BACK_W * PX + 40.0, BACK_FLOOR * PX + 110.0)
+
+func _room_targets() -> Array:
+	var out: Array = []
+	for b in _bunks:
+		out.append({"node": b, "id": "room_bunks", "title": tr("Койки"),
+			"text": tr("Двухъярусные, железные, с номерами. Матрас тоньше рыбьей чешуи, но после смены засыпаешь на чём угодно.")})
+	if _my_bunk:
+		out.append({"node": _my_bunk, "id": "room_mybunk", "title": tr("Моя койка"),
+			"text": tr("Нижняя, с оранжевым одеялом. Одеяло досталось от прежнего жильца — о нём здесь не говорят.")})
+	for l in _lockers:
+		out.append({"node": l, "id": "room_lockers", "title": tr("Шкафчики"),
+			"text": tr("У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего.")})
+	for st in _stands:
+		out.append({"node": st, "id": "room_stand", "title": tr("Тумбочка"),
+			"text": tr("Кружка с остывшим чаем из водорослей и лампа, которую никто не выключает. Ночью она — единственный свет в комнате.")})
+	for s2 in _saved_npc:
+		var f = s2[0]
+		if not is_instance_valid(f):
+			continue
+		var ident = L.npc_identities.get(f, "")
+		var info = L.NPC_IDENTITY_DATA.get(ident, {})
+		if info.is_empty() or L.journal_notes.has("npc_" + ident):
+			continue
+		var node = f
+		for l2 in _lie_sprites:
+			if l2[1] == f and is_instance_valid(l2[0]):
+				node = l2[0]
+		out.append({"node": node, "id": "npc_" + ident, "title": tr(info.get("title", "")),
+			"text": tr(info.get("phrase", "")), "journal": tr(info.get("journal", ""))})
+	return out
+
+func _update_room_outlines() -> void:
+	var insp = L.state == L.State.INSPECT
+	for t in _room_targets():
+		var n = t["node"]
+		if not is_instance_valid(n) or not n.visible:
+			continue
+		L._ensure_outline(n, L.COLOR_HIGHLIGHT_BLUE)
+		if n.material is ShaderMaterial:
+			n.material.set_shader_parameter("outline_color", L.COLOR_HIGHLIGHT_BLUE)
+			n.material.set_shader_parameter("active", 1.0 if (insp and not _looked.has(t["id"])) else 0.0)
+	if not insp:
+		return
+
+func inspect_click(wp: Vector2) -> void:
+	for t in _room_targets():
+		var n = t["node"]
+		if not is_instance_valid(n) or not n.visible or _looked.has(t["id"]):
+			continue
+		if L._node_hit(n, wp) != -1.0:
+			_looked[t["id"]] = true
+			L._show_inspect_text(t["title"], t["text"], t.get("journal", ""))
+			if t.has("journal"):
+				L._add_journal_note(t["id"], t["title"] + ": " + t["journal"])
+			if n.material is ShaderMaterial:
+				n.material.set_shader_parameter("active", 0.0)
+			return
 
 func _near_door() -> bool:
 	return L.player != null and abs(L.player.global_position.x - DOOR_X) < 46.0
@@ -374,7 +456,7 @@ func _near_fish() -> Node:
 	return best
 
 func _input(event: InputEvent) -> void:
-	if not _on or _busy or L.journal_open or L._tut_reading:
+	if not _on or _busy or L.journal_open or L._tut_reading or L.state == L.State.INSPECT:
 		return
 	if not event.is_action_pressed("interact"):
 		return
@@ -426,7 +508,7 @@ func _sleep() -> void:
 		await L._dream.run_night(sh, st)
 		L._room_on = true
 		if L._act_strip:
-			L._act_strip.visible = true
+			L._act_strip.visible = L._tut_done("journal")
 		L._set_hud_visible(false)
 		if L.player_gui:
 			L.player_gui.visible = false
@@ -506,6 +588,7 @@ func _walk_fish_out() -> void:
 			continue
 		var d = abs(f.position.x - DOOR_X)
 		var tw = f.create_tween()
+		_fish_tweens.append(tw)
 		tw.tween_interval(0.5 + i * 0.6)
 		tw.tween_callback(func():
 			if f.sprite_frames and f.sprite_frames.has_animation("jogging"):
@@ -611,7 +694,7 @@ func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> vo
 func _draw_front(front: Node2D) -> void:
 	var f = L._bubble_font()
 	# my bunk: a glowing outline, the label and a bobbing arrow (until morning)
-	if not _morning:
+	if not _morning and L.state != L.State.INSPECT:
 		var bp = _bed_pos()
 		var bob = sin(_t * 4.0) * 2.0
 		var ay = _bed_y(1) - 22.0 + bob
@@ -623,7 +706,7 @@ func _draw_front(front: Node2D) -> void:
 			front.draw_string(f, Vector2(bp.x - sw * 0.5, ay - 6), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
 			if _on and not _busy and _near_bed():
 				_draw_key_prompt(front, Vector2(bp.x, FLOOR_Y - 150.0), tr("СПАТЬ"), Color(1.0, 0.84, 0.35))
-	else:
+	elif _morning and L.state != L.State.INSPECT:
 		# morning: the way out
 		var bob2 = sin(_t * 4.0) * 3.0
 		var ax = DOOR_X

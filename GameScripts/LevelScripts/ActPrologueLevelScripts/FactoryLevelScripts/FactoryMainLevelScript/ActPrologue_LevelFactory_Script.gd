@@ -614,6 +614,7 @@ func _add_side_walls() -> void:
 		rs.size = Vector2(40, 600)
 		cs.shape = rs
 		wall.add_child(cs)
+		wall.add_to_group("hall_walls")
 		add_child(wall)
 
 ## An arrow over the fish: after the shift to the maintenance room; in the escape shift to the
@@ -3211,7 +3212,7 @@ func _act_half_w() -> int:
 func _update_action_strip(delta: float) -> void:
 	if _act_strip == null:
 		return
-	var want_show = ((current_shift >= 2 and _hud_on) or _room_on or _dream_allow_inspect) and state != State.DEAD
+	var want_show = ((current_shift >= 2 and _hud_on) or (_room_on and _tut_done("journal")) or _dream_allow_inspect) and state != State.DEAD
 	if _act_strip.visible != want_show:
 		_act_strip.visible = want_show
 		if want_show:
@@ -4631,14 +4632,22 @@ func _process_inspect_camera(delta: float) -> void:
 	var c = inspect_camera_original_pos + inspect_camera_offset
 	var w = INSPECT_LOOP.size
 	var moved := false
-	while c.x >= INSPECT_LOOP.end.x:
-		c.x -= w.x; moved = true
-	while c.x < INSPECT_LOOP.position.x:
-		c.x += w.x; moved = true
-	while c.y >= INSPECT_LOOP.end.y:
-		c.y -= w.y; moved = true
-	while c.y < INSPECT_LOOP.position.y:
-		c.y += w.y; moved = true
+	if not _room_on:
+		while c.x >= INSPECT_LOOP.end.x:
+			c.x -= w.x; moved = true
+		while c.x < INSPECT_LOOP.position.x:
+			c.x += w.x; moved = true
+		while c.y >= INSPECT_LOOP.end.y:
+			c.y -= w.y; moved = true
+		while c.y < INSPECT_LOOP.position.y:
+			c.y += w.y; moved = true
+	if _room_on and _room:
+		# in the maintenance room the look stays inside the room
+		var rr = _room.view_rect()
+		var half = get_viewport().get_visible_rect().size / camera.zoom / 2.0
+		c.x = clamp(c.x, rr.position.x + half.x, max(rr.position.x + half.x, rr.end.x - half.x))
+		c.y = clamp(c.y, rr.position.y + half.y, max(rr.position.y + half.y, rr.end.y - half.y))
+		moved = false
 	inspect_camera_offset = c - inspect_camera_original_pos
 	camera.global_position = c
 	if moved:
@@ -4705,7 +4714,7 @@ func _on_frame_pre_draw() -> void:
 		_update_wrap_views()
 
 func _update_wrap_views() -> void:
-	var on = state == State.INSPECT and camera != null
+	var on = state == State.INSPECT and camera != null and not _room_on
 	if not on:
 		for v in _wrap_views:
 			v[1].visible = false
@@ -4832,7 +4841,7 @@ func _process_conveyor_scroll(delta: float) -> void:
 ## 13:00 - 13:15 lasts 12 s, every other guard / sniper change lasts 6 s. On a mistake it
 ## stands still until the guard is back at his place.
 const CYCLE_SLOT: float = 3.5
-const CHANGE_REAL: float = 6.0
+const CHANGE_REAL: float = 5.0   # 15 game minutes of an ordinary change = 5 real seconds
 var _shift_elapsed: float = 0.0   # running (not held) time of this shift
 
 ## [start_hour, end_hour, real_seconds] of the stretched periods of this shift.
@@ -4914,10 +4923,8 @@ func _process_clock(delta: float) -> void:
 			v = (q[1] - q[0]) / SHIFT_DURATION_HOURS / q[2]
 			break
 	var next_t = min(shift_time + v * delta, cap)
-	# 13:00 only comes once the guard is in the lift and the sniper has left the balcony
-	var esc_t = (ESCAPE_WINDOW_START - SHIFT_START_HOUR) / SHIFT_DURATION_HOURS
-	if _escape_on() and shift_time < esc_t and next_t >= esc_t and not _post_empty():
-		next_t = esc_t - 0.0004
+	# (no waiting at the window's edge: the clock runs evenly, the window = 10 real seconds,
+	# an ordinary change = 5 real seconds, everything else at one speed)
 	shift_time = next_t
 	_update_clock_label()
 	_update_wall_clock()
@@ -5156,7 +5163,9 @@ func _guard_shift_sequence() -> void:
 		while is_inside_tree() and _current_hour() < ESCAPE_WINDOW_END and state != State.SHIFT_END:
 			await _tree().process_frame
 	else:
-		await _tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
+		# away exactly for the change's 15 game minutes (= 5 real seconds)
+		var back_h = _guard_change_hour + SHIFT_CHANGE_HOURS
+		await _wait_until(func(): return _current_hour() >= back_h or state == State.SHIFT_END, 60.0)
 	if not is_inside_tree():
 		return
 	# (tutorial) he does not come back before the player has noted the change
@@ -5227,7 +5236,8 @@ func _on_sniper_shift_change(_hour: float) -> void:
 		# comes back the moment the guard reappears from the lift
 		await _wait_until(func(): return guard_sprite != null and guard_sprite.visible, 120.0)
 	else:
-		await _tree().create_timer(SHIFT_CHANGE_REAL, false).timeout
+		var back_h = _hour + SHIFT_CHANGE_HOURS
+		await _wait_until(func(): return _current_hour() >= back_h or state == State.SHIFT_END, 60.0)
 	if not is_inside_tree():
 		return
 	if sniper_sprite:
@@ -5343,7 +5353,8 @@ func _start_belt() -> void:
 		if _belt_stopped(gen):
 			return
 		# the belt keeps the clock's rhythm: the next step starts at its time slot
-		while (_shift_elapsed < float(_cycles_done) * CYCLE_SLOT or (_tut_s2_hold and _halt > 0)) and not _belt_stopped(gen):
+		# (nothing comes down the belt before 8:00: during the morning walk-in it waits)
+		while (_shift_elapsed < float(_cycles_done) * CYCLE_SLOT or (_tut_s2_hold and _halt > 0) or _walkin_active) and not _belt_stopped(gen):
 			await _tree().process_frame
 			if not is_inside_tree():
 				return
@@ -7069,7 +7080,7 @@ func _stress_miss_effect() -> void:
 var _guard_hits_queued: int = 0
 var _guard_extra_hit_pending: bool = false
 
-func _guard_hit_player() -> void:
+func _guard_hit_player(dmg: int = 1) -> void:
 	if player == null or guard_sprite == null:
 		return
 	if guard_changing:
@@ -7097,7 +7108,7 @@ func _guard_hit_player() -> void:
 	UISounds.play_hit()
 	var was_in_zone = _is_player_in_zone()
 	if player.has_method("take_damage"):
-		player.take_damage(1, guard_sprite)   # knocks the fish back a little + small shake
+		player.take_damage(dmg, guard_sprite)   # knocks the fish back a little + small shake
 	if was_in_zone and state != State.SHIFT_END:
 		_keep_in_zone_after_hit()
 	await _tree().create_timer(0.35, false).timeout
@@ -7642,7 +7653,11 @@ func _begin_walk_in() -> void:
 	for fish in npc_fishes:
 		if fish == null:
 			continue
+		# (their places were just set by _randomize_npc_positions / _place_station_workers)
 		var to = fish.position
+		fish.visible = true
+		fish.modulate = Color.WHITE
+		fish.rotation = 0.0
 		fish.position = Vector2(door_x + 14.0 + i * 16.0, to.y)
 		var d = abs(fish.position.x - to.x)
 		if fish is AnimatedSprite2D:
@@ -7670,7 +7685,13 @@ func _walkin_wait() -> void:
 	_walkin_active = false
 	_viol_reset()
 	_halt = max(0, _halt - 1)
-	_show_guard_dialog(tr("ЗА РАБОТУ!"), 1.6)
+	if _is_player_in_zone():
+		_show_guard_dialog(tr("ЗА РАБОТУ!"), 1.6)
+	else:
+		# late for the shift: the guard comes over and beats the fish hard (two blows)
+		_show_guard_dialog(tr("ОПОЗДАЛ?! СЕЙЧАС ОБЪЯСНЮ, КОГДА НАЧИНАЕТСЯ СМЕНА!"), 2.0)
+		_guard_hit_player(2)
+		_guard_hit_player(1)
 
 ## Every guard and every sniper change has been written down.
 func _schedule_known() -> bool:
@@ -7771,11 +7792,15 @@ func _update_escape_hint() -> void:
 	else:
 		_escape_banner("%s - %s" % [_hhmm(ESCAPE_WINDOW_START), _hhmm(ESCAPE_WINDOW_END)], tr("ЕДИНСТВЕННОЕ ВРЕМЯ ДЛЯ ПОБЕГА"))
 
+var _inspect_prev_state = State.WORKING
+
 func _enter_inspect() -> void:
-	if current_shift < 2 and not _dream_allow_inspect:
+	if current_shift < 2 and not _dream_allow_inspect and not _room_on:
 		return
-	if state != State.WORKING:
+	var room_ok = _room_on and state == State.SHIFT_END and _tut_done("inspect")
+	if state != State.WORKING and not room_ok:
 		return
+	_inspect_prev_state = state
 	state = State.INSPECT
 	inspect_mode = true
 	inspect_overlay.visible = true
@@ -7841,7 +7866,8 @@ func _exit_inspect(forced: bool = false) -> void:
 			fr.visible = false
 	if forced:
 		_inspect_kick_fx()
-	state = State.WORKING
+	state = _inspect_prev_state
+	_inspect_prev_state = State.WORKING
 	inspect_mode = false
 	inspect_overlay.visible = false
 	inspect_marker.visible = false
@@ -8060,6 +8086,10 @@ func _process_inspect_click(_mouse_pos: Vector2) -> void:
 	if _dream_on:
 		if _dream:
 			_dream.inspect_click(get_global_mouse_position())   # the dream has its own targets
+		return
+	if _room_on:
+		if _room:
+			_room.inspect_click(get_global_mouse_position())    # and so does the room
 		return
 	var best_area = _inspect_pick(get_global_mouse_position())
 	if best_area == null:
@@ -8342,7 +8372,7 @@ func _kick_out_of_journal() -> void:
 		_zoom_camera(inspect_camera_original_zoom, 0.3)
 
 func _open_journal() -> void:
-	if current_shift < 2 and not _dream_allow_inspect and not _room_on:
+	if current_shift < 2 and not _dream_allow_inspect and not (_room_on and _tut_done("journal")):
 		return
 	if state == State.INSPECT:
 		_exit_inspect()   # the journal replaces the inspect mode
@@ -9060,7 +9090,17 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if _is_action_key(event, "inspect"):
-			if (current_shift < 2 and not _dream_allow_inspect) or _room_on:
+			if current_shift < 2 and not _dream_allow_inspect and not _room_on:
+				return
+			if _room_on and not _tut_done("inspect"):
+				return
+			if _room_on and state == State.INSPECT:
+				_exit_inspect()
+				get_viewport().set_input_as_handled()
+				return
+			if _room_on and state == State.SHIFT_END:
+				_enter_inspect()
+				get_viewport().set_input_as_handled()
 				return
 			if _dream_on and not _dream_allow_inspect:
 				return
@@ -9068,7 +9108,7 @@ func _input(event: InputEvent) -> void:
 				_enter_inspect()
 			get_viewport().set_input_as_handled()
 		elif _is_action_key(event, "journal"):
-			if current_shift < 2 and not _dream_allow_inspect and not _room_on:
+			if current_shift < 2 and not _dream_allow_inspect and not (_room_on and _tut_done("journal")):
 				return
 			if _dream_on and not _dream_allow_inspect:
 				return

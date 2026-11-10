@@ -114,6 +114,8 @@ func enter(station: int) -> void:
 		m.shader = load(DREAM_SHADER)
 		m.set_shader_parameter("floor_y", L.ZONE_FLOOR_Y)
 		bg.material = m
+	# the white has no end: the hall's side walls go away, the floor runs on forever
+	_set_walls(false)
 	# a piece of ghost belt under the press so the food has something to lie on
 	_props = Node2D.new()
 	_props.name = "DreamProps"
@@ -149,6 +151,7 @@ func leave() -> void:
 		return
 	_clear_targets()
 	set_process(false)
+	_set_walls(true)
 	# whatever happened in the dream (inspect, journal, a lesson card), time runs normally again
 	if L.journal_open:
 		L._on_journal_close()
@@ -229,6 +232,27 @@ func _sniper_spot() -> Vector2:
 		if tex:
 			half = tex.get_height() * abs(sn.global_scale.y) * 0.5
 	return Vector2(_zone_x() + 175.0, SNIPER_FEET - half + 2.0)
+
+var _endless_floor: StaticBody2D = null
+
+func _set_walls(on: bool) -> void:
+	for w in L.get_tree().get_nodes_in_group("hall_walls"):
+		for cs in w.get_children():
+			if cs is CollisionShape2D:
+				cs.set_deferred("disabled", not on)
+	if not on and _endless_floor == null:
+		_endless_floor = StaticBody2D.new()
+		_endless_floor.name = "DreamEndlessFloor"
+		var cs2 = CollisionShape2D.new()
+		var rs = RectangleShape2D.new()
+		rs.size = Vector2(400000.0, 100.0)
+		cs2.shape = rs
+		cs2.position = Vector2(0.0, L.ZONE_FLOOR_Y + 50.0)
+		_endless_floor.add_child(cs2)
+		L.add_child(_endless_floor)
+	elif on and _endless_floor:
+		_endless_floor.queue_free()
+		_endless_floor = null
 
 func _draw_props() -> void:
 	if _balcony_a > 0.01:
@@ -507,7 +531,7 @@ func _process(_d: float) -> void:
 			continue
 		L._ensure_outline(n, t["color"])
 		if n.material is ShaderMaterial:
-			n.material.set_shader_parameter("active", 1.0 if (insp and n.visible and not _clicked.has(t["id"] + "_off")) else 0.0)
+			n.material.set_shader_parameter("active", 1.0 if (insp and n.visible and not _clicked.has(t["id"])) else 0.0)
 			# on the white of the dream the usual pale outline melts away: deeper colours, wider line
 			var dc = Color(0.62, 0.42, 0.0) if t["color"] == L.COLOR_HIGHLIGHT_YELLOW else Color(0.05, 0.24, 0.58)
 			n.material.set_shader_parameter("outline_color", Color(dc.r, dc.g, dc.b, 1.0))
@@ -527,10 +551,31 @@ func inspect_click(wp: Vector2) -> void:
 		var n = t["node"]
 		if not is_instance_valid(n) or not n.visible:
 			continue
-		if L._node_hit(n, wp) >= 0.0:
+		if L._node_hit(n, wp) != -1.0:
 			_clicked[t["id"]] = true
 			L._show_inspect_text(t["title"], t["text"], "")
 			return
+
+## The guard runs off his post (fast, in real time - the inspect slow motion doesn't slow him)
+## and is gone; if he wasn't clicked, he comes back to the post and runs off again.
+func _guard_run_loop() -> void:
+	var g = L.guard_sprite
+	if g == null:
+		return
+	while is_instance_valid(g) and _on:
+		g.position = _guard_spot()
+		g.modulate.a = 1.0
+		g.visible = true
+		g.flip_h = true
+		if g.sprite_frames and g.sprite_frames.has_animation("jogging"):
+			g.play("jogging")
+		var tw = g.create_tween().set_ignore_time_scale(true)
+		tw.tween_property(g, "position:x", g.position.x - 280.0, 2.4)
+		tw.tween_property(g, "modulate:a", 0.0, 0.25)
+		await tw.finished
+		if _clicked.has("guard") or not _on:
+			break
+		await _wait(0.9)
 
 func _inspect_lesson() -> void:
 	L._dream_allow_inspect = true
@@ -558,12 +603,7 @@ func _inspect_lesson() -> void:
 		func(): return _clicked.has("press"))
 	await _wait(0.8)
 	# the guard leaves his post: yellow - catch it before he is gone
-	if L.guard_sprite:
-		L.guard_sprite.flip_h = true
-		if L.guard_sprite.sprite_frames and L.guard_sprite.sprite_frames.has_animation("jogging"):
-			L.guard_sprite.play("jogging")
-		var tw = L.guard_sprite.create_tween()
-		tw.tween_property(L.guard_sprite, "position:x", L.guard_sprite.position.x - 120.0, 18.0)
+	_guard_run_loop()
 	await _task(tr("ЖЁЛТОЕ"), tr("Охранник уходит с поста — это пересменка, она светится жёлтым. Кликни по нему, пока он не ушёл."), [tr("ЛКМ")], Callable(),
 		func(): return _clicked.has("guard"))
 	await _wait(0.8)

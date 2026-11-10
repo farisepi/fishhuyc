@@ -539,6 +539,16 @@ const EN := {
 	"СПАТЬ": "SLEEP",
 	"Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись.": "The next shift is very important. From it on the sniper leaves his post too. If the guard and the sniper leave at the same time, the post is empty — and that is the only chance to escape. Watch closely and don't make a mistake.",
 	"Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.": "The shift starts soon. Follow the others to the door on the left and press %s.",
+	" Осмотреть комнату — %s.": " Look around the room — %s.",
+	"Двухъярусные, железные, с номерами. Матрас тоньше рыбьей чешуи, но после смены засыпаешь на чём угодно.": "Iron bunk beds with numbers on them. The mattress is thinner than a fish scale, but after a shift you'd fall asleep on anything.",
+	"Койки": "Bunks",
+	"Кружка с остывшим чаем из водорослей и лампа, которую никто не выключает. Ночью она — единственный свет в комнате.": "A mug of cold seaweed tea and a lamp nobody ever turns off. At night it is the only light in the room.",
+	"Моя койка": "My bunk",
+	"Нижняя, с оранжевым одеялом. Одеяло досталось от прежнего жильца — о нём здесь не говорят.": "The lower one, with the orange blanket. The blanket was left by the previous tenant — nobody here talks about him.",
+	"ОПОЗДАЛ?! СЕЙЧАС ОБЪЯСНЮ, КОГДА НАЧИНАЕТСЯ СМЕНА!": "LATE?! I'LL SHOW YOU WHEN THE SHIFT STARTS!",
+	"Тумбочка": "Nightstand",
+	"У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего.": "Every worker has one. There's almost nothing to keep: a spare filter for the suit, a shell from the outside, for some — a pebble from the bottom of their home pond. No locks: there's nothing to steal anyway.",
+	"Шкафчики": "Lockers",
 }
 
 static var _installed: bool = false
