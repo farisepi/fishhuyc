@@ -46,7 +46,7 @@ const PANIC_FRAMES := {
 const NPC_FEET_Y := {"Scientist": 154.0, "Mechanic": 152.0}
 
 ## Where the fish has to be to hit the glass (bottom of the tank, in front of the two).
-const GLASS_ZONE: Rect2 = Rect2(560, 320, 240, 72)
+const GLASS_ZONE: Rect2 = Rect2(540, 300, 280, 104)
 
 var _in_glass_zone: bool = false
 var _cutscene: bool = false
@@ -60,7 +60,7 @@ var _hint_alpha: float = 0.0
 var _glow_power: float = 0.0
 const GLASS_HIT_X: float = 680.0
 const GLASS_TOP_Y: float = 391.0
-const GLASS_BOTTOM_Y: float = 400.0
+const GLASS_BOTTOM_Y: float = 404.0
 const GLASS_HALF_W: float = 110.0
 
 const QUAKE_DELAY: float = 1.5
@@ -77,6 +77,7 @@ var _tut_t := 0.0
 
 func _ready():
 	GlobalMusic.play_level_music()
+	_fit_intro_zoom()
 	animationtrack.play("INTRO")
 	_tut = TUTORIAL.new()
 	_tut.style = "aquarium"
@@ -96,7 +97,7 @@ func _ready():
 		cutscene_chatter.skippable = true
 	if quake_chatter:
 		quake_chatter.skippable = true
-	UISounds.start_factory_ambience()
+	UISounds.stop_factory_ambience()  # the factory hum belongs to the factory, not the aquarium
 	if pausemenu:
 		pausemenu.visible = false
 	# background talk loops until the fish hits the glass
@@ -109,6 +110,28 @@ func _ready():
 	_setup_toolbox_shadow()
 
 var _intro_lock: bool = false
+
+## The INTRO zooms out to 2x, but on a wide window the camera needs a bit more zoom to not
+## show anything outside the location - it used to snap to that zoom when the animation
+## ended (the little jerk on entering the aquarium). The animation now ends exactly there.
+func _fit_intro_zoom() -> void:
+	var cam = _get_player_camera()
+	if cam == null or animationtrack == null:
+		return
+	var vp = get_viewport().get_visible_rect().size
+	var w = float(max(1, cam.limit_right - cam.limit_left))
+	var h = float(max(1, cam.limit_bottom - cam.limit_top))
+	var z = max(2.0, max(vp.x / w, vp.y / h))
+	for anim_name in ["INTRO", "RESET"]:
+		if not animationtrack.has_animation(anim_name):
+			continue
+		var anim: Animation = animationtrack.get_animation(anim_name)
+		var tr_i = anim.find_track(NodePath("Player/PlayerCamera:zoom"), Animation.TYPE_VALUE)
+		if tr_i < 0:
+			continue
+		var last = anim.track_get_key_count(tr_i) - 1
+		if last >= 0:
+			anim.track_set_key_value(tr_i, last, Vector2(z, z))
 ## end of the camera zoom-out in the INTRO animation
 const INTRO_ZOOM_END := 2.7
 
@@ -760,6 +783,9 @@ func _start_glass_cutscene() -> void:
 		return
 	_cutscene = true
 	_ending = true
+	# whatever they were saying breaks off: "..." - then the cutscene
+	if chatter and chatter.is_active():
+		chatter.interrupt()
 	for bt in [scientist_boring_timer, mechanic_boring_timer]:
 		if bt:
 			bt.stop()

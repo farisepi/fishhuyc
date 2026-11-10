@@ -200,8 +200,22 @@ func _on_line_shown(_line: ChatterLine, _index: int) -> void:
 	_pop = 0.0
 
 
+const SWEAR_SOUND := "res://GameAssets/Audio/SoundEffects/NPCVoiceSounds/SwearSounds/NPC_Swear_Censor_Sound.wav"
+var _swear_player: AudioStreamPlayer = null
+
 func _on_swear() -> void:
 	_shake = SWEAR_SHAKE
+	# a soft low thud under the swear word - it plays together with the voice blips, so it
+	# stays below them (~55-115 Hz body, the voices are at ~550+ Hz) and does not mask them
+	if _swear_player == null and ResourceLoader.exists(SWEAR_SOUND):
+		_swear_player = AudioStreamPlayer.new()
+		_swear_player.stream = load(SWEAR_SOUND)
+		_swear_player.bus = "SFX"
+		_swear_player.volume_db = -5.0
+		add_child(_swear_player)
+	if _swear_player:
+		_swear_player.pitch_scale = randf_range(0.92, 1.05)
+		_swear_player.play()
 
 # ---------------------------------------------------------------------------
 # Публичный API

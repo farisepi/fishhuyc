@@ -30,12 +30,14 @@ func _ready() -> void:
 	if custom_font:
 		custom_font.fixed_size = 10
 	
-	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
-		Fade.fade_in()
+	if not has_meta("overlay"):
+		if is_instance_valid(Fade) and Fade.has_method("fade_in"):
+			Fade.fade_in()
+		UISounds.stop_everything_gameplay()
 	
-	UISounds.stop_everything_gameplay()
-	
-	if Global.came_from == Global.MenuSource.GAME:
+	if has_meta("overlay"):
+		pass
+	elif Global.came_from == Global.MenuSource.GAME:
 		pass
 	else:
 		GlobalMusic.play_menu_music()
@@ -310,6 +312,11 @@ func _save_game(index: int, scene_path: String = ""):
 	
 	Global.last_save_level = max(1, Global.get_level_number(current_scene))
 	
+	if Global.came_from == Global.MenuSource.GAME and has_meta("overlay"):
+		Global.save_slot = index
+		Global.save_shards_to_slot()
+		_close_overlay()
+		return
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		Global.save_slot = index
@@ -343,6 +350,8 @@ func _load_game(index: int):
 			Global.save_slot = index
 			Global.load_shards_from_slot()
 			
+			if has_meta("overlay"):
+				_drop_overlay_for_scene_change()
 			Global.goto_scene(scene)
 
 func _delete_save(index: int):
@@ -352,12 +361,33 @@ func _delete_save(index: int):
 	var slot = grid.get_child(index) as Button
 	if slot: _update_slot_text(slot, index)
 
+## Opened over the paused game from its pause menu (meta "overlay"): closing it returns to
+## exactly the paused moment - no scene reload.
+func _close_overlay() -> void:
+	var host = get_parent()
+	if host is CanvasLayer:
+		host.queue_free()
+	else:
+		queue_free()
+
+## Leaving the overlay into another scene (loading a save): the pause menu must not pop up again.
+func _drop_overlay_for_scene_change() -> void:
+	get_tree().paused = false
+	var host = get_parent()
+	if host is CanvasLayer:
+		for c in host.tree_exited.get_connections():
+			host.tree_exited.disconnect(c["callable"])
+		host.queue_free()
+
 var _leaving: bool = false
 
 func _on_back_pressed() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	if has_meta("overlay"):
+		_close_overlay()
+		return
 	if Global.came_from == Global.MenuSource.GAME:
 		Global.just_returned_from_settings = true
 		var target = Global.scene_to_save

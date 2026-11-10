@@ -110,6 +110,9 @@ static func fix_font(f: Font) -> void:
 static func _on_hover(control: Control, original_alpha: float) -> void:
 	if not control or not is_instance_valid(control):
 		return
+	# a menu that is fading out owns the button's alpha - no hover effects then
+	if control.has_meta("fx_keep_alpha"):
+		return
 	_kill_meta(control, "color_tween")
 	_kill_meta(control, "glass_tween")
 	
@@ -128,11 +131,21 @@ static func _on_unhover(control: Control, original_alpha: float) -> void:
 	_kill_meta(control, "color_tween")
 	_kill_meta(control, "glass_tween")
 	
+	_kill_meta(control, "settle_tween")
+	
 	_remove_glass_effect(control)
 	
 	var settle = control.create_tween()
 	settle.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	settle.tween_property(control, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
+	if control.has_meta("fx_keep_alpha"):
+		# the menu is fading out: only the tint settles, the alpha stays the menu's (it used to
+		# pull the button back to full alpha, so it vanished later than the others)
+		settle.tween_property(control, "modulate:r", 1.0, 0.2)
+		settle.parallel().tween_property(control, "modulate:g", 1.0, 0.2)
+		settle.parallel().tween_property(control, "modulate:b", 1.0, 0.2)
+	else:
+		settle.tween_property(control, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
+	control.set_meta("settle_tween", settle)
 
 static func _apply_glass_effect(control: Control) -> void:
 	if not control or not is_instance_valid(control):

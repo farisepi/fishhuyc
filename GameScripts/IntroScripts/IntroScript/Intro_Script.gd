@@ -658,7 +658,7 @@ func _start_final_fade() -> void:
 	_cleanup_menus()
 	
 	Global.intro_completed = true
-	UISounds.start_factory_ambience()
+	UISounds.stop_factory_ambience()
 	
 	_go_to_aquarium(0.3)
 

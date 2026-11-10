@@ -137,6 +137,7 @@ func _ready() -> void:
 # ---------------------------------------------------------------------------
 
 func start() -> void:
+	_interrupted = false
 	if lines.is_empty():
 		push_warning("ChatterController: lines пустой!")
 		return
@@ -189,6 +190,20 @@ func skip_line() -> void:
 	else:
 		_timer.stop()
 		_show_next_line()
+
+## Interrupted mid-word (something happened): the line breaks off with "..." and stays on
+## screen; nothing more is typed or shown after it.
+func interrupt() -> void:
+	if not _active or _current_line == null:
+		return
+	_timer.stop()
+	if _typing:
+		_typed_text = _typed_text.rstrip(" ,") + "..."
+		_typing = false
+		_seg_index = _segments.size()
+	_interrupted = true
+
+var _interrupted: bool = false
 
 ## Получить текущий typed-текст (для отображения в UI)
 func get_typed_text() -> String:
@@ -340,7 +355,7 @@ func _build_segments(line: ChatterLine) -> void:
 		remaining = remaining.substr(earliest_pos + earliest_word.length())
 
 func _on_timer() -> void:
-	if not _active:
+	if not _active or _interrupted:
 		return
 	
 	if _typing:

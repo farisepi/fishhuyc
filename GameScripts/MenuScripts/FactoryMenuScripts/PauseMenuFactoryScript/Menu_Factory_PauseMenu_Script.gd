@@ -112,7 +112,8 @@ func hide_menu() -> void:
 		if is_instance_valid(btn):
 			# a hovered button runs its own colour loop (ButtonEffects) that kept it visible a
 			# moment longer than the others: stop it, so all of them fade out together
-			for m in ["color_tween", "glass_tween"]:
+			btn.set_meta("fx_keep_alpha", true)
+			for m in ["color_tween", "glass_tween", "settle_tween"]:
 				if btn.has_meta(m):
 					var t = btn.get_meta(m)
 					if t is Tween and t.is_valid():
@@ -353,10 +354,11 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
+	# the saves open over the paused game too: back from them = the paused moment
 	if _in_aquarium():
-		_transition_to("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
+		_open_overlay("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
 	else:
-		_transition_to("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
+		_open_overlay("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
 ## The aquarium level uses this pause menu too, but with the aquarium look and menus.
 func _in_aquarium() -> bool:
@@ -377,6 +379,12 @@ func _on_settings_pressed() -> void:
 	# from exactly where it was paused, not from the last save
 	var path = "res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn" if _in_aquarium() \
 		else "res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn"
+	_open_overlay(path)
+
+## A menu scene (settings / saves) opened over the paused game, without leaving the level.
+func _open_overlay(path: String) -> void:
+	if _settings_layer and is_instance_valid(_settings_layer):
+		return
 	var sc = load(path).instantiate()
 	for cam in sc.find_children("*", "Camera2D", true, false):
 		cam.get_parent().remove_child(cam)
@@ -388,6 +396,13 @@ func _on_settings_pressed() -> void:
 	_settings_layer.layer = 90
 	_settings_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(_settings_layer)
+	# an opaque backing: the menu looks just like when opened on its own (the HUD and the
+	# level showed through its half-transparent background)
+	var back = ColorRect.new()
+	back.color = Color.BLACK
+	back.mouse_filter = Control.MOUSE_FILTER_STOP
+	back.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_settings_layer.add_child(back)
 	_settings_layer.add_child(sc)
 	_settings_layer.tree_exited.connect(_on_settings_closed)
 	visible = false

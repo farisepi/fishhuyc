@@ -151,7 +151,7 @@ func _logo_jelly_effect() -> void:
 func _spawn_logo_bubbles() -> void:
 	if not bubble_scene:
 		return
-	# a lively burst: more bubbles, faster, flying out from all along the logo and rising
+	# a lively burst: more bubbles, faster, flying out from all along the logo in all directions
 	var spawn_points = [Vector2(-270, 0), Vector2(-180, 0), Vector2(-90, 0), Vector2(0, 0), Vector2(90, 0), Vector2(180, 0), Vector2(270, 0)]
 	for point in spawn_points:
 		for i in range(randi_range(2, 3)):
@@ -166,8 +166,10 @@ func _spawn_logo_bubbles() -> void:
 			bubble.modulate.a = 0.0
 			var alpha_tween = create_tween()
 			alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.35, 0.85), 0.15)
-			var out = (point + offset).normalized() if (point + offset).length() > 1.0 else Vector2.UP
-			var dir = (out + Vector2(randf_range(-0.6, 0.6), randf_range(-1.6, -0.4))).normalized()
+			# straight out from the logo, every which way (down and sideways too)
+			var dir = Vector2.from_angle(randf() * TAU)
+			if (point + offset).length() > 1.0:
+				dir = ((point + offset).normalized() * 0.5 + dir).normalized()
 			bubble.set_direction(dir)
 			bubble.start_life(randf_range(1.6, 3.6))
 
@@ -328,8 +330,8 @@ func _spawn_bubble_from_edge(canvas: CanvasLayer, pos: Vector2, direction: Vecto
 	canvas.add_child(bubble)
 
 	bubble.position = pos
-	# big celebratory bubbles, each a different transparency
-	bubble.scale = Vector2.ONE * randf_range(1.8, 4.0)
+	# celebratory bubbles about twice the usual menu ones (0.5..1.4)
+	bubble.scale = Vector2.ONE * randf_range(1.0, 2.6)
 	bubble.speed = randf_range(80.0, 180.0)
 	bubble.clickable = true
 	bubble.modulate.a = 0.0
