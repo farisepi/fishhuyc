@@ -178,8 +178,8 @@ const EN := {
 	"ПЛАВАТЬ|W A S D — плыть в любую сторону": "SWIM|W A S D — swim in any direction",
 	"Пару дней назад...": "A couple of days earlier...",
 	"Рабочий-Рыба (Шапка)": "Fish Worker (Hat)",
-	"Он туповат. Никогда не снимает свою шапку. Ученые зовут его Никита, интересно, почему?": "He's a bit slow. Never takes off his hat. The scientists call him Nikita, I wonder why?",
-	"Рабочий-Рыба в меха костюме. Илистый Прыгун. Носит дебильную шапку. Учёные почему-то зовут его Никита": "Fish worker in a mecha suit. A mudskipper. Wears a stupid hat. For some reason the scientists call him Nikita",
+	"Он туповат. Никогда не снимает свою шапку. Ученые зовут его Никита, интересно, почему?": "He's a bit slow. Never takes off his hat. The scientists call him Bob, I wonder why?",
+	"Рабочий-Рыба в меха костюме. Илистый Прыгун. Носит дебильную шапку. Учёные почему-то зовут его Никита": "Fish worker in a mecha suit. A mudskipper. Wears a stupid hat. For some reason the scientists call him Bob",
 	"Рабочий-Рыба (Шрам)": "Fish Worker (Scar)",
 	"Интересно, как он получил свой шрам?": "I wonder how he got that scar?",
 	"Рабочий-Рыба в меха костюме. Илистый Прыгун. Имеет шрам около глаза": "Fish worker in a mecha suit. A mudskipper. Has a scar near his eye",
@@ -431,7 +431,7 @@ const EN := {
 	"Сидит на балконе с винтовкой. Голуби видят почти на 340° вокруг — в цеху от него не спрятаться. Меняется реже охраны, зато без опозданий.": "Sits on the balcony with a rifle. Pigeons see almost 340° around them — there's nowhere to hide on the floor. Changes shifts less often than the guards, but never late.",
 	"Смена — с 8:00 до 18:00, десять часов без перерыва. Часы висят так, чтобы их видел каждый: здесь считают часы, а не дни.": "The shift runs from 8:00 to 18:00, ten hours without a break. The clock hangs where everyone can see it: here they count hours, not days.",
 	"У костюма нет одной руки — говорят, её забрал пресс. Работает одной и не отстаёт. Прыгуны на воле ходят на плавниках, как на костылях, так что ему не привыкать.": "His suit is missing an arm — they say the press took it. Works with one and keeps up. In the wild mudskippers walk on their fins like crutches, so he's used to it.",
-	"Шапку с пропеллером не снимает даже на техобслуживании. Учёные зовут его Никитой — он откликается, хотя сам не знает почему. Пропеллер ни разу не крутился.": "Doesn't take off his propeller hat even at maintenance. The scientists call him Nikita — he answers to it without knowing why. The propeller has never once spun.",
+	"Шапку с пропеллером не снимает даже на техобслуживании. Учёные зовут его Никитой — он откликается, хотя сам не знает почему. Пропеллер ни разу не крутился.": "Doesn't take off his propeller hat even at maintenance. The scientists call him Bob — he answers to it without knowing why. The propeller has never once spun.",
 	"Шрам у глаза свежий — похоже, он уже знакомился с собакой. Илистые прыгуны — редкие рыбы, которые умеют моргать. Этот моргает реже остальных: всё время следит за охраной.": "The scar by his eye is fresh — looks like he's already met the dog. Mudskippers are rare fish that can blink. This one blinks less than the rest: he's always watching the guards.",
 	"в %s — балкон на пару минут пустеет": "at %s — the balcony is empty for a couple of minutes",
 	"в %s — пост на пару минут пустеет": "at %s — the post is empty for a couple of minutes",
@@ -549,6 +549,7 @@ const EN := {
 	"Тумбочка": "Nightstand",
 	"У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего.": "Every worker has one. There's almost nothing to keep: a spare filter for the suit, a shell from the outside, for some — a pebble from the bottom of their home pond. No locks: there's nothing to steal anyway.",
 	"Шкафчики": "Lockers",
+	"ЕБАНЫЙ РОТ": "FUCK ME",
 }
 
 static var _installed: bool = false
@@ -566,3 +567,49 @@ static func install() -> void:
 		t_ru.add_message(k, k)
 	TranslationServer.add_translation(t_en)
 	TranslationServer.add_translation(t_ru)
+	# the other languages: a text missing there falls back to English, not to Russian
+	for lang in LANGUAGES:
+		var code: String = lang[0]
+		if code == "ru" or code == "en":
+			continue
+		var path = "res://GameScripts/AutoloadScripts/LocalizationScript/Localization_%s.gd" % code.to_upper()
+		if not ResourceLoader.exists(path):
+			continue
+		var table: Dictionary = load(path).T
+		var t := Translation.new()
+		t.locale = code
+		for k in EN:
+			t.add_message(k, table.get(k, EN[k]))
+		TranslationServer.add_translation(t)
+
+## Languages of the game, in the order of the settings list: [locale, name in that language]
+const LANGUAGES := [
+	["ru", "Русский"],
+	["en", "English"],
+	["es", "Español"],
+	["pt_BR", "Português (BR)"],
+	["de", "Deutsch"],
+	["fr", "Français"],
+	["it", "Italiano"],
+	["pl", "Polski"],
+	["uk", "Українська"],
+	["tr", "Türkçe"],
+	["zh_CN", "简体中文"],
+	["ja", "日本語"],
+	["ko", "한국어"],
+]
+
+static func language_index(locale: String) -> int:
+	for i in LANGUAGES.size():
+		if LANGUAGES[i][0] == locale:
+			return i
+	return 0
+
+static func language_names() -> Array:
+	var out := []
+	for l in LANGUAGES:
+		out.append(l[1])
+	return out
+
+static func language_code(index: int) -> String:
+	return LANGUAGES[clampi(index, 0, LANGUAGES.size() - 1)][0]

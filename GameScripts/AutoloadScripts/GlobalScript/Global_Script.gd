@@ -189,6 +189,37 @@ func ensure_brightness_layer() -> ColorRect:
 	get_tree().root.add_child.call_deferred(canvas)
 	return _brightness_layer
 
+## Chinese / Japanese / Korean glyphs are not in the pixel font: they come from small subsets of
+## Noto Sans CJK, used as fallbacks. The current language's font goes first (the same Han
+## character is drawn differently in China and Japan).
+const CJK_FONTS := {
+	"zh_CN": "res://GameAssets/Fonts/CJKFont/FontFiles/CJK_ZH_CN_Font.otf",
+	"ja": "res://GameAssets/Fonts/CJKFont/FontFiles/CJK_JA_Font.otf",
+	"ko": "res://GameAssets/Fonts/CJKFont/FontFiles/CJK_KO_Font.otf",
+}
+var _cjk_loaded: Dictionary = {}
+
+func _apply_cjk_fallbacks() -> void:
+	if _font == null:
+		return
+	var loc = TranslationServer.get_locale()
+	var order: Array = ["zh_CN", "ja", "ko"]
+	for code in order.duplicate():
+		if loc.begins_with(code.substr(0, 2)):
+			order.erase(code)
+			order.push_front(code)
+	var fb: Array[Font] = []
+	for code in order:
+		if not _cjk_loaded.has(code) and ResourceLoader.exists(CJK_FONTS[code]):
+			_cjk_loaded[code] = load(CJK_FONTS[code])
+		if _cjk_loaded.has(code):
+			fb.append(_cjk_loaded[code])
+	_font.fallbacks = fb
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		_apply_cjk_fallbacks()
+
 func apply_brightness(value: float) -> void:
 	var layer = ensure_brightness_layer()
 	var alpha = lerp(0.75, 0.0, clamp(value, 0.0, 1.0))
@@ -215,6 +246,7 @@ func _ready() -> void:
 		_font = load(font_path)
 		if _font:
 			_font.fixed_size = 10
+	_apply_cjk_fallbacks()
 	
 	_load_effect_settings()
 	_apply_all_settings_from_config()

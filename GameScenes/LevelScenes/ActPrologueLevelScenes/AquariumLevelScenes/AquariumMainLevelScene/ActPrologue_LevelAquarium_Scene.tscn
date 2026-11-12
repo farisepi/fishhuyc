@@ -1247,6 +1247,7 @@ metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 [sub_resource type="Resource" id="Resource_nr1wi"]
 script = ExtResource("26_hykhb")
 text = "ЕБАНЫЙ РОТ, ОПЯТЬ НАЧАЛОСЬ"
+swear_words = Array[String](["ЕБАНЫЙ РОТ"])
 display_time = 0.4
 metadata/_custom_type_script = "uid://bqxh1rrtbky61"
 

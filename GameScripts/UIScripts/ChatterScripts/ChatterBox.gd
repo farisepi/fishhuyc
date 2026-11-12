@@ -211,7 +211,7 @@ func _on_swear() -> void:
 		_swear_player = AudioStreamPlayer.new()
 		_swear_player.stream = load(SWEAR_SOUND)
 		_swear_player.bus = "SFX"
-		_swear_player.volume_db = -5.0
+		_swear_player.volume_db = -1.0
 		add_child(_swear_player)
 	if _swear_player:
 		_swear_player.pitch_scale = randf_range(0.92, 1.05)

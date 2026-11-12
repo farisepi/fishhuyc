@@ -67,6 +67,7 @@ var has_unsaved_changes: bool = false
 var current_popup = null
 
 var resolution_items: Array[String] = []
+const LOC = preload("res://GameScripts/AutoloadScripts/LocalizationScript/Localization_EN.gd")
 var language_items: Array[String] = []
 var dynamic_range_items: Array[String] = []
 
@@ -608,7 +609,7 @@ func _on_resolution_selected(index: int) -> void:
 
 func _on_language_selected(index: int) -> void:
 	_populate_dropdown(language_dropdown, language_items, index, "language")
-	TranslationServer.set_locale("ru" if index == 0 else "en")
+	TranslationServer.set_locale(LOC.language_code(index))
 	_mark_unsaved()
 
 func _on_brightness_changed(_value: float) -> void:
@@ -629,7 +630,7 @@ func setup_options() -> void:
 		Global.fullscreen_changed.connect(_on_global_fullscreen)
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
-	language_items = ["Русский", "English"]
+	language_items.assign(LOC.language_names())
 	language_selected = 0
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
@@ -647,7 +648,7 @@ func load_settings() -> void:
 	_populate_dropdown(resolution_dropdown, resolution_items, resolution_selected, "resolution")
 	_update_button_text(resolution_button, resolution_items, resolution_selected)
 	var locale = config.get_value("language", "locale", "ru")
-	language_selected = 0 if locale == "ru" else 1
+	language_selected = LOC.language_index(locale)
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
 	if fps_check: fps_check.button_pressed = config.get_value("graphics", "show_fps", false)
@@ -844,7 +845,7 @@ func save_settings() -> void:
 	config.set_value("graphics", "resolution", resolution_selected)
 	config.set_value("graphics", "resolution_size", Global.resolution_size_text(resolution_selected))
 	config.set_value("graphics", "fps_limit", FPS_VALUES[fps_selected])
-	config.set_value("language", "locale", "ru" if language_selected == 0 else "en")
+	config.set_value("language", "locale", LOC.language_code(language_selected))
 	if fps_check: config.set_value("graphics", "show_fps", fps_check.button_pressed)
 	if fullscreen_check: config.set_value("graphics", "fullscreen", fullscreen_check.button_pressed)
 	if vsync_check: config.set_value("graphics", "vsync", vsync_check.button_pressed)
