@@ -218,7 +218,6 @@ func _compute_hit(fire_dir: Vector2):
 		bullet_hit_player = true
 
 func _update_bullet(delta):
-	# пуля летит с постоянной скоростью, БЕЗ учёта time_scale
 	var step = bullet_speed * delta / max(Engine.time_scale, 0.001)
 	bullet_traveled += step
 	bullet.global_position = bullet_origin + bullet_dir * bullet_traveled

@@ -14,6 +14,8 @@ var action_names = {
 	"parry": tr("Парирование"),
 	"inspect": tr("Осмотреться"),
 	"journal": tr("Журнал"),
+	"dash": tr("Рывок"),
+	"block": tr("Блок"),
 }
 
 var rebinding_action: String = ""
@@ -39,7 +41,14 @@ func _ensure_default_actions() -> void:
 		var ev2 = InputEventKey.new()
 		ev2.keycode = KEY_J
 		InputMap.action_add_event("journal", ev2)
-	
+
+	for pair in [["dash", KEY_SHIFT], ["block", KEY_F]]:
+		if not InputMap.has_action(pair[0]):
+			InputMap.add_action(pair[0])
+		if InputMap.action_get_events(pair[0]).is_empty():
+			var ev3 = InputEventKey.new()
+			ev3.keycode = pair[1]
+			InputMap.action_add_event(pair[0], ev3)
 	if not FileAccess.file_exists(SAVE_PATH):
 		_apply_first_launch_defaults()
 
@@ -47,7 +56,7 @@ func _apply_first_launch_defaults() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
 		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
-		"inspect": KEY_I, "journal": KEY_J
+		"inspect": KEY_I, "journal": KEY_J, "dash": KEY_SHIFT, "block": KEY_F
 	}
 	for action in defaults.keys():
 		if not InputMap.has_action(action):
@@ -68,7 +77,7 @@ func get_key_text(action: String) -> String:
 	var events = InputMap.action_get_events(action)
 	for e in events:
 		if e is InputEventKey:
-			return _keycode_to_string(e.keycode)
+			return _keycode_to_string(_code_of(e))
 		if e is InputEventMouseButton:
 			return e.as_text()
 	return tr("Не назначено")
@@ -77,7 +86,7 @@ func get_key_texture(action: String) -> Texture2D:
 	var events = InputMap.action_get_events(action)
 	for e in events:
 		if e is InputEventKey:
-			var key_string = _keycode_to_string(e.keycode)
+			var key_string = _keycode_to_string(_code_of(e))
 			var tres_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.tres"
 			var png_path = TEXTURE_NORMAL_PATH + key_string + "KeyboardKeyNormal.png"
 			if ResourceLoader.exists(tres_path):
@@ -90,7 +99,7 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 	var events = InputMap.action_get_events(action)
 	for e in events:
 		if e is InputEventKey:
-			var key_string = _keycode_to_string(e.keycode)
+			var key_string = _keycode_to_string(_code_of(e))
 			var tres_path = TEXTURE_PRESSED_PATH + key_string + "KeyboardKeyPressed.tres"
 			var png_path = TEXTURE_PRESSED_PATH + key_string + "KeyboardKeyPressed.png"
 			if ResourceLoader.exists(tres_path):
@@ -98,6 +107,9 @@ func get_key_texture_pressed(action: String) -> Texture2D:
 			elif ResourceLoader.exists(png_path):
 				return load(png_path)
 	return null
+
+func _code_of(e: InputEventKey) -> Key:
+	return e.keycode if e.keycode != KEY_NONE else e.physical_keycode
 
 func _keycode_to_string(keycode: Key) -> String:
 	match keycode:
@@ -122,10 +134,6 @@ func _keycode_to_string(keycode: Key) -> String:
 signal rebind_started(action: String)
 signal rebind_finished(action: String)
 
-## Waits for the next key. Every key event is taken while waiting (also releases and
-## repeats), so nothing leaks to the focused button and re-starts the wait - that used to
-## make some presses "not count". The first press counts at once; Esc cancels (except for
-## the pause action itself); a key already used by another action is swapped with it.
 func start_rebind(action: String) -> void:
 	rebinding_action = action
 	rebind_delay = 0.0
@@ -155,17 +163,16 @@ func _input(event: InputEvent) -> void:
 	if code == KEY_ESCAPE and action != "ui_cancel":
 		cancel_rebind()
 		return
-	# the key belongs to another action: that one gets this action's old key
 	var old_code: Key = KEY_NONE
 	for e in InputMap.action_get_events(action):
 		if e is InputEventKey:
-			old_code = e.keycode
+			old_code = _code_of(e)
 			break
 	for other in action_names.keys():
 		if other == action or not InputMap.has_action(other):
 			continue
 		for e in InputMap.action_get_events(other):
-			if e is InputEventKey and e.keycode == code:
+			if e is InputEventKey and _code_of(e) == code:
 				_clear_action(other)
 				if old_code != KEY_NONE:
 					var swap = InputEventKey.new()
@@ -192,7 +199,7 @@ func save_keybinds() -> void:
 		var key_texts = []
 		for e in events:
 			if e is InputEventKey:
-				key_texts.append(_keycode_to_string(e.keycode))
+				key_texts.append(_keycode_to_string(_code_of(e)))
 		config.set_value("keybinds", action, key_texts)
 	config.set_value("meta", "version", 2)
 	config.save(SAVE_PATH)
@@ -201,21 +208,19 @@ func save_keybinds() -> void:
 func load_keybinds() -> void:
 	if config.load(SAVE_PATH) != OK:
 		return
-	# v2: interaction moved from F (it clashed with the shot block) to E. A saved F is the old
-	# default, not a choice - it becomes E once; any other key the player picked stays.
 	if int(config.get_value("meta", "version", 1)) < 2:
 		if config.get_value("keybinds", "interact", []) == ["F"]:
 			config.set_value("keybinds", "interact", ["E"])
 		config.set_value("meta", "version", 2)
 		config.save(SAVE_PATH)
-	
+
 	for action in action_names.keys():
 		var key_texts = config.get_value("keybinds", action, [])
 		if key_texts.is_empty():
 			continue
-		
+
 		_clear_action(action)
-		
+
 		for key_text in key_texts:
 			var key = _string_to_keycode(key_text)
 			if key != KEY_NONE:

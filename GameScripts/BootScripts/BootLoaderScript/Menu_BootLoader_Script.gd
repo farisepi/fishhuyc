@@ -14,30 +14,30 @@ func _ready() -> void:
 	_dots = 0
 	_dot_timer = 0.0
 	loading_label.text = "загрузка"
-	
+
 	loading_label.modulate.a = 0.0
 	bg.modulate.a = 1.0
-	
+
 	var tween = create_tween()
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(loading_label, "modulate:a", 1.0, 0.4)
 	_make_save_notice()
-	
-	
+
+
 	var level = Global.last_save_level
 	var target = ""
 	if level >= 2:
 		target = "res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryMainMenuScene/Menu_Factory_MainMenu_Scene.tscn"
 	else:
 		target = "res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumMainMenuScene/Menu_Aquarium_MainMenu_Scene.tscn"
-	
-	
+
+
 	ResourceLoader.load_threaded_request(target)
-	
-	
+
+
 	await get_tree().create_timer(INTRO_DURATION).timeout
-	
-	
+
+
 	while true:
 		var status = ResourceLoader.load_threaded_get_status(target)
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
@@ -46,23 +46,23 @@ func _ready() -> void:
 			push_error("BootLoader: не удалось загрузить " + target)
 			return
 		await get_tree().process_frame
-	
+
 	var packed = ResourceLoader.load_threaded_get(target)
 	var scene_instance = packed.instantiate()
-	
+
 	var tree = get_tree()
 	var old_scene = tree.current_scene
-	
+
 	tree.root.add_child(scene_instance)
 	tree.current_scene = scene_instance
-	
+
 	if old_scene and old_scene != scene_instance:
 		old_scene.queue_free()
-	
+
 	await tree.process_frame
 	await tree.process_frame
 	await tree.process_frame
-	
+
 	var fade = create_tween()
 	fade.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
 	fade.tween_property(bg, "modulate:a", 0.0, 0.8)
@@ -70,13 +70,12 @@ func _ready() -> void:
 	if _notice:
 		fade.parallel().tween_property(_notice, "modulate:a", 0.0, 0.5)
 	await fade.finished
-	
+
 	queue_free()
 
 func _process(_delta: float) -> void:
 	pass
 
-## Before the game: the saving sign and "do not close the game while you see it".
 const SAVE_ICON := preload("res://GameScripts/UIScripts/SaveIconScripts/Save_Icon.gd")
 var _notice: Control = null
 

@@ -14,13 +14,12 @@ var fading: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	
+
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = "Music"
 	music_player.volume_db = VOLUME_NORMAL
 	music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(music_player)
-
 
 
 func play_menu_music() -> void:
@@ -40,30 +39,30 @@ func resume_level_music() -> void:
 func play_track(path: String) -> void:
 	if path == "":
 		return
-	
+
 	if current_track == path and music_player.playing:
 		if is_paused_for_menu:
 			restore_volume()
 		return
-	
+
 	current_track = path
-	
+
 	var stream = load(path)
 	if not stream:
 		push_warning("GlobalMusic: не найден трек " + path)
 		return
-	
+
 	if path != "res://GameAssets/Audio/MusicTracks/IntroMusic/Intro_Music.mp3":
 		if stream is AudioStreamMP3 or stream is AudioStreamOggVorbis:
 			stream.loop = true
-	
+
 	if not music_player.playing:
 		music_player.stream = stream
 		music_player.volume_db = VOLUME_NORMAL
 		music_player.play()
 		is_paused_for_menu = false
 		return
-	
+
 	_crossfade_to(stream)
 
 func stop_music() -> void:
@@ -71,7 +70,6 @@ func stop_music() -> void:
 		music_player.stop()
 	current_track = ""
 	is_paused_for_menu = false
-
 
 
 func lower_volume() -> void:
@@ -91,26 +89,25 @@ func restore_volume() -> void:
 	tween.tween_property(music_player, "volume_db", VOLUME_NORMAL, 0.4)
 
 
-
 func _crossfade_to(new_stream: AudioStream) -> void:
 	if fading:
 		return
 	fading = true
-	
+
 	var fade_out = create_tween()
 	fade_out.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	fade_out.tween_property(music_player, "volume_db", VOLUME_SILENT, 0.5)
 	await fade_out.finished
-	
+
 	music_player.stop()
 	music_player.stream = new_stream
 	music_player.volume_db = VOLUME_SILENT
 	music_player.play()
 	is_paused_for_menu = false
-	
+
 	var fade_in = create_tween()
 	fade_in.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	fade_in.tween_property(music_player, "volume_db", VOLUME_NORMAL, 0.5)
 	await fade_in.finished
-	
+
 	fading = false

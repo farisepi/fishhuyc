@@ -1,7 +1,4 @@
 extends RefCounted
-## English translation of the game. The source texts (Russian) are the keys: scene labels and
-## buttons translate by themselves, script texts go through tr(). Installed once by Global.
-## A Russian table (key -> key) is installed too, so Russian never falls back to English.
 
 const EN := {
 	"загрузка": "loading",
@@ -550,6 +547,58 @@ const EN := {
 	"У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего.": "Every worker has one. There's almost nothing to keep: a spare filter for the suit, a shell from the outside, for some — a pebble from the bottom of their home pond. No locks: there's nothing to steal anyway.",
 	"Шкафчики": "Lockers",
 	"ЕБАНЫЙ РОТ": "FUCK ME",
+	"%s / Esc — закрыть": "%s / Esc — close",
+	"+ запись в журнале": "+ journal entry",
+	"ВНУТРИ": "INSIDE",
+	"Гладкий камешек со дна пруда. Кто-то носит его с собой с самого первого дня.": "A smooth pebble from the bottom of a pond. Someone has carried it around since day one.",
+	"Запасной фильтр": "Spare filter",
+	"Запасной фильтр для костюма. Пломба целая — значит, свой у хозяина ещё дышит.": "A spare filter for the suit. The seal is intact — so the owner's own one still breathes.",
+	"Камешек": "Pebble",
+	"Кепки Никиты": "Nikita's caps",
+	"Неотправленное письмо. Вместо адреса — одно слово: «домой».": "An unsent letter. Instead of an address — one word: \"home\".",
+	"ОТКРЫТЬ": "OPEN",
+	"ПОЗВАТЬ": "CALL",
+	"Письмо": "Letter",
+	"Ракушка": "Shell",
+	"Ракушка с воли. Если приложить к стеклу шлема — шумит, как настоящая вода.": "A shell from the outside. Hold it to your helmet glass — it sounds like real water.",
+	"Старый снимок: пруд, солнце, кувшинки. На обороте одно слово: «Вернёмся».": "An old snapshot: a pond, sunshine, water lilies. On the back, one word: \"We'll return\".",
+	"ТУМБОЧКА": "NIGHTSTAND",
+	"Фотография": "Photo",
+	"Целая гора кепок. Внутри каждой нацарапано: «НИКИТА». Голов у Никиты одна, кепок — двенадцать.": "A whole mountain of caps. Scratched inside each one: \"NIKITA\". Nikita has one head and twelve caps.",
+	"ШКАФЧИК": "LOCKER",
+	"Шкафчик": "Locker",
+	"гора кепок, все подписаны «НИКИТА». Кто такой Никита — в комнате не знает никто.": "a mountain of caps, all signed \"NIKITA\". Nobody in the room knows who Nikita is.",
+	"двухъярусные, железные. Матрас тоньше рыбьей чешуи.": "bunk beds, iron. The mattress is thinner than a fish scale.",
+	"запасной фильтр для костюма. Без него за стенами завода долго не протянуть.": "a spare filter for the suit. Without one you won't last long outside the factory walls.",
+	"камешек со дна родного пруда. Чей — неизвестно.": "a pebble from the bottom of a home pond. Whose — unknown.",
+	"кружка остывшего чая из водорослей и лампа, которую никто не выключает.": "a mug of cold seaweed tea and a lamp nobody ever turns off.",
+	"нижняя, с оранжевым одеялом от прежнего жильца.": "the lower one, with an orange blanket from the previous tenant.",
+	"письмо без адреса, только «домой». Его так и не отправили.": "a letter with no address, just \"home\". It was never sent.",
+	"ракушка с воли. Шумит, как настоящая вода.": "a shell from the outside. It sounds like real water.",
+	"у каждого свой, без замков. Внутри — личные мелочи.": "everyone has one, no locks. Inside — personal odds and ends.",
+	"фото пруда с подписью «Вернёмся».": "a photo of a pond signed \"We'll return\".",
+	"во сне он тихий — ни шипения, ни масла. (Запись из сна — проснёшься, и её не будет.)": "in the dream it's quiet — no hiss, no oil. (A note from the dream — it'll be gone when you wake up.)",
+	"во сне охранник тоже уходит с поста. Наяву такие уходы отмечаются галочками со временем.": "in the dream the guard leaves his post too. Awake, such leavings are marked with ticks and times.",
+	"БЛОК": "BLOCK",
+	"Зажми %s до выстрела.": "Hold %s before the shot.",
+	"Красный луч — снайпер целится. Когда он выстрелит, нажми %s в последний момент: рывок уведёт тебя из-под пули.": "The red beam means the sniper is aiming. When he fires, press %s at the last moment: the dash takes you out from under the bullet.",
+	"ЛИФТ ОСТАНАВЛИВАЕТСЯ": "THE ELEVATOR STOPS",
+	"Лифт гудит, и ты проваливаешься в сон. Там, наверху, по тебе будут стрелять. Научись выживать — здесь ошибки ничего не стоят.": "The elevator hums and you drift off to sleep. Up there, they will shoot at you. Learn to survive — here mistakes cost nothing.",
+	"Можно и не убегать. Зажми %s перед выстрелом — рыба закроется, и пуля отскочит.": "You don't have to run. Hold %s before the shot — the fish shields itself and the bullet bounces off.",
+	"НА ПОСТУ ЕЩЁ КТО-ТО ЕСТЬ. НАДО ДОЖДАТЬСЯ, ПОКА УЙДУТ ВСЕ.": "SOMEONE IS STILL AT THE POST. WAIT UNTIL EVERYONE IS GONE.",
+	"ОТБИЛ!": "DEFLECTED!",
+	"ПОПАЛ! ЕЩЁ РАЗ": "HIT! AGAIN",
+	"СОН В ЛИФТЕ": "DREAM IN THE ELEVATOR",
+	"Теперь ты знаешь, как выжить под огнём. Двери вот-вот откроются.": "Now you know how to survive under fire. The doors are about to open.",
+	"УВЕРНУЛСЯ!": "DODGED!",
+	"УКЛОНЕНИЕ": "DODGE",
+	"Увернись рывком: %s.": "Dodge with a dash: %s.",
+	"глаза слипаются...": "eyes are closing...",
+	"гул, темнота, тепло...": "humming, darkness, warmth...",
+	"Блок": "Block",
+	"ДАЖЕ НЕ ДУМАЙ.": "DON'T EVEN THINK ABOUT IT.",
+	"КУДА?! А НУ НАЗАД!": "WHERE DO YOU THINK YOU'RE GOING?! GET BACK!",
+	"Рывок": "Dash",
 }
 
 static var _installed: bool = false
@@ -567,7 +616,6 @@ static func install() -> void:
 		t_ru.add_message(k, k)
 	TranslationServer.add_translation(t_en)
 	TranslationServer.add_translation(t_ru)
-	# the other languages: a text missing there falls back to English, not to Russian
 	for lang in LANGUAGES:
 		var code: String = lang[0]
 		if code == "ru" or code == "en":
@@ -582,7 +630,6 @@ static func install() -> void:
 			t.add_message(k, table.get(k, EN[k]))
 		TranslationServer.add_translation(t)
 
-## Languages of the game, in the order of the settings list: [locale, name in that language]
 const LANGUAGES := [
 	["ru", "Русский"],
 	["en", "English"],

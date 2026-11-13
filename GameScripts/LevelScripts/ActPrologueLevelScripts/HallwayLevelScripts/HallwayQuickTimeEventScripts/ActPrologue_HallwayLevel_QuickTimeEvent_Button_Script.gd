@@ -1,9 +1,5 @@
 extends CanvasLayer
 
-# QTE "быстро жми E" в стиле фабрики/склада (как подсказки Tutorial_Hints и табличка лифта):
-# тёмная пиксельная плашка, янтарная полоска слева, кейкап клавиши, который «проседает»
-# при нажатии, сегментная шкала нажатий и тонкая полоса времени снизу.
-# Старые ButtonBG / ProgressRing / ELabel из сцены скрываются — всё рисуется кодом.
 
 signal qte_result(success: bool)
 
@@ -15,11 +11,10 @@ signal qte_result(success: bool)
 const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 
 const REQUIRED_PRESSES: int = 8
-const TIME_LIMIT: float = 5.0          # реальные секунды (не зависят от slow-mo)
+const TIME_LIMIT: float = 5.0
 const SLOWMO_SCALE: float = 0.4
 const TITLE_TEXT := "ВЫРВАТЬСЯ"
 
-# палитра фабричного UI
 const C_SHADOW := Color(0, 0, 0, 0.5)
 const C_OUTER := Color8(8, 9, 12)
 const C_BEVEL := Color8(46, 50, 60)
@@ -51,7 +46,7 @@ var _shake: Vector2 = Vector2.ZERO
 var _dip: float = 0.0
 var _appear: float = 0.0
 var _alpha: float = 1.0
-var _result: int = 0           # 0 — идёт, 1 — успех, -1 — провал
+var _result: int = 0
 var _result_t: float = 0.0
 var _last_ticks: int = 0
 var _font: FontFile = null
@@ -170,7 +165,6 @@ func _on_canvas_draw():
 	if not visible:
 		return
 	var c = _canvas
-	# появление: выезжает снизу и проявляется
 	var k_in = clamp(_appear / 0.22, 0.0, 1.0)
 	var e_in = 1.0 - pow(1.0 - k_in, 3.0)
 	var a = _alpha * e_in
@@ -186,7 +180,6 @@ func _on_canvas_draw():
 		edge = C_BAD
 	var t = Time.get_ticks_msec() / 1000.0
 
-	# плашка (как у Tutorial_Hints, стиль factory)
 	c.draw_rect(Rect2(pos + Vector2(2, 3), sz), Color(C_SHADOW, C_SHADOW.a * a))
 	c.draw_rect(Rect2(pos, sz), Color(C_OUTER, a))
 	c.draw_rect(Rect2(pos + Vector2(2, 2), sz - Vector2(4, 4)), Color(C_BEVEL, a))
@@ -197,11 +190,9 @@ func _on_canvas_draw():
 		var fl = 1.0 - clamp(_result_t / 0.35, 0.0, 1.0)
 		c.draw_rect(Rect2(pos + Vector2(4, 0), Vector2(sz.x - 4, sz.y)), Color(edge, 0.18 * fl * a))
 
-	# хвостик-указатель вниз, к рыбе
 	var tip = PackedVector2Array([pos + Vector2(sz.x * 0.5 - 6, sz.y), pos + Vector2(sz.x * 0.5 + 6, sz.y), pos + Vector2(sz.x * 0.5, sz.y + 7)])
 	c.draw_colored_polygon(tip, Color(C_OUTER, a))
 
-	# метка сверху
 	var tag = tr("БЫСТРО!")
 	if _result == 1:
 		tag = tr("ГОТОВО")
@@ -209,12 +200,10 @@ func _on_canvas_draw():
 		tag = tr("НЕ УСПЕЛ")
 	if _font:
 		c.draw_string(_font, pos + Vector2(14, 14), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(edge, 0.95 * a))
-	# мигающий квадратик справа сверху
 	if _result == 0:
 		var blink = 0.5 + 0.5 * sin(t * 8.0)
 		c.draw_rect(Rect2(pos + Vector2(sz.x - 14, 7), Vector2(6, 6)), Color(edge, (0.35 + 0.65 * blink) * a))
 
-	# кейкап клавиши
 	var key = _key_text()
 	var cap_w = 30.0
 	if _font:
@@ -229,11 +218,9 @@ func _on_canvas_draw():
 		var kw = _font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
 		c.draw_string(_font, cap_pos + Vector2((cap_w - kw) * 0.5, 15 + dip), key, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(C_CAP_TEXT, a))
 
-	# заголовок действия
 	if _font:
 		c.draw_string(_font, cap_pos + Vector2(cap_w + 10, 15), tr(TITLE_TEXT), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(C_TITLE, a))
 
-	# сегментная шкала нажатий
 	var seg_y = pos.y + sz.y - 14.0
 	var seg_x0 = pos.x + 14.0
 	var seg_total = sz.x - 28.0
@@ -247,7 +234,6 @@ func _on_canvas_draw():
 		if filled:
 			c.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Color(1, 1, 1, 0.35 * a))
 
-	# сколько осталось времени — тонкая полоса по низу
 	if _result == 0:
 		var left = clamp(1.0 - qte_timer / TIME_LIMIT, 0.0, 1.0)
 		var tcol = C_ACCENT if left > 0.3 else C_BAD

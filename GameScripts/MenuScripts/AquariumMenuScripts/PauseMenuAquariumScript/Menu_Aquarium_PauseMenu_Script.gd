@@ -16,27 +16,27 @@ var _transitioning: bool = false
 func _ready() -> void:
 	_bg_rect = get_node_or_null("ColorRect")
 	_framing = get_node_or_null("Framing")
-	
+
 	_buttons.clear()
 	for child in get_children():
 		if child is Button:
 			_buttons.append(child)
-	
+
 	for btn in _buttons:
 		ButtonEffects.setup(btn)
-	
+
 	continue_btn.pressed.connect(_on_continue_pressed)
 	settings_btn.pressed.connect(_on_settings_pressed)
 	save_btn.pressed.connect(_on_save_pressed)
 	exit_btn.pressed.connect(_on_exit_pressed)
 	if restart_btn:
 		restart_btn.pressed.connect(_on_restart_pressed)
-	
+
 	if _bg_rect:
 		_bg_rect.modulate.a = 0.0
 	if _framing:
 		_framing.modulate.a = 0.0
-	
+
 	for btn in _buttons:
 		btn.modulate.a = 0.0
 		btn.scale = Vector2(0.85, 0.85)
@@ -50,7 +50,7 @@ func show_menu() -> void:
 func _animate_in() -> void:
 	if _anim_tween and _anim_tween.is_valid():
 		_anim_tween.kill()
-	
+
 	if _bg_rect:
 		_bg_rect.modulate.a = 0.0
 	if _framing:
@@ -60,16 +60,16 @@ func _animate_in() -> void:
 			btn.modulate.a = 0.0
 			btn.scale = Vector2(0.85, 0.85)
 			btn.pivot_offset = btn.size / 2.0
-	
+
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	
+
 	if _bg_rect:
 		_anim_tween.tween_property(_bg_rect, "modulate:a", 0.5, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 1.0, 0.2)
-	
+
 	for i in range(_buttons.size()):
 		var btn = _buttons[i]
 		if not is_instance_valid(btn):
@@ -81,24 +81,24 @@ func hide_menu() -> void:
 	if _is_closing:
 		return
 	_is_closing = true
-	
+
 	if _anim_tween and _anim_tween.is_valid():
 		_anim_tween.kill()
-	
+
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
-	
+
 	for btn in _buttons:
 		if is_instance_valid(btn):
 			_anim_tween.parallel().tween_property(btn, "modulate:a", 0.0, 0.1)
 			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.9, 0.9), 0.1)
-	
+
 	if _bg_rect:
 		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 0.0, 0.15)
-	
+
 	await _anim_tween.finished
 	hide()
 	_is_closing = false
@@ -111,12 +111,12 @@ func _transition_to(scene_path: String) -> void:
 	if _transitioning:
 		return
 	_transitioning = true
-	
+
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	UISounds.stop_everything_gameplay()
 	hide()
-	
+
 	await get_tree().create_timer(0.05).timeout
 	Global.goto_scene(scene_path)
 
@@ -126,11 +126,11 @@ func _on_continue_pressed() -> void:
 	UISounds.restore_ambience()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-	
+
 	var level = get_tree().current_scene
 	if level and level.has_method("_resume_after_pause"):
 		level._resume_after_pause()
-	
+
 	hide_menu()
 
 func _on_save_pressed() -> void:

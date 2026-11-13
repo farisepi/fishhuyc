@@ -1,9 +1,5 @@
 @tool
 extends RichTextEffect
-## Typewriter "type-in" for dialog boxes: every letter drops in from a few pixels above,
-## fades and un-squashes in ~0.14 s the moment it is printed, and nothing after the cursor is
-## drawn. Use as [typein]...[/typein]; the owner fills `times` (seconds, one per character)
-## with the moment each character appears (Time.get_ticks_msec() / 1000.0).
 
 var bbcode := "typein"
 var times: PackedFloat64Array = PackedFloat64Array()
@@ -29,7 +25,6 @@ func _process_custom_fx(fx: CharFXTransform) -> bool:
 	return true
 
 
-## Times for a whole text typed at a steady speed starting now (factory bubbles).
 func start_steady(count: int, cps: float, delay: float = 0.0) -> void:
 	times.resize(count)
 	var t0 = Time.get_ticks_msec() / 1000.0 + delay
@@ -37,7 +32,6 @@ func start_steady(count: int, cps: float, delay: float = 0.0) -> void:
 		times[i] = t0 + float(i) / cps
 
 
-## Text grew to `count` characters: the new ones appear now (aquarium chatter).
 func grow_to(count: int) -> void:
 	if count < times.size():
 		times.resize(count)

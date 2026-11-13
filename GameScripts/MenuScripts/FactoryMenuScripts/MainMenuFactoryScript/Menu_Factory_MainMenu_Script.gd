@@ -21,16 +21,16 @@ var can_click_logo: bool = true
 const BOX_TEXTURE_PATH: String = "res://GameAssets/Sprites/UserInterfaceSprites/FactoryMenuSprites/FactoryMenuBoxTextures/Menu_Factory_Box_Texture.png"
 
 func _ready() -> void:
-	MenuHeader.attach_grade(self)   # one screen grade so the UI sits in the room
+	MenuHeader.attach_grade(self)
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
-	
+
 	UISounds.stop_everything_gameplay()
-	
+
 	var cam = get_viewport().get_camera_2d()
 	if cam:
 		cam.position = get_viewport().get_visible_rect().size / 2
-	
+
 	GlobalMusic.play_menu_music()
 
 	var config = ConfigFile.new()
@@ -81,8 +81,6 @@ func _process(delta: float) -> void:
 		logo.position.y = logo_original_y + sin(logo_float_time) * 2.0
 		logo.rotation = sin(logo_float_time) * 0.005
 
-## The click area is the logo as it is actually drawn (the scene's rect sat half above it, so
-## the lower half of the logo did not react). The logo keeps its place on screen.
 func _fit_logo_area() -> void:
 	if logo_area == null or logo == null or logo.sprite_frames == null:
 		return
@@ -132,8 +130,6 @@ func _on_logo_gui_input(event: InputEvent) -> void:
 		await get_tree().create_timer(0.6).timeout
 		can_click_logo = true
 
-## "Logo click": a puff of steam bursts out around the logo (10-frame sheet, 209 x 105,
-## centred on the logo).
 const LOGO_CLICK_SHEET := "res://GameAssets/Sprites/UserInterfaceSprites/MainMenuSprites/MainMenuLogoTextures/MainMenuFactoryLogoTexture/Menu_MainMenu_Factory_LogoSteam_SpriteList_Animation.png"
 var _logo_click: AnimatedSprite2D = null
 
@@ -251,23 +247,22 @@ func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
 
-
 func _spawn_box_fall(box_count: int, kill_after: float) -> void:
 	var box_texture = load(BOX_TEXTURE_PATH)
 	if not box_texture:
 		return
-	
+
 	var canvas = CanvasLayer.new()
 	canvas.layer = 199
 	add_child(canvas)
-	
+
 	var view_size = get_viewport().get_visible_rect().size
-	
+
 	for i in range(box_count):
 		_create_falling_catchable_box(canvas, box_texture, view_size)
 		var delay = randf_range(0.0, 0.15)
 		await get_tree().create_timer(delay).timeout
-	
+
 	await get_tree().create_timer(kill_after).timeout
 	if is_instance_valid(canvas):
 		canvas.queue_free()
@@ -277,32 +272,32 @@ func _create_falling_catchable_box(canvas: CanvasLayer, box_texture: Texture2D, 
 	box.input_pickable = true
 	box.z_index = 50
 	canvas.add_child(box)
-	
+
 	var spr = Sprite2D.new()
 	spr.texture = box_texture
 	var s = randf_range(0.6, 1.5)
 	spr.scale = Vector2(2.0, 2.0) * s
 	box.add_child(spr)
-	
+
 	var col = CollisionShape2D.new()
 	var shape = RectangleShape2D.new()
 	shape.size = Vector2(spr.texture.get_width(), spr.texture.get_height()) * spr.scale
 	col.shape = shape
 	box.add_child(col)
-	
+
 	box.position = Vector2(randf_range(0, view_size.x), -100.0 - randf_range(0, 200))
 	box.rotation = randf_range(-0.6, 0.6)
-	
+
 	var fall_duration = randf_range(1.2, 2.5)
 	var target_y = view_size.y + 150.0
 	var sway_x = randf_range(-70.0, 70.0)
-	
+
 	box.input_event.connect(func(_v, event, _idx):
 		if event is InputEventMouseButton:
 			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 				_on_caught_box(box, spr)
 	)
-	
+
 	var tween = box.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(box, "position:y", target_y, fall_duration).set_ease(Tween.EASE_IN)
@@ -312,36 +307,32 @@ func _create_falling_catchable_box(canvas: CanvasLayer, box_texture: Texture2D, 
 func _on_caught_box(box: Area2D, _spr: Sprite2D) -> void:
 	if not is_instance_valid(box):
 		return
-	
+
 	box.set_deferred("input_pickable", false)
-	
+
 	var catch_tween = create_tween()
 	catch_tween.set_parallel(true)
 	catch_tween.tween_property(box, "scale", Vector2(0.3, 0.3), 0.3).set_ease(Tween.EASE_IN)
 	catch_tween.tween_property(box, "modulate:a", 0.0, 0.3)
 	catch_tween.tween_property(box, "position:y", box.position.y - 80, 0.3).set_ease(Tween.EASE_OUT)
-	
+
 	await catch_tween.finished
 	if is_instance_valid(box):
 		box.queue_free()
-	
+
 	var was_unlocked = Achievements.acrobat_unlocked
 	Achievements.unlock_acrobat()
-	
+
 	if not was_unlocked:
 		_show_acrobat_achievement()
-
 
 
 func _spawn_logo_boxes() -> void:
 	_spawn_box_fall(3, 2.5)
 
 
-
 func _show_acrobat_achievement() -> void:
-	# the popup comes from the Achievements autoload now; here only the extra effect
 	_spawn_box_fall(12, 4.5)
 
 func _show_rebel_achievement() -> void:
-	# the popup comes from the Achievements autoload now; here only the extra effect
 	_spawn_box_fall(12, 4.5)

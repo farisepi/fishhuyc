@@ -14,19 +14,19 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	color_rect = $ColorRect
 	label = $Label
-	
+
 	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
+
 	var font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	if font:
 		font.fixed_size = 10
 		label.add_theme_font_override("font", font)
 		label.add_theme_font_size_override("font_size", 64)
-	
+
 	color_rect.modulate = Color(1, 1, 1, 0)
 	label.modulate = Color(1, 1, 1, 0)
-	
+
 	dot_timer = Timer.new()
 	dot_timer.wait_time = 0.4
 	dot_timer.one_shot = false
@@ -49,23 +49,23 @@ func _update_dots() -> void:
 
 func start_loading(scene_path: String) -> void:
 	target_scene = scene_path
-	
+
 	await get_tree().create_timer(0.1).timeout
-	
+
 	show_loading()
 	await get_tree().create_timer(0.2).timeout
-	
+
 	var tree = get_tree()
 	var already_there = false
 	if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
 		already_there = true
-	
+
 	if not already_there:
 		get_tree().change_scene_to_file(target_scene)
 	else:
 		get_tree().reload_current_scene()
-	
-	
+
+
 	for i in range(120):
 		await get_tree().create_timer(0.05).timeout
 		if not is_instance_valid(self):
@@ -73,13 +73,13 @@ func start_loading(scene_path: String) -> void:
 		tree = get_tree()
 		if tree and tree.current_scene and tree.current_scene.scene_file_path == target_scene:
 			break
-	
+
 	await get_tree().create_timer(0.15).timeout
 	hide_loading()
 	await get_tree().create_timer(0.05).timeout
-	
+
 	scene_loaded.emit()
-	
+
 	await get_tree().create_timer(0.1).timeout
 	queue_free()
 
@@ -87,20 +87,20 @@ func show_loading() -> void:
 	if is_showing:
 		return
 	is_showing = true
-	
+
 	var tween = create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.parallel().tween_property(color_rect, "modulate:a", 1.0, 0.15)
 	tween.parallel().tween_property(label, "modulate:a", 1.0, 0.15)
 	await tween.finished
-	
+
 	label.text = loading_text
 
 func hide_loading() -> void:
 	if not is_showing:
 		return
 	is_showing = false
-	
+
 	var tween = create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.parallel().tween_property(color_rect, "modulate:a", 0.0, 0.25)

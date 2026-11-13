@@ -34,16 +34,13 @@ func _on_detection_area_body_entered(body: Node2D):
 	if body.is_in_group("player") and not is_aggro:
 		is_aggro = true
 		player = body
-		print("враг агрится")
 
 func _on_hit_area_body_entered(body: Node2D):
 	if body.is_in_group("player") and state == State.LUNGE:
 		if body.has_method("is_blocking") and body.is_blocking():
-			print("игрок заблокировал урон")
+			pass
 		if body.has_method("take_damage"):
 			body.take_damage(1, self)
-			print("удар по игроку")
-			print("удар по игроку (1 сердце)")
 		state = State.KNOCKBACK
 		_knockback()
 
@@ -52,25 +49,24 @@ func _physics_process(delta):
 		velocity.x = 0
 		move_and_slide()
 		return
-	
+
 	if not player:
 		is_aggro = false
 		state = State.IDLE
 		return
-	
+
 	var dir_to_player = sign(player.global_position.x - global_position.x)
 	if dir_to_player != 0:
 		facing_dir = dir_to_player
-	
+
 	var dist = global_position.distance_to(player.global_position)
-	
+
 	match state:
 		State.IDLE:
 			velocity.x = 0
 			if dist < 350:
 				state = State.CHASING
-				print("преследование")
-		
+
 		State.CHASING:
 			velocity.x = facing_dir * speed
 			move_and_slide()
@@ -78,8 +74,7 @@ func _physics_process(delta):
 				state = State.WINDUP
 				windup_timer = 0.0
 				color_rect.color = Color(0.8, 0.2, 1.0, 1)
-				print("замах")
-		
+
 		State.WINDUP:
 			velocity.x = facing_dir * speed * 0.2
 			move_and_slide()
@@ -88,13 +83,13 @@ func _physics_process(delta):
 				state = State.LUNGE
 				color_rect.color = Color(1, 0.2, 0.2, 1)
 				_lunge()
-		
+
 		State.LUNGE:
 			velocity.x = 0
-		
+
 		State.KNOCKBACK:
 			velocity.x = 0
-		
+
 		State.COOLDOWN:
 			velocity.x = 0
 			move_and_slide()
@@ -102,8 +97,7 @@ func _physics_process(delta):
 			if cooldown_timer <= 0:
 				state = State.CHASING
 				color_rect.color = Color(0.2, 0.6, 0.2, 1)
-				print("готов к атаке")
-	
+
 	_try_vault()
 
 func _lunge():
@@ -113,7 +107,7 @@ func _lunge():
 	tween.set_trans(Tween.TRANS_SINE)
 	tween.tween_property(self, "global_position:x", target_x, 0.1)
 	await tween.finished
-	
+
 	if state == State.LUNGE:
 		state = State.KNOCKBACK
 		_knockback()
@@ -128,12 +122,11 @@ func _knockback():
 	tween.set_trans(Tween.TRANS_SINE)
 	tween.tween_property(self, "global_position:x", target_x, knockback_duration)
 	await tween.finished
-	
+
 	if state == State.KNOCKBACK:
 		state = State.COOLDOWN
 		cooldown_timer = cooldown_time
 		color_rect.color = Color(0.4, 0.4, 0.4, 1)
-		print("откат")
 
 func _try_vault():
 	if is_vaulting:

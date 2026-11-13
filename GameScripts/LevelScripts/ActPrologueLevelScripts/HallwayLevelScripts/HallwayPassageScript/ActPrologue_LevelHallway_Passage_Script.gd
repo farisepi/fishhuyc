@@ -1,15 +1,12 @@
 extends Area2D
 
-# Узкий проход между стеллажами.
-# Рыба протискивается вперёд ТОЛЬКО по нажатиям D (ui_right), пока полностью не выйдет
-# из зоны коллизии этого триггера. Над рыбой рисуется круглая кнопка "D" с прогрессом.
 
 signal passage_completed
 
-@export var required_presses: int = 6       # оставлено для совместимости, не используется
-@export var move_distance: float = 36.0     # шаг за одно нажатие
-@export var step_time: float = 0.12         # длительность одного рывка
-@export var exit_margin: float = 26.0       # насколько выйти за правый край зоны
+@export var required_presses: int = 6
+@export var move_distance: float = 36.0
+@export var step_time: float = 0.12
+@export var exit_margin: float = 26.0
 @export var key_button: TextureRect = null
 @export var progress_ring: TextureProgressBar = null
 
@@ -35,7 +32,6 @@ var _canvas: Control = null
 var _label: Label = null
 
 func _ready():
-	# старый UI из сцены стоял на экранных координатах ~8100px — его не было видно. Прячем.
 	var canvas_layer = get_parent().get_node_or_null("CanvasLayer")
 	if canvas_layer:
 		var ui = canvas_layer.get_node_or_null("TightPassageUI")
@@ -116,7 +112,6 @@ func _process(delta):
 		_step()
 	else:
 		_idle_time += delta
-		# перестал жать — рыба «застревает»
 		if _idle_time > 0.22 and player.sprite and player.sprite.is_playing():
 			player.sprite.pause()
 
@@ -143,7 +138,6 @@ func _step():
 	if player.sprite:
 		if not player.sprite.is_playing():
 			player.sprite.play()
-		# «протискивание»: сжатие по ширине
 		var sq = create_tween()
 		sq.tween_property(player.sprite, "scale", Vector2(0.86, 1.08), 0.05)
 		sq.tween_property(player.sprite, "scale", Vector2(1.0, 1.0), 0.09)
@@ -175,7 +169,6 @@ func _on_canvas_draw():
 	if _progress > 0.001:
 		_canvas.draw_arc(c, r - 4.0, -PI / 2.0, -PI / 2.0 + TAU * _progress, 64, Color(1.0, 0.78, 0.25, a), 4.0, true)
 
-	# бегущие шевроны »»» справа — подсказка направления
 	for i in 3:
 		var ph = fmod(_chevron_t * 2.2 + i * 0.33, 1.0)
 		var x = c.x + r + 10.0 + ph * 22.0

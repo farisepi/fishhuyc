@@ -27,7 +27,6 @@ var is_aggro: bool = false
 var patrol_origin: Vector2 = Vector2.ZERO
 var patrol_dir: int = 1
 var repath_timer: float = 0.0
-## How long the body stays on screen after death (subclasses with a death animation raise it).
 var death_free_delay: float = 0.5
 
 func _ready() -> void:
@@ -35,8 +34,6 @@ func _ready() -> void:
 	hp = max_hp
 	patrol_origin = global_position
 
-## All enemies, fetched once per physics frame and shared by every enemy (separation,
-## attack tokens and alerts used to build this list several times per enemy per frame).
 static var _enemy_cache: Array = []
 static var _enemy_cache_frame: int = -1
 
@@ -66,7 +63,6 @@ func take_damage(amount: int) -> void:
 		return
 	hp -= amount
 	_flash_damage()
-	# pushed away from the player: a little on a hit, more when it is the killing blow
 	var dir = 1.0
 	if player and is_instance_valid(player):
 		dir = 1.0 if global_position.x >= player.global_position.x else -1.0
@@ -78,7 +74,6 @@ func take_damage(amount: int) -> void:
 		_on_hurt()
 
 
-## Slides the body `dist` px sideways (stops at walls) and hops the sprites a bit.
 func _knockback(dir: float, dist: float, time: float, hop: float) -> void:
 	var spr: Node2D = null
 	for c in get_children():
@@ -98,7 +93,6 @@ func _knockback(dir: float, dist: float, time: float, hop: float) -> void:
 			return
 		var dt = get_physics_process_delta_time()
 		t += dt
-		# fast at first, then easing out
 		var k = 1.0 - pow(1.0 - clamp(t / time, 0.0, 1.0), 2.0)
 		var step = dist * k - moved
 		moved += step
@@ -211,17 +205,10 @@ func _hurt_player(amount: int) -> void:
 		player.take_damage(amount, self)
 
 
-# =====================================================================
-#  "Smart enemy" toolkit shared by the storage dog / monkey / pigeon.
-#  Everything below is additive: older enemies that extend this class keep working.
-# =====================================================================
-
 const FUR_SHADER_PATH := "res://GameShaders/SharedShaders/Shared_FurPalette_Shader.gdshader"
-## Max melee enemies that may attack the player at the same time (the rest wait / circle).
 const MAX_ATTACK_TOKENS: int = 2
 const WORLD_MASK: int = 1
 
-## -1 = random fur colour variant, 0 = the colours drawn in the sheet, 1.. = recoloured variants.
 @export var fur_variant: int = -1
 
 var holding_token: bool = false
@@ -229,14 +216,12 @@ var _base_sprite_offset: Vector2 = Vector2.ZERO
 var _player_prev_x: float = 0.0
 var _player_vel: Vector2 = Vector2.ZERO
 var _player_was_attacking: bool = false
-## Short memory of what the player tends to do - enemies adapt to it.
 var player_block_habit: float = 0.0
 var player_parry_habit: float = 0.0
 var player_dash_habit: float = 0.0
 var _whiff_window: float = 0.0
 
 
-## --- fur colour variants -----------------------------------------------------------
 func apply_fur_variant(spr: CanvasItem, source: Array, variants: Array) -> void:
 	if spr == null or source.is_empty() or variants.is_empty():
 		return
@@ -257,7 +242,6 @@ func apply_fur_variant(spr: CanvasItem, source: Array, variants: Array) -> void:
 	spr.material = mat
 
 
-## --- player reading ----------------------------------------------------------------
 func _player_ok() -> bool:
 	return player != null and is_instance_valid(player) and not player.is_queued_for_deletion() and not bool(player.get("is_dead"))
 
@@ -266,7 +250,6 @@ func _player_flag(flag: String) -> bool:
 	return _player_ok() and bool(player.get(flag))
 
 
-## Call every physics frame: velocity estimate + habits + "the player just whiffed" window.
 func _observe_player(delta: float) -> void:
 	if not _player_ok() or delta <= 0.0:
 		return
@@ -283,7 +266,7 @@ func _observe_player(delta: float) -> void:
 		player_dash_habit = lerp(player_dash_habit, 1.0 if _player_flag("is_dashing") else 0.0, delta * 0.8)
 	var atk = _player_flag("is_attacking")
 	if _player_was_attacking and not atk:
-		_whiff_window = 0.45   # the player's swing just ended: punish now
+		_whiff_window = 0.45
 	_player_was_attacking = atk
 	if _whiff_window > 0.0:
 		_whiff_window -= delta
@@ -295,7 +278,6 @@ func _predict_player(t: float) -> Vector2:
 	return player.global_position + _player_vel * t
 
 
-## True when the player is swinging toward us and close enough to land it.
 func _player_threatens(reach: float = 95.0) -> bool:
 	if not _player_flag("is_attacking"):
 		return false
@@ -304,7 +286,6 @@ func _player_threatens(reach: float = 95.0) -> bool:
 	return abs(dx) < reach and sign(dx) == sign(pf) and abs(global_position.y - player.global_position.y) < 60.0
 
 
-## --- squad -------------------------------------------------------------------------
 func _alert_allies(radius: float = 520.0) -> void:
 	if not _player_ok():
 		return
@@ -317,7 +298,6 @@ func _alert_allies(radius: float = 520.0) -> void:
 			e.hear_alert(player)
 
 
-## Another enemy spotted the player and shouted.
 func hear_alert(p: Node) -> void:
 	if is_dead or is_aggro or p == null:
 		return
@@ -342,7 +322,6 @@ func _release_token() -> void:
 	holding_token = false
 
 
-## Pushes enemies apart so they do not stack into one blob.
 func _separation(radius: float = 42.0) -> float:
 	var push := 0.0
 	for e in _enemies():
@@ -354,7 +333,6 @@ func _separation(radius: float = 42.0) -> float:
 	return push
 
 
-## --- world queries -----------------------------------------------------------------
 func _ray(from: Vector2, to: Vector2) -> Dictionary:
 	var q = PhysicsRayQueryParameters2D.create(from, to, WORLD_MASK)
 	q.exclude = [get_rid()]
@@ -362,7 +340,6 @@ func _ray(from: Vector2, to: Vector2) -> Dictionary:
 	return get_world_2d().direct_space_state.intersect_ray(q)
 
 
-## No floor a little in front of us (in direction dir)?
 func _ledge_ahead(dir: int, ahead: float = 28.0, depth: float = 70.0) -> bool:
 	if not is_on_floor():
 		return false
@@ -376,15 +353,12 @@ func _wall_ahead(dir: int, ahead: float = 34.0) -> bool:
 
 
 func _has_line_of_sight(from: Vector2, to: Vector2) -> bool:
-	# stop short of the target so the target's own body does not count as a wall
 	var d = to - from
 	if d.length() > 36.0:
 		to = from + d - d.normalized() * 30.0
 	return _ray(from, to).is_empty()
 
 
-## --- damage helpers ----------------------------------------------------------------
-## Hits from behind go through the player's block (smart enemies flank).
 func _hurt_player_smart(amount: int) -> bool:
 	if not _player_ok():
 		return false
@@ -409,9 +383,6 @@ func _shake(amount: float) -> void:
 			return
 
 
-## --- animation helpers -------------------------------------------------------------
-## Plays an animation and keeps the feet on the floor for frames that are taller than 75 px.
-## extra_offset is in sprite space (it flips together with the sprite).
 func _play_on(spr: AnimatedSprite2D, anim_name: String, extra_offset: Vector2 = Vector2.ZERO, restart: bool = false) -> void:
 	if spr == null or spr.sprite_frames == null or not spr.sprite_frames.has_animation(anim_name):
 		return

@@ -24,10 +24,10 @@ const INTRO_START_X: float = -1400.0
 const INTRO_FADE_X: float = -1100.0
 const INTRO_CAPTURE_X: float = -150.0
 const INTRO_FADE_TIME: float = 3.5
-const INTRO_RUN_TIME: float = 6.5     # больше не используется: рыба бежит с катсценной скоростью (run_speed * FL_FISH_SPEED_MULT)
-const INTRO_CAM_LEAD: float = 60.0    # камера чуть впереди рыбы, но погоня сзади остаётся в кадре
-const INTRO_CAM_ZOOM: float = 0.85    # как в катсцене с погрузчиком
-const INTRO_QTE_ZOOM: float = 0.92    # на захвате камера слегка наезжает на рыбу (сильнее — плашка E уходит под полосу)
+const INTRO_RUN_TIME: float = 6.5
+const INTRO_CAM_LEAD: float = 60.0
+const INTRO_CAM_ZOOM: float = 0.85
+const INTRO_QTE_ZOOM: float = 0.92
 const ENEMY_MIN_GAP: float = 100.0
 const ENEMY_SPACING: float = 55.0
 const ENEMY_CATCHUP: float = 0.14
@@ -35,22 +35,20 @@ const FORKLIFT_PLAYER_TARGET_X: float = 4000.0
 const FORKLIFT_TARGET_X: float = 7500.0
 
 const CUTSCENE_BARS_HEIGHT: float = 140.0
-const CUTSCENE_CAM_DROP: float = 45.0   # насколько опускать камеру в катсценах, чтобы рыбу не резали полосы
+const CUTSCENE_CAM_DROP: float = 45.0
 
 const DEATH_SCREEN_SCENE: PackedScene = preload("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn")
 
-# --- катсцена погрузчика ---
-const FL_SPAWN_AHEAD: float = 1200.0    # где появляется погрузчик (центр, от рыбы)
-const FL_SPEED: float = 220.0           # скорость погрузчика
-const FL_FISH_SPEED_MULT: float = 0.75  # рыба в катсцене бежит чуть медленнее обычного
-const FL_QTE_GAP: float = 520.0         # расстояние рыба<->погрузчик, когда начинается QTE
-const FL_SLOWMO: float = 0.15           # slow-mo во время QTE
-const FL_SLOWMO_RAMP: float = 0.5       # за сколько секунд плавно входим в slow-mo
-const FL_QTE_TIME: float = 2.0          # реальные секунды на QTE SHIFT
-const FL_DASH_DIST: float = 100.0       # длина рывка-уклонения
-const FL_DASH_TIME: float = 0.28        # длительность рывка (реальные секунды)
+const FL_SPAWN_AHEAD: float = 1200.0
+const FL_SPEED: float = 220.0
+const FL_FISH_SPEED_MULT: float = 0.75
+const FL_QTE_GAP: float = 520.0
+const FL_SLOWMO: float = 0.15
+const FL_SLOWMO_RAMP: float = 0.5
+const FL_QTE_TIME: float = 2.0
+const FL_DASH_DIST: float = 100.0
+const FL_DASH_TIME: float = 0.28
 
-# Парирование и блок пока рано показывать — вернуть на следующем уровне
 const ENABLE_PARRY_SCENE: bool = false
 const ALLOW_BLOCK_AND_PARRY: bool = false
 
@@ -173,7 +171,6 @@ func _ready():
 
 	forklift_trigger.body_entered.connect(_on_forklift_trigger_entered)
 
-	# ямы: падение и экран смерти делает сам игрок (fall_into_pit), уровень только останавливает мир
 	for dz in get_children():
 		if dz is Area2D and dz.has_signal("player_died") and dz.has_method("reset"):
 			dz.player_died.connect(_on_pit_fall)
@@ -283,7 +280,6 @@ func _lock_player_input(locked: bool):
 		player.is_blocking = false
 		player.is_attacking = false
 		player.is_landing = false
-		# после катсцены рыба «не знала», что стоит на полу, и проигрывала падение+приземление
 		if player.has_method("snap_to_floor_now"):
 			player.snap_to_floor_now()
 
@@ -337,7 +333,6 @@ func _spawn_sniper_deferred(with_cutscene: bool):
 	_spawn_sniper(with_cutscene)
 
 func _ensure_death_screen():
-	# В сцене Hallway нет ноды DeathScreen — поэтому экран смерти не появлялся.
 	if get_node_or_null("DeathScreen") == null:
 		var ds = DEATH_SCREEN_SCENE.instantiate()
 		ds.name = "DeathScreen"
@@ -352,7 +347,6 @@ func _on_pit_fall():
 	_stop_all_world()
 
 func _setup_parry_scene():
-	# Парирование пока рано показывать игроку (вернуть: ENABLE_PARRY_SCENE = true)
 	var parrying_scene = get_node_or_null("ParryingScene")
 	if not parrying_scene or ENABLE_PARRY_SCENE:
 		return
@@ -376,14 +370,12 @@ func _setup_entrance_gate():
 			col.disabled = false
 	if passage_trigger and passage_trigger.has_signal("passage_completed"):
 		passage_trigger.passage_completed.connect(_on_passage_completed)
-	# в проход заходим автоматически, как только упёрлись в стеллажи
 	if entrance_trigger:
 		entrance_trigger.body_entered.connect(_on_entrance_entered)
 
 func _on_entrance_entered(_body):
 	pass
 
-# в проход входим по E, стоя у стеллажей (над рыбой подсказка)
 func _update_passage_entry():
 	var entrance_trigger = get_node_or_null("EntranceTrigger")
 	var passage_trigger = get_node_or_null("TightPassageTrigger")
@@ -414,9 +406,6 @@ func _on_passage_completed():
 	passage_done = true
 
 func _start_intro():
-	# Катсцена в стиле остальных: полосы, камера отцеплена от игрока и мягко ведёт рыбу
-	# с небольшим упреждением и отдалением, кадр опущен на CUTSCENE_CAM_DROP.
-	# Рыба бежит с той же скоростью, что в катсцене с погрузчиком.
 	if _intro_started:
 		return
 	_intro_started = true
@@ -440,7 +429,6 @@ func _start_intro():
 		camera.global_position = player.global_position + _cam_track_offset
 		camera.zoom = _intro_start_zoom * INTRO_CAM_ZOOM
 		camera.reset_smoothing()
-		# экран ещё чёрный — полосы ставим сразу
 		_show_cutscene_bars(0.01)
 
 	while player.global_position.x < INTRO_CAPTURE_X:
@@ -454,7 +442,6 @@ func _start_intro():
 		player.sprite.play("Idle")
 
 	if camera:
-		# захват: камера чуть наезжает на рыбу
 		var zt = create_tween()
 		zt.set_ignore_time_scale(true)
 		zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -467,7 +454,6 @@ func _start_intro():
 	_start_qte_grab()
 
 func _end_intro_camera() -> void:
-	# возвращаем обычную камеру так же, как после погрузчика
 	if not camera:
 		return
 	_cam_track = null
@@ -663,9 +649,6 @@ func _restore_camera_after_cutscene():
 	camera.reset_smoothing()
 
 func _play_sniper_cutscene():
-	# Рыба бежит — на ней загорается красная точка лазера. Рыба оборачивается, камера
-	# скользит по лучу к снайперу, бликует оптика. Камера резко возвращается, и снайпер
-	# делает предупредительный выстрел в пол у её ног. Затем — подсказка про SHIFT.
 	state = State.SNIPER_CUTSCENE
 
 	_lock_player_input(true)
@@ -684,7 +667,6 @@ func _play_sniper_cutscene():
 	var start_zoom = camera.zoom
 	camera.global_position = player_cam_pos
 	camera.reset_smoothing()
-	# кадр чуть ниже, чтобы рыба не пряталась за нижней полосой
 	player_cam_pos += Vector2(0, CUTSCENE_CAM_DROP)
 	var drop = create_tween()
 	drop.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -693,23 +675,19 @@ func _play_sniper_cutscene():
 	if is_instance_valid(sniper):
 		sniper.visible = true
 
-	# 1) лазер нашёл рыбу
 	_start_sniper_aim()
 	await _wait(0.7)
 	if not is_inside_tree():
 		return
-	# рыба оборачивается на свет
 	if player.sprite:
 		player.sprite.scale.x = -1
 	await _wait(0.45)
 	if not is_inside_tree():
 		return
 
-	# 2) камера скользит вдоль луча к снайперу
 	var sniper_pos = _sniper_muzzle_pos()
 	var t1 = create_tween().set_parallel(true)
 	t1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	# снайпер у левого края кадра — за краем уровня пустота, её не показываем
 	t1.tween_property(camera, "global_position", sniper_pos + Vector2(285, 0), 1.5)
 	t1.tween_property(camera, "zoom", start_zoom * 0.8, 1.5)
 	await t1.finished
@@ -720,7 +698,6 @@ func _play_sniper_cutscene():
 	if not is_inside_tree():
 		return
 
-	# 3) резко обратно к рыбе
 	var t2 = create_tween().set_parallel(true)
 	t2.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN_OUT)
 	t2.tween_property(camera, "global_position", player_cam_pos, 0.8)
@@ -729,7 +706,6 @@ func _play_sniper_cutscene():
 	if not is_inside_tree():
 		return
 
-	# 4) предупредительный выстрел в пол за спиной рыбы
 	_stop_sniper_aim()
 	var floor_top = _floor_top_y()
 	var hit = Vector2(player.global_position.x - 34.0, floor_top if not is_nan(floor_top) else player.global_position.y + 26.0)
@@ -740,7 +716,6 @@ func _play_sniper_cutscene():
 	_spawn_sparks(hit, Color(1, 0.75, 0.3), 18)
 	_add_shake(0.35)
 	_flash(Color(1, 1, 1, 0.15), 0.15)
-	# рыба вздрагивает
 	if player.sprite:
 		player.sprite.play("Jump")
 	var base_y = player.global_position.y
@@ -767,7 +742,8 @@ func _play_sniper_cutscene():
 		return
 	_restore_camera_after_cutscene()
 
-	if shift_tutorial and shift_tutorial.has_method("show_tutorial"):
+	var dodge_learned = Global.factory_state is Dictionary and (Global.factory_state.get("tut", {}) as Dictionary).get("dodge", false)
+	if shift_tutorial and shift_tutorial.has_method("show_tutorial") and not dodge_learned:
 		shift_tutorial.show_tutorial()
 		while shift_tutorial.is_active:
 			await get_tree().process_frame
@@ -840,7 +816,6 @@ func _process_gameplay(delta):
 			else:
 				player.set_can_throw(false)
 
-		# лифт: после узкого прохода, рядом с кнопкой, по E
 		var btn_pos = elevator_button.global_position + Vector2(268, 12) if elevator_button else Vector2.INF
 		var near_button = passage_done and player.global_position.distance_to(btn_pos) < 70.0
 		can_press_button = near_button
@@ -861,9 +836,6 @@ func _process_gameplay(delta):
 			_play_elevator_exit()
 
 
-
-# Лифт никуда не едет: двери открываются, рыба заходит, двери закрываются,
-# лёгкая тряска «поехали» и затемнение — дальше следующий уровень.
 func _play_elevator_exit() -> void:
 	if elevator.sprite_frames.has_animation("Open"):
 		await _play_elevator_anim("Open")
@@ -874,7 +846,6 @@ func _play_elevator_exit() -> void:
 	await _wait(0.25)
 	if not is_inside_tree(): return
 
-	# рыба заходит внутрь
 	var to_x = elevator.global_position.x
 	if player.sprite:
 		player.sprite.scale.x = 1 if to_x >= player.global_position.x else -1
@@ -886,7 +857,6 @@ func _play_elevator_exit() -> void:
 	if not is_inside_tree(): return
 	if player.sprite:
 		player.sprite.play("Idle")
-	# в глубину кабины: рыба темнеет и пропадает
 	var dim = create_tween()
 	dim.tween_property(player, "modulate", Color(0.25, 0.25, 0.3, 0.0), 0.35)
 	await dim.finished
@@ -899,7 +869,6 @@ func _play_elevator_exit() -> void:
 		await _play_elevator_anim("Close")
 		if not is_inside_tree(): return
 
-	# «поехали»: лифт стоит на месте, только лёгкая тряска и затемнение
 	await _wait(0.3)
 	if not is_inside_tree(): return
 	_add_shake(0.35)
@@ -919,7 +888,6 @@ func _play_elevator_exit() -> void:
 	if not is_inside_tree(): return
 	_win()
 
-# проигрывает анимацию лифта один раз (в сцене они зациклены) и оставляет последний кадр
 func _play_elevator_anim(anim: String) -> void:
 	var frames: SpriteFrames = elevator.sprite_frames
 	if frames.get_animation_loop(anim):
@@ -966,20 +934,8 @@ func _activate_forklift():
 	if forklift_activated:
 		return
 	forklift_activated = true
-	# из коллбэка физики нельзя создавать тела (снайпер) — запускаем кадром позже
 	_play_forklift_cutscene.call_deferred()
 
-# =====================================================================
-#                       КАТСЦЕНА С ПОГРУЗЧИКОМ
-# Шот 1  — рыба бежит, камера ведёт с упреждением, нарастает гул.
-# Шот 2  — резкий перевод камеры на погрузчик: вспышка фар, тряска, он несётся со стеллажом на вилах.
-# Шот 3  — общий план «рыба <-> погрузчик», из-за края экрана тянется лазер снайпера.
-# Шот 4  — slow-mo, наезд камеры, QTE SHIFT.
-#   Успех: рыба выпрыгивает вверх, пуля снайпера проходит под ней и бьёт в погрузчик ->
-#          хит-стоп, искры, погрузчик глохнет, стеллаж падает поперёк коридора
-#          (теперь его надо перелезть — ПРОБЕЛ).
-#   Провал: пуля попадает в рыбу.
-# =====================================================================
 
 func _wait(t: float) -> void:
 	await get_tree().create_timer(t, true, false, true).timeout
@@ -1022,9 +978,6 @@ func _forklift_center() -> Vector2:
 var _shelf_base_y: float = 0.0
 
 func _play_forklift_cutscene():
-	# Спокойная версия: камера просто ведёт рыбу, рыба бежит по полу навстречу погрузчику,
-	# снайпер стреляет в спину, slow-mo + QTE SHIFT. Успех: рывок вперёд — пуля проходит
-	# мимо и попадает в погрузчик, он ломается, стеллаж падает с вил (его надо перелезть).
 	state = State.FORKLIFT_CUTSCENE
 	_lock_player_input(true)
 	_stop_all_world()
@@ -1038,7 +991,6 @@ func _play_forklift_cutscene():
 	var start_zoom: Vector2 = camera.zoom
 	_show_cutscene_bars(0.7)
 
-	# рыба могла влететь в триггер в прыжке — сначала аккуратно опускаем её на пол
 	await _ground_player()
 	if not is_inside_tree():
 		return
@@ -1050,7 +1002,6 @@ func _play_forklift_cutscene():
 			sniper.deactivate()
 		sniper.visible = true
 
-	# --- погрузчик со стеллажом на вилах, на полу, справа
 	forklift_stopped = false
 	forklift.modulate = Color.WHITE
 	forklift.rotation = 0.0
@@ -1062,7 +1013,6 @@ func _play_forklift_cutscene():
 	forklift.visible = true
 	falling_shelf.visible = true
 
-	# --- камера мягко ведёт рыбу с упреждением и чуть отдаляется
 	_cam_track = player
 	_cam_track_offset = Vector2(120.0, cam_from.y - player.global_position.y + CUTSCENE_CAM_DROP)
 	var zt = create_tween()
@@ -1070,7 +1020,6 @@ func _play_forklift_cutscene():
 	zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	zt.tween_property(camera, "zoom", start_zoom * 0.85, 1.4)
 
-	# --- рыба бежит, погрузчик едет навстречу
 	if player.sprite:
 		player.sprite.scale.x = 1
 		player.sprite.play("Run")
@@ -1082,7 +1031,6 @@ func _play_forklift_cutscene():
 		if not is_inside_tree():
 			return
 
-	# --- снайпер целится, slow-mo, QTE
 	state = State.FORKLIFT_QTE
 	_start_sniper_aim()
 	_time_scale_to(FL_SLOWMO, FL_SLOWMO_RAMP)
@@ -1129,7 +1077,6 @@ func _update_cutscene_motion(delta: float):
 		_attach_shelf_to_forklift()
 
 func _prepare_shelf_on_forks():
-	# ставим стеллаж на пол и вплотную перед погрузчиком
 	falling_shelf.rotation = 0.0
 	var floor_top = _floor_top_y()
 	if not is_nan(floor_top):
@@ -1151,7 +1098,6 @@ func _attach_shelf_to_forklift():
 	falling_shelf.rotation = 0.0
 	falling_shelf.global_position = Vector2(forklift.global_position.x + _shelf_dx, _shelf_base_y - 10.0)
 
-# ---------- пуля ----------
 
 func _start_bullet():
 	if _bullet == null:
@@ -1162,7 +1108,6 @@ func _start_bullet():
 		add_child(_bullet)
 	_bullet.modulate.a = 1.0
 	_bullet.visible = true
-	# стартуем с левого края экрана на линии «снайпер -> рыба», чтобы пулю было видно
 	var muzzle = _sniper_muzzle_pos()
 	var chest = player.global_position + Vector2(0, -6)
 	var vp = get_viewport_rect().size
@@ -1181,7 +1126,6 @@ func _update_bullet_qte():
 	var tm = shift_qte.get("qte_timer")
 	if dur == null or tm == null:
 		return
-	# пуля долетает до рыбы к концу окна нажатия
 	var k = clamp(tm / (dur * 0.9), 0.0, 1.0)
 	var chest = player.global_position + Vector2(0, -6)
 	_bullet_pos = _bullet_from.lerp(chest, k)
@@ -1209,19 +1153,16 @@ func _bullet_fly_to(target: Vector2, dur: float) -> void:
 	f.set_ignore_time_scale(true)
 	f.tween_property(_bullet, "modulate:a", 0.0, 0.15)
 
-# ---------- исходы ----------
 
 func _forklift_success(start_zoom: Vector2) -> void:
 	_cutscene_running = false
 	_bullet_active = false
 
-	# рывок вперёд, к погрузчику — пуля проходит мимо
 	await _fish_dash(FL_DASH_DIST, FL_DASH_TIME)
 	_time_scale_to(1.0, 0.6)
 	if player.sprite:
 		player.sprite.play("Idle")
 
-	# пуля летит дальше и попадает в погрузчик
 	await _bullet_fly_to(_forklift_center(), 0.35)
 	if not is_inside_tree():
 		return
@@ -1234,7 +1175,6 @@ func _forklift_success(start_zoom: Vector2) -> void:
 	if not is_inside_tree():
 		return
 
-	# возвращаем камеру
 	_cam_track = null
 	if "look_offset" in camera:
 		camera.look_offset = Vector2.ZERO
@@ -1275,7 +1215,6 @@ func _fish_dash(dist: float, dur: float) -> void:
 	t.set_ignore_time_scale(true)
 	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.tween_property(player, "global_position:x", player.global_position.x + dist, dur)
-	# шлейф — по таймерам, не блокируя; ждём только сам рывок
 	for i in 4:
 		get_tree().create_timer(dur * i / 4.0, true, false, true).timeout.connect(_spawn_ghost)
 	await t.finished
@@ -1312,7 +1251,6 @@ func _forklift_break():
 	t.tween_property(forklift, "modulate", Color(0.4, 0.38, 0.38, 1), 0.5)
 
 func _drop_shelf() -> void:
-	# стеллаж соскальзывает с вил на пол, чуть качнувшись
 	var t = create_tween()
 	t.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	t.tween_property(falling_shelf, "global_position:y", _shelf_base_y, 0.3)
@@ -1325,7 +1263,6 @@ func _drop_shelf() -> void:
 	if col:
 		col.set_deferred("disabled", false)
 	falling_shelf.add_to_group("climbable")
-	# лазание рыбы (E) ищет препятствия в Barriers — кладём стеллаж туда
 	var barriers = get_node_or_null("Barriers")
 	if barriers and falling_shelf.get_parent() != barriers:
 		falling_shelf.reparent(barriers)
@@ -1342,7 +1279,6 @@ func _shelf_rect() -> Rect2:
 		r = r.expand(xf * p)
 	return r
 
-# ---------- снайпер в катсцене ----------
 
 func _sniper_muzzle_pos() -> Vector2:
 	if sniper and is_instance_valid(sniper):
@@ -1350,7 +1286,6 @@ func _sniper_muzzle_pos() -> Vector2:
 		if m:
 			return m.global_position
 		return sniper.global_position
-	# снайпера нет — стреляем «из-за кадра» слева
 	return player.global_position + Vector2(-1400, -60)
 
 func _start_sniper_aim():
@@ -1383,7 +1318,6 @@ func _update_sniper_aim(rd: float):
 	var blink = 0.55 + 0.45 * sin(_aim_blink * TAU)
 	line.default_color = Color(1, 0.15, 0.15, blink)
 
-# ---------- эффекты ----------
 
 func _create_fx_layer():
 	_vignette = ColorRect.new()
@@ -1433,7 +1367,6 @@ func _update_fx(rd: float):
 			camera.offset = _cam_base_offset
 			_was_shaking = false
 
-# блик оптики: крестик-звёздочка, вспыхивает и гаснет
 func _scope_glint(pos: Vector2):
 	var g = Node2D.new()
 	g.z_index = 95
@@ -1477,12 +1410,10 @@ func _spawn_sparks(pos: Vector2, col: Color, amount: int):
 			p.queue_free()
 	)
 
-# ---------- подсказки в мире ----------
 
 const HINT_FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 var _hint_font: FontFile = null
 
-# подсказка в мире в стиле фабрики: тёмная плашка, янтарная полоска слева, пиксельный шрифт
 func _make_world_hint(text: String) -> Label:
 	if _hint_font == null:
 		_hint_font = ResourceLoader.load(HINT_FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
@@ -1562,7 +1493,6 @@ func _run_shift_qte_cutscene() -> bool:
 
 	shift_qte.show_qte(FL_QTE_TIME, false)
 
-	# (лямбда не может менять внешние локальные переменные — поэтому Dictionary)
 	var st = {"result": false, "received": false}
 	var callback = func(success: bool):
 		st["result"] = success
@@ -1636,10 +1566,8 @@ func _win():
 
 	if player:
 		Global.player_position = player.global_position
-	# progress is kept even if the player never saved manually
 	Global.autosave(Global.SCENE_STORAGE)
 
-	# the prologue is over: the fish got out of the hallway (Hallway -> NearFactory)
 	if has_node("/root/Achievements"):
 		Achievements.unlock_chase()
 	GlobalMusic.stop_music()
@@ -1649,7 +1577,6 @@ func _input(event: InputEvent) -> void:
 	if get_tree().paused:
 		return
 
-	# the pause menu only closes itself; opening it is up to the level
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_toggle_pause()
@@ -1660,7 +1587,7 @@ func _input(event: InputEvent) -> void:
 			return
 		if event.is_action_pressed("interact") \
 		or event.is_action_pressed("jump") \
-		or event.is_action_pressed("Run") \
+		or event.is_action_pressed("Run") or event.is_action_pressed("dash") \
 		or event.is_action_pressed("crouch") \
 		or event.is_action_pressed("block") \
 		or event.is_action_pressed("Parry"):
@@ -1731,35 +1658,22 @@ func _run_e_button_qte_at(world_pos: Vector2) -> bool:
 
 	return state_dict["result"]
 
-# =====================================================================
-#                  ПОДСКАЗКИ + БОЕВЫЕ ЗОНЫ
-# Подсказка «залезть по E» — у первого ящика после катсцены со снайпером.
-# Зона 1 (между Obstacle2 и Obstacle3): 2–3 наземных врага по очереди, лазание выключено.
-# Зона 2 (после прохода и Obstacle9, большая): собака и обезьяна по одному на полу,
-#   а на балконе второго этажа — голубь-снайпер. Луч замер — рывок (SHIFT). Под балконом
-#   пули не достают, наверх — по E. Камера на время боя отдаляется.
-# Пока идёт бой: впереди лазерные ворота, снайпер коридора молчит.
-# Враги — готовые сцены из папок проекта (собака, обезьяна, голубь со склада).
-# =====================================================================
 
 const TUTORIAL_HINTS_SCRIPT := preload("res://GameScripts/UIScripts/TutorialScripts/Tutorial_Hints.gd")
 const ARENA_DOG := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaDogScenes/Enemy_MechaDog_Storage_Scene.tscn")
 const ARENA_MONKEY := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaMonkeyScenes/Enemy_MechaMonkey_Storage_Scene.tscn")
 const ARENA_PIGEON := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaPigeonScenes/Enemy_MechaPigeon_Storage_Scene.tscn")
 
-const ARENA_ENEMY_HP: int = 3            # в прологе враги слабее, чем на складе (там 5)
-const ARENA_SPAWN_GAP: float = 3.5       # следующий наземный враг выходит через столько секунд…
-const ARENA_HEAL: int = 2                # награда за зачистку
+const ARENA_ENEMY_HP: int = 3
+const ARENA_SPAWN_GAP: float = 3.5
+const ARENA_HEAL: int = 2
 
-# «не такие буйные»: вход в зону с паузой, предупреждение перед каждым врагом,
-# враги медленнее, после каждого попадания по рыбе — передышка
-const ARENA_INTRO_DELAY: float = 1.3     # ворота закрылись — пауза до первого врага
-const ARENA_DROP_WARN: float = 0.8       # красная метка на полу до того, как враг спрыгнет
-const ARENA_LANDING_STUN: float = 1.0    # приземлился — секунду приходит в себя
-const ARENA_SPEED_MULT: float = 0.74     # бег и рывки врагов медленнее, чем на складе
-const ARENA_HIT_BREATHER: float = 1.6    # после попадания по рыбе враги ждут перед новой атакой
+const ARENA_INTRO_DELAY: float = 1.3
+const ARENA_DROP_WARN: float = 0.8
+const ARENA_LANDING_STUN: float = 1.0
+const ARENA_SPEED_MULT: float = 0.74
+const ARENA_HIT_BREATHER: float = 1.6
 
-# предметы во второй зоне: паллет можно взять (E) и бросить во врага (E) — оглушение
 const ITEM_SCENE := preload("res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayGrabbableItemScene/ActPrologue_LevelHallway_GrabbableItem_Scene.tscn")
 const ITEM_PICK_RADIUS: float = 46.0
 const ITEM_STUN_TIME: float = 2.0
@@ -1767,28 +1681,24 @@ const ITEM_THROW_SPEED: float = 620.0
 const ITEM_THROW_RANGE: float = 650.0
 const ITEM_RESPAWN_TIME: float = 7.0
 
-# зона 1 (между Obstacle2 и Obstacle3)
 const ARENA1_MIN_ENEMIES: int = 2
 const ARENA1_MAX_ENEMIES: int = 3
-const ARENA1_MAX_ALIVE: int = 2          # живых наземных одновременно
+const ARENA1_MAX_ALIVE: int = 2
 
-# зона 2 (после прохода и Obstacle9): трое на полу по очереди, голубь-снайпер на балконе (не в счёт, неубиваемый)
-const ARENA2_GAP_AFTER_O9: float = 140.0 # отступ от Obstacle9
+const ARENA2_GAP_AFTER_O9: float = 140.0
 const ARENA2_WIDTH: float = 1100.0
-const ARENA2_MAX_ALIVE: int = 1          # наземные выходят строго по одному — голубь и так давит
-const BALCONY_ABOVE_TILES: float = 20.0  # балкон на столько пикселей выше самого высокого тайла (стеллажей)
+const ARENA2_MAX_ALIVE: int = 1
+const BALCONY_ABOVE_TILES: float = 20.0
 const BALCONY_WIDTH: float = 230.0
-const BALCONY_X_FROM_LEFT: float = 640.0 # центр балкона от левого края зоны
-# голубь на балконе — обычный складской, без послаблений, и в счёт врагов не входит.
-# Когда трое на полу убиты, ему звонят: бубнит в трубку (диалоговое окно) и уходит в дверь.
+const BALCONY_X_FROM_LEFT: float = 640.0
 const CHATTER_SCENE := preload("res://GameScenes/UIScenes/ChatterScenes/DialogueNode.tscn")
 const SNIPER_CALL_LINES := [
 	"...Алло? Да, шеф. На позиции.",
 	"Какая пересменка? Уже?! Я ж её почти снял...",
 	"Да понял я, понял. Иду.",
 ]
-const SNIPER_RING_TIME: float = 1.6     # сколько звонит телефон, прежде чем голубь ответит
-const ARENA2_VIEW_MARGIN_TOP: float = 80.0   # сколько места над балконом держать в кадре (голубь)
+const SNIPER_RING_TIME: float = 1.6
+const ARENA2_VIEW_MARGIN_TOP: float = 80.0
 const ARENA2_VIEW_MARGIN_BOTTOM: float = 30.0
 
 enum Arena { WAITING, FIGHT, CLEARED }
@@ -1801,11 +1711,10 @@ var _arena_counter_layer: CanvasLayer = null
 var _balcony: StaticBody2D = null
 var _balcony_rect: Rect2 = Rect2()
 var _balcony_h: float = 0.0
-## только для тестов: принудительный состав наземных врагов первой зоны
 var arena_debug_queue: Array = []
 
 var _player_barriers: Node = null
-var _items: Array = []            # [{node, spot, respawn}]
+var _items: Array = []
 var _item_arena: Dictionary = {}
 var _held_item_tex: Texture2D = null
 var _item_hint: Label = null
@@ -1840,7 +1749,6 @@ func _setup_hints_and_arena():
 		if btn:
 			right2 = min(right2, btn.global_position.x + 268.0 - 220.0)
 		_build_balcony(left2 + BALCONY_X_FROM_LEFT)
-		# на полу трое по очереди (голубь на балконе не в счёт)
 		_arenas.append(_new_arena("arena2", left2, right2, [ARENA_DOG, ARENA_MONKEY, ARENA_DOG], ARENA2_MAX_ALIVE,
 			[right2 - 90.0, left2 + 60.0, right2 - 160.0], false, true))
 
@@ -1865,7 +1773,6 @@ func _node_rect(o: Node) -> Rect2:
 			out = r if not out.has_area() else out.merge(r)
 	return out
 
-## Вызывается каждый кадр в RUNNING.
 func _update_hints_and_arena(delta: float):
 	if not _climb_hint_queued and _hints and sniper_cutscene_played:
 		var o1 = get_node_or_null("Barriers/Obstacle")
@@ -1889,7 +1796,7 @@ func _start_arena(a: Dictionary):
 	a["queue"] = a["ground"].duplicate()
 	if a["id"] == "arena1" and not arena_debug_queue.is_empty():
 		a["queue"] = arena_debug_queue.duplicate()
-	a["total"] = a["queue"].size()   # голубь-снайпер в счёт не входит
+	a["total"] = a["queue"].size()
 	a["killed"] = 0
 	a["enemies"] = []
 	a["spawn_i"] = 0
@@ -1918,12 +1825,10 @@ func _start_arena(a: Dictionary):
 
 	if a["items"]:
 		_start_items(a)
-	# сначала пауза: ворота закрылись, рыба осматривается — враги чуть позже
 	a["intro_t"] = ARENA_INTRO_DELAY
 	a["next_timer"] = ARENA_SPAWN_GAP
 	a["last_hp"] = player.hp if "hp" in player else -1
 
-## Камера отдаляется и поднимается так, чтобы в кадре были и пол, и голубь на балконе.
 func _frame_camera_for_balcony(a: Dictionary):
 	var floor_top = _floor_top_y()
 	if is_nan(floor_top) or not _balcony_rect.has_area():
@@ -1948,7 +1853,6 @@ func _setup_arena_enemy(e: Node, a: Dictionary):
 		e.max_hp = ARENA_ENEMY_HP
 	if "hp" in e:
 		e.hp = ARENA_ENEMY_HP
-	# спокойнее, чем на складе
 	for k in ["run_speed", "quad_speed", "speed"]:
 		if k in e:
 			e.set(k, e.get(k) * ARENA_SPEED_MULT)
@@ -1958,8 +1862,6 @@ func _setup_arena_enemy(e: Node, a: Dictionary):
 		e.hear_alert(player)
 	a["enemies"].append(e)
 
-## Следующий враг: сначала красная метка на полу, через ARENA_DROP_WARN он спрыгивает
-## и ещё секунду приходит в себя.
 func _arena_spawn_next(a: Dictionary):
 	if a["queue"].is_empty() or not is_inside_tree():
 		return
@@ -2015,24 +1917,18 @@ func _arena_spawn_balcony_sniper(a: Dictionary):
 	e.set_meta("arena_sniper", true)
 	_arena_node.add_child(e)
 	e.global_position = Vector2(_balcony_rect.get_center().x + 50.0, _balcony_rect.position.y - 60.0)
-	# голубь стоит на балконе: края балкона — невидимые бортики только для него
 	e.collision_mask |= 16
 	if "patrol_range" in e:
 		e.patrol_range = 30.0
 	if "pistol_keep_min" in e:
-		e.pistol_keep_min = 0.0       # не пытается отходить — некуда
-	# обычный складской голубь: урон, прицел, HP и скорость — как в его сцене
+		e.pistol_keep_min = 0.0
 	if e.has_method("hear_alert"):
 		e.hear_alert(player)
-	# его не убить: удары рыбы ищут цели в группе "enemies" — голубя там нет,
-	# и паллетом в него тоже не целимся. Уйдёт сам после звонка.
 	if e.is_in_group("enemies"):
 		e.remove_from_group("enemies")
 	a["enemies"].append(e)
 	_spawn_sparks(e.global_position, Color(0.6, 0.85, 1.0, 0.9), 8)
 
-## Трое на полу убиты — голубю звонят. Он перестаёт стрелять, бубнит в трубку
-## (диалоговое окно из ChatterScenes) и уходит «в дверь» в глубине балкона. Потом зона открыта.
 var _call_cam_on: bool = false
 var _call_start_zoom: Vector2 = Vector2.ONE
 
@@ -2041,7 +1937,6 @@ func _sniper_phone_call(a: Dictionary, e: Node) -> void:
 	await _call_cam_begin(e)
 	if not is_inside_tree():
 		return
-	# звонок: «дзынь» над головой, голубь подрагивает
 	var ring = _ring_label(e)
 	var t_ring := 0.0
 	while t_ring < SNIPER_RING_TIME:
@@ -2060,7 +1955,6 @@ func _sniper_phone_call(a: Dictionary, e: Node) -> void:
 	if e.sprite:
 		e.sprite.position.x = 0.0
 
-	# бубнит себе под нос
 	var chatter = CHATTER_SCENE.instantiate()
 	chatter.name = "SniperCallChatter"
 	var lines: Array[ChatterLine] = []
@@ -2075,7 +1969,6 @@ func _sniper_phone_call(a: Dictionary, e: Node) -> void:
 	chatter.typing_speed = 0.035
 	chatter.scientist_node = (e.sprite if e.sprite else e).get_path()
 	add_child(chatter)
-	# окно диалога считает позиции в мировых координатах, а корень уровня сдвинут по Y
 	if chatter is Node2D:
 		chatter.global_position = Vector2.ZERO
 	var box = chatter.find_child("ChatterBox", true, false)
@@ -2111,9 +2004,7 @@ func _finish_sniper_leave(a: Dictionary, ring: Node) -> void:
 	if a["state"] == Arena.FIGHT:
 		_clear_arena(a)
 
-## Мини-катсцена звонка: полосы, рыба стоит, камера берёт в кадр рыбу, голубя и «дверь».
 func _call_cam_begin(e: Node) -> void:
-	# сначала даём рыбе приземлиться, если она в прыжке
 	var tw := 0.0
 	while not player.is_on_floor() and tw < 1.5:
 		await get_tree().process_frame
@@ -2132,8 +2023,6 @@ func _call_cam_begin(e: Node) -> void:
 	camera.global_position = from
 	camera.reset_smoothing()
 	_show_cutscene_bars(0.6)
-	# камера поднимается к голубю на балкон (как в катсцене со снайпером в начале):
-	# полосы большие, рыба и балкон в один кадр не помещаются
 	var left = min(e.global_position.x - 110.0, _balcony_rect.position.x)
 	var right = _balcony_rect.end.x + 40.0
 	var top = _balcony_rect.position.y - 80.0
@@ -2165,7 +2054,6 @@ func _call_cam_end() -> void:
 	_restore_camera_after_cutscene()
 	_lock_player_input(false)
 
-## Голубь больше не воюет: лазер и пули убраны, его не задеть.
 func _sniper_stand_down(e: Node) -> void:
 	e.set_physics_process(false)
 	if e.has_method("_hide_aim"):
@@ -2179,7 +2067,6 @@ func _sniper_stand_down(e: Node) -> void:
 	if e.is_in_group("enemies"):
 		e.remove_from_group("enemies")
 	e.collision_layer = 0
-	# замирает с «трубкой» у головы
 	if e.sprite:
 		if e.sprite.sprite_frames and e.sprite.sprite_frames.has_animation("idle_aim"):
 			e.sprite.play("idle_aim")
@@ -2204,13 +2091,11 @@ func _ring_label(e: Node) -> Label:
 	t.tween_property(l, "modulate:a", 1.0, 0.18)
 	return l
 
-## «Дверь» без спрайтов: в глубине балкона приоткрывается полоска света, голубь уходит
-## в неё, темнеет и пропадает, полоска схлопывается.
 func _sniper_exit_through_door(e: Node) -> void:
 	var door_x = _balcony_rect.end.x - 26.0
 	var floor_y = _balcony_rect.position.y
 	var door = Node2D.new()
-	door.z_index = 2   # за перилами балкона (у них 3), но перед стеной
+	door.z_index = 2
 	add_child(door)
 	door.global_position = Vector2(door_x, floor_y)
 	var frame = ColorRect.new()
@@ -2260,7 +2145,6 @@ func _sniper_exit_through_door(e: Node) -> void:
 func _update_arena(a: Dictionary, delta: float):
 	if a["items"] and not a["sniper_leaving"]:
 		_update_items(a, delta)
-	# передышка: рыбу ударили — все враги зоны отходят на секунду-другую
 	if "hp" in player:
 		if a["last_hp"] >= 0 and player.hp < a["last_hp"]:
 			for e in a["enemies"]:
@@ -2339,15 +2223,12 @@ func _clear_arena(a: Dictionary):
 		var t2 = create_tween()
 		t2.tween_interval(1.4)
 		t2.tween_property(_arena_counter, "modulate:a", 0.0, 0.4)
-	# снайпер коридора снова на позиции, пока рыба не ушла дальше
 	if sniper and is_instance_valid(sniper) and player.global_position.x < escape_sniper_x:
 		sniper.set_process(true)
 		if sniper.has_method("activate"):
 			sniper.activate()
 		sniper_active = true
 
-## Лазерные ворота на правой границе зоны. Первая зона — над Obstacle3 (дальше не залезть,
-## лазание выключено), вторая — на полу + невидимая стена.
 func _make_arena_gate(a: Dictionary):
 	var gx: float = a["right"]
 	var bottom = _floor_top_y()
@@ -2396,7 +2277,6 @@ func _make_arena_gate(a: Dictionary):
 		wall.global_position = Vector2(gx, bottom - 210.0)
 		a["wall"] = wall
 
-## Балкон второго этажа: платформа (в Barriers — на неё можно залезть по E), опоры, перила.
 func _build_balcony(cx: float):
 	var floor_top = _floor_top_y()
 	if is_nan(floor_top):
@@ -2419,7 +2299,6 @@ func _build_balcony(cx: float):
 	cs.shape = rs
 	_balcony.add_child(cs)
 
-	# вид: металлический настил, полоса опасности, опоры до пола и перила
 	var vis = Node2D.new()
 	vis.z_index = 3
 	_balcony.add_child(vis)
@@ -2463,8 +2342,6 @@ func _build_balcony(cx: float):
 		vis.add_child(bar)
 		x += 18.0
 
-	# бортики по краям — только для голубя (слой 16, рыба его не видит),
-	# не внутри Barriers, чтобы рыба не пыталась на них лазить
 	for ex in [_balcony_rect.position.x - 4.0, _balcony_rect.end.x + 4.0]:
 		var edge = StaticBody2D.new()
 		edge.collision_layer = 16
@@ -2477,7 +2354,6 @@ func _build_balcony(cx: float):
 		add_child(edge)
 		edge.global_position = Vector2(ex, top - 40.0)
 
-## Верхний край самого высокого тайла во всех TileMapLayer уровня (глобальная Y).
 func _tiles_top_y() -> float:
 	var best := INF
 	for n in get_children():
@@ -2513,7 +2389,6 @@ func _center_counter():
 	var vp = get_viewport_rect().size
 	_arena_counter.position = Vector2(round((vp.x - _arena_counter.size.x) * 0.5), 18.0)
 
-# ---------- предметы: взять / бросить ----------
 
 func _start_items(a: Dictionary):
 	_item_arena = a
@@ -2561,7 +2436,6 @@ func _update_items(_a: Dictionary, delta: float):
 				if d < best:
 					best = d
 					near = en
-	# рядом с паллетом или с паллетом в руках E — это «взять/бросить», а не «залезть»
 	if "barriers_node" in player:
 		player.barriers_node = null if (near != null or holding) else _player_barriers
 	_set_item_hint(near != null or holding, tr("E — бросить") if holding else tr("E — взять"))
@@ -2618,7 +2492,6 @@ func _throw_item():
 	var dur = clamp(dist / ITEM_THROW_SPEED, 0.18, 0.7)
 	var lift = min(80.0, dist * 0.25)
 	var t = create_tween()
-	# самонаведение: летит дугой в ТЕКУЩУЮ позицию цели, даже если та сместилась
 	t.tween_method(_proj_move.bind(proj, from, lift, target, to), 0.0, 1.0, dur)
 	t.parallel().tween_property(proj, "rotation", dir * TAU * 1.5, dur)
 	await t.finished
@@ -2630,7 +2503,6 @@ func _throw_item():
 	if target and is_instance_valid(target) and not target.get("is_dead"):
 		if target.has_method("stun"):
 			target.stun(ITEM_STUN_TIME)
-		# видно, что оглушён: останавливается, играет «удар», отдаёт очередь на атаку
 		if "velocity" in target:
 			target.velocity.x = 0.0
 		if target.has_method("_release_token"):
@@ -2649,7 +2521,6 @@ func _proj_move(k: float, proj: Sprite2D, a: Vector2, lift: float, target, fallb
 	var b = (a + c) * 0.5 + Vector2(0, -lift)
 	proj.global_position = a.lerp(b, k).lerp(b.lerp(c, k), k)
 
-## Звёздочки над оглушённым врагом
 func _stun_stars(e: Node2D, time: float):
 	var holder = Node2D.new()
 	holder.z_index = 70

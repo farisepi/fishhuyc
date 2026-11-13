@@ -16,12 +16,11 @@ const WATER_RECT: Rect2 = Rect2(363, 103, 551, 288)
 @onready var fade_rect: CanvasItem = get_node_or_null("Visual/stuff/Fade")
 var _ending: bool = false
 
-# ---- lab lights: soft flicker, NPC shadows, panic ----
-var _lamps: Array = []          # PointLight2D
+var _lamps: Array = []
 var _lamp_base: Array = []
 var _lamp_k: Array = []
-var _lamp_x: Array = []          # current brightness factor per lamp (1 = normal)
-var _beams: Array = []           # LabBeam ColorRects (fake light cones), same order as the lamps
+var _lamp_x: Array = []
+var _beams: Array = []
 var _beam_base: Array = []
 var _blink_lamp: int = -1
 var _blink_time: float = 0.0
@@ -29,12 +28,12 @@ var _next_blink: float = 3.0
 var _light_t: float = 0.0
 var _light_acc: float = 0.0
 var _quake_on: bool = false
-var _npc_shadows: Array = []     # [{sprite, holder, shadows:[AnimatedSprite2D, AnimatedSprite2D], blob}]
+var _npc_shadows: Array = []
 var _panicking: bool = false
 var _box_shadow: Dictionary = {}
 var _jolt_rot: float = 0.0
 const BG_RECT := Rect2(319, 61, 640, 440)
-const LETTERBOX_K := 0.08   # height of the cinema bars, part of the screen
+const LETTERBOX_K := 0.08
 const PANIC_FRAMES := {
 	"Scientist": ["res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/NPC_Scientist_Panic_Sprite1_Animation.png",
 		"res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/NPC_Scientist_Panic_Sprite2_Animation.png"],
@@ -45,7 +44,6 @@ const PANIC_FRAMES := {
 }
 const NPC_FEET_Y := {"Scientist": 154.0, "Mechanic": 152.0}
 
-## Where the fish has to be to hit the glass (bottom of the tank, in front of the two).
 const GLASS_ZONE: Rect2 = Rect2(540, 300, 280, 104)
 
 var _in_glass_zone: bool = false
@@ -82,14 +80,12 @@ func _ready():
 	_tut = TUTORIAL.new()
 	_tut.style = "aquarium"
 	add_child(_tut)
-	
+
 	_setup_character_animations()
 	_spawn_bubbles()
-	# the fish is in water here: no air meter
 	var air = player.get_node_or_null("GUI/UI_Container/Air_Bar") if player else null
 	if air:
 		air.visible = false
-	# the fish stays put until the intro camera has zoomed out
 	if player and "can_move" in player:
 		player.can_move = false
 	_intro_lock = true
@@ -97,12 +93,11 @@ func _ready():
 		cutscene_chatter.skippable = true
 	if quake_chatter:
 		quake_chatter.skippable = true
-	UISounds.stop_factory_ambience()  # the factory hum belongs to the factory, not the aquarium
+	UISounds.stop_factory_ambience()
 	if pausemenu:
 		pausemenu.visible = false
-	# background talk loops until the fish hits the glass
 	if chatter and chatter.is_active():
-		chatter.stop()   # nothing on screen while the intro camera zooms out
+		chatter.stop()
 	_start_chatter_after_intro()
 	_make_glass_hint()
 	_setup_lab_lights()
@@ -111,9 +106,6 @@ func _ready():
 
 var _intro_lock: bool = false
 
-## The INTRO zooms out to 2x, but on a wide window the camera needs a bit more zoom to not
-## show anything outside the location - it used to snap to that zoom when the animation
-## ended (the little jerk on entering the aquarium). The animation now ends exactly there.
 func _fit_intro_zoom() -> void:
 	var cam = _get_player_camera()
 	if cam == null or animationtrack == null:
@@ -132,7 +124,6 @@ func _fit_intro_zoom() -> void:
 		var last = anim.track_get_key_count(tr_i) - 1
 		if last >= 0:
 			anim.track_set_key_value(tr_i, last, Vector2(z, z))
-## end of the camera zoom-out in the INTRO animation
 const INTRO_ZOOM_END := 2.7
 
 func _update_intro_lock() -> void:
@@ -156,7 +147,7 @@ func _setup_character_animations() -> void:
 		scientist_boring_timer = _make_boring_timer(_on_scientist_boring_timer)
 		scientistsprite.play("idle")
 		_schedule_boring(scientist_boring_timer)
-	
+
 	if mechanicsprite and mechanicsprite.sprite_frames:
 		mechanicsprite.animation_finished.connect(_on_mechanic_animation_finished)
 		mechanic_boring_timer = _make_boring_timer(_on_mechanic_boring_timer)
@@ -182,7 +173,7 @@ func _on_scientist_animation_finished() -> void:
 			scientistsprite.play("idle")
 		"angry_start":
 			scientistsprite.play("angry_jump")
-			
+
 func _on_mechanic_boring_timer() -> void:
 	if not mechanicsprite or mechanicsprite.animation != "idle":
 		_schedule_boring(mechanic_boring_timer)
@@ -193,7 +184,7 @@ func _on_mechanic_animation_finished() -> void:
 	if mechanicsprite.animation == "boring":
 		mechanicsprite.play("idle")
 		_schedule_boring(mechanic_boring_timer)
-		
+
 func _spawn_bubbles() -> void:
 	await get_tree().process_frame
 	for i in range(6):
@@ -203,29 +194,29 @@ func _spawn_bubbles() -> void:
 func _make_bubble() -> void:
 	if not bubble_scene:
 		return
-	
+
 	var bubble = bubble_scene.instantiate()
 	add_child(bubble)
-	
+
 	bubble.global_position = _get_random_position_with_y_limit(0.0)
-	
+
 	var bubble_scale = randf_range(0.35, 0.7)
 	bubble.scale = Vector2(bubble_scale, bubble_scale)
-	
+
 	bubble.modulate.a = 0.0
-	
+
 	var direction_x = randf_range(-0.2, 0.2)
 	bubble.set_direction(Vector2(direction_x, -1.0))
-	
+
 	var appear_tween = create_tween()
 	appear_tween.tween_property(bubble, "modulate:a", randf_range(0.1, 0.5), 0.8)
-	
+
 	bubble.start_life(randf_range(5.0, 10.0))
 	bubble.clickable = false
-	
+
 	if bubble.has_signal("body_entered"):
 		bubble.body_entered.connect(_on_bubble_body_entered.bind(bubble))
-	
+
 	var spawn_timer = get_tree().create_timer(randf_range(1.5, 3.0), false)
 	spawn_timer.timeout.connect(_make_bubble)
 
@@ -237,7 +228,7 @@ func _get_random_position_with_y_limit(_max_y: float) -> Vector2:
 	var area: Rect2 = _get_camera_view_rect().intersection(WATER_RECT)
 	if area.size.x <= 0.0 or area.size.y <= 0.0:
 		area = WATER_RECT
-	
+
 	var y_min = area.position.y + area.size.y * 0.3
 	var y_max = area.end.y - 8.0
 	return Vector2(
@@ -264,10 +255,6 @@ func _wait_dialog() -> void:
 	await tree.create_timer(1.25).timeout
 
 
-# ---------------------------------------------------------------------------
-# Chatter
-# ---------------------------------------------------------------------------
-
 func _start_chatter_after_intro() -> void:
 	if animationtrack and animationtrack.is_playing():
 		await animationtrack.animation_finished
@@ -282,25 +269,20 @@ func _start_background_chatter() -> void:
 		return
 	if chatter.is_active():
 		chatter.stop()
-	# the talk runs once and ends on the quarrel - it does NOT loop back to calm small talk
 	chatter.loop = false
-	# listening to the whole thing (the last line is heard) earns the "Кофе бы..." achievement
 	if not chatter.line_finished.is_connected(_on_chatter_line_finished):
 		chatter.line_finished.connect(_on_chatter_line_finished)
 	chatter.start()
 
-## The player overheard the full argument to its end -> the tired "coffee" achievement.
 func _on_chatter_line_finished(_line, index: int) -> void:
 	if chatter and index >= chatter.lines.size() - 1:
 		if has_node("/root/Achievements") and Achievements.has_method("unlock_coffee"):
 			Achievements.unlock_coffee()
 
 
-## Plays a list of lines through a given controller and waits until they are done.
 func _run_controller(ctrl: ChatterController) -> void:
 	if ctrl == null:
 		return
-	# Stop the background chatter while this controller runs
 	if chatter and chatter.is_active():
 		chatter.stop()
 	if ctrl.is_active():
@@ -311,10 +293,6 @@ func _run_controller(ctrl: ChatterController) -> void:
 		if not is_inside_tree():
 			return
 
-
-# ---------------------------------------------------------------------------
-# Lab lights
-# ---------------------------------------------------------------------------
 
 func _setup_lab_lights() -> void:
 	if lights_root:
@@ -339,13 +317,11 @@ func _process_lab_lights(dt: float) -> void:
 	if _lamps.is_empty() or _quake_on:
 		return
 	_light_t += dt
-	# 30 updates a second are plenty for a lamp hum (8 lamps + 8 shader params per update)
 	_light_acc += dt
 	if _light_acc < 1.0 / 30.0:
 		return
 	dt = _light_acc
 	_light_acc = 0.0
-	# every few seconds one lamp stutters
 	_next_blink -= dt
 	if _next_blink <= 0.0:
 		_next_blink = randf_range(2.5, 7.0)
@@ -506,7 +482,6 @@ func _update_npc_shadows() -> void:
 		if not is_instance_valid(spr):
 			continue
 		var x = spr.global_position.x
-		# nearest lamp on each side (lamp x positions are cached, the lamps never move)
 		if _lamp_x.size() != _lamps.size():
 			_lamp_x.clear()
 			for l in _lamps:
@@ -532,7 +507,7 @@ func _update_npc_shadows() -> void:
 			sh.frame = spr.frame
 			sh.flip_h = spr.flip_h
 			var dist = abs(x - _lamp_x[i])
-			var away = 1.0 if k == 0 else -1.0   # a lamp on the left throws the shadow right
+			var away = 1.0 if k == 0 else -1.0
 			var shift = clamp(dist * 0.16, 2.0, 11.0) * away
 			sh.position = spr.position + Vector2(shift, 1.0)
 			sh.skew = clamp(-shift * 0.03, -0.3, 0.3)
@@ -542,10 +517,6 @@ func _update_npc_shadows() -> void:
 		blob.position.x = spr.position.x
 		blob.color.a = 0.32 * spr.modulate.a
 
-
-# ---------------------------------------------------------------------------
-# Panic during the earthquake
-# ---------------------------------------------------------------------------
 
 func _start_panic() -> void:
 	if _panicking:
@@ -641,10 +612,6 @@ func _sweat_drop(holder: Node2D, at: Vector2) -> void:
 	tw.tween_callback(d.queue_free)
 
 
-# ---------------------------------------------------------------------------
-# Hitting the glass
-# ---------------------------------------------------------------------------
-
 func _make_glass_hint() -> void:
 	_hint_layer = CanvasLayer.new()
 	_hint_layer.layer = 3
@@ -737,7 +704,6 @@ func _draw_key() -> void:
 		var wd2 = inner[i]
 		_hint.draw_rect(Rect2(-floor(wd2 / 2.0), ay + i, wd2, 1), Color(1.0, 0.84, 0.35))
 
-## Mini tutorial: swim -> go listen at the glass -> hit the crack.
 func _tutorial_tick(dt: float) -> void:
 	if _tut == null:
 		return
@@ -783,7 +749,6 @@ func _start_glass_cutscene() -> void:
 		return
 	_cutscene = true
 	_ending = true
-	# whatever they were saying breaks off: "..." - then the cutscene
 	if chatter and chatter.is_active():
 		chatter.interrupt()
 	for bt in [scientist_boring_timer, mechanic_boring_timer]:
@@ -838,14 +803,12 @@ func _start_glass_cutscene() -> void:
 			end_pos.y = min(end_pos.y, cam.limit_bottom - half_y - 5.0)
 		tw.tween_property(cam, "global_position", end_pos, 1.6)
 		tw.parallel().tween_property(cam, "zoom", z, 1.6)
-	# Bubble scale: cutscene controller uses full size bubbles
 	var cbox = cutscene_chatter.find_child("ChatterBox", true, false) if cutscene_chatter else null
 	if cbox and "bubble_scale" in cbox:
 		if "force_near" in cbox:
 			cbox.force_near = true
 		var bt = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		bt.tween_property(cbox, "bubble_scale", 1.0, 1.6)
-	# Also scale the main chatter box to 1.0 (it's being stopped, but just in case)
 	var cbox2 = chatter.find_child("ChatterBox", true, false) if chatter else null
 	if cbox2 and "bubble_scale" in cbox2:
 		if "force_near" in cbox2:
@@ -867,8 +830,6 @@ func _start_glass_cutscene() -> void:
 
 
 const ANGRY_DIR := "res://GameAssets/Sprites/EntitySprites/NPCSprites/ScientistNpcSprites/ScientistAnimationFrames/"
-## the scientist's angry jumping, in three sprite lists: he starts jumping, jumps (looped, while
-## he says his two lines) and stops when the mechanic starts talking
 func _setup_angry_anims() -> void:
 	if scientistsprite == null or scientistsprite.sprite_frames == null:
 		return
@@ -1074,7 +1035,6 @@ func _play_earthquake() -> void:
 		qbox._scale_cur = 0.0
 		if "force_near" in qbox:
 			qbox.force_near = true
-	# Track the last quake line to know when to trigger the debris
 	var hit := [false]
 	var last = quake_chatter.lines.size() - 1
 	var on_line = func(_l, i):
@@ -1087,7 +1047,6 @@ func _play_earthquake() -> void:
 		await get_tree().process_frame
 		if not is_inside_tree():
 			return
-	# "МЫ НЕ УСПЕ..." — cut off mid-word by the falling slab
 	await get_tree().create_timer(0.45).timeout
 	if not is_inside_tree():
 		return
@@ -1105,7 +1064,6 @@ func _play_earthquake() -> void:
 	await get_tree().create_timer(0.1).timeout
 	if not is_inside_tree():
 		return
-	# blackout
 	for l in lights:
 		l.energy = 0.0
 	if fade_rect:
@@ -1125,8 +1083,6 @@ func _play_earthquake() -> void:
 	Global.prologue1_completed = true
 	Global.reset_factory_progress()
 	Global.autosave(Global.SCENE_FACTORY)
-	# the title stays on screen through the scene change and only then dissolves into the
-	# factory (it lives on the root, above the global fade)
 	if title_layer:
 		title_layer.set_meta("go", true)
 	Global.goto_scene(Global.SCENE_FACTORY)
@@ -1194,8 +1150,6 @@ func _spawn_falling_debris() -> void:
 		cam.add_trauma(0.8)
 
 
-## Small helper script for the title overlay: waits until the factory is really there, then
-## fades the words and the black away.
 const _TITLE_FADE_SRC := """extends CanvasLayer
 var _scene_id := 0
 var _t := 0.0
@@ -1223,7 +1177,7 @@ func _process(delta):
 
 func _show_flashback_title() -> CanvasLayer:
 	var layer = CanvasLayer.new()
-	layer.layer = 1030   # over the global fade: the black never blinks during the change
+	layer.layer = 1030
 	var src = GDScript.new()
 	src.source_code = _TITLE_FADE_SRC
 	if src.reload() == OK:
@@ -1258,10 +1212,6 @@ func _show_flashback_title() -> CanvasLayer:
 	await tw.finished
 	return layer
 
-
-# ---------------------------------------------------------------------------
-# Pause
-# ---------------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
 	if get_tree().paused:

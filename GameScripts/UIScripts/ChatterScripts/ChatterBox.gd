@@ -1,32 +1,8 @@
-## UI-нода диалогового окна. Отрисовывает near и far режимы.
-## Путь: res://GameScripts/Dialogue/ChatterBox.gd
-##
-## Ожидаемая структура нод (все опциональны — если нет, скипается):
-##
-## ChatterBox [Node2D или CanvasLayer]
-## ├── NearPanel      [NinePatchRect]  — маленькая панель у персонажа
-## │   └── NearLabel  [RichTextLabel]
-## ├── FarCanvas      [CanvasLayer]    — всё дальнее рисуется поверх
-## │   ├── FarPanel         [NinePatchRect]
-## │   │   ├── FarLabel     [RichTextLabel]
-## │   │   └── FarPortrait  [TextureRect]
-## │   ├── PhantomLeft      [NinePatchRect]
-## │   │   ├── PhantomLeftLabel    [RichTextLabel]
-## │   │   └── PhantomLeftPortrait [TextureRect]
-## │   └── PhantomRight     [NinePatchRect]
-## │       ├── PhantomRightLabel    [RichTextLabel]
-## │       └── PhantomRightPortrait [TextureRect]
-##
-## Имена строго по схеме выше — ищутся через find_child().
-
 class_name ChatterBox
 extends Node
 
 @export var controller_path: NodePath = NodePath()
 
-# ---------------------------------------------------------------------------
-# Ноды (найдутся автоматически)
-# ---------------------------------------------------------------------------
 
 var _near_panel:  NinePatchRect = null
 var _near_label:  RichTextLabel = null
@@ -45,10 +21,8 @@ var _phantom_right_portrait: TextureRect  = null
 
 var _controller: ChatterController = null
 
-# Плавный переход near <-> far
 var _current_phantom_offset: float = 0.0
 
-# Украшения near-панели: тень, хвостик к говорящему, табличка с именем
 var _shadow: NinePatchRect = null
 const TYPEIN_EFFECT := preload("res://GameScripts/UIScripts/DialogScripts/Dialog_TypeIn_Effect.gd")
 var _typein = null
@@ -59,21 +33,19 @@ var _name_tag: Label = null
 const PAD_X := 7
 const PAD_TOP := 6
 const PAD_BOTTOM := 6
-const NAME_H := 0           # no speaker names in the boxes
+const NAME_H := 0
 const NEAR_FONT := 8
 const NEAR_MAX_W := 150.0
 var _measured_w: float = 120.0
 var _near_fonts_set: bool = false
 const SWEAR_SHAKE := 0.45
-const REF_ZOOM := 2.3         # at this camera zoom the bubble has its normal size
-## Size of the bubbles; the aquarium sets 1.0 for its cutscene.
+const REF_ZOOM := 2.3
 var bubble_scale: float = 0.67
 var _scale_cur: float = 0.0
-## true in a cutscene: always the full "near" bubble, no shrinking with distance
 var force_near: bool = false
 var _side: float = 1.0
 const SIDE_GAP := 4.0
-var _far_k: float = 0.0       # 0 = the speakers are on screen, 1 = far away
+var _far_k: float = 0.0
 var _measured_line = null
 var _measured_h: float = 30.0
 @warning_ignore("unused_private_class_variable")
@@ -88,7 +60,6 @@ const NAME_MECHANIC := "МЕХАНИК"
 const COLOR_SCIENTIST := Color(0.45, 0.85, 0.95)
 const COLOR_MECHANIC := Color(1.0, 0.68, 0.3)
 
-# ---------------------------------------------------------------------------
 
 func _ready() -> void:
 	_near_panel  = find_child("NearPanel",  true, false) as NinePatchRect
@@ -108,7 +79,7 @@ func _ready() -> void:
 
 	_make_decorations()
 	_hide_all()
-	
+
 	if controller_path:
 		var node = get_node_or_null(controller_path)
 		if node is ChatterController:
@@ -116,7 +87,6 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	# the size glides to its target instead of jumping (line change, zoom, distance, cutscene)
 	var st = _bubble_scale_target()
 	if _scale_cur <= 0.0:
 		_scale_cur = st
@@ -128,11 +98,9 @@ func _process(delta: float) -> void:
 	_update_display()
 
 
-## Тень, хвостик и табличка с именем делаются из той же текстуры, что и панель.
 func _make_decorations() -> void:
 	if not _near_panel:
 		return
-	# shadow and tail are children of the panel, so they scale / shake together with it
 	_shadow = NinePatchRect.new()
 	_shadow.texture = _near_panel.texture
 	_shadow.patch_margin_left = _near_panel.patch_margin_left
@@ -151,7 +119,6 @@ func _make_decorations() -> void:
 	_tail_fill = Polygon2D.new()
 	_tail_fill.color = Color(0.96, 0.97, 0.98)
 	_near_panel.add_child(_tail_fill)
-	# имя говорящего — внутри окна, первой строкой (тот же шрифт, что и у текста)
 	_name_tag = Label.new()
 	if _near_label:
 		var f = _near_label.get_theme_font("normal_font")
@@ -163,8 +130,6 @@ func _make_decorations() -> void:
 	_near_panel.add_child(_name_tag)
 
 
-## A tiny space-bar key under the bottom-right corner of the bubble when the line can be
-## skipped (the cutscene).
 var _skip_icon: Control = null
 
 func _update_skip_icon() -> void:
@@ -185,7 +150,6 @@ func _update_skip_icon() -> void:
 			c.draw_rect(Rect2(1, 0, 15, 6), Color(0.06, 0.07, 0.1))
 			c.draw_rect(Rect2(2, 1, 13, 4), Color(0.93, 0.94, 0.96))
 			c.draw_rect(Rect2(2, 4, 13, 1), Color(0.7, 0.72, 0.78))
-			# the space sign: a little bracket lying on its back
 			var ink = Color(0.2, 0.24, 0.32).lerp(Color(0.1, 0.45, 0.7), k)
 			c.draw_rect(Rect2(5, 2, 1, 2), ink)
 			c.draw_rect(Rect2(11, 2, 1, 2), ink)
@@ -205,8 +169,6 @@ var _swear_player: AudioStreamPlayer = null
 
 func _on_swear() -> void:
 	_shake = SWEAR_SHAKE
-	# a soft low thud under the swear word - it plays together with the voice blips, so it
-	# stays below them (~55-115 Hz body, the voices are at ~550+ Hz) and does not mask them
 	if _swear_player == null and ResourceLoader.exists(SWEAR_SOUND):
 		_swear_player = AudioStreamPlayer.new()
 		_swear_player.stream = load(SWEAR_SOUND)
@@ -217,9 +179,6 @@ func _on_swear() -> void:
 		_swear_player.pitch_scale = randf_range(0.92, 1.05)
 		_swear_player.play()
 
-# ---------------------------------------------------------------------------
-# Публичный API
-# ---------------------------------------------------------------------------
 
 func bind(controller: ChatterController) -> void:
 	if _controller:
@@ -231,7 +190,6 @@ func bind(controller: ChatterController) -> void:
 	if _controller.has_signal("swear_typed") and not _controller.swear_typed.is_connected(_on_swear):
 		_controller.swear_typed.connect(_on_swear)
 
-# ---------------------------------------------------------------------------
 
 func _on_stopped() -> void:
 	if _skip_icon:
@@ -243,36 +201,27 @@ func _on_stopped() -> void:
 func _update_display() -> void:
 	var mode = _controller.compute_display_mode()
 	var text = _controller.get_typed_text()
-	
+
 	_current_phantom_offset = lerp(_current_phantom_offset, mode["fade"], 0.03)
-	
-	# Same bubble near and far (like in the factory): when the speakers are off screen the
-	# bubble stays at the screen edge on their side and its tail points at them. No portrait.
+
 	_show_near(text)
 
-# ---------------------------------------------------------------------------
-# Near mode
-# ---------------------------------------------------------------------------
 
-## Near mode looks like the factory bubbles: crisp 8 px pixel font, the box hugs the text
-## (up to NEAR_MAX_W wide), the name sits inside on the first line, left-aligned text.
-## The size is measured once per line on the FULL text, so the box never jumps while typing
-## and every phrase fits. The box keeps its bottom where the old one had it (over the speaker).
 func _show_near(text: String) -> void:
 	_hide_far()
-	
+
 	if not _near_panel or not _near_label:
 		return
-	
+
 	_near_panel.visible = true
 	_near_panel.z_index = 100
 	_current_phantom_offset = 0.0
 	_apply_near_fonts()
-	
+
 	var line = _controller._current_line
 	var is_mech = _controller.get_current_speaker() == ChatterLine.Speaker.MECHANIC
 	_near_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	
+
 	if line != _measured_line:
 		_measured_line = line
 		var full = (tr(line.text) if line else text).replace("-", "-\u2060")
@@ -282,16 +231,12 @@ func _show_near(text: String) -> void:
 		var name_w = 30.0
 		if f:
 			var ts = f.get_multiline_string_size(plain, HORIZONTAL_ALIGNMENT_LEFT, tw - 8.0, NEAR_FONT)
-			tw = min(tw, ts.x + 12.0)   # a few px of slack: the box is never a hair too narrow
+			tw = min(tw, ts.x + 12.0)
 			name_w = 0.0
 		_measured_w = ceil(max(max(tw, name_w) + PAD_X * 2, 46.0))
 		var th = _text_height(_near_label, full, _measured_w - PAD_X * 2)
 		_measured_h = ceil(th + PAD_TOP + NAME_H + PAD_BOTTOM)
-	
-	# The bubble stands BESIDE the speaker at head height: the scientist's on his left,
-	# the mechanic's on his right; the tail comes out of the inner side towards the face.
-	# The inner bottom corner is the anchor (and the pivot for scaling), so the bubble
-	# never drifts away from its speaker when it grows or shrinks.
+
 	var sz = Vector2(_measured_w, _measured_h)
 	var s = _bubble_scale()
 	var speaker: Node2D = _controller._mechanic if is_mech else _controller._scientist
@@ -307,8 +252,7 @@ func _show_near(text: String) -> void:
 	_near_panel.position = (anchor - _near_panel.pivot_offset).round()
 	_near_label.position = Vector2(PAD_X, PAD_TOP + NAME_H)
 	_near_label.size = _near_panel.size - Vector2(PAD_X * 2, PAD_TOP + NAME_H + PAD_BOTTOM)
-	
-	# type-in: each new letter drops in as it is printed
+
 	if _typein == null:
 		_typein = TYPEIN_EFFECT.new()
 		_near_label.custom_effects = [_typein]
@@ -316,9 +260,7 @@ func _show_near(text: String) -> void:
 	if line != _typein_line:
 		_typein_line = line
 		_typein.clear()
-	# the WHOLE line is laid out from the first letter (the type-in effect hides what is not
-	# printed yet), so a word never jumps to the next line while it is being typed
-	text = text.replace("-", "-\u2060")   # no line break after a hyphen
+	text = text.replace("-", "-\u2060")
 	var full_line = _full_line_bbcode(line, text)
 	var wrapped = "[typein]" + full_line + "[/typein]"
 	if _near_label.text != wrapped:
@@ -328,7 +270,6 @@ func _show_near(text: String) -> void:
 	_update_skip_icon()
 
 
-## The full text of the current line with the same red colour on the swears as the typed one.
 func _full_line_bbcode(line, typed: String) -> String:
 	if line == null or not ("text" in line):
 		return typed
@@ -341,8 +282,6 @@ func _full_line_bbcode(line, typed: String) -> String:
 	return full
 
 
-## Height from the node's origin to the top of the head (sprite frame height, a bit of the
-## transparent top of the frame is skipped).
 func _head_height(n: Node2D) -> float:
 	if n is AnimatedSprite2D and n.sprite_frames and n.sprite_frames.has_animation(n.animation):
 		var tex = n.sprite_frames.get_frame_texture(n.animation, n.frame)
@@ -353,8 +292,6 @@ func _head_height(n: Node2D) -> float:
 	return 28.0
 
 
-## Where the camera looks, WITHOUT its shake / look-around offset - so a shaking camera
-## does not make the bubbles twitch or change size.
 func _cam_center(cam: Camera2D) -> Vector2:
 	return cam.global_position
 
@@ -371,7 +308,6 @@ func _half_width(n: Node2D) -> float:
 	return 18.0
 
 
-## Keeps the scaled bubble inside the view; anchor = its inner bottom corner.
 func _clamp_corner(a: Vector2, vis: Vector2, side: float) -> Vector2:
 	var cam = get_viewport().get_camera_2d()
 	if cam == null:
@@ -396,8 +332,6 @@ var _far_arrow: Node2D = null
 var _far_arrow_col: Color = Color.WHITE
 var _far_arrow_dir: Vector2 = Vector2.RIGHT
 
-## The "too far" arrow: a little pointer with an outline in the speaker's colour, hugging the
-## screen edge on the speaker's side, with three dots blinking in it while he talks.
 func _update_far_arrow(speaker: Node2D, cam: Camera2D, is_mech: bool) -> void:
 	if _far_arrow == null:
 		if _near_panel == null or _near_panel.get_parent() == null:
@@ -431,14 +365,12 @@ func _draw_far_arrow() -> void:
 	var outl = PackedVector2Array([tip + dir * 1.5, -dir * 6.5 + sd * 8.5, -dir * 2.0 - dir * 1.0, -dir * 6.5 - sd * 8.5])
 	_far_arrow.draw_colored_polygon(outl, Color(0.08, 0.09, 0.12))
 	_far_arrow.draw_colored_polygon(poly, _far_arrow_col)
-	# "talking" dots behind the pointer
 	var t = _time
 	for i in range(3):
 		var on = int(t * 4.0) % 3 == i
 		var pp = -dir * (12.0 + i * 4.0)
 		_far_arrow.draw_rect(Rect2(pp - Vector2(1, 1), Vector2(2, 2)), Color(_far_arrow_col, 1.0 if on else 0.35))
 
-## Same size on screen at any zoom, smaller when the speakers are far away.
 func _bubble_scale_target() -> float:
 	var cam = get_viewport().get_camera_2d()
 	var zoom_k := 1.0
@@ -447,7 +379,6 @@ func _bubble_scale_target() -> float:
 	return zoom_k * lerp(1.0, 0.62, _far_k)
 
 
-## Keeps the whole (scaled) bubble, given by its bottom centre, inside the camera view.
 func _clamp_bottom_center(bc: Vector2, vis: Vector2) -> Vector2:
 	var cam = get_viewport().get_camera_2d()
 	if cam == null:
@@ -482,8 +413,6 @@ func _apply_near_fonts() -> void:
 		_near_label.add_theme_font_size_override(key, NEAR_FONT)
 	_near_label.add_theme_constant_override("line_separation", 2)
 	_near_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	# wrap only between whole words (WORD_SMART used to cut a dot or a letter off a word that
-	# was a hair too wide for the box)
 	_near_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	for fl in [_far_label]:
 		if fl:
@@ -501,9 +430,6 @@ func _strip_bbcode(s: String) -> String:
 		_bb_re.compile("\\[[^\\]]*\\]")
 	return _bb_re.sub(s, "", true)
 
-## Pop-in, a slight bob, a hard jolt on swear words; the bubble keeps the same size on
-## screen whatever the zoom (no giant bubble during the intro zoom), and when the speakers
-## are far away it shrinks and its text fades out (and comes back when you swim closer).
 func _decorate_near() -> void:
 	var p = _near_panel
 	var e = 1.0 - pow(1.0 - _pop, 3.0)
@@ -522,8 +448,6 @@ func _decorate_near() -> void:
 		target_far = 0.0
 		r_far = 0.0
 	_far_k = move_toward(_far_k, target_far, get_process_delta_time() * 2.5)
-	# farther away the bubble only gets smaller (the text stays readable, it shrinks with it);
-	# REALLY far away the bubble turns into an arrow at the screen edge pointing at the speaker
 	if r_far > 2.3:
 		_arrow_on = true
 	elif r_far < 2.0:
@@ -551,10 +475,7 @@ func _decorate_near() -> void:
 		_shadow.visible = true
 		_shadow.size = p.size
 		_shadow.position = Vector2(2, 2)
-	# tail toward the speaker (in panel space, so it follows the scale)
 	if _tail_fill and _tail_outline:
-		# the tail comes out of whichever edge faces the speaker (side, top or bottom - the box
-		# can be pushed to a screen edge when he is off screen) and points at his face
 		var face = speaker.global_position + Vector2(_side * _half_width(speaker) * 0.6, -_head_height(speaker) * 0.15) if speaker else p.global_position
 		var lf = p.get_global_transform().affine_inverse() * face
 		var tb: Vector2
@@ -606,15 +527,15 @@ func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 	if _near_panel:
 		_near_panel.visible = false
 	_hide_decorations()
-	
+
 	if not _far_panel:
 		return
-	
+
 	var vp = get_viewport().get_visible_rect().size
 	var pw = _controller.far_panel_width
 	var ph = _controller.far_panel_height
 	var margin = _controller.far_panel_margin_bottom
-	
+
 	if _far_label:
 		var line = _controller._current_line
 		if line != _far_measured_line:
@@ -624,19 +545,19 @@ func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 		ph = max(ph, _far_measured_h)
 	var target_x = vp.x * 0.5 - pw * 0.5
 	var target_y = vp.y - margin - ph
-	
+
 	_far_panel.visible = true
 	_far_panel.z_index = 100
 	_far_panel.size = Vector2(pw, ph)
 	_far_panel.position = Vector2(target_x, target_y)
 	_far_panel.modulate.a = fade
-	
+
 	if _far_label:
 		if _far_label.text != text:
 			_far_label.text = text
 		_far_label.position = Vector2(70, 10)
 		_far_label.size = Vector2(pw - 80, ph - 20)
-	
+
 	var icon_size = 60.0
 	var icon_y = (ph - icon_size) * 0.5
 	if _far_portrait:
@@ -644,17 +565,16 @@ func _show_far(text: String, fade: float, phantom_alpha: float) -> void:
 		_far_portrait.position = Vector2(5, icon_y)
 		_far_portrait.size = Vector2(icon_size, icon_size)
 		_far_portrait.modulate = Color(1, 1, 1, 0.8)
-	
-	# Фантомы
+
 	var zoom = 1.0
 	if _controller._camera:
 		zoom = _controller._camera.zoom.x
 	var ox = int(35.0 * _current_phantom_offset) / zoom
 	var oy = int(25.0 * _current_phantom_offset) / zoom
-	
+
 	_update_phantom(_phantom_left, _phantom_left_label, _phantom_left_portrait,
 		Vector2(target_x - ox, target_y + oy), pw, ph, phantom_alpha, text, icon_size, icon_y)
-	
+
 	_update_phantom(_phantom_right, _phantom_right_label, _phantom_right_portrait,
 		Vector2(target_x + ox, target_y - oy), pw, ph, phantom_alpha, text, icon_size, icon_y)
 
@@ -681,7 +601,6 @@ func _update_phantom(panel: NinePatchRect, label: RichTextLabel, portrait: Textu
 		portrait.size = Vector2(icon_size, icon_size)
 		portrait.modulate = Color(1, 1, 1, 0.3)
 
-# ---------------------------------------------------------------------------
 
 func _hide_far() -> void:
 	if _far_panel:    _far_panel.visible = false
@@ -699,9 +618,6 @@ func _hide_all() -> void:
 	_hide_decorations()
 	_hide_far()
 
-# ---------------------------------------------------------------------------
-# Глитч-эффект текста (вызывай извне когда нужен глитч)
-# ---------------------------------------------------------------------------
 
 func apply_glitch(intensity: float) -> void:
 	if intensity <= 0.03:
@@ -709,7 +625,7 @@ func apply_glitch(intensity: float) -> void:
 	var original = _controller.get_typed_text() if _controller else ""
 	if original.is_empty():
 		return
-	
+
 	var chars = original.split("")
 	var up_count = max(1, int(intensity * chars.size() * 0.12))
 	for i in range(up_count):
@@ -721,26 +637,23 @@ func apply_glitch(intensity: float) -> void:
 		var pos = randi() % chars.size()
 		if chars[pos] != " ":
 			chars[pos] = ""
-	
+
 	var glitched = "".join(chars)
 	var red = Color(1.0, 0.4, 0.4)
-	
+
 	for lbl in [_near_label, _far_label, _phantom_left_label, _phantom_right_label]:
 		if lbl and lbl.visible:
 			lbl.text = glitched
 			lbl.add_theme_color_override("default_color", red)
-	
+
 	await get_tree().create_timer(0.06).timeout
-	
+
 	var restored = _controller.get_typed_text() if _controller else ""
 	for lbl in [_near_label, _far_label, _phantom_left_label, _phantom_right_label]:
 		if lbl and lbl.visible:
 			lbl.text = restored
 			lbl.remove_theme_color_override("default_color")
 
-# ---------------------------------------------------------------------------
-# Встряска панели
-# ---------------------------------------------------------------------------
 
 func shake_panel() -> void:
 	_shake = SWEAR_SHAKE

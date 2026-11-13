@@ -15,22 +15,20 @@ var _transitioning: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# above every in-game layer (HUD, arrows, hints), below the black scene transitions
 	layer = 50
-	
+
 	_bg_rect = get_node_or_null("ColorRect")
 	_framing = get_node_or_null("Framing")
-	
+
 	_buttons.clear()
 	for child in get_children():
 		if child is Button:
 			_buttons.append(child)
-	
+
 	for btn in _buttons:
 		ButtonEffects.setup(btn)
-	
-	# Сигналы уже подключены в .tscn — НЕ дублируем
-	
+
+
 	if _bg_rect:
 		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 		_bg_rect.offset_left = 0
@@ -42,19 +40,18 @@ func _ready() -> void:
 		_bg_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _framing:
 		_framing.modulate.a = 0.0
-	
+
 	for btn in _buttons:
 		btn.modulate.a = 0.0
 		btn.scale = Vector2(0.85, 0.85)
 		btn.pivot_offset = btn.size / 2.0
-	
+
 	_build_fx()
 	hide()
 
 func show_menu() -> void:
 	_is_closing = false
 	show()
-	# Принудительно растягиваем фон при каждом показе
 	if _bg_rect:
 		_bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 		_bg_rect.offset_left = 0
@@ -78,17 +75,17 @@ func show_menu() -> void:
 func _animate_in() -> void:
 	if _anim_tween and _anim_tween.is_valid():
 		_anim_tween.kill()
-	
+
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	
+
 	if _bg_rect:
 		_anim_tween.tween_property(_bg_rect, "modulate:a", 1.0, 0.15)
 	if _framing:
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 1.0, 0.2)
 	_fx_in()
-	
+
 	for i in range(_buttons.size()):
 		var btn = _buttons[i]
 		if not is_instance_valid(btn):
@@ -100,18 +97,16 @@ func hide_menu() -> void:
 	if _is_closing:
 		return
 	_is_closing = true
-	
+
 	if _anim_tween and _anim_tween.is_valid():
 		_anim_tween.kill()
-	
+
 	_anim_tween = create_tween()
 	_anim_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_anim_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	
+
 	for btn in _buttons:
 		if is_instance_valid(btn):
-			# a hovered button runs its own colour loop (ButtonEffects) that kept it visible a
-			# moment longer than the others: stop it, so all of them fade out together
 			btn.set_meta("fx_keep_alpha", true)
 			for m in ["color_tween", "glass_tween", "settle_tween"]:
 				if btn.has_meta(m):
@@ -123,17 +118,15 @@ func hide_menu() -> void:
 			btn.release_focus()
 			_anim_tween.parallel().tween_property(btn, "modulate", Color(1, 1, 1, 0), 0.2)
 			_anim_tween.parallel().tween_property(btn, "scale", Vector2(0.92, 0.92), 0.2)
-	
+
 	if _bg_rect:
 		_anim_tween.parallel().tween_property(_bg_rect, "modulate:a", 0.0, 0.32)
 	if _framing:
-		# the rusty frame melts away softly (its shader keeps the node's alpha now)
 		_anim_tween.parallel().tween_property(_framing, "modulate:a", 0.0, 0.34)
 	_fx_out()
-	
+
 	await _anim_tween.finished
 	hide()
-	# Жёсткий сброс
 	if _bg_rect:
 		_bg_rect.modulate.a = 0.0
 	if _framing:
@@ -143,11 +136,6 @@ func hide_menu() -> void:
 			btn.modulate.a = 0.0
 	_is_closing = false
 
-## ---------------------------------------------------------------- pause effects
-## Behind the menu the frozen game blurs and goes cold (shader on the screen), dust motes
-## (factory) or bubbles (aquarium) drift through the frame, a big "ПАУЗА" title drops in and
-## glows, a light line runs across it. The rusty frame does not breathe: a shader slides a
-## glint over the metal now and then.
 const BACKDROP_SHADER := "res://GameShaders/SharedShaders/Shared_PauseBackdrop_Shader.gdshader"
 const RUST_SHADER := "res://GameShaders/SharedShaders/Shared_RustFrame_Shader.gdshader"
 const FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
@@ -165,13 +153,10 @@ func _build_fx() -> void:
 	var accent = Color8(130, 210, 255) if aqua else Color8(255, 168, 60)
 	if _framing:
 		_framing_scale = _framing.scale
-		# the rust shader is only for the factory's rusty frame; the aquarium frame stays as
-		# it was drawn (and keeps its slow breathing)
 		if not aqua and ResourceLoader.exists(RUST_SHADER):
 			var fm = ShaderMaterial.new()
 			fm.shader = load(RUST_SHADER)
 			_framing.material = fm
-	# backdrop
 	var sh = load(BACKDROP_SHADER) if ResourceLoader.exists(BACKDROP_SHADER) else null
 	if sh:
 		_fx_rect = ColorRect.new()
@@ -184,8 +169,7 @@ func _build_fx() -> void:
 		_fx_mat.set_shader_parameter("amount", 0.0)
 		_fx_rect.material = _fx_mat
 		add_child(_fx_rect)
-		move_child(_fx_rect, 0)   # under the dark overlay and the buttons
-	# drifting motes / bubbles
+		move_child(_fx_rect, 0)
 	_fx_parts = CPUParticles2D.new()
 	var img = Image.create(3 if aqua else 2, 3 if aqua else 2, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
@@ -215,7 +199,6 @@ func _build_fx() -> void:
 	add_child(_fx_parts)
 	if _bg_rect:
 		move_child(_fx_parts, _bg_rect.get_index() + 1)
-	# title
 	_fx_title = Label.new()
 	_fx_title.text = "ПАУЗА"
 	_fx_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -237,7 +220,6 @@ func _build_fx() -> void:
 	_fx_title.pivot_offset = _fx_title.size * 0.5
 	_fx_title.modulate.a = 0.0
 	add_child(_fx_title)
-	# a light line that runs across under the title
 	_fx_line = ColorRect.new()
 	_fx_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_line.color = Color(accent, 0.8)
@@ -290,7 +272,6 @@ func _process(delta: float) -> void:
 	if not visible:
 		return
 	_fx_t += delta
-	# the title glows and the frame slowly breathes
 	if _fx_title and not _is_closing:
 		var p = 0.5 + 0.5 * sin(_fx_t * 2.2)
 		_fx_title.add_theme_constant_override("shadow_outline_size", int(16 + 10 * p))
@@ -298,8 +279,6 @@ func _process(delta: float) -> void:
 		_framing.scale = _framing_scale * (1.0 + 0.004 * sin(_fx_t * 1.3))
 
 func _input(event: InputEvent) -> void:
-	# Opening the pause is the level's job (it knows about inspect mode, journal, death...).
-	# While the menu is open the level is paused, so closing it with Esc is handled here.
 	if not visible or _transitioning or _settings_layer != null:
 		return
 	if event.is_action_pressed("ui_cancel"):
@@ -316,12 +295,11 @@ func _transition_to(scene_path: String) -> void:
 	if _transitioning:
 		return
 	_transitioning = true
-	
+
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	UISounds.stop_everything_gameplay()
-	
-	# Жёсткий сброс перед скрытием
+
 	if _bg_rect:
 		_bg_rect.modulate.a = 0.0
 	if _framing:
@@ -330,7 +308,7 @@ func _transition_to(scene_path: String) -> void:
 		if is_instance_valid(btn):
 			btn.modulate.a = 0.0
 	hide()
-	
+
 	await get_tree().create_timer(0.05).timeout
 	Global.goto_scene(scene_path)
 
@@ -340,11 +318,11 @@ func _on_continue_pressed() -> void:
 	UISounds.restore_ambience()
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
-	
+
 	var level = get_tree().current_scene
 	if level and level.has_method("_resume_after_pause"):
 		level._resume_after_pause()
-	
+
 	hide_menu()
 
 func _on_save_pressed() -> void:
@@ -354,13 +332,11 @@ func _on_save_pressed() -> void:
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
 	Global.player_position = Vector2.ZERO
-	# the saves open over the paused game too: back from them = the paused moment
 	if _in_aquarium():
 		_open_overlay("res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSavesMenuScene/Menu_Aquarium_SavesMenu_Scene.tscn")
 	else:
 		_open_overlay("res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySavesMenuScene/Menu_Factory_SavesMenu_Scene.tscn")
 
-## The aquarium level uses this pause menu too, but with the aquarium look and menus.
 func _in_aquarium() -> bool:
 	var cur = ""
 	if owner and owner.scene_file_path != "":
@@ -375,13 +351,10 @@ func _on_settings_pressed() -> void:
 	UISounds.play_click()
 	Global.came_from = Global.MenuSource.GAME
 	Global.scene_to_save = get_tree().current_scene.scene_file_path
-	# the settings open OVER the paused game (no scene change): coming back the game goes on
-	# from exactly where it was paused, not from the last save
 	var path = "res://GameScenes/MenuScenes/AquariumMenuScenes/AquariumSettingMenuScene/Menu_Aquarium_SettingMenu_Scene.tscn" if _in_aquarium() \
 		else "res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn"
 	_open_overlay(path)
 
-## A menu scene (settings / saves) opened over the paused game, without leaving the level.
 func _open_overlay(path: String) -> void:
 	if _settings_layer and is_instance_valid(_settings_layer):
 		return
@@ -396,12 +369,11 @@ func _open_overlay(path: String) -> void:
 	_settings_layer.layer = 90
 	_settings_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(_settings_layer)
-	# an opaque backing: the menu looks just like when opened on its own (the HUD and the
-	# level showed through its half-transparent background)
 	var back = ColorRect.new()
 	back.color = Color.BLACK
 	back.mouse_filter = Control.MOUSE_FILTER_STOP
 	back.set_anchors_preset(Control.PRESET_FULL_RECT)
+	back.z_index = -1000
 	_settings_layer.add_child(back)
 	_settings_layer.add_child(sc)
 	_settings_layer.tree_exited.connect(_on_settings_closed)
@@ -421,7 +393,6 @@ func _on_exit_pressed() -> void:
 	if _transitioning:
 		return
 	UISounds.play_click()
-	# the aquarium belongs to the aquarium-styled menu, everything after it to the factory one
 	var cur = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
 	if Global.get_level_number(cur) == 1:
 		_transition_to(Global.SCENE_MAIN_MENU_AQUARIUM)
@@ -440,20 +411,19 @@ func _load_last_save() -> void:
 	if not DirAccess.dir_exists_absolute(save_dir):
 		_restart_current_scene()
 		return
-	
+
 	var dir = DirAccess.open(save_dir)
 	if not dir:
 		_restart_current_scene()
 		return
-	
+
 	var latest_time = 0
 	var latest_path = ""
-	# prefer the slot the player is actually playing in
 	var own_slot = save_dir + "save_" + str(Global.save_slot) + ".cfg"
 	if FileAccess.file_exists(own_slot):
 		latest_path = own_slot
 		latest_time = 1 << 62
-	
+
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
@@ -465,30 +435,30 @@ func _load_last_save() -> void:
 				latest_path = path
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	
+
 	if latest_path == "":
 		_restart_current_scene()
 		return
-	
+
 	var config = ConfigFile.new()
 	if config.load(latest_path) != OK:
 		_restart_current_scene()
 		return
-	
+
 	var scene = config.get_value("save", "scene", "")
 	var px = config.get_value("save", "player_x", 0.0)
 	var py = config.get_value("save", "player_y", 0.0)
-	
+
 	if scene == "":
 		_restart_current_scene()
 		return
-	
+
 	Global.player_position = Vector2(px, py)
 	Global.read_factory_state(config)
 	Global.chatter_queue_state = config.get_value("save", "chatter_queue", [])
 	Global.chatter_current_text = config.get_value("save", "chatter_text", "")
 	Global.chatter_char_index = config.get_value("save", "chatter_index", 0)
-	
+
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	Global.goto_scene(scene)

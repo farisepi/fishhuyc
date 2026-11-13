@@ -23,10 +23,8 @@ var _player: Node = null
 var _last_hearts: int = -1
 var _last_stamina: float = -1.0
 var _glow_on: bool = true
-## A level that draws its own 1 HP glow (the factory) switches this one off.
 var glow_disabled: bool = false
 var _shaken: bool = true
-## the 1 HP glow fades in on its own, only once the interface has fully appeared
 var _glow_k: float = 0.0
 
 
@@ -44,15 +42,15 @@ func _ready():
 	hp_bar.frame = 0
 	_update_hearts()
 	_update_stamina()
-	
+
 	hp_bar_base_pos = hp_bar.position
 	hearts_base_pos = hearts.position
 	stamina_base_pos = stamina.position
-	
+
 	glow = ColorRect.new()
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE   # it covers the whole screen: must not eat clicks
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	
+
 	var shader = Shader.new()
 	shader.code = """
 	shader_type canvas_item;
@@ -65,7 +63,7 @@ func _ready():
 		float alpha = smoothstep(0.5, 1.0, d) * glow_color.a * pulse;
 		COLOR = vec4(glow_color.rgb, alpha);
 	}
-	"""
+"""
 	glow.material = ShaderMaterial.new()
 	glow.material.shader = shader
 	glow.material.set_shader_parameter("glow_color", Color(1, 0, 0, LOW_HP_GLOW_A))
@@ -74,14 +72,11 @@ func _ready():
 	_add_shimmer(suit_icon, 0.35)
 	glow.visible = false
 
-## 1 HP: a red pulsing glow on the screen edges (stronger than it used to be). Only while the
-## interface itself is on screen (no red frame during the intro -> aquarium transition).
 const LOW_HP_GLOW_A := 0.17
 
 static func low_hp_pulse(t: float) -> float:
 	return 0.5 + 0.35 * sin(t * 2.4)
 
-## The same sweeping light as on the HP bar, on the suit indicator.
 func _add_shimmer(spr: Sprite2D, phase: float) -> void:
 	if spr == null or spr.texture == null:
 		return
@@ -100,7 +95,6 @@ func _add_shimmer(spr: Sprite2D, phase: float) -> void:
 func _process(delta):
 	if get_tree().paused:
 		return
-	# the player is looked up once (not every frame) and again only if it disappears
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player")
 		_last_hearts = -1
@@ -113,7 +107,6 @@ func _process(delta):
 	if not player:
 		glow.visible = false
 		return
-	# hearts / stamina / bar speed are only touched when the value really changed
 	if player.has_method("get_hp"):
 		current_hearts = player.get_hp()
 		if current_hearts != _last_hearts:
@@ -174,7 +167,7 @@ func _update_hearts():
 	var frame = total_frames - 1 - int(clamp(float(current_hearts) / float(max_hearts), 0.0, 1.0) * (total_frames - 1))
 	hearts.stop()
 	hearts.frame = clamp(frame, 0, total_frames - 1)
-	
+
 func _update_stamina():
 	if not stamina:
 		return

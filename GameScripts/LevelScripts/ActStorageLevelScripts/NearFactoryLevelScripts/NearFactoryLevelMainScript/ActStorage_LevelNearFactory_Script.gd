@@ -19,7 +19,6 @@ var inventory_instance: CanvasLayer = null
 var title_instance: CanvasLayer = null
 var _level_finished: bool = false
 
-## The green-lit iron door at the end of the ground floor is the way out of this level.
 const EXIT_POSITION: Vector2 = Vector2(8000, 940)
 const EXIT_SIZE: Vector2 = Vector2(140, 140)
 
@@ -27,21 +26,21 @@ func _ready() -> void:
 	randomize()
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
-	
+
 	UISounds.stop_everything_gameplay()
 	GlobalMusic.play_level_music()
-	
+
 	_spawn_hud()
 	_spawn_inventory()
 	_show_title()
 	_spawn_enemies()
 	_create_exit_trigger()
-	
+
 	if death_screen and death_screen.has_method("hide_death"):
 		death_screen.hide_death()
 	if pausemenu:
 		pausemenu.visible = false
-	
+
 	Global.load_shards_from_slot()
 
 func _spawn_hud() -> void:
@@ -80,8 +79,6 @@ func _spawn_enemies() -> void:
 		if scene == null:
 			continue
 		var enemy = scene.instantiate()
-		# every other metadata key on the spawn point is passed to the enemy
-		# (e.g. has_forklift = true on a monkey, fur_variant = 2 ...)
 		for key in point.get_meta_list():
 			if key != "enemy_type" and key in enemy:
 				enemy.set(key, point.get_meta(key))

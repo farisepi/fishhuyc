@@ -1,14 +1,9 @@
 extends Node2D
-## Factory atmosphere (added by the level script):
-##  - the ceiling lamps hum and now and then stutter; the "bad" lamp sparks and dims,
-##  - dust specks drift through the light,
-##  - every press stroke: a hiss of hydraulic steam at the top, crumbs + a dust ring at the foot,
-##  - the conveyor drops tiny glints on the rollers.
 
 var level: Node2D = null
-var _lamps: Array = []        # PointLight2D
+var _lamps: Array = []
 var _lamp_base: Array = []
-var _beams: Array = []        # beam ColorRects (shader "intensity")
+var _beams: Array = []
 var _beam_base: Array = []
 var _t := 0.0
 var _acc := 0.0
@@ -58,13 +53,11 @@ func _make_soft(n: int) -> ImageTexture:
 		for x in range(n):
 			var d = (Vector2(x + 0.5, y + 0.5) - c).length() / (n * 0.5)
 			var a = clamp(1.0 - d, 0.0, 1.0)
-			# pixel-stepped falloff
 			a = floor(a * 4.0) / 4.0
 			img.set_pixel(x, y, Color(1, 1, 1, a))
 	return ImageTexture.create_from_image(img)
 
 
-## Slow dust specks over the whole hall (they show up mostly inside the light cones).
 func _add_dust() -> void:
 	var p = CPUParticles2D.new()
 	p.texture = _dot
@@ -110,7 +103,6 @@ func _process(delta: float) -> void:
 		_blink_t -= dt
 		if _blink_t <= 0.0:
 			_blink = -1
-	# the bad lamp: sparks from the socket and a hard flicker
 	_next_spark -= dt
 	var spark_now = false
 	if _next_spark <= 0.0:
@@ -134,7 +126,6 @@ func _process(delta: float) -> void:
 			sparks(l2.global_position + Vector2(0, -4), 10, true)
 
 
-## Falling sparks (lamp socket) or a short burst (press).
 func sparks(at: Vector2, count: int, falling: bool) -> void:
 	var p = CPUParticles2D.new()
 	p.texture = _dot
@@ -161,15 +152,11 @@ func sparks(at: Vector2, count: int, falling: bool) -> void:
 	get_tree().create_timer(1.4, false).timeout.connect(p.queue_free)
 
 
-## One press stroke: steam all over the press (along the whole top, out of the joints on
-## both sides and around the foot), crumbs and a dust ring at the foot.
 func press_impact(foot: Vector2, top: Vector2, half_w: float = 30.0) -> void:
-	# side jets: the cylinder vents left and right halfway down, and the foot puffs sideways
 	for side in [-1.0, 1.0]:
 		var mid_y = lerp(top.y, foot.y, 0.45)
 		_steam_jet(Vector2(foot.x + side * half_w * 0.85, mid_y), Vector2(side, -0.35), 7, 0.75, 22.0, 46.0)
 		_steam_jet(Vector2(foot.x + side * half_w * 0.6, foot.y - 6.0), Vector2(side, -0.15), 6, 0.6, 30.0, 60.0)
-	# steam along the whole top of the press
 	var s = CPUParticles2D.new()
 	s.texture = _soft
 	s.one_shot = true
@@ -202,7 +189,6 @@ func press_impact(foot: Vector2, top: Vector2, half_w: float = 30.0) -> void:
 	add_child(s)
 	s.emitting = true
 	get_tree().create_timer(1.6, false).timeout.connect(s.queue_free)
-	# crumbs / dust ring at the foot
 	var d = CPUParticles2D.new()
 	d.texture = _dot
 	d.one_shot = true
@@ -226,7 +212,6 @@ func press_impact(foot: Vector2, top: Vector2, half_w: float = 30.0) -> void:
 	add_child(d)
 	d.emitting = true
 	get_tree().create_timer(0.9, false).timeout.connect(d.queue_free)
-
 
 
 func _steam_jet(at: Vector2, dir: Vector2, amount: int, life: float, v0: float, v1: float) -> void:

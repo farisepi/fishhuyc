@@ -1,8 +1,5 @@
 extends CanvasLayer
 
-# QTE "нажми SHIFT вовремя": внешнее кольцо сжимается к целевому кольцу.
-# Нажал, когда кольца совпали — успех. Рано/поздно — провал.
-# Всё считается в РЕАЛЬНОМ времени, поэтому работает при любом Engine.time_scale.
 
 signal qte_result(success: bool)
 signal qte_hit
@@ -15,8 +12,8 @@ signal qte_hit
 const OUTER_START_R: float = 120.0
 const OUTER_END_R: float = 14.0
 const TARGET_R: float = 42.0
-const HIT_TOLERANCE: float = 16.0       # +- пикселей радиуса вокруг цели
-const DEFAULT_DURATION: float = 1.3     # реальные секунды
+const HIT_TOLERANCE: float = 16.0
+const DEFAULT_DURATION: float = 1.3
 const SLOWMO_SCALE: float = 0.25
 
 var is_active: bool = false
@@ -56,8 +53,6 @@ func _ready():
 	shift_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	shift_label.add_theme_constant_override("outline_size", 6)
 
-# duration — сколько реальных секунд сжимается кольцо.
-# manage_time_scale = false, если slow-mo уже контролирует катсцена.
 func show_qte(duration: float = DEFAULT_DURATION, manage_time_scale: bool = true, screen_pos: Vector2 = Vector2(-1, -1)):
 	visible = true
 	show()
@@ -107,7 +102,6 @@ func _process(_delta):
 	if is_active and not result_sent:
 		qte_timer += rd
 		var t = clamp(qte_timer / _duration, 0.0, 1.0)
-		# ease-in: сначала медленно, к концу быстрее — легче прочитать момент
 		_outer_r = lerp(OUTER_START_R, OUTER_END_R, t * t * 0.35 + t * 0.65)
 		if _outer_r < TARGET_R - HIT_TOLERANCE:
 			_finish(false)
@@ -120,7 +114,7 @@ func _in_window() -> bool:
 func _input(event):
 	if not is_active or not can_press or result_sent:
 		return
-	if event.is_action_pressed("Run") and not event.is_echo():
+	if (event.is_action_pressed("Run") or event.is_action_pressed("dash")) and not event.is_echo():
 		get_viewport().set_input_as_handled()
 		_finish(_in_window())
 
@@ -131,10 +125,8 @@ func _on_canvas_draw():
 	var c = _center
 	var in_win = _in_window() and not result_sent
 
-	# центр
 	_canvas.draw_circle(c, TARGET_R - 6.0, Color(0.06, 0.06, 0.08, 0.85 * a))
 
-	# целевое кольцо (подсвечивается, когда пора жать)
 	var tcol = Color(1, 1, 1, 0.75 * a)
 	if in_win:
 		tcol = Color(0.4, 1.0, 0.5, a)
@@ -143,16 +135,13 @@ func _on_canvas_draw():
 		tcol.a *= a
 	_canvas.draw_arc(c, TARGET_R, 0, TAU, 72, tcol, 4.0, true)
 
-	# окно попадания — едва заметная полоса
 	_canvas.draw_arc(c, TARGET_R, 0, TAU, 72, Color(1, 1, 1, 0.08 * a), HIT_TOLERANCE * 2.0, true)
 
-	# сжимающееся кольцо
 	if not result_sent:
 		var k = clamp((OUTER_START_R - _outer_r) / (OUTER_START_R - TARGET_R), 0.0, 1.0)
 		var ocol = Color(1.0, lerp(0.9, 0.55, k), lerp(0.6, 0.2, k), lerp(0.35, 1.0, k) * a)
 		_canvas.draw_arc(c, _outer_r, 0, TAU, 72, ocol, 3.0, true)
 
-	# вспышка результата
 	if _flash > 0.0 and _result_color.a > 0.0:
 		var fc = _result_color
 		fc.a = _flash * 0.5 * a
@@ -174,7 +163,6 @@ func _finish(success: bool):
 	is_active = false
 	if success:
 		qte_hit.emit()
-	# результат отдаём СРАЗУ, чтобы катсцена реагировала в тот же кадр
 	qte_result.emit(success)
 
 	var fade = create_tween().set_parallel(true)

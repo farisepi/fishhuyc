@@ -26,32 +26,32 @@ func _on_interaction_area_body_entered(body: Node2D) -> void:
 
 func start_hit_sequence() -> void:
 	sequence_started = true
-	
+
 	if player_camera:
 		player_camera.enabled = false
 	if cutscene_camera:
 		cutscene_camera.enabled = true
 		if cutscene_camera.has_method("add_trauma"):
 			cutscene_camera.add_trauma(0.3)
-	
+
 	await get_tree().create_timer(0.3).timeout
-	
+
 	if dialog: dialog.show_dialog("scientist")
 	await get_tree().create_timer(1.5).timeout
-	
+
 	if dialog: dialog.next_line()
 	await get_tree().create_timer(1.5).timeout
-	
+
 	if dialog: dialog.show_dialog("mechanic")
 	await get_tree().create_timer(1.5).timeout
-	
+
 	if player_camera: player_camera.enabled = true
 	if cutscene_camera: cutscene_camera.enabled = false
-	
+
 	if player: player.velocity = Vector2(-50, 0)
-	
+
 	await get_tree().create_timer(2.0).timeout
-	
+
 	UISounds.stop_factory_ambience()
 	await Fade.fade_out()
 	var tree = get_tree()

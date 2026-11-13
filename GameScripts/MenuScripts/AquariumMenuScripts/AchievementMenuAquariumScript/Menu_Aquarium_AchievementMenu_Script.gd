@@ -64,28 +64,28 @@ const BubbleScript = preload("res://GameScripts/EntityScripts/BubbleEntityScript
 var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEntityScenes/Bubble_Scene.tscn")
 
 func _ready() -> void:
-	MenuHeader.style_scrolls.call_deferred(self, true, true)   # the game's scroll line + scroller
+	MenuHeader.style_scrolls.call_deferred(self, true, true)
 	call_deferred("_add_header")
 	if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 		Fade.fade_in()
-	
+
 	UISounds.stop_everything_gameplay()
 	GlobalMusic.play_menu_music()
-	
+
 	ButtonEffects.setup(back_btn)
 	ButtonEffects.setup(reset_btn)
-	
+
 	if not reset_btn.pressed.is_connected(_on_reset_pressed):
 		reset_btn.pressed.connect(_on_reset_pressed)
 	if not back_btn.pressed.is_connected(_on_back_button_pressed):
 		back_btn.pressed.connect(_on_back_button_pressed)
-	
+
 	_extra_rows = Achievements.build_extra_rows(get_node_or_null("AchievementsScroll/AchievementsList"), freedom_achievement)
 	_setup_icons()
 	total_achievements = Achievements.total_count()
 	_setup_progress_bar()
 	update_achievements()
-	
+
 	call_deferred("_start_background_bubbles")
 
 func _setup_progress_bar() -> void:
@@ -97,8 +97,8 @@ func _setup_progress_bar() -> void:
 
 func update_achievements() -> void:
 	unlocked_count = 0
-	
-	
+
+
 	if Achievements.coffee_unlocked:
 		unlocked_count += 1
 		_set_bright(coffee_achievement, coffee_icon, coffee_check, coffee_name)
@@ -106,8 +106,8 @@ func update_achievements() -> void:
 	else:
 		_set_gray(coffee_achievement, coffee_icon, coffee_check, coffee_name)
 		coffee_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if Achievements.flashback_unlocked:
 		unlocked_count += 1
 		_set_bright(flashback_achievement, flashback_icon, flashback_check, flashback_name)
@@ -115,8 +115,8 @@ func update_achievements() -> void:
 	else:
 		_set_gray(flashback_achievement, flashback_icon, flashback_check, flashback_name)
 		flashback_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if Achievements.pop_star_unlocked:
 		unlocked_count += 1
 		_set_bright(pop_star_achievement, pop_star_icon, pop_star_check, pop_star_name)
@@ -131,8 +131,8 @@ func update_achievements() -> void:
 			var popped = min(Global.bubbles_popped, 100)
 			pop_star_progress.text = str(popped) + "/100"
 			pop_star_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if Achievements.rebel_unlocked:
 		unlocked_count += 1
 		_set_bright(rebel_achievement, rebel_icon, rebel_check, rebel_name)
@@ -147,8 +147,8 @@ func update_achievements() -> void:
 			var thrown = min(Global.boxes_thrown, 50)
 			rebel_progress.text = str(thrown) + "/50"
 			rebel_progress.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if Achievements.acrobat_unlocked:
 		unlocked_count += 1
 		_set_bright(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
@@ -156,8 +156,8 @@ func update_achievements() -> void:
 	else:
 		_set_gray(acrobat_achievement, acrobat_icon, acrobat_check, acrobat_name)
 		acrobat_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if worker_achievement:
 		if Achievements.worker_of_month_unlocked:
 			unlocked_count += 1
@@ -168,8 +168,8 @@ func update_achievements() -> void:
 			_set_gray(worker_achievement, worker_icon, worker_check, worker_name)
 			if worker_desc:
 				worker_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if scout_achievement:
 		if Achievements.scout_unlocked:
 			unlocked_count += 1
@@ -180,8 +180,8 @@ func update_achievements() -> void:
 			_set_gray(scout_achievement, scout_icon, scout_check, scout_name)
 			if scout_desc:
 				scout_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
-	
+
+
 	if freedom_achievement:
 		if Achievements.freedom_unlocked:
 			unlocked_count += 1
@@ -192,7 +192,7 @@ func update_achievements() -> void:
 			_set_gray(freedom_achievement, freedom_icon, freedom_check, freedom_name)
 			if freedom_desc:
 				freedom_desc.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-	
+
 	for r in _extra_rows:
 		if Achievements.is_unlocked(r["id"]):
 			unlocked_count += 1
@@ -242,7 +242,7 @@ func _set_gray(ach: Control, icon: TextureRect, check: TextureRect, name_label: 
 func _on_reset_pressed() -> void:
 	if not Achievements.any_unlocked():
 		return
-	
+
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
 	menu.title = tr("Сброс достижений")
@@ -251,11 +251,11 @@ func _on_reset_pressed() -> void:
 	menu.add_cancel_button(tr("Нет"))
 	var ok = menu.get_ok_button()
 	if ok: ok.visible = false
-	
+
 	for child in menu.get_children():
 		if child is Button:
 			child.custom_minimum_size = Vector2(100, 40)
-	
+
 	menu.custom_action.connect(func(action):
 		if action == "yes":
 			Achievements.reset_all()
@@ -265,7 +265,7 @@ func _on_reset_pressed() -> void:
 		menu.hide()
 		menu.queue_free()
 	)
-	
+
 	add_child(menu)
 	menu.popup_centered()
 
@@ -277,7 +277,6 @@ func _input(event: InputEvent) -> void:
 		_on_back_button_pressed()
 
 func _start_background_bubbles() -> void:
-	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
 	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, false):
 		for i in range(randi_range(3, 6)):
 			_make_menu_bubble()
@@ -322,15 +321,14 @@ func _make_menu_bubble() -> void:
 	bubble.set_direction(Vector2(randf_range(-0.3, 0.3), randf_range(-1.0, -0.2)))
 	bubble.start_life(randf_range(6.0, 15.0))
 
-## A big title like in the pause menu instead of the small label.
 func _add_header() -> void:
 	var acc = MenuHeader.accent_for(self)
-	var old_c := -1.0
+	var _old_c := -1.0
 	for n in ["Title", "TitleLabel"]:
 		var t = get_node_or_null(n) as Control
 		if t:
 			t.visible = false
-			old_c = t.position.y + t.size.y * 0.5   # the new title sits where the old one was
+			_old_c = t.position.y + t.size.y * 0.5
 	MenuHeader.attach(self, tr("ДОСТИЖЕНИЯ"), acc, 16.0, 26, 180.0)
 	var pb = get_node_or_null("ProgressBar") as Control
 	var pl2 = get_node_or_null("ProgressLabel") as Control
@@ -344,16 +342,10 @@ func _add_header() -> void:
 			d.color = Color(acc, 0.35)
 
 
-# ---------------------------------------------------------------- icons
-## Every achievement gets its pixel icon (x2, crisp) on a round badge: unlocked - a gold
-## ring with a soft breathing glow and two sparkles running around it; locked - a dim ring
-## (no extra marks: grey is enough).
 var _badges: Array = []
 
 const ICON_SHADER := """
 shader_type canvas_item;
-// round pixel badge: the 20x20 icon cut to a circle on its own pixel grid, a 1-texel ring
-// (gold when unlocked, steel when locked), locked ones grey and dim
 uniform float locked = 0.0;
 uniform vec4 ring : source_color = vec4(1.0, 0.78, 0.3, 1.0);
 void fragment() {
@@ -366,7 +358,7 @@ void fragment() {
 	c.rgb = mix(c.rgb, vec3(g) * vec3(0.75, 0.78, 0.9) * 0.7, locked);
 	if (d >= r) { c.a = 0.0; }
 	else if (d >= r - 1.0) { c = ring; }
-	else if (d >= r - 2.0) { c.rgb *= 0.55; }   // a dark inner edge under the ring
+	else if (d >= r - 2.0) { c.rgb *= 0.55; }
 	COLOR = c;
 }
 """
@@ -400,7 +392,6 @@ func _style_icon(icon: TextureRect, id: String) -> void:
 		icon.material = m
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	# inside the banner, on its left; the texts move right to make room
 	icon.position = Vector2(78, 15)
 	icon.size = Vector2(44, 44)
 	var row = icon.get_parent()
@@ -427,7 +418,6 @@ func _style_icon(icon: TextureRect, id: String) -> void:
 		icon.add_child(front)
 		_badges.append(back)
 		_badges.append(front)
-	# a little pop when the row comes into view, unlocked ones a bit later and bouncier
 	icon.scale = Vector2(0.6, 0.6)
 	var tw = create_tween()
 	tw.tween_interval(0.05 * _badges.size() / 2.0)
@@ -443,10 +433,8 @@ func _draw_badge(c: Control, icon: TextureRect, front: bool) -> void:
 			var k = 0.5 + 0.5 * sin(t * 2.2 + icon.get_instance_id() % 7)
 			for i in range(4):
 				c.draw_circle(ctr, 26.0 + i * 2.5, Color(gold, (0.10 - i * 0.022) * (0.6 + 0.6 * k)))
-		# a soft drop shadow under the round badge
 		c.draw_circle(ctr + Vector2(2, 3), 22.5, Color(0, 0, 0, 0.45))
 		return
-	# ring
 	if on:
 		for s in range(2):
 			var a = t * 1.3 + s * PI

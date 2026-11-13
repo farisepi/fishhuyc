@@ -1,5 +1,3 @@
-// The dream: things fade into the white the further they are from the fish's station
-// (the conveyor runs out to both sides and melts away instead of ending with an edge).
 shader_type canvas_item;
 
 uniform float center_x = 0.0;

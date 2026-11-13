@@ -12,12 +12,9 @@ var scout_unlocked: bool = false
 var freedom_unlocked: bool = false
 var chase_unlocked: bool = false
 var handyman_unlocked: bool = false
-## Factory stations the player has worked at (for "Разнорабочий"), kept between runs.
 var stations_worked: Array = []
 const ALL_STATIONS := [0, 1, 2, 3, 4]
 
-## Achievements added after the menus were drawn: the menus build their rows from this list
-## (copies of the last row). icon "" = no icon yet, a "?" badge is shown instead.
 const EXTRA := [
 	{"id": "chase", "name": "Погоня", "desc": "Пройти пролог", "icon": "Menu_AchivementMenu_Icon_Chase.png"},
 	{"id": "handyman", "name": "Разнорабочий", "desc": "Поработать на всех станках", "icon": "Menu_AchivementMenu_Icon_Handyman.png"},
@@ -35,7 +32,6 @@ const TITLES := {
 	"chase": "Погоня",
 	"handyman": "Разнорабочий",
 }
-# these already play the sound inside unlock_*()
 const SOUND_IN_UNLOCK := ["worker_of_month", "scout", "freedom"]
 
 var _queue: Array = []
@@ -47,8 +43,6 @@ func _ready():
 	achievement_unlocked.connect(_on_unlocked)
 
 
-## Every new achievement gets the same pretty popup, wherever it was earned (scenes only
-## add their own extras now - falling boxes, bubbles).
 func _on_unlocked(id: String) -> void:
 	_queue_popup.call_deferred(id)
 
@@ -88,21 +82,16 @@ const POPUP_SCALE := 0.5
 const C_GOLD_D := Color(0.62, 0.38, 0.1)
 const C_CARD := Color(0.07, 0.075, 0.1, 0.97)
 
-## Popup: a dark card with a gold frame slides in from the right, a gold badge with a star
-## pops in and glows, sparkles fly out of it, a shine runs across the card, the title types
-## in, and a thin gold line at the bottom shows how long it stays.
 var _popup_font: FontFile = null
 
 func _popup(title: String, id: String = "") -> void:
-	# own copy of the pixel font: the shared one is forced to a fixed size by Global, which
-	# would ignore the sizes here (and the card is drawn at half scale)
 	if _popup_font == null:
 		_popup_font = ResourceLoader.load(FONT_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as FontFile
 		if _popup_font:
 			_popup_font.fixed_size = 0
 	var font: Font = _popup_font
 	var canvas = CanvasLayer.new()
-	canvas.layer = 1100   # above the global fade, so it is visible even on a black screen
+	canvas.layer = 1100
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 	var vp = get_viewport().get_visible_rect().size
@@ -122,7 +111,6 @@ func _popup(title: String, id: String = "") -> void:
 	sb.shadow_offset = Vector2(0, 4)
 	card.add_theme_stylebox_override("panel", sb)
 	canvas.add_child(card)
-	# inner thin line
 	var inner = Panel.new()
 	inner.position = Vector2(6, 6)
 	inner.size = card_size - Vector2(12, 12)
@@ -135,7 +123,6 @@ func _popup(title: String, id: String = "") -> void:
 	inner.add_theme_stylebox_override("panel", sb2)
 	card.add_child(inner)
 
-	# badge with glow and star
 	var badge_c = Vector2(46, card_size.y * 0.5)
 	var glow = Control.new()
 	glow.position = badge_c
@@ -145,7 +132,6 @@ func _popup(title: String, id: String = "") -> void:
 		var p = 0.5 + 0.5 * sin(tt * 4.0)
 		for i in range(4):
 			glow.draw_circle(Vector2.ZERO, 34.0 - i * 6.0, Color(C_GOLD, (0.05 + 0.04 * i) * (0.6 + 0.4 * p)))
-		# rays
 		for r in range(8):
 			var a = tt * 0.8 + r * TAU / 8.0
 			glow.draw_line(Vector2.from_angle(a) * 22.0, Vector2.from_angle(a) * (30.0 + 4.0 * p), Color(C_GOLD, 0.35), 2.0)
@@ -174,7 +160,6 @@ func _popup(title: String, id: String = "") -> void:
 	shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(shine)
 	if icon_tex:
-		# the achievement's own icon (the same one as in the achievements menu), pixel-crisp
 		var ic = TextureRect.new()
 		ic.texture = icon_tex
 		ic.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -198,7 +183,6 @@ func _popup(title: String, id: String = "") -> void:
 	star.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	badge.add_child(star)
 
-	# texts
 	var header = Label.new()
 	header.text = "ДОСТИЖЕНИЕ ПОЛУЧЕНО"
 	header.position = Vector2(84, 14)
@@ -229,7 +213,6 @@ func _popup(title: String, id: String = "") -> void:
 	name_l.visible_ratio = 0.0
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(name_l)
-	# shine sweeping across the card
 	var sweep = ColorRect.new()
 	sweep.color = Color(1, 1, 1, 0.12)
 	sweep.size = Vector2(26, card_size.y * 2.0)
@@ -237,7 +220,6 @@ func _popup(title: String, id: String = "") -> void:
 	sweep.position = Vector2(-60, -card_size.y * 0.5)
 	sweep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(sweep)
-	# time bar
 	var bar = ColorRect.new()
 	bar.color = C_GOLD
 	bar.position = Vector2(3, card_size.y - 6)
@@ -246,7 +228,6 @@ func _popup(title: String, id: String = "") -> void:
 	card.add_child(bar)
 
 	var show_time := 3.6
-	# half size: the whole card is drawn at 0.5 (same look, smaller on screen)
 	card.scale = Vector2(POPUP_SCALE, POPUP_SCALE)
 	var x_in = vp.x - card_size.x * POPUP_SCALE - 12
 	card.position = Vector2(vp.x + 30, 12)
@@ -262,7 +243,6 @@ func _popup(title: String, id: String = "") -> void:
 	tw.parallel().tween_property(sweep, "position:x", card_size.x + 40, 0.7).set_delay(0.1)
 	tw.parallel().tween_property(bar, "size:x", 0.0, show_time).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(card, "position:x", vp.x + 30, 0.35).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
-	# sparkles out of the badge, glow redraw
 	var t := 0.0
 	var spark_t := 0.0
 	while is_instance_valid(card) and tw.is_running():
@@ -297,7 +277,7 @@ func load_achievements() -> void:
 	if config.load("user://achievements.cfg") != OK:
 		save_achievements()
 		return
-	
+
 	coffee_unlocked = config.get_value("achievements", "coffee", false)
 	flashback_unlocked = config.get_value("achievements", "flashback", false)
 	pop_star_unlocked = config.get_value("achievements", "pop_star", false)
@@ -418,7 +398,6 @@ func unlock_handyman() -> void:
 	save_achievements()
 
 
-## A finished job at a factory station. All of them once -> "Разнорабочий".
 func mark_station_worked(station: int) -> void:
 	if not (station in stations_worked):
 		stations_worked.append(station)
@@ -445,8 +424,6 @@ func total_count() -> int:
 	return TITLES.size()
 
 
-## Menu helper: adds a row for every EXTRA achievement under `list`, copied from `template`
-## (the last row of the menu). Returns [{id, root, icon, check, name, desc}].
 func build_extra_rows(list: Node, template: Control) -> Array:
 	var rows: Array = []
 	if list == null or template == null:

@@ -1,10 +1,4 @@
 extends StorageEnemy
-## Storage mecha-monkey (green).
-## Clever and springy: keeps just outside the fish's reach and pokes with its long mech tail,
-## bounces over a blocking fish on the tail and lands behind it (hits from behind break the
-## block), slams the floor when it lands, and when things go badly it runs to its forklift,
-## climbs in and tries to run the fish over. Smash the forklift: it breaks, the monkey is
-## baffled and the airbag knocks it out.
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var placeholder: ColorRect = get_node_or_null("PlaceholderRect")
@@ -17,16 +11,16 @@ var state: State = State.PATROL
 
 var FUR_SOURCE := [Color8(152, 102, 64), Color8(120, 78, 48), Color8(84, 52, 34)]
 var FUR_VARIANTS := [
-	[Color8(124, 124, 130), Color8(92, 92, 100), Color8(60, 60, 68)],     # grey langur
-	[Color8(214, 130, 70), Color8(176, 96, 46), Color8(120, 62, 30)],     # orangutan ginger
-	[Color8(70, 62, 60), Color8(48, 42, 42), Color8(30, 26, 28)],         # black
-	[Color8(206, 180, 140), Color8(170, 142, 104), Color8(124, 100, 72)], # sandy
+	[Color8(124, 124, 130), Color8(92, 92, 100), Color8(60, 60, 68)],
+	[Color8(214, 130, 70), Color8(176, 96, 46), Color8(120, 62, 30)],
+	[Color8(70, 62, 60), Color8(48, 42, 42), Color8(30, 26, 28)],
+	[Color8(206, 180, 140), Color8(170, 142, 104), Color8(124, 100, 72)],
 ]
 
 const FORK_W := 128.0
 
 @export var run_speed: float = 225.0
-@export var poke_range: float = 112.0       # tail reach - longer than the fish's fists
+@export var poke_range: float = 112.0
 @export var punch_range: float = 66.0
 @export var keep_distance: float = 100.0
 @export var pogo_velocity: float = -540.0
@@ -83,12 +77,10 @@ func _setup_forklift() -> void:
 		forklift.queue_free()
 		forklift = null
 		return
-	# park it on the floor next to the monkey (forklift frame is 80 px, the monkey 75 px);
-	# it belongs to the level from now on, so it stays even if the monkey never uses it
 	var pos = global_position + Vector2(forklift_offset_x, -(80.0 - 75.0) / 2.0 - 2.0)
 	var floor_hit = _ray(pos + Vector2(0, -20), pos + Vector2(0, 200))
 	if not floor_hit.is_empty():
-		pos.y = floor_hit.position.y - 40.0   # 80 px frame, wheels on the floor
+		pos.y = floor_hit.position.y - 40.0
 	forklift.reparent(get_parent())
 	forklift.global_position = pos
 	forklift.z_index = -1
@@ -101,7 +93,6 @@ func _play(anim_name: String, restart: bool = false) -> void:
 		sprite.speed_scale = 1.0
 
 
-# ------------------------------------------------------------------ main loop
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		if not is_on_floor():
@@ -170,7 +161,6 @@ func _go(s: State) -> void:
 	hit_done = false
 
 
-# ------------------------------------------------------------------ on foot
 func _patrol(delta: float) -> void:
 	if is_aggro:
 		velocity.x = 0
@@ -195,36 +185,30 @@ func _alert_logic(dx: float) -> void:
 		_go(State.SPACING)
 
 
-## The monkey's brain: stay just outside the fish's reach and choose the right trick.
 func _spacing_logic(dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
 		_release_token()
 		_go(State.PATROL)
 		return
 	_face(dx)
-	# time for the forklift?
 	if _should_use_forklift():
 		_release_token()
 		_go(State.GOTO_FORKLIFT)
 		return
 	var on_floor = is_on_floor()
-	# fish swings at us: bounce away on the tail (or over it when cornered)
 	if on_floor and pogo_cooldown <= 0.0 and _player_threatens(105.0) and randf() < 0.6:
 		var behind_free = not _ledge_ahead(-facing_dir, 60.0) and not _wall_ahead(-facing_dir, 70.0)
 		_start_pogo(not behind_free)
 		return
-	# a blocking fish gets jumped over: hits from behind go through the block
 	if on_floor and pogo_cooldown <= 0.0 and (_player_flag("is_blocking") or player_block_habit > 0.4) and dist < 220.0 and abs(dy) < 70.0:
 		_start_pogo(true)
 		return
-	# whiff punish
 	if _whiff_window > 0.0 and cooldown <= 0.0 and dist < poke_range and _request_token():
 		if dist < punch_range + 10.0:
 			_start_combo()
 		else:
 			_start_tail()
 		return
-	# keep the sweet spot: inside tail reach, outside fist reach
 	var want = keep_distance
 	var move = 0.0
 	if dist > want + 18.0:
@@ -234,7 +218,6 @@ func _spacing_logic(dist: float, dx: float, dy: float) -> void:
 	var dir = int(sign(dx)) * int(move)
 	if dir != 0 and (_ledge_ahead(dir) or _wall_ahead(dir)):
 		dir = 0
-		# cornered at a ledge with the fish close: go over it
 		if move < 0.0 and pogo_cooldown <= 0.0 and dist < 90.0:
 			_start_pogo(true)
 			return
@@ -249,7 +232,7 @@ func _spacing_logic(dist: float, dx: float, dy: float) -> void:
 	elif dist < poke_range and tail_cooldown <= 0.0:
 		_start_tail()
 	elif dist < 260.0 and dist > 150.0 and pogo_cooldown <= 0.0 and randf() < 0.012:
-		_start_pogo(true)   # surprise leap over the fish
+		_start_pogo(true)
 
 
 func _start_combo() -> void:
@@ -283,7 +266,6 @@ func _start_tail() -> void:
 
 func _tail_attack_logic() -> void:
 	velocity.x = 0
-	# the tail sweeps through frames 3-5
 	if not hit_done and t >= 0.2:
 		hit_done = true
 		if _player_ok() and _same_level():
@@ -301,8 +283,6 @@ func _same_level() -> bool:
 	return _player_ok() and abs(player.global_position.y - global_position.y) < 60.0
 
 
-# ------------------------------------------------------------------ tail pogo
-## over = true: land on the far side of the fish; false: bounce back away from it.
 func _start_pogo(over: bool) -> void:
 	pogo_cooldown = randf_range(2.2, 3.2)
 	_go(State.TAIL_JUMP)
@@ -319,7 +299,6 @@ func _start_pogo(over: bool) -> void:
 
 
 func _tail_jump_logic() -> void:
-	# crouch + coil, then launch on the 4th frame
 	if t < 0.22:
 		velocity.x = 0
 		return
@@ -334,7 +313,6 @@ func _tail_jump_logic() -> void:
 
 
 func _air_logic() -> void:
-	# turn toward the fish in the air so it lands facing it
 	if _player_ok():
 		_face(player.global_position.x - global_position.x)
 	if is_on_floor() and t > 0.08:
@@ -355,7 +333,6 @@ func _slam() -> void:
 func _land_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 40.0)
 	if t >= 0.3:
-		# landed behind a fish that was guarding: punish its back right away
 		if _player_ok() and abs(player.global_position.x - global_position.x) < poke_range and tail_cooldown <= 0.0 and _request_token():
 			_face(player.global_position.x - global_position.x)
 			_start_tail()
@@ -377,7 +354,6 @@ func _stun_logic(delta: float) -> void:
 		_go(State.SPACING if is_aggro else State.PATROL)
 
 
-# ------------------------------------------------------------------ forklift
 func _should_use_forklift() -> bool:
 	if forklift == null or _fork_used or not is_instance_valid(forklift):
 		return false
@@ -385,7 +361,6 @@ func _should_use_forklift() -> bool:
 		return false
 	if abs(forklift.global_position.x - global_position.x) > 900.0:
 		return false
-	# hurt, or the fight drags on
 	return hp <= max_hp - 2 or _aggro_time > 7.0
 
 
@@ -428,21 +403,18 @@ func _forklift_enter_logic() -> void:
 func _drive_logic(_dist: float, dx: float, dy: float) -> void:
 	facing_dir = _drive_dir
 	_play("forklift_drive")
-	# ledge / wall in front: brake and turn around
 	if _ledge_ahead(_drive_dir, 64.0) or _wall_ahead(_drive_dir, 70.0):
 		_go(State.FORKLIFT_BRAKE)
 		return
 	velocity.x = move_toward(velocity.x, _drive_dir * drive_speed, 18.0)
 	if not _player_ok():
 		return
-	# ram the fish with the forks
 	var rel = dx * _drive_dir
 	if rel > -10.0 and rel < 70.0 and abs(dy) < 60.0 and _ram_cooldown <= 0.0:
 		_ram_cooldown = 0.9
 		if _hurt_player_smart(2):
 			_shake(0.3)
 			player.velocity.x = _drive_dir * 320.0
-	# overshot the fish: brake and come back
 	if rel < -140.0:
 		_go(State.FORKLIFT_BRAKE)
 
@@ -458,7 +430,6 @@ func _brake_logic(delta: float) -> void:
 			var want = int(sign(player.global_position.x - global_position.x))
 			if want != 0:
 				_drive_dir = want
-		# never drive back off the same ledge
 		if _ledge_ahead(_drive_dir, 64.0) or _wall_ahead(_drive_dir, 70.0):
 			_drive_dir = -_drive_dir
 		_go(State.DRIVE)
@@ -487,14 +458,12 @@ func _leave_wreck() -> void:
 	sprite.visible = false
 
 
-# ------------------------------------------------------------------ damage
 func take_damage(amount: int) -> void:
 	if is_dead:
 		return
 	if state in [State.FORKLIFT_ENTER, State.FORKLIFT_BREAK]:
 		return
 	if state in [State.DRIVE, State.FORKLIFT_BRAKE]:
-		# the forklift takes the hits for the monkey
 		_fork_hp -= amount
 		_play("forklift_shake", true)
 		_flash_damage()
@@ -516,7 +485,6 @@ func _shake_then_drive() -> void:
 
 
 func _on_hurt() -> void:
-	# springy: often bounces out instead of taking a combo
 	if is_on_floor() and pogo_cooldown <= 0.0 and randf() < 0.4:
 		_start_pogo(randf() < 0.3)
 		return

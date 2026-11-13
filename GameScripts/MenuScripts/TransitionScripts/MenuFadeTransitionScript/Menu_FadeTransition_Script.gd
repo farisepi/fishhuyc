@@ -1,9 +1,4 @@
 extends ColorRect
-## Global screen fade (autoload "Fade").
-## The black overlay lives on its own top CanvasLayer, so it covers the whole screen in
-## every scene - world, UI and menus - no matter where the camera is.
-## After any scene change it fades back in by itself, so every transition in the game
-## is a smooth fade-out -> fade-in.
 
 signal fade_in_finished
 signal fade_out_finished
@@ -19,7 +14,6 @@ var _auto_in_pending: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# the autoload node itself stays invisible; the real overlay is on a CanvasLayer
 	color = Color(0, 0, 0, 0)
 	mouse_filter = MOUSE_FILTER_IGNORE
 	size = Vector2.ZERO
@@ -44,7 +38,6 @@ func _process(_delta: float) -> void:
 			_auto_fade_in()
 
 func _auto_fade_in() -> void:
-	# let the new scene build its first frames under the black
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_auto_in_pending = false
@@ -57,7 +50,6 @@ func _kill() -> void:
 func is_dark() -> bool:
 	return _rect != null and _rect.modulate.a > 0.5
 
-## Fades from the current darkness back to the picture (no-op if already clear).
 func fade_in() -> void:
 	_kill()
 	if _rect == null or _rect.modulate.a <= 0.001:
@@ -76,7 +68,6 @@ func fade_out() -> void:
 	if _rect == null:
 		fade_out_finished.emit()
 		return
-	# block clicks while the screen goes dark
 	_rect.mouse_filter = MOUSE_FILTER_STOP
 	_tw = create_tween()
 	_tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)

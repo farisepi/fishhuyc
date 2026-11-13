@@ -67,26 +67,26 @@ func _ready() -> void:
 	if Global.intro_active:
 		queue_free()
 		return
-	
+
 	Global.intro_active = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	
+
 	var config = ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
 		Global._apply_audio_bus("Music", config.get_value("audio", "music_volume", 1.0))
-	
+
 	intro_music = AudioStreamPlayer.new()
 	intro_music.stream = load(MUSIC_PATH)
 	intro_music.volume_db = MUSIC_NORMAL_DB
 	intro_music.bus = "Music"
 	add_child(intro_music)
 	intro_music.play(0.5)
-	
+
 	custom_font = load("res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf")
 	slide_font = custom_font.duplicate() if custom_font else null
 	if slide_font:
 		slide_font.fixed_size = SLIDE_FONT_SIZE
-	
+
 	scientist_voice = AudioStreamPlayer.new()
 	var voice_path = "res://GameAssets/Audio/SoundEffects/NPCVoiceSounds/ScientistVoiceSounds/NPC_Scientist_Voiсe_SoundEffect.mp3"
 	if ResourceLoader.exists(voice_path):
@@ -99,27 +99,21 @@ func _ready() -> void:
 	scientist_voice.pitch_scale = 0.9
 	scientist_voice.bus = "SFX"
 	add_child(scientist_voice)
-	
+
 	_stop_main_menu_music()
-	
+
 	_create_ui()
-	
+
 	var screen_size = get_viewport().get_visible_rect().size
 	_setup_skip_ui(screen_size)
-	
-	# the aquarium is loaded in the background while the slides play, so the change at the
-	# end is instant (it used to freeze for a moment and the fade jumped)
+
 	ResourceLoader.load_threaded_request(AQUARIUM_SCENE)
 	_start_time = Time.get_ticks_msec() / 1000.0
-	print("[INTRO] START at t=0.000, music=", MUSIC_LENGTH, "s, slides=", slides.size())
-	print("[INTRO] slide 7 should start at t=", SLIDES_TOTAL_BEFORE_7)
-	print("[INTRO] final fade should start at t=", FINAL_FADE_START_TIME)
-	
+
 	_show_slide(0)
 
 func _log_time(prefix: String) -> void:
 	var now = Time.get_ticks_msec() / 1000.0 - _start_time
-	print("[INTRO] ", prefix, " at t=", "%.3f" % now)
 
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0 - _start_time
@@ -142,9 +136,9 @@ func _create_ui() -> void:
 	bg.color = Color.BLACK
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	
+
 	var screen_size = get_viewport().get_visible_rect().size
-	
+
 	image_display = TextureRect.new()
 	image_display.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	var image_width = screen_size.x * 0.45
@@ -157,8 +151,7 @@ func _create_ui() -> void:
 	image_display.pivot_offset = image_display.size * 0.5
 	add_child(image_display)
 	_setup_intro_fx(screen_size)
-	
-	# rich text: the letters tremble a little (an old, nervous projector)
+
 	text_label = RichTextLabel.new()
 	text_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	text_label.bbcode_enabled = true
@@ -168,12 +161,12 @@ func _create_ui() -> void:
 	text_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	text_label.offset_bottom = -200
 	text_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	
+
 	_enforce_label_font()
-	
+
 	text_label.add_theme_color_override("default_color", Color.WHITE)
 	add_child(text_label)
-	
+
 	slide_timer = Timer.new()
 	slide_timer.one_shot = true
 	slide_timer.timeout.connect(_on_slide_timer_timeout)
@@ -190,7 +183,7 @@ func _setup_skip_ui(screen_size: Vector2) -> void:
 	_skip_ui = Control.new()
 	_skip_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skip_ui.size = Vector2(300, 44)
-	_skip_ui.position = Vector2(screen_size.x - 300 - 8, 8)   # top-right, where it always was
+	_skip_ui.position = Vector2(screen_size.x - 300 - 8, 8)
 	_skip_ui.z_index = 500
 	_skip_ui.modulate.a = 0.0
 	_skip_ui.draw.connect(_draw_skip)
@@ -201,10 +194,7 @@ func _setup_skip_ui(screen_size: Vector2) -> void:
 
 var _skip_ui: Control = null
 var _skip_font: FontFile = null
-var _skip_show: float = 0.0     # seconds the hint stays after the last mouse move / press
 
-## Bottom-right: a ring fills around a little "ЛКМ" cap while the button is held, the text
-## next to it says what will happen; it shows up on any mouse move or press and fades away.
 func _draw_skip() -> void:
 	var c = _skip_ui
 	var sz = c.size
@@ -223,19 +213,19 @@ func _draw_skip() -> void:
 		c.draw_string(_skip_font, Vector2(50, sz.y * 0.5 + 4), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.92))
 
 func _input_skip_hint(_event: InputEvent) -> void:
-	pass   # the hint shows only while the mouse button is held (and once at the start)
+	pass
 
-var _blink_t: float = 0.0   # time since the intro started: the hint is shown once at the start
+var _blink_t: float = 0.0
 
 func _process(delta: float) -> void:
 	_enforce_label_font()
 	_process_intro_fx()
-	
+
 	if final_fade_started:
 		return
-	
+
 	var skip_input = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	
+
 	if skip_input:
 		skip_progress += delta
 		if skip_progress >= SKIP_HOLD_TIME:
@@ -245,17 +235,15 @@ func _process(delta: float) -> void:
 		if skip_progress > 0.0:
 			skip_progress = max(skip_progress - SKIP_RETRACT_SPEED * delta, 0.0)
 	_blink_t += delta
-	
+
 	var progress = clamp(skip_progress / SKIP_HOLD_TIME, 0.0, 1.0)
 	skip_dim.color = Color(0, 0, 0, progress * 0.6)
 	if _skip_ui:
-		# at the start it fades in, stays a moment and fades out; later it fades in while
-		# the button is held and fades out after
 		var target = 1.0 if (skip_input or progress > 0.0 or (_blink_t > 0.3 and _blink_t < 3.0)) else 0.0
 		var speed = 2.5 if target > _skip_ui.modulate.a else 1.6
 		_skip_ui.modulate.a = move_toward(_skip_ui.modulate.a, target, delta * speed)
 		_skip_ui.queue_redraw()
-	
+
 	if intro_music:
 		intro_music.volume_db = lerp(MUSIC_NORMAL_DB, MUSIC_SILENT_DB, progress)
 	if scientist_voice:
@@ -264,26 +252,26 @@ func _process(delta: float) -> void:
 func _skip_intro() -> void:
 	if final_fade_started:
 		return
-	
+
 	final_fade_started = true
 	typing = false
 	typing_generation += 1
 	Global.intro_active = false
-	
+
 	_log_time("SKIP")
-	
+
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
-	
+
 	slide_timer.stop()
-	
+
 	if intro_music and intro_music.playing:
 		intro_music.stop()
-	
+
 	Global.intro_completed = true
-	
+
 	_cleanup_menus()
-	
+
 	_go_to_aquarium(0.45)
 
 func _cleanup_menus() -> void:
@@ -291,7 +279,7 @@ func _cleanup_menus() -> void:
 	if parent and parent != get_tree().root and parent != get_tree().current_scene:
 		if parent is CanvasLayer or parent is Control or parent is Node2D:
 			parent.queue_free()
-	
+
 	for child in get_tree().root.get_children():
 		if child == self:
 			continue
@@ -304,7 +292,7 @@ func _create_root_black() -> ColorRect:
 	for child in get_tree().root.get_children():
 		if child is ColorRect and child.z_index == 4095:
 			child.queue_free()
-	
+
 	var black = ColorRect.new()
 	black.color = Color(0, 0, 0, 0)
 	black.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -318,8 +306,6 @@ func _own_fade_and_change_scene() -> void:
 
 const AQUARIUM_SCENE := "res://GameScenes/LevelScenes/ActPrologueLevelScenes/AquariumLevelScenes/AquariumMainLevelScene/ActPrologue_LevelAquarium_Scene.tscn"
 
-## Overlay that outlives the intro: it waits until the aquarium has really drawn a few
-## frames, then fades out at a steady pace (long frames from the change do not make it jump).
 const _HANDOFF_SRC := """extends CanvasLayer
 var _id := 0
 var _frames := 0
@@ -343,22 +329,21 @@ func _process(delta):
 """
 
 func _go_to_aquarium(fade_time: float) -> void:
-	var layer = CanvasLayer.new()
-	layer.layer = 1100
+	var fade_layer = CanvasLayer.new()
+	fade_layer.layer = 1100
 	var src = GDScript.new()
 	src.source_code = _HANDOFF_SRC
 	if src.reload() == OK:
-		layer.set_script(src)
+		fade_layer.set_script(src)
 	var black = ColorRect.new()
 	black.name = "Black"
 	black.color = Color(0, 0, 0, 0)
 	black.set_anchors_preset(Control.PRESET_FULL_RECT)
 	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(black)
-	get_tree().root.add_child(layer)
-	if layer.get_script():
-		layer.set("_id", get_tree().current_scene.get_instance_id() if get_tree().current_scene else 0)
-	# everything (picture, words, grain, music) goes down together under the black
+	fade_layer.add_child(black)
+	get_tree().root.add_child(fade_layer)
+	if fade_layer.get_script():
+		fade_layer.set("_id", get_tree().current_scene.get_instance_id() if get_tree().current_scene else 0)
 	var tw = create_tween().set_parallel(true)
 	tw.tween_property(black, "color:a", 1.0, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	if intro_music and intro_music.playing:
@@ -366,7 +351,6 @@ func _go_to_aquarium(fade_time: float) -> void:
 	await tw.finished
 	if intro_music:
 		intro_music.stop()
-	# the scene is (almost always) ready by now; if not, wait for it under the black
 	var packed: PackedScene = null
 	while true:
 		var st = ResourceLoader.load_threaded_get_status(AQUARIUM_SCENE)
@@ -377,13 +361,13 @@ func _go_to_aquarium(fade_time: float) -> void:
 			break
 		await get_tree().process_frame
 	_log_time("CHANGE SCENE -> Act1")
-	if layer.get_script():
-		layer.set("go", true)
+	if fade_layer.get_script():
+		fade_layer.set("go", true)
 	else:
 		var t = black.create_tween()
 		t.tween_interval(0.35)
 		t.tween_property(black, "color:a", 0.0, 0.8)
-		t.tween_callback(layer.queue_free)
+		t.tween_callback(fade_layer.queue_free)
 	if packed:
 		get_tree().change_scene_to_packed(packed)
 	else:
@@ -401,40 +385,40 @@ func _type_text(text: String, idx: int, generation: int) -> void:
 		return
 	if generation != typing_generation:
 		return
-	
+
 	if idx >= text.length():
 		typing = false
 		return
-	
+
 	typing = true
 	_set_typed(_typed + text[idx])
-	
+
 	if scientist_voice and not scientist_voice.playing and scientist_voice.stream:
 		scientist_voice.pitch_scale = 0.7 + randf_range(-0.03, 0.03)
 		scientist_voice.play()
-	
+
 	if not is_inside_tree() or final_fade_started:
 		typing = false
 		return
 	if generation != typing_generation:
 		return
-	
+
 	var char_delay: float = TYPE_DELAY_DEFAULT
-	
+
 	if current_index == slides.size() - 1:
 		var current_char = text[idx]
 		if current_char == ".":
 			char_delay = TYPE_DELAY_SLIDE7_DOT
 		else:
 			char_delay = TYPE_DELAY_SLIDE7
-	
+
 	await get_tree().create_timer(char_delay).timeout
-	
+
 	if not is_inside_tree() or not typing or final_fade_started:
 		return
 	if generation != typing_generation:
 		return
-	
+
 	_type_text(text, idx + 1, generation)
 
 func _set_typed(s: String) -> void:
@@ -448,10 +432,6 @@ func _target_time_for_slide_start(index: int) -> float:
 	else:
 		return SLIDES_TOTAL_BEFORE_7
 
-## ---------------------------------------------------------------- intro effects
-## Old-film look: every slide slowly pushes in (Ken Burns), a slide change comes with a short
-## colour-split glitch, a soft vignette, a thin frame around the
-## picture and dust drifting in the projector light.
 const IMAGE_FX := """
 shader_type canvas_item;
 uniform float split = 0.0;
@@ -474,7 +454,7 @@ float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 void fragment() {
 	vec2 cc = UV - 0.5;
 	float vig = smoothstep(0.35, 0.85, length(cc * vec2(1.2, 1.0)));
-	float a = vig * 0.75;   // (no flickering grain: it tired the eyes)
+	float a = vig * 0.75;
 	COLOR = vec4(vec3(0.0), clamp(a, 0.0, 1.0) * strength);
 }
 """
@@ -489,8 +469,6 @@ func _setup_intro_fx(screen_size: Vector2) -> void:
 	_img_mat.shader = s1
 	image_display.material = _img_mat
 	image_display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	# (no frame around the picture and no film scratches any more - asked to remove them)
-	# drifting dust in the projector light
 	var dust = CPUParticles2D.new()
 	var img = Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
@@ -512,7 +490,6 @@ func _setup_intro_fx(screen_size: Vector2) -> void:
 	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0))
 	dust.color_ramp = g
 	add_child(dust)
-	# grain + vignette over everything (the skip bar is added later, stays on top)
 	var film = ColorRect.new()
 	film.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	film.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -526,7 +503,6 @@ func _setup_intro_fx(screen_size: Vector2) -> void:
 
 func _process_intro_fx() -> void:
 	if _img_mat:
-		# projector flicker
 		_img_mat.set_shader_parameter("flicker", 0.04 * (0.5 + 0.5 * sin(Time.get_ticks_msec() / 37.0)) * randf())
 	if _frame:
 		_frame.queue_redraw()
@@ -550,68 +526,68 @@ func _slide_fx() -> void:
 func _show_slide(index: int) -> void:
 	if index >= slides.size() or final_fade_started:
 		return
-	
+
 	typing = false
 	typing_generation += 1
 	var generation = typing_generation
-	
+
 	var slide = slides[index]
-	
+
 	is_fading = true
 	var fade_out = create_tween()
 	fade_out.tween_property(image_display, "modulate:a", 0.0, SLIDE_TRANSITION)
 	fade_out.parallel().tween_property(text_label, "modulate:a", 0.0, SLIDE_TRANSITION)
 	await fade_out.finished
-	
+
 	if final_fade_started:
 		return
 	if generation != typing_generation:
 		return
-	
+
 	if slide["image"] != null:
 		image_display.texture = slide["image"]
 	_slide_fx()
-	
+
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
-	
+
 	_set_typed("")
 	_type_text(slide["text"], 0, generation)
-	
+
 	var fade_in = create_tween()
 	fade_in.tween_property(image_display, "modulate:a", 1.0, SLIDE_TRANSITION)
 	fade_in.parallel().tween_property(text_label, "modulate:a", 1.0, SLIDE_TRANSITION)
 	await fade_in.finished
 	is_fading = false
-	
+
 	if final_fade_started:
 		return
 	if generation != typing_generation:
 		return
-	
+
 	_log_time("SLIDE " + str(index + 1) + " shown (target=" + "%.3f" % _target_time_for_slide_start(index) + ")")
-	
+
 	var next_target: float
 	if index + 1 < slides.size():
 		next_target = _target_time_for_slide_start(index + 1)
 	else:
 		next_target = FINAL_FADE_START_TIME
-	
+
 	var remaining = next_target - _now()
 	if remaining < 0.05:
 		remaining = 0.05
-	
+
 	slide_timer.wait_time = remaining
 	slide_timer.start()
 
 func _on_slide_timer_timeout() -> void:
 	if is_fading or final_fade_started:
 		return
-	
+
 	_log_time("SLIDE " + str(current_index + 1) + " finished")
-	
+
 	current_index += 1
-	
+
 	if current_index < slides.size():
 		_show_slide(current_index)
 	else:
@@ -621,19 +597,19 @@ func _on_slide_timer_timeout() -> void:
 func _start_final_fade() -> void:
 	if final_fade_started:
 		return
-	
+
 	final_fade_started = true
 	typing = false
 	typing_generation += 1
 	Global.intro_active = false
-	
+
 	_log_time("ALL SLIDES DONE, starting final fade")
-	
+
 	if scientist_voice and scientist_voice.playing:
 		scientist_voice.stop()
-	
+
 	slide_timer.stop()
-	
+
 	if intro_music and intro_music.playing:
 		var music_tween = create_tween()
 		music_tween.tween_property(intro_music, "volume_db", MUSIC_SILENT_DB, FINAL_FADE_TIME)
@@ -641,25 +617,24 @@ func _start_final_fade() -> void:
 			if intro_music:
 				intro_music.stop()
 		)
-	
+
 	if not is_inside_tree():
 		return
-	
+
 	var final_fade = create_tween()
 	final_fade.set_parallel(true)
 	final_fade.tween_property(image_display, "modulate:a", 0.0, FINAL_FADE_TIME)
 	final_fade.tween_property(text_label, "modulate:a", 0.0, FINAL_FADE_TIME)
-	# the film grain, vignette and dust go down together with the picture
 	for c in get_children():
 		if c is CanvasItem and c != image_display and c != text_label and c != bg and c != _skip_ui:
 			final_fade.tween_property(c, "modulate:a", 0.0, FINAL_FADE_TIME)
 	await final_fade.finished
-	
+
 	_cleanup_menus()
-	
+
 	Global.intro_completed = true
 	UISounds.stop_factory_ambience()
-	
+
 	_go_to_aquarium(0.3)
 
 func _exit_tree() -> void:

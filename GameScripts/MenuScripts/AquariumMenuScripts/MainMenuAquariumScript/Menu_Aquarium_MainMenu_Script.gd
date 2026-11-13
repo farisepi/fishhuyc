@@ -65,7 +65,7 @@ func _ready() -> void:
 	if logo:
 		logo_original_y = logo.position.y
 		logo_original_scale = logo.scale
-		logo.self_modulate = Color(0.86, 0.88, 0.9)   # a little dimmer: it sits in the scene
+		logo.self_modulate = Color(0.86, 0.88, 0.9)
 
 	_fit_logo_area()
 	if logo_area:
@@ -83,8 +83,6 @@ func _process(delta: float) -> void:
 		logo.position.y = logo_original_y + sin(logo_float_time) * 2.0
 		logo.rotation = sin(logo_float_time) * 0.005
 
-## The click area is the logo as it is actually drawn (the scene's rect sat half above it, so
-## the lower half of the logo did not react). The logo keeps its place on screen.
 func _fit_logo_area() -> void:
 	if logo_area == null or logo == null or logo.sprite_frames == null:
 		return
@@ -151,7 +149,6 @@ func _logo_jelly_effect() -> void:
 func _spawn_logo_bubbles() -> void:
 	if not bubble_scene:
 		return
-	# a lively burst: more bubbles, faster, flying out from all along the logo in all directions
 	var spawn_points = [Vector2(-270, 0), Vector2(-180, 0), Vector2(-90, 0), Vector2(0, 0), Vector2(90, 0), Vector2(180, 0), Vector2(270, 0)]
 	for point in spawn_points:
 		for i in range(randi_range(2, 3)):
@@ -166,7 +163,6 @@ func _spawn_logo_bubbles() -> void:
 			bubble.modulate.a = 0.0
 			var alpha_tween = create_tween()
 			alpha_tween.tween_property(bubble, "modulate:a", randf_range(0.35, 0.85), 0.15)
-			# straight out from the logo, every which way (down and sideways too)
 			var dir = Vector2.from_angle(randf() * TAU)
 			if (point + offset).length() > 1.0:
 				dir = ((point + offset).normalized() * 0.5 + dir).normalized()
@@ -241,7 +237,6 @@ func _on_quit_button_pressed() -> void:
 	get_tree().quit()
 
 func _start_background_bubbles() -> void:
-	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
 	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, true):
 		for i in range(randi_range(3, 6)):
 			_make_menu_bubble()
@@ -287,7 +282,6 @@ func _make_menu_bubble() -> void:
 	bubble.start_life(randf_range(6.0, 15.0))
 
 func _show_pop_star_achievement() -> void:
-	# the popup comes from the Achievements autoload now; here only the extra effect
 	_spawn_pop_star_bubbles()
 
 func _spawn_pop_star_bubbles() -> void:
@@ -330,7 +324,6 @@ func _spawn_bubble_from_edge(canvas: CanvasLayer, pos: Vector2, direction: Vecto
 	canvas.add_child(bubble)
 
 	bubble.position = pos
-	# celebratory bubbles about twice the usual menu ones (0.5..1.4)
 	bubble.scale = Vector2.ONE * randf_range(1.0, 2.6)
 	bubble.speed = randf_range(80.0, 180.0)
 	bubble.clickable = true

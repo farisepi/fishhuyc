@@ -1,10 +1,4 @@
 extends StorageEnemy
-## Storage mecha-dog (blue).
-## Fast and agile: dodges the player's swings, punishes whiffs, circles while other enemies
-## attack, and has a "death grip": it drops to four legs, sprints and bites. If the bite lands
-## the dog locks its jaws on the fish - mash the attack button to tear the mech jaws off and
-## knock it out with an elbow, or get chewed.
-## The Hallway dog uses Enemy_MechaDog_Script.gd - this file is only for the storage dog.
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var detection_area: Area2D = get_node_or_null("DetectionArea")
@@ -12,16 +6,14 @@ extends StorageEnemy
 enum State { PATROL, ALERT, STALK, CHASE, ATTACK, DODGE, QUAD_START, QUAD_RUN, QUAD_BITE, BITE_RECOVER, GRAPPLE, JAW_BREAK, STUN, DEAD }
 var state: State = State.PATROL
 
-## Fur ramp drawn in the dog sheets (light -> dark) and the recoloured variants.
 var FUR_SOURCE := [Color8(204, 169, 110), Color8(178, 144, 98), Color8(153, 121, 81), Color8(126, 97, 68), Color8(97, 74, 60), Color8(69, 49, 37)]
 var FUR_VARIANTS := [
-	[Color8(96, 96, 104), Color8(78, 78, 86), Color8(62, 62, 70), Color8(48, 48, 56), Color8(36, 36, 42), Color8(24, 24, 30)],        # black
-	[Color8(236, 232, 224), Color8(214, 208, 198), Color8(188, 182, 172), Color8(158, 152, 146), Color8(124, 120, 116), Color8(90, 86, 84)],  # white / husky
-	[Color8(222, 148, 82), Color8(200, 120, 62), Color8(172, 96, 48), Color8(140, 74, 38), Color8(106, 56, 32), Color8(74, 38, 24)],  # ginger
-	[Color8(170, 150, 128), Color8(146, 126, 106), Color8(120, 102, 86), Color8(96, 80, 68), Color8(74, 60, 52), Color8(52, 42, 36)],  # grey-brown
+	[Color8(96, 96, 104), Color8(78, 78, 86), Color8(62, 62, 70), Color8(48, 48, 56), Color8(36, 36, 42), Color8(24, 24, 30)],
+	[Color8(236, 232, 224), Color8(214, 208, 198), Color8(188, 182, 172), Color8(158, 152, 146), Color8(124, 120, 116), Color8(90, 86, 84)],
+	[Color8(222, 148, 82), Color8(200, 120, 62), Color8(172, 96, 48), Color8(140, 74, 38), Color8(106, 56, 32), Color8(74, 38, 24)],
+	[Color8(170, 150, 128), Color8(146, 126, 106), Color8(120, 102, 86), Color8(96, 80, 68), Color8(74, 60, 52), Color8(52, 42, 36)],
 ]
 
-## Where the dog / the fish are drawn inside the 128 px wide combined grab frames.
 const GRAB_DOG_CX := 43.0
 const GRAB_FISH_CX := 85.5
 const QUAD_CX := 52.0
@@ -82,7 +74,6 @@ func _play(anim_name: String, restart: bool = false) -> void:
 		sprite.speed_scale = 1.0
 
 
-# ------------------------------------------------------------------ main loop
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		if not is_on_floor():
@@ -101,7 +92,6 @@ func _physics_process(delta: float) -> void:
 		is_aggro = false
 	_observe_player(delta)
 
-	# the grip ignores outside stuns (the parry pulse of the held fish, etc.)
 	if state in [State.GRAPPLE, State.JAW_BREAK]:
 		is_stunned = false
 	elif is_stunned:
@@ -155,7 +145,6 @@ func _go(s: State) -> void:
 	hit_done = false
 
 
-# ------------------------------------------------------------------ states
 func _patrol(delta: float) -> void:
 	if is_aggro:
 		velocity.x = 0
@@ -194,7 +183,6 @@ func _bark() -> void:
 	tw.tween_property(sprite, "scale:y", base.y, 0.1)
 
 
-## Keeps a dangerous distance and waits for an opening (or for a free attack slot).
 func _stalk_logic(delta: float, dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
 		_release_token()
@@ -220,7 +208,6 @@ func _stalk_logic(delta: float, dist: float, dx: float, dy: float) -> void:
 	_play("run_fast" if abs(velocity.x) > 10 else "idle")
 	if sprite:
 		sprite.speed_scale = 0.8
-	# an opening appeared, or it is our turn
 	if t > 0.5 and abs(dy) < 70.0 and _request_token():
 		_go(State.CHASE)
 
@@ -235,11 +222,9 @@ func _chase_logic(dist: float, dx: float, dy: float) -> void:
 		sprite.speed_scale = 1.0
 	if _react_to_player(dist):
 		return
-	# someone else is already biting the fish - wait our turn
 	if not _request_token():
 		_go(State.STALK)
 		return
-	# player is on another floor above us: pace under them
 	if dy < -90.0:
 		velocity.x = sign(dx) * run_speed * 0.4 if dist > 40.0 else 0.0
 		_play("run_fast" if abs(velocity.x) > 5 else "idle")
@@ -255,7 +240,6 @@ func _chase_logic(dist: float, dx: float, dy: float) -> void:
 	_play("run_fast")
 	if cooldown > 0.0 or abs(dy) > 70.0:
 		return
-	# blocking players get grabbed: the bite ignores a raised guard
 	var want_bite = quad_cooldown <= 0.0 and dist > bite_min_range and dist < bite_max_range
 	if player_block_habit > 0.35 and quad_cooldown <= 0.0 and dist < bite_max_range and dist > 70.0:
 		want_bite = true
@@ -268,18 +252,14 @@ func _chase_logic(dist: float, dx: float, dy: float) -> void:
 		_start_combo()
 
 
-## Smart reactions shared by stalk / chase. Returns true when it took over.
 func _react_to_player(dist: float) -> bool:
-	# the fish swings at us: sidestep out of reach (the dog is agile)
 	if dodge_cooldown <= 0.0 and _player_threatens(100.0) and randf() < 0.75:
 		_start_dodge()
 		return true
-	# the fish is parrying: never bite into a parry, back off
 	if _player_flag("is_parrying") and dist < 140.0:
 		velocity.x = -facing_dir * run_speed * 0.8
 		_play("run_fast")
 		return true
-	# the fish just missed: punish the recovery
 	if _whiff_window > 0.0 and cooldown <= 0.0 and _request_token():
 		if dist < punch_range + 20.0:
 			_start_combo()
@@ -327,7 +307,6 @@ func _start_dodge() -> void:
 func _dodge_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 25.0)
 	if t > 0.3:
-		# counter-attack straight out of the dodge half of the time
 		if randf() < 0.5 and quad_cooldown <= 0.0 and _request_token():
 			_go(State.QUAD_START)
 			_play("quad_start", true)
@@ -344,7 +323,6 @@ func _quad_start_logic() -> void:
 
 
 func _quad_run_logic(dist: float, _dx: float, dy: float) -> void:
-	# commit to where the fish will be, not where it is
 	if _player_ok():
 		var target = _predict_player(0.25)
 		_face(target.x - global_position.x)
@@ -387,7 +365,6 @@ func _bite_connects() -> bool:
 	return rel.x * facing_dir > -12.0 and abs(rel.x) < 82.0 and abs(rel.y) < 55.0
 
 
-## Missed bite: the dog skids and is open to a counter for a moment.
 func _bite_recover_logic(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
 	_play("idle")
@@ -416,7 +393,6 @@ func _stun_logic(delta: float) -> void:
 		_go(State.STALK if is_aggro else State.PATROL)
 
 
-# ------------------------------------------------------------------ the death grip
 func _start_grapple() -> void:
 	_go(State.GRAPPLE)
 	velocity = Vector2.ZERO
@@ -451,7 +427,6 @@ func _grapple_logic(delta: float) -> void:
 		_grip_bar.value = _grip_value
 	_grip_tick += delta
 	if _grip_tick >= 1.1:
-		# the jaws keep chewing while the fish struggles
 		_grip_tick = 0.0
 		if player.has_method("take_damage"):
 			player.take_damage(1, self)
@@ -466,7 +441,6 @@ func _grapple_logic(delta: float) -> void:
 		_play("jaw_break", true)
 		return
 	if t >= grip_time:
-		# fish failed: a last hard chomp, then the dog lets go and backs off
 		if player.has_method("take_damage"):
 			player.take_damage(2, self)
 		_shake(0.35)
@@ -498,7 +472,6 @@ func _jaw_break_logic() -> void:
 	velocity.x = 0
 	if _player_ok():
 		player.velocity = Vector2.ZERO
-	# the elbow lands on frame 7
 	if not hit_done and sprite and sprite.animation == "jaw_break" and sprite.frame >= 7:
 		hit_done = true
 		_shake(0.45)
@@ -570,16 +543,13 @@ func _free_grip_ui() -> void:
 	_grip_bar = null
 
 
-# ------------------------------------------------------------------ damage / death
 func take_damage(amount: int) -> void:
-	# while it holds the fish the attack button is used for the struggle, not for damage
 	if state in [State.GRAPPLE, State.JAW_BREAK]:
 		return
 	super.take_damage(amount)
 
 
 func _on_hurt() -> void:
-	# agile: sometimes slips out of a combo instead of eating the next hit
 	if dodge_cooldown <= 0.0 and randf() < 0.35:
 		_start_dodge()
 		return
@@ -617,7 +587,7 @@ func _on_death() -> void:
 		_play("death", true)
 		anim_len = _anim_length(sprite, "death")
 	elif sprite:
-		sprite.stop()   # knocked out: keep the last KO frame
+		sprite.stop()
 	death_free_delay = anim_len + 1.4
 	if sprite:
 		var tw = create_tween()
@@ -626,6 +596,5 @@ func _on_death() -> void:
 
 
 func _exit_tree() -> void:
-	# never leave the fish invisible / frozen if the dog disappears mid-grip
 	if state in [State.GRAPPLE, State.JAW_BREAK]:
 		_release_player(false)

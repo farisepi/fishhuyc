@@ -46,13 +46,13 @@ func stop_factory_ambience() -> void:
 
 func set_glitch(intensity: float) -> void:
 	glitch_intensity = intensity
-	
+
 	var base_volume = lerp(-10.0, -30.0, intensity)
 	if scientist_player:
 		scientist_player.volume_db = base_volume
 	if mechanic_player:
 		mechanic_player.volume_db = base_volume
-	
+
 	if noise_player:
 		var target_volume = lerp(-80.0, -35.0, intensity)
 		current_noise_volume = lerp(current_noise_volume, target_volume, 0.02)
@@ -96,9 +96,9 @@ func play_switch_off() -> void:
 func play_scientist() -> void:
 	if not scientist_player:
 		return
-	
+
 	var pitch = 1.0 + randf_range(-pitch_variation * (1.0 + glitch_intensity * 4.0), pitch_variation * (1.0 + glitch_intensity * 4.0))
-	
+
 	if scientist_player.playing:
 		scientist_queue = pitch
 	else:
@@ -114,9 +114,9 @@ func _on_scientist_finished() -> void:
 func play_mechanic() -> void:
 	if not mechanic_player:
 		return
-	
+
 	var pitch = 1.0 + randf_range(-pitch_variation * (1.0 + glitch_intensity * 4.0), pitch_variation * (1.0 + glitch_intensity * 4.0))
-	
+
 	if mechanic_player.playing:
 		mechanic_queue = pitch
 	else:

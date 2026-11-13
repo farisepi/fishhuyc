@@ -4,10 +4,7 @@ var decay_speed: float = 0.3
 var max_offset: Vector2 = Vector2(25, 15)
 var trauma: float = 0.0
 var external_offset: Vector2 = Vector2.ZERO
-## Shake strength multiplier (the earthquake sets 3).
 var shake_mult: float = 1.0
-## The shake may reach this far (e.g. the edge of the background) - a bit beyond the limits,
-## so a camera standing at a limit still shakes. Empty = the limits.
 var shake_bounds: Rect2 = Rect2()
 
 var target_offset: Vector2 = Vector2.ZERO
@@ -15,9 +12,6 @@ var smooth_offset: Vector2 = Vector2.ZERO
 var look_amount: float = 30.0
 var look_speed: float = 4.0
 
-## The camera follows its parent itself (smoothly, clamped to the limits), so smoothing,
-## limits and offsets always agree - no more twitching at the edges of the location.
-## A cutscene turns this off and moves the camera by itself.
 var follow_enabled: bool = true
 var follow_speed: float = 5.0
 var _follow: Node2D = null
@@ -33,9 +27,6 @@ func _ready() -> void:
 		top_level = true
 		global_position = _pos
 
-## Cutscene start: the camera stops exactly where it is on screen right now (the
-## look-around offset is baked into its position instead of sliding back to zero),
-## stops following the fish and from now on only moves when the cutscene moves it.
 func begin_cutscene() -> void:
 	var half = get_viewport_rect().size / zoom / 2.0
 	var base = global_position
@@ -67,7 +58,7 @@ func _process(delta: float) -> void:
 			randf_range(-shake * max_offset.y, shake * max_offset.y)
 		) * shake_mult
 		trauma = max(trauma - decay_speed * delta, 0.0)
-	
+
 	var parent = get_parent()
 	if parent:
 		var input_dir = Vector2.ZERO
@@ -75,7 +66,7 @@ func _process(delta: float) -> void:
 		input_dir.y = Input.get_axis("ui_up", "ui_down")
 		target_offset = input_dir * look_amount
 		smooth_offset = smooth_offset.lerp(target_offset, look_speed * delta)
-	
+
 	_fit_zoom()
 	if follow_enabled and _follow and is_instance_valid(_follow) and not get_tree().paused:
 		var k = 1.0 - exp(-follow_speed * delta)
@@ -91,9 +82,6 @@ func _process(delta: float) -> void:
 	offset = _clamp_shake(calm, trauma_offset)
 
 
-## The camera never shows anything outside its limits (outside the location):
-## - on a wide window the view is wider than the location -> zoom in just enough;
-## - offset (look-around, shake, cutscene pans) is not limited by Camera2D itself -> clamp it.
 func _has_limits() -> bool:
 	return limit_left > -100000 and limit_right < 100000 and limit_top > -100000 and limit_bottom < 100000
 
@@ -123,11 +111,8 @@ func _clamp_shake(calm: Vector2, shake: Vector2) -> Vector2:
 	var base = global_position
 	base.x = _clamp_axis(base.x, limit_left, limit_right, half.x)
 	base.y = _clamp_axis(base.y, limit_top, limit_bottom, half.y)
-	# the shake may use the limits AND the extra bounds
 	b = b.merge(Rect2(limit_left, limit_top, limit_right - limit_left, limit_bottom - limit_top))
 	var c = base + calm
-	# symmetric: as much room down as up (and left as right), so a camera standing at
-	# an edge does not drift away from it on average while shaking
 	var room_lo = c - (b.position + half)
 	var room_hi = (b.end - half) - c
 	var mx = max(0.0, min(room_lo.x, room_hi.x))

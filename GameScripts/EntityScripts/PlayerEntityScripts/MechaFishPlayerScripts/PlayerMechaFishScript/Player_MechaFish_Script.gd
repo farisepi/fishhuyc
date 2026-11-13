@@ -63,24 +63,14 @@ var held_icon: Sprite2D
 var held_item_icon: Sprite2D
 var can_throw: bool = false
 var movement_blocked: bool = false
-## Set by a level (the factory): the fish can ONLY walk, jump and attack there -
-## no block, no parry, no dash, no climbing / ladders. Off everywhere else.
 var only_basic_moves: bool = false
-## Set by the factory while a minigame runs: the fish keeps standing at its press.
 var minigame_lock: bool = false
-## The level stopped time but this fish may still move (factory tutorial).
 var ignore_pause: bool = false
-## Set by a level when space was used for something else (tutorial skip): no jump until
-## the key is released.
 var block_jump: bool = false
-## Уровень может выключить блок (F) и парирование (ПКМ) — в Hallway их рано показывать.
 var allow_block: bool = true
 var allow_parry: bool = true
-## Падение в яму (DeathZone Hallway)
 var is_falling_into_pit: bool = false
 
-## Knockback: a hit pushes the fish away from whoever hit it (a little), death throws it
-## further. Levels can scale it down.
 var knockback_scale: float = 1.0
 var _knock_vx: float = 0.0
 var _knock_dir: float = 0.0
@@ -88,16 +78,13 @@ const KNOCK_HIT: float = 150.0
 const KNOCK_DEATH: float = 230.0
 const HURT_SHAKE: float = 0.3
 const DEATH_SHAKE: float = 0.45
-## The little fish that pops out of the broken suit when it dies.
 const DEATH_FISH_SHEET := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/MechaFishPlayerSprites/MechaFishDeathFrames/Player_MechaFish_Death_MechaSuit_SpriteList_Animation.png"
-const DEATH_FISH_FRAME: int = 6     # the dome hits the floor and cracks on this frame
+const DEATH_FISH_FRAME: int = 6
 var _death_fish: AnimatedSprite2D = null
 var _death_fish_v: Vector2 = Vector2.ZERO
 var _death_fish_floor: float = 0.0
 var _death_fish_bounces: int = 0
 var _death_fish_spawned: bool = false
-## Out of the suit the fish has only its air balloon: it drains, the fish flops slower and
-## slower, and when the air is gone it lies still.
 const DEATH_AIR_TIME := 4.5
 var _death_air_t: float = -1.0
 var _death_air_out: bool = false
@@ -141,6 +128,8 @@ var is_landing: bool = false
 const LANDING_SPEED_MULT: float = 0.2
 
 var _current_anim: String = ""
+var scripted_anim: bool = false
+var _held_last_pos: Vector2 = Vector2.INF
 
 var _slide_triggered: bool = false
 var _crouch_was_pressed: bool = false
@@ -450,14 +439,16 @@ func _physics_process(delta):
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
 	if is_dashing or movement_blocked or minigame_lock:
-		# held in place - but never hanging in the air (a job that starts mid-jump lets the
-		# fish land first)
 		velocity.x = 0.0
 		if not is_dashing and not is_on_floor() and not is_falling_into_pit:
 			velocity.y = min(velocity.y + gravity * delta, 900.0)
 		else:
 			velocity.y = 0.0
 		move_and_slide()
+		var moved = global_position.distance_to(_held_last_pos) > 0.3
+		_held_last_pos = global_position
+		if not is_dashing and not scripted_anim and not moved and sprite and (sprite.animation == "Run" or sprite.animation == "Jogging"):
+			_play_anim("Idle" if is_on_floor() else "Falling")
 		return
 	if is_vaulting or is_climbing or is_climbing_animation:
 		velocity.y = 0
@@ -568,6 +559,8 @@ func _physics_process(delta):
 			_play_anim("Idle")
 
 	move_and_slide()
+	if is_on_floor() and is_on_wall() and abs(get_real_velocity().x) < 4.0 and (_current_anim == "Run" or _current_anim == "Jogging"):
+		_play_anim("Idle")
 
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
@@ -641,9 +634,9 @@ func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, 
 	last_climbed_obstacle = o
 	is_climbing_animation = true
 	velocity = Vector2.ZERO
-	
+
 	set_physics_process(false)
-	
+
 	var go_right = global_position.x < center.x
 	facing_direction = 1 if go_right else -1
 	if sprite:
@@ -659,19 +652,19 @@ func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, 
 			climb_anim_len = float(count) / spd
 
 	var dir = 1.0 if go_right else -1.0
-	
+
 	var start_pos = global_position
 	var target_y = top_edge - climb_vertical_offset
 	var target_x = clamp(start_pos.x, left_edge + climb_horizontal_offset, right_edge - climb_horizontal_offset)
-	
+
 	if abs(target_x - start_pos.x) < 1.0:
 		target_x = start_pos.x + dir * climb_horizontal_offset
-		
+
 	var end_pos = Vector2(target_x + dir * climb_horizontal_offset, target_y)
 
 	var tw = create_tween()
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	
+
 	var mid_pos = Vector2(start_pos.x, target_y)
 	tw.tween_property(self, "global_position", mid_pos, climb_anim_len * 0.5)
 	tw.tween_property(self, "global_position", end_pos, climb_anim_len * 0.5)
@@ -705,14 +698,13 @@ func _end_slide():
 
 func _input(event: InputEvent) -> void:
 	if only_basic_moves:
-		# factory: only walking and jumping (read in physics) - no attacks, blocks, parries, dashes
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 		if allow_parry and is_on_floor():
 			_start_parry()
 		return
 
-	if event is InputEventKey and event.keycode == KEY_F and not event.echo and allow_block:
+	if event is InputEventKey and event.is_action("block") and not event.echo and allow_block:
 		if is_stunned or is_dead or is_dying or is_parrying:
 			return
 		if not is_on_floor():
@@ -735,7 +727,7 @@ func _input(event: InputEvent) -> void:
 				attack_buffer = true
 			else:
 				_do_attack()
-	if event is InputEventKey and event.keycode == KEY_SHIFT:
+	if event is InputEventKey and event.is_action("dash"):
 		if event.pressed:
 			is_shift_held = true
 			shift_held_time = 0.0
@@ -820,7 +812,6 @@ func _deal_attack_damage() -> void:
 		if camera and camera.has_method("add_trauma"):
 			camera.add_trauma(0.08)
 
-## Who hit us decides where we fly: a Node2D, a position, or nothing (= backwards).
 func _knock_dir_from(source) -> float:
 	var sx = NAN
 	if source is Node2D and is_instance_valid(source):
@@ -917,7 +908,7 @@ func die():
 
 	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("Death"):
 		if _death_anim_started:
-			return  
+			return
 		_death_anim_started = true
 
 		var last_frame = sprite.sprite_frames.get_frame_count("Death") - 1
@@ -927,17 +918,15 @@ func die():
 		sprite.play("Death")
 		if not sprite.frame_changed.is_connected(_on_death_frame):
 			sprite.frame_changed.connect(_on_death_frame)
-		
+
 		await sprite.animation_finished
 		if not is_inside_tree():
 			return
-			
+
 		sprite.stop()
 		sprite.frame = last_frame
 		if not _death_fish_spawned:
 			_spawn_death_fish()
-		# the death screen comes at once; the balloon is part of the HUD like the rest, so it
-		# goes under the death screen together with it (the fish still runs out of air behind)
 		await _safe_timer(0.7)
 		if not is_inside_tree():
 			return
@@ -1125,7 +1114,6 @@ func on_death_zone_entered():
 func set_hp(value: int):
 	hp = clamp(value, 0, max_hp)
 
-## Вызывается уровнем после катсцен: сразу «прилипнуть» к полу, без падения и Landing.
 func snap_to_floor_now() -> void:
 	if is_dead or is_falling_into_pit:
 		return
@@ -1137,7 +1125,6 @@ func snap_to_floor_now() -> void:
 	if sprite and sprite.animation in ["Falling", "Jump", "Landing"]:
 		_play_anim("Idle", true)
 
-## Падение в яму (DeathZone): проваливаемся сквозь пол, темнеем, затем экран смерти.
 func fall_into_pit(zone: Node2D = null):
 	if is_dead or is_dying or is_falling_into_pit:
 		return
@@ -1199,8 +1186,6 @@ func set_movement_blocked(blocked: bool):
 	movement_blocked = blocked
 
 
-
-# ------------------------------------------------------------------ death: the fish pops out
 func _on_death_frame() -> void:
 	if sprite == null or sprite.animation != "Death":
 		return
@@ -1208,8 +1193,6 @@ func _on_death_frame() -> void:
 		_spawn_death_fish()
 
 
-## Cuts the flopping-fish sheet into frames trimmed to the fish itself (so it spins around
-## its own middle while it flies).
 func _death_fish_frames() -> SpriteFrames:
 	var tex = load(DEATH_FISH_SHEET) as Texture2D
 	if tex == null:
@@ -1247,10 +1230,8 @@ func _spawn_death_fish() -> void:
 	_death_fish.sprite_frames = frames
 	_death_fish.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_death_fish.z_as_relative = false
-	# in front of everything around (in the factory the suit stands behind the belt)
 	_death_fish.z_index = max(sprite.z_index + z_index + 2, 35)
 	var side = signf(sprite.scale.x) if sprite.scale.x != 0.0 else 1.0
-	# out of the glass dome (the front of the lying suit)
 	var start = sprite.to_global(Vector2(-46.0, 2.0))
 	_death_fish.global_position = start
 	_death_fish.scale = sprite.global_scale.abs()
@@ -1258,7 +1239,6 @@ func _spawn_death_fish() -> void:
 	host.add_child(_death_fish)
 	_death_fish.global_position = start
 	_death_fish.play("default")
-	# pops up and away from the suit, falls back and bounces twice
 	var away = -side
 	if _knock_dir != 0.0:
 		away = _knock_dir
@@ -1266,7 +1246,6 @@ func _spawn_death_fish() -> void:
 	_death_fish_floor = sprite.to_global(Vector2(0, 36.0)).y
 	_death_fish_bounces = 0
 	_start_death_air()
-	# a few water drops from the cracked dome
 	for i in range(8):
 		var d = ColorRect.new()
 		d.size = Vector2(2, 2)
@@ -1283,9 +1262,6 @@ func _spawn_death_fish() -> void:
 		tw.tween_callback(d.queue_free)
 
 
-## The little fish flies out of the dome in an arc (spinning, a bit floaty), hits the floor,
-## bounces lower each time, then slides along the floor on its belly and stops.
-## _death_fish_bounces: 0..2 in the air, 3 = sliding, 4 = lying still.
 func _start_death_air() -> void:
 	_death_air_t = 0.0
 	_death_air_out = false
@@ -1297,15 +1273,18 @@ func _start_death_air() -> void:
 	gui.visible = true
 	cont.visible = true
 	cont.modulate.a = 1.0
-	# (the balloon already hangs on the left edge of the factory HUD; it simply starts to drain)
 	var was = _death_air_bar.visible
 	_death_air_bar.visible = true
 	_death_air_bar.stop()
 	_death_air_bar.animation = &"AirBalloon"
 	_death_air_bar.frame = 0
-	if not was:
-		_death_air_bar.modulate = Color(1, 1, 1, 0)
-		_death_air_bar.create_tween().tween_property(_death_air_bar, "modulate:a", 1.0, 0.25)
+	if not was or _death_air_bar.modulate.a < 0.99:
+		var lvl = get_tree().current_scene
+		if lvl and lvl.has_method("_place_air_bar"):
+			lvl._place_air_bar()
+		_death_air_bar.visible = true
+		_death_air_bar.modulate = Color(1, 1, 1, _death_air_bar.modulate.a if was else 0.0)
+		_death_air_bar.create_tween().tween_property(_death_air_bar, "modulate:a", 1.0, 0.45)
 
 func _update_death_air(delta: float) -> void:
 	if _death_air_t < 0.0 or _death_air_out:
@@ -1315,11 +1294,9 @@ func _update_death_air(delta: float) -> void:
 	if _death_air_bar and is_instance_valid(_death_air_bar) and _death_air_bar.sprite_frames:
 		var last = _death_air_bar.sprite_frames.get_frame_count(_death_air_bar.animation) - 1
 		_death_air_bar.frame = int(round(k * last))
-		# the last fifth blinks red
 		if k > 0.8:
 			var on = int(Time.get_ticks_msec() / 160) % 2 == 0
 			_death_air_bar.modulate = Color(1.0, 0.45, 0.45) if on else Color.WHITE
-	# the fish flops slower and slower while the air goes
 	if _death_fish and is_instance_valid(_death_fish) and _death_fish_bounces >= 4:
 		_death_fish.speed_scale = lerp(0.9, 0.15, k)
 	if k >= 1.0:
@@ -1327,7 +1304,6 @@ func _update_death_air(delta: float) -> void:
 		if _death_air_bar and is_instance_valid(_death_air_bar):
 			_death_air_bar.modulate = Color(1.0, 0.45, 0.45)
 		if _death_fish and is_instance_valid(_death_fish):
-			# one last twitch, then it does not move any more
 			var tw = _death_fish.create_tween()
 			tw.tween_property(_death_fish, "rotation", 0.12, 0.08)
 			tw.tween_property(_death_fish, "rotation", 0.0, 0.18)
@@ -1344,7 +1320,6 @@ func _update_death_fish(delta: float) -> void:
 	if _death_fish_bounces >= 4:
 		return
 	if _death_fish_bounces == 3:
-		# sliding: friction slows it down, it settles flat
 		var s = signf(_death_fish_v.x)
 		_death_fish_v.x = s * maxf(0.0, absf(_death_fish_v.x) - 260.0 * delta)
 		_death_fish.global_position.x += _death_fish_v.x * delta
@@ -1355,11 +1330,10 @@ func _update_death_fish(delta: float) -> void:
 			_death_fish_bounces = 4
 			_death_fish_v = Vector2.ZERO
 			_death_fish.rotation = 0.0
-			_death_fish.speed_scale = 0.5   # lies there, flopping
+			_death_fish.speed_scale = 0.5
 		return
 	_death_fish_v.y += 760.0 * delta
 	_death_fish.global_position += _death_fish_v * delta
-	# spins in the air, faster while it goes up
 	_death_fish.rotation += _death_fish_v.x * 0.045 * delta * (1.4 if _death_fish_v.y < 0.0 else 1.0)
 	if _death_fish.global_position.y >= _death_fish_floor and _death_fish_v.y > 0.0:
 		_death_fish.global_position.y = _death_fish_floor
@@ -1370,7 +1344,6 @@ func _update_death_fish(delta: float) -> void:
 			_death_fish_v = Vector2(_death_fish_v.x * 0.9, 0.0)
 		else:
 			_death_fish_v = Vector2(_death_fish_v.x * 0.8, -_death_fish_v.y * 0.36)
-			# every hit knocks it half-flat
 			_death_fish.rotation = lerp_angle(_death_fish.rotation, 0.0, 0.6)
 
 func _death_fish_dust(at: Vector2) -> void:

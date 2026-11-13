@@ -1,14 +1,10 @@
 extends Area2D
 
-# Яма. Рыба не умирает от касания, а проваливается сквозь пол (fall_into_pit),
-# после падения игрок сам показывает DeathScreen.
-# Срабатывает честно: только когда рыба СТОИТ на полу и её центр над ямой.
-# Перепрыгнуть яму (зона высотой 72px над полом) теперь можно — прыжок над ней не убивает.
 
 signal player_died
 
-@export var death_delay: float = 0.5      # не используется, оставлено для совместимости
-@export var edge_forgiveness: float = 8.0 # сколько пикселей у края ямы «прощаем»
+@export var death_delay: float = 0.5
+@export var edge_forgiveness: float = 8.0
 
 var is_triggered: bool = false
 var _candidate: Node2D = null
@@ -40,7 +36,6 @@ func _physics_process(_delta):
 		return
 	if _candidate.get("is_dead") == true or _candidate.get("is_falling_into_pit") == true:
 		return
-	# во время подтягивания/перескока у рыбы выключена коллизия — пропускаем
 	if _candidate.get("is_vaulting") == true or _candidate.get("is_climbing_animation") == true:
 		return
 	var r = _get_rect()

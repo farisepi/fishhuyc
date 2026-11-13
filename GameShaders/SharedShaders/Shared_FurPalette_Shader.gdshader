@@ -1,8 +1,3 @@
-// Fur / feather colour variants for enemies.
-// Swaps up to 6 exact source colours (the fur ramp of the sprite sheet) for target colours,
-// so one sheet gives several differently coloured animals. Everything else (armour, metal,
-// the forklift...) stays untouched. When the artist redraws a sheet, put its fur ramp into
-// FUR_SOURCE in the enemy script.
 shader_type canvas_item;
 
 uniform vec4 src0 : source_color = vec4(0.0);
@@ -37,7 +32,6 @@ void fragment() {
 	c = swap(c, src3, dst3, done);
 	c = swap(c, src4, dst4, done);
 	c = swap(c, src5, dst5, done);
-	// keep modulate (hit flash, fades) working: COLOR already holds texture * modulate
 	if (done) {
 		vec3 m = COLOR.rgb / max(tex.rgb, vec3(0.01));
 		COLOR = vec4(c * m, COLOR.a);

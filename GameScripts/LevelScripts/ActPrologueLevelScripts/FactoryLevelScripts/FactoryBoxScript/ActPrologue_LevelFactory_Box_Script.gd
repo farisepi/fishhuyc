@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 	var raw_vel = (current_mouse - last_mouse_pos) / max(delta, 0.001)
 	smooth_mouse_velocity = smooth_mouse_velocity.lerp(raw_vel, 0.3)
 	last_mouse_pos = current_mouse
-	
+
 	var view = get_viewport().get_visible_rect().size
 	if thrown:
 		velocity.y += fall_gravity * delta
@@ -49,21 +49,20 @@ func _process(delta: float) -> void:
 		if global_position.y > view.y + 200.0 or global_position.x < -400.0 or global_position.x > view.x + 400.0:
 			queue_free()
 		return
-	
+
 	if held:
 		var mouse_pos = get_global_mouse_position()
 		global_position = global_position.lerp(mouse_pos + mouse_offset, 0.35)
-		
+
 		var target_amp = clamp(smooth_mouse_velocity.x * 0.0008, -0.35, 0.35)
 		swing_amplitude = lerp(swing_amplitude, target_amp, 0.08)
 		swing_phase += delta * 3.5
 		rotation = sin(swing_phase) * swing_amplitude
 		return
-	
+
 	position.x -= conveyor_speed * delta
 	swing_phase += delta * 1.5
 	rotation = sin(swing_phase) * 0.03
-	# boxes that rode off the left edge were never removed and piled up forever
 	if global_position.x < -250.0:
 		queue_free()
 
@@ -82,7 +81,7 @@ func _on_mouse_exited() -> void:
 func _on_input_event(_viewport, event: InputEvent, _shape_idx: int) -> void:
 	if thrown:
 		return
-	
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
@@ -106,20 +105,20 @@ func _release() -> void:
 	held = false
 	thrown = true
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
-	
+
 	velocity.x = smooth_mouse_velocity.x * 0.6 + swing_amplitude * 600.0
 	velocity.y = smooth_mouse_velocity.y * 0.4
-	
+
 	if abs(velocity.x) < 50.0:
 		velocity.x = randf_range(-150.0, 150.0)
 	if abs(velocity.y) < 50.0:
 		velocity.y = -200.0
-	
+
 	angular_velocity = randf_range(-8.0, 8.0)
-	
+
 	if collision:
 		collision.set_deferred("disabled", true)
-	
+
 	thrown_out.emit()
 	Global.boxes_thrown += 1
 	if Global.boxes_thrown == 50:

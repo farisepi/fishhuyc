@@ -14,16 +14,16 @@ func _update_position():
 func _process(_delta):
 	var window_size = get_viewport().get_visible_rect().size
 	var center = window_size / 2
-	
+
 	var sens = Global.camera_sensitivity
 	if sens <= 0.0:
 		global_position = center
 		return
-	
+
 	var mouse_pos = get_viewport().get_mouse_position()
 	var offset_amount = (mouse_pos - center) * sens * 0.03
 	offset_amount.x = clamp(offset_amount.x, -max_offset, max_offset)
 	offset_amount.y = clamp(offset_amount.y, -max_offset, max_offset)
-	
+
 	var target = center + offset_amount
 	global_position = global_position.lerp(target, smooth_speed)

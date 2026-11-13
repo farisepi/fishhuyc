@@ -1,18 +1,16 @@
-// Volumetric light cone for hanging lamps. ColorRect: apex at the top centre,
-// set rect_size to the ColorRect size. Additive and unshaded, so it glows in dark scenes.
 shader_type canvas_item;
 render_mode blend_add, unshaded;
 
 uniform vec4 light_color : source_color = vec4(1.0, 0.78, 0.45, 1.0);
 uniform float intensity = 0.28;
-uniform float top_width = 0.10;      // cone width at the top (fraction of rect width)
-uniform float bottom_width = 0.95;   // cone width at the bottom
+uniform float top_width = 0.10;
+uniform float bottom_width = 0.95;
 uniform float falloff = 1.4;
 uniform vec2 rect_size = vec2(240.0, 300.0);
 uniform float pixel_size = 3.0;
 uniform float flicker_amount = 0.04;
 uniform float flicker_speed = 6.0;
-uniform float dropout_chance = 0.012; // chance per tick that the lamp stutters
+uniform float dropout_chance = 0.012;
 uniform float seed = 0.0;
 uniform float dust_density = 0.012;
 
@@ -35,11 +33,9 @@ void fragment() {
 
 	float a = (cone * 0.75 + core * 0.35) * fall * intensity * flick;
 
-	// slowly drifting dust motes inside the beam
 	vec2 dp = px + vec2(floor(sin(TIME * 0.4 + px.y * 0.05) * 2.0), floor(TIME * 4.0));
 	if (hash(floor(dp)) < dust_density) a += cone * 0.35 * intensity * 3.0 * (0.4 + fall);
 
-	// banded brightness for a pixel-art look
 	a = floor(a * 14.0) / 14.0;
 	COLOR = vec4(light_color.rgb, a);
 }

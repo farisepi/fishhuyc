@@ -9,6 +9,8 @@ extends Camera2D
 @export var camera_offset: Vector2 = Vector2(0, -42)
 
 var look_offset: Vector2 = Vector2.ZERO
+var bounds: Rect2 = Rect2()
+var breath_offset: Vector2 = Vector2.ZERO
 
 var trauma: float = 0.0
 var trauma_decay: float = 2.0
@@ -27,7 +29,15 @@ func add_trauma(amount: float) -> void:
 
 func snap_to(target: Vector2) -> void:
 	look_offset = Vector2.ZERO
-	global_position = target + camera_offset
+	global_position = _clamped(target + camera_offset)
+
+func _clamped(p: Vector2) -> Vector2:
+	if bounds.size.x <= 0.0 or not is_inside_tree():
+		return p
+	var half = get_viewport_rect().size / zoom / 2.0
+	p.x = clamp(p.x, bounds.position.x + half.x, max(bounds.position.x + half.x, bounds.end.x - half.x))
+	p.y = clamp(p.y, bounds.position.y + half.y, max(bounds.position.y + half.y, bounds.end.y - half.y))
+	return p
 
 func smooth_to(target: Vector2, duration: float = 0.2) -> void:
 	if not is_inside_tree():
@@ -47,9 +57,9 @@ func _process(delta):
 		)
 	else:
 		_shake_offset = Vector2.ZERO
-	
-	offset = _shake_offset
-	
+
+	offset = _shake_offset + breath_offset
+
 	if not follow_enabled:
 		return
 	var parent = get_parent()
@@ -68,4 +78,4 @@ func _process(delta):
 	look_offset.y = clamp(look_offset.y, -max_look_offset, max_look_offset)
 
 	var target = parent.global_position + look_offset + camera_offset
-	global_position = global_position.lerp(target, follow_speed * delta)
+	global_position = _clamped(global_position.lerp(target, follow_speed * delta))

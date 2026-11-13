@@ -9,12 +9,8 @@ var life_timer: float = 0.0
 var popped: bool = false
 var ignore_fish_collision: bool = false
 var ignore_timer: float = 0.0
-## >= 0: the bubble is carried over from another aquarium menu (keeps its look, no fade-in)
 var restored_alpha: float = -1.0
 
-## The background bubbles are the same in every aquarium menu (like the boxes on the factory
-## belt): switching main menu <-> settings / saves / achievements keeps them where they were
-## instead of spawning a new set. They can only be popped in the main menu.
 static var _menu_saved: Array = []
 static var _menu_saved_t: int = 0
 
@@ -26,8 +22,6 @@ static func save_menu_bubbles(parent: Node) -> void:
 	_menu_saved = arr
 	_menu_saved_t = Time.get_ticks_msec()
 
-## Puts the saved bubbles back (moved on by the time the menus were switching).
-## Returns false when there was nothing to restore.
 static func restore_menu_bubbles(parent: Node, scene: PackedScene, can_click: bool) -> bool:
 	if _menu_saved.is_empty() or scene == null:
 		return false
@@ -162,7 +156,7 @@ func _pop() -> void:
 	Global.bubbles_popped += 1
 	if Global.bubbles_popped >= 100 and not Achievements.pop_star_unlocked:
 		Achievements.unlock_pop_star()
-		call_deferred("_notify_achievement")   # the big-bubble effect plays only the once
+		call_deferred("_notify_achievement")
 
 	if collision:
 		collision.call_deferred("set_disabled", true)

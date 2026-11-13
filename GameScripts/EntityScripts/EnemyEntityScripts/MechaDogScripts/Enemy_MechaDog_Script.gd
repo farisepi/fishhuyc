@@ -71,7 +71,6 @@ func _on_detection_exit(body: Node2D) -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
-		# keep the corpse on the ground while the death animation plays
 		if not is_on_floor():
 			velocity.y += gravity * delta
 		velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
@@ -376,7 +375,6 @@ func _on_hurt() -> void:
 	state = State.STUN
 	is_stunned = true
 	stun_timer = hurt_stun_time
-	# small knockback away from the player
 	if player:
 		var away = sign(global_position.x - player.global_position.x)
 		if away == 0:
@@ -397,7 +395,6 @@ func _on_death() -> void:
 	state = State.DEAD
 	is_attacking = false
 	attack_buffer = false
-	# stop being hittable / blocking the player, but keep standing on the floor
 	collision_layer = 0
 	for a in [detection_area, bite_area, hit_area]:
 		if a:

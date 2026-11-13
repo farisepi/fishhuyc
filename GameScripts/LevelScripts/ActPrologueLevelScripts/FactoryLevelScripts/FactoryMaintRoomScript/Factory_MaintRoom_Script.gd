@@ -1,26 +1,20 @@
 extends Node
-## The maintenance room: where the fish sleep between shifts. A calm hub with no clock and no
-## guard: bunks, nightstands, lockers, the other fish resting. The fish don't talk, but walking
-## up to one and pressing E makes it answer with a little sign. The player's own bunk is marked;
-## lying down on it -> sleep -> (the dream, if the next shift brings something new) -> morning:
-## everybody walks out of the door on the left, the player follows -> "finished".
-## Built from code far right of the hall (x ~ 6000) with its own floor and walls.
 
 signal finished
 
-const RX := 6000.0                 # the middle of the room
-const PX := 3.0                    # the art is drawn in 3x pixels, like the hall tiles
-const BACK_W := 292.0              # the back texture, native pixels
-const BACK_FLOOR := 76.0           # its floor row
+const RX := 6000.0
+const PX := 3.0
+const BACK_W := 292.0
+const BACK_FLOOR := 76.0
 const LEFT := RX - BACK_W * PX * 0.5
 const HALF := BACK_W * PX * 0.5 - 4.0
 const FLOOR_Y := 380.0
 const CEIL_Y := FLOOR_Y - BACK_FLOOR * PX
-const DOOR_X := LEFT + 6.0 * PX + 49.5   # the exit, left (the hall's iron door)
+const DOOR_X := LEFT + 6.0 * PX + 49.5
 const BUNK_XS := [RX - 190.0, RX, RX + 190.0]
 const BUNK_W := 38.0
 const BUNK_H := 49.0
-const MY_BUNK := 2                 # the right bunk, lower bed
+const MY_BUNK := 2
 const LOCKER_X := RX + 300.0
 const TEX_DIR := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMaintRoomTextures/"
 const DOOR_TEX := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png"
@@ -34,6 +28,10 @@ const SLEEP_TEX := {
 	"WithOutHand": "WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Sleep_SpriteList_Animation.png",
 }
 const NEAR := 46.0
+const BOX_NEAR := 28.0
+const STASH_SCRIPT := preload("res://GameScripts/LevelScripts/ActPrologueLevelScripts/FactoryLevelScripts/FactoryMaintRoomScript/Factory_MaintRoom_Stash_Script.gd")
+const ROOM_IDS := ["room_bunks", "room_mybunk", "room_lockers", "room_stand",
+	"room_caps", "room_filter", "room_pebble", "room_shell", "room_photo", "room_letter"]
 const EMOTES := ["...", "?", "!", "zZ", "~", "<3", ":)", "..?"]
 
 var L = null
@@ -44,30 +42,39 @@ var _on: bool = false
 var _busy: bool = false
 var _morning: bool = false
 var _t: float = 0.0
-var _emotes: Array = []            # [{fish, text, t}]
-var _saved_npc: Array = []         # [[node, pos, flip, anim, visible, rot, z]]
+var _emotes: Array = []
+var _saved_npc: Array = []
 var _saved_player_pos: Vector2 = Vector2.ZERO
 var _saved_hud: bool = false
 var _saved_gui: bool = false
 var _saved_nav_vis: bool = false
 var _saved_strip_vis: bool = false
-var _sleepers: Array = []          # fish lying in bunks
+var _sleepers: Array = []
 var _zz_layer: CanvasLayer = null
 var _zz: Label = null
 var _saved_light: Color = Color.WHITE
 var _my_bunk: Sprite2D = null
-var _bunks: Array = []     # the other bunks
+var _bunks: Array = []
 var _lockers: Array = []
 var _stands: Array = []
-var _looked: Dictionary = {}
-var _fish_tweens: Array = []   # the morning walk to the door (stopped when we leave)   # room things already looked at (this visit)
-var _lie_sprites: Array = []       # [Sprite2D, npc]
+var _boxes: Array = []
+var _stash = null
+var _stash_box: Dictionary = {}
+var _pick: Array = []
+var _fish_tweens: Array = []
+var _lie_sprites: Array = []
 var _lamp_cones: Array = []
 
 func setup(level) -> void:
 	L = level
 	set_process(false)
 	set_process_input(false)
+	for id in ROOM_IDS:
+		if not (id in L._all_target_ids):
+			L._all_target_ids.append(id)
+
+func stash_open() -> bool:
+	return _stash != null and _stash.is_open()
 
 func is_on() -> bool:
 	return _on
@@ -75,7 +82,6 @@ func is_on() -> bool:
 func _bed_pos() -> Vector2:
 	return Vector2(BUNK_XS[MY_BUNK], FLOOR_Y)
 
-# ---------------------------------------------------------------- building
 func _spr(tex_path: String, pos: Vector2, z: int, parent: Node = null) -> Sprite2D:
 	var sp = Sprite2D.new()
 	sp.texture = load(tex_path)
@@ -83,6 +89,8 @@ func _spr(tex_path: String, pos: Vector2, z: int, parent: Node = null) -> Sprite
 	sp.scale = Vector2(PX, PX)
 	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sp.position = pos
+	if tex_path.begins_with(TEX_DIR) and not "Back" in tex_path:
+		sp.position -= Vector2(PX, PX)
 	sp.z_as_relative = false
 	sp.z_index = z
 	(parent if parent else _view).add_child(sp)
@@ -98,7 +106,6 @@ func _build() -> void:
 	_view.z_index = -9
 	_view.draw.connect(_draw_room)
 	add_child(_view)
-	# the room itself: the back wall, the door, the bunks, the nightstands, the lockers
 	_spr(TEX_DIR + "Factory_MaintRoom_Back_Texture.png", Vector2(LEFT, CEIL_Y), -8)
 	_spr(DOOR_TEX, Vector2(LEFT + 6.0 * PX, FLOOR_Y - 36.0 * PX), -7)
 	for b in range(BUNK_XS.size()):
@@ -108,11 +115,22 @@ func _build() -> void:
 			_my_bunk = bs
 		else:
 			_bunks.append(bs)
-	_stands.append(_spr(TEX_DIR + "Factory_MaintRoom_StandMug_Texture.png", Vector2(RX - 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6))
-	_stands.append(_spr(TEX_DIR + "Factory_MaintRoom_StandLamp_Texture.png", Vector2(RX + 95.0 - 24.0, FLOOR_Y - 22.0 * PX), -6))
+	for sn in ["StandMug", "StandLamp"]:
+		var sx = RX - 95.0 if sn == "StandMug" else RX + 95.0
+		var st = _spr(TEX_DIR + "Factory_MaintRoom_%s_Texture.png" % sn, Vector2(sx - 24.0, FLOOR_Y - 22.0 * PX), -6)
+		_stands.append(st)
+		_boxes.append({"node": st, "kind": "stand", "closed": TEX_DIR + "Factory_MaintRoom_%s_Texture.png" % sn,
+			"open": TEX_DIR + "Factory_MaintRoom_%sOpen_Texture.png" % sn, "items": ["photo"] if sn == "StandMug" else ["letter"]})
 	for k in range(2):
-		_lockers.append(_spr(TEX_DIR + "Factory_MaintRoom_Locker_Texture.png", Vector2(LOCKER_X - 24.0 + k * 48.0, FLOOR_Y - 41.0 * PX), -6))
-	# two lamps over the nightstands, with a soft warm cone
+		var lk = _spr(TEX_DIR + "Factory_MaintRoom_Locker_Texture.png", Vector2(LOCKER_X - 24.0 + k * 48.0, FLOOR_Y - 41.0 * PX), -6)
+		_lockers.append(lk)
+		_boxes.append({"node": lk, "kind": "locker", "closed": TEX_DIR + "Factory_MaintRoom_Locker_Texture.png",
+			"open": TEX_DIR + "Factory_MaintRoom_LockerOpen_Texture.png", "items": ["caps"] if k == 0 else ["filter", "pebble", "shell"]})
+	_stash = STASH_SCRIPT.new()
+	_stash.name = "Stash"
+	add_child(_stash)
+	_stash.setup(L)
+	_stash.closed.connect(_on_stash_closed)
 	for lx in [RX - 95.0, RX + 95.0]:
 		var lamp = _spr(LAMP_TEX, Vector2(lx - 21.0, CEIL_Y + 21.0), -5)
 		lamp.modulate = Color(1.2, 1.1, 0.95)
@@ -130,7 +148,6 @@ func _build() -> void:
 			cone.z_index = 30
 			_view.add_child(cone)
 			_lamp_cones.append(cone)
-	# a front layer for the marks over the bed and the fish signs (over the fish)
 	var front = Node2D.new()
 	front.name = "MaintRoomFront"
 	front.z_as_relative = false
@@ -141,9 +158,14 @@ func _build() -> void:
 	_body = StaticBody2D.new()
 	_body.name = "MaintRoomBody"
 	add_child(_body)
-	_add_box(Vector2(RX, FLOOR_Y + 40.0), Vector2(HALF * 2.0 + 400.0, 80.0))          # floor
-	_add_box(Vector2(RX - HALF - 20.0, 200.0), Vector2(40.0, 600.0))                     # walls
+	_add_box(Vector2(RX, FLOOR_Y + 40.0), Vector2(HALF * 2.0 + 400.0, 80.0))
+	_add_box(Vector2(RX - HALF - 20.0, 200.0), Vector2(40.0, 600.0))
 	_add_box(Vector2(RX + HALF + 20.0, 200.0), Vector2(40.0, 600.0))
+
+func _set_cam_bounds(on: bool) -> void:
+	if L == null or L.camera == null or not ("bounds" in L.camera):
+		return
+	L.camera.bounds = view_rect() if on else Rect2()
 
 func _add_box(at: Vector2, size: Vector2) -> void:
 	var cs = CollisionShape2D.new()
@@ -156,7 +178,6 @@ func _add_box(at: Vector2, size: Vector2) -> void:
 func _front() -> Node2D:
 	return _view.get_meta("front") if _view else null
 
-# ---------------------------------------------------------------- enter / leave
 func enter() -> void:
 	_build()
 	_on = true
@@ -165,7 +186,6 @@ func enter() -> void:
 	_emotes.clear()
 	L._room_on = true
 	L._update_escape_hint()
-	# no leftover speech from the hall
 	if L._bubble and is_instance_valid(L._bubble):
 		L._bubble.queue_free()
 	for ch in L._chan_bubbles.keys():
@@ -179,7 +199,6 @@ func enter() -> void:
 	for cs in _body.get_children():
 		cs.set_deferred("disabled", false)
 	_saved_hud = L._hud_on
-	# the room is lit warmer and brighter than the hall
 	var lt = L.get_node_or_null("Lighting") as CanvasModulate
 	if lt:
 		_saved_light = lt.color
@@ -191,7 +210,7 @@ func enter() -> void:
 		L._nav.visible = false
 	if L._act_strip:
 		_saved_strip_vis = L._act_strip.visible
-		L._act_strip.visible = L._tut_done("journal")   # (after the first shift there is none yet)
+		L._act_strip.visible = L._tut_done("journal")
 	if L.player:
 		_saved_player_pos = L.player.global_position
 		L.player.global_position = Vector2(DOOR_X + 30.0, 350.0)
@@ -213,6 +232,11 @@ func leave() -> void:
 	_on = false
 	set_process(false)
 	set_process_input(false)
+	if stash_open():
+		_stash.visible = false
+		_stash._open = false
+		_on_stash_closed()
+	_set_cam_bounds(false)
 	L._room_on = false
 	L._update_escape_hint()
 	var lt = L.get_node_or_null("Lighting") as CanvasModulate
@@ -246,7 +270,6 @@ func leave() -> void:
 		var nn = t["node"]
 		if is_instance_valid(nn) and nn.material is ShaderMaterial:
 			nn.material.set_shader_parameter("active", 0.0)
-	_looked.clear()
 	for l in _lie_sprites:
 		if is_instance_valid(l[0]):
 			l[0].queue_free()
@@ -285,7 +308,6 @@ func _lie_down(fish: AnimatedSprite2D, bunk: int, upper: bool) -> void:
 	sp.hframes = 2
 	sp.centered = false
 	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var w = sp.texture.get_width() / 2.0
 	var h = float(sp.texture.get_height())
 	sp.position = Vector2(BUNK_XS[bunk] - BUNK_W * PX * 0.5 + 9.0, _bed_y(0 if upper else 1) - h + 4.0)
 	sp.z_as_relative = false
@@ -302,35 +324,43 @@ func _place_fish() -> void:
 		if is_instance_valid(l[0]):
 			l[0].queue_free()
 	_lie_sprites.clear()
-	# [x, y, faces left, lying (bunk, upper)]
-	var spots = [
-		[LEFT + 190.0, 344.0, false, null],        # standing near the door, by the notice board
-		[0.0, 0.0, false, [0, true]],               # asleep up on the left bunk
-		[RX - 95.0 + 34.0, 344.0, true, null],      # by the mug on the nightstand
-		[0.0, 0.0, false, [1, false]],              # asleep down on the middle bunk
-		[LOCKER_X - 70.0, 344.0, false, null],      # by the lockers
+	var beds = [[0, true], [0, false], [1, true], [1, false], [2, true]]
+	beds.shuffle()
+	var stands = [
+		[LEFT + 190.0, false],
+		[RX - 95.0 + 34.0, true],
+		[LOCKER_X - 70.0, false],
+		[RX + 95.0 - 40.0, false],
 	]
-	var i := 0
+	stands.shuffle()
+	var fishes: Array = []
 	for fish in L.npc_fishes:
-		if fish == null:
-			continue
+		if fish != null:
+			fishes.append(fish)
+	fishes.shuffle()
+	var n_sleep = clamp(fishes.size() - 2, 1, 2) if fishes.size() > 1 else 0
+	if fishes.size() > 2 and randf() < 0.35:
+		n_sleep = min(3, fishes.size() - 1)
+	var i := 0
+	for fish in fishes:
 		_saved_npc.append([fish, fish.position, fish.flip_h, String(fish.animation), fish.visible, fish.rotation, fish.z_index])
-		var s = spots[i % spots.size()]
 		fish.visible = true
 		fish.rotation = 0.0
 		fish.modulate = Color.WHITE
 		fish.z_index = 25
-		if s[3] != null:
-			_lie_down(fish, s[3][0], s[3][1])
-			fish.position = Vector2(BUNK_XS[s[3][0]] - 10.0, _bed_y(0 if s[3][1] else 1) - 14.0)   # (for the "zZ")
+		if i < n_sleep:
+			var b = beds[i]
+			_lie_down(fish, b[0], b[1])
+			fish.position = Vector2(BUNK_XS[b[0]] - 10.0, _bed_y(0 if b[1] else 1) - 14.0)
 		else:
-			fish.position = Vector2(s[0], s[1])
-			fish.flip_h = s[2]
+			var sp = stands[(i - n_sleep) % stands.size()]
+			fish.position = Vector2(sp[0] + randf_range(-8.0, 8.0), 344.0)
+			fish.flip_h = sp[1] if randf() < 0.75 else not sp[1]
 			if fish.sprite_frames and fish.sprite_frames.has_animation("idle"):
 				fish.play("idle")
+				fish.frame = randi() % max(1, fish.sprite_frames.get_frame_count("idle"))
 		i += 1
 
-## y of the mattress top: 0 = upper bed, 1 = lower bed.
 func _bed_y(level: int) -> float:
 	return FLOOR_Y - (BUNK_H - (10.0 if level == 0 else 36.0)) * PX
 
@@ -348,7 +378,6 @@ func _first_visit_card() -> void:
 		func(): return L._world_to_screen(Rect2(_bed_pos() + Vector2(-60, -112), Vector2(120, 116))), false)
 	L._tut_mark("room")
 
-# ---------------------------------------------------------------- loop / input
 func _process(delta: float) -> void:
 	_t += delta
 	for e in _emotes:
@@ -358,12 +387,13 @@ func _process(delta: float) -> void:
 		if is_instance_valid(l[0]):
 			l[0].frame = 1 if fmod(_t + l[2], 3.2) < 1.4 else 0
 	_update_room_outlines()
+	_pick = _what_e()
 	if _my_bunk:
 		var on = not _morning and not _busy and L.state != L.State.INSPECT
 		if on and not (_my_bunk.material is ShaderMaterial):
 			L._ensure_outline(_my_bunk, L.COLOR_HIGHLIGHT_YELLOW)
 		if _my_bunk.material is ShaderMaterial:
-			_my_bunk.material.set_shader_parameter("active", 1.0 if on else 0.0)   # (steady, like in inspect)
+			_my_bunk.material.set_shader_parameter("active", 1.0 if on else 0.0)
 	var flick = 0.92 + 0.08 * sin(_t * 1.7) * sin(_t * 0.43 + 1.0)
 	for c in _lamp_cones:
 		c.modulate.a = 0.22 * flick
@@ -371,9 +401,6 @@ func _process(delta: float) -> void:
 		_view.queue_redraw()
 		_front().queue_redraw()
 
-# ---------------------------------------------------------------- the room in inspect mode
-## What can be looked at here: the bunks, the lockers, the nightstands, and the fish (only the
-## ones not looked at during a shift - those go to the journal like in the hall).
 func view_rect() -> Rect2:
 	return Rect2(LEFT - 20.0, CEIL_Y - 40.0, BACK_W * PX + 40.0, BACK_FLOOR * PX + 110.0)
 
@@ -381,23 +408,24 @@ func _room_targets() -> Array:
 	var out: Array = []
 	for b in _bunks:
 		out.append({"node": b, "id": "room_bunks", "title": tr("Койки"),
-			"text": tr("Двухъярусные, железные, с номерами. Матрас тоньше рыбьей чешуи, но после смены засыпаешь на чём угодно.")})
+			"text": tr("Двухъярусные, железные, с номерами. Матрас тоньше рыбьей чешуи, но после смены засыпаешь на чём угодно."),
+			"journal": tr("двухъярусные, железные. Матрас тоньше рыбьей чешуи.")})
 	if _my_bunk:
 		out.append({"node": _my_bunk, "id": "room_mybunk", "title": tr("Моя койка"),
-			"text": tr("Нижняя, с оранжевым одеялом. Одеяло досталось от прежнего жильца — о нём здесь не говорят.")})
-	for l in _lockers:
-		out.append({"node": l, "id": "room_lockers", "title": tr("Шкафчики"),
-			"text": tr("У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего.")})
-	for st in _stands:
-		out.append({"node": st, "id": "room_stand", "title": tr("Тумбочка"),
-			"text": tr("Кружка с остывшим чаем из водорослей и лампа, которую никто не выключает. Ночью она — единственный свет в комнате.")})
+			"text": tr("Нижняя, с оранжевым одеялом. Одеяло досталось от прежнего жильца — о нём здесь не говорят."),
+			"journal": tr("нижняя, с оранжевым одеялом от прежнего жильца.")})
+	for b in _boxes:
+		var t = _box_info(b)
+		t["node"] = b["node"]
+		t["box"] = b
+		out.append(t)
 	for s2 in _saved_npc:
 		var f = s2[0]
 		if not is_instance_valid(f):
 			continue
 		var ident = L.npc_identities.get(f, "")
 		var info = L.NPC_IDENTITY_DATA.get(ident, {})
-		if info.is_empty() or L.journal_notes.has("npc_" + ident):
+		if info.is_empty():
 			continue
 		var node = f
 		for l2 in _lie_sprites:
@@ -407,8 +435,60 @@ func _room_targets() -> Array:
 			"text": tr(info.get("phrase", "")), "journal": tr(info.get("journal", ""))})
 	return out
 
+func _box_info(b: Dictionary) -> Dictionary:
+	if b["kind"] == "locker":
+		return {"id": "room_lockers", "title": tr("Шкафчики"), "kind_title": tr("ШКАФЧИК"), "box_title": tr("Шкафчик"),
+			"text": tr("У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего."),
+			"journal": tr("у каждого свой, без замков. Внутри — личные мелочи.")}
+	return {"id": "room_stand", "title": tr("Тумбочка"), "kind_title": tr("ТУМБОЧКА"), "box_title": tr("Тумбочка"),
+		"text": tr("Кружка с остывшим чаем из водорослей и лампа, которую никто не выключает. Ночью она — единственный свет в комнате."),
+		"journal": tr("кружка остывшего чая из водорослей и лампа, которую никто не выключает.")}
+
+func _item_def(key: String) -> Dictionary:
+	match key:
+		"caps":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemCaps_Texture.png", "origin": Vector2(4, 18), "id": "room_caps",
+				"title": tr("Кепки Никиты"),
+				"phrase": tr("Целая гора кепок. Внутри каждой нацарапано: «НИКИТА». Голов у Никиты одна, кепок — двенадцать."),
+				"journal": tr("гора кепок, все подписаны «НИКИТА». Кто такой Никита — в комнате не знает никто.")}
+		"filter":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemFilter_Texture.png", "origin": Vector2(5, 5), "id": "room_filter",
+				"title": tr("Запасной фильтр"),
+				"phrase": tr("Запасной фильтр для костюма. Пломба целая — значит, свой у хозяина ещё дышит."),
+				"journal": tr("запасной фильтр для костюма. Без него за стенами завода долго не протянуть.")}
+		"pebble":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemPebble_Texture.png", "origin": Vector2(7, 22), "id": "room_pebble",
+				"title": tr("Камешек"),
+				"phrase": tr("Гладкий камешек со дна пруда. Кто-то носит его с собой с самого первого дня."),
+				"journal": tr("камешек со дна родного пруда. Чей — неизвестно.")}
+		"shell":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemShell_Texture.png", "origin": Vector2(6, 35), "id": "room_shell",
+				"title": tr("Ракушка"),
+				"phrase": tr("Ракушка с воли. Если приложить к стеклу шлема — шумит, как настоящая вода."),
+				"journal": tr("ракушка с воли. Шумит, как настоящая вода.")}
+		"photo":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemPhoto_Texture.png", "origin": Vector2(4, 10), "id": "room_photo",
+				"title": tr("Фотография"),
+				"phrase": tr("Старый снимок: пруд, солнце, кувшинки. На обороте одно слово: «Вернёмся»."),
+				"journal": tr("фото пруда с подписью «Вернёмся».")}
+		"letter":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemLetter_Texture.png", "origin": Vector2(5, 11), "id": "room_letter",
+				"title": tr("Письмо"),
+				"phrase": tr("Неотправленное письмо. Вместо адреса — одно слово: «домой»."),
+				"journal": tr("письмо без адреса, только «домой». Его так и не отправили.")}
+	return {}
+
+func _target_live(t: Dictionary) -> bool:
+	if not L.journal_notes.has(t["id"]):
+		return true
+	if t.has("box"):
+		for k in t["box"]["items"]:
+			if not L.journal_notes.has(_item_def(k)["id"]):
+				return true
+	return false
+
 func _update_room_outlines() -> void:
-	var insp = L.state == L.State.INSPECT
+	var insp = L.state == L.State.INSPECT and not stash_open()
 	for t in _room_targets():
 		var n = t["node"]
 		if not is_instance_valid(n) or not n.visible:
@@ -416,23 +496,87 @@ func _update_room_outlines() -> void:
 		L._ensure_outline(n, L.COLOR_HIGHLIGHT_BLUE)
 		if n.material is ShaderMaterial:
 			n.material.set_shader_parameter("outline_color", L.COLOR_HIGHLIGHT_BLUE)
-			n.material.set_shader_parameter("active", 1.0 if (insp and not _looked.has(t["id"])) else 0.0)
-	if not insp:
-		return
+			n.material.set_shader_parameter("active", 1.0 if (insp and _target_live(t)) else 0.0)
 
 func inspect_click(wp: Vector2) -> void:
+	if stash_open():
+		return
 	for t in _room_targets():
 		var n = t["node"]
-		if not is_instance_valid(n) or not n.visible or _looked.has(t["id"]):
+		if not is_instance_valid(n) or not n.visible or not _target_live(t):
 			continue
 		if L._node_hit(n, wp) != -1.0:
-			_looked[t["id"]] = true
+			if t.has("box"):
+				_open_box(t["box"])
+				return
 			L._show_inspect_text(t["title"], t["text"], t.get("journal", ""))
-			if t.has("journal"):
-				L._add_journal_note(t["id"], t["title"] + ": " + t["journal"])
+			L._add_journal_note(t["id"], t["title"] + ": " + t["journal"])
 			if n.material is ShaderMaterial:
 				n.material.set_shader_parameter("active", 0.0)
 			return
+
+func _open_box(b: Dictionary) -> void:
+	if stash_open() or _stash == null:
+		return
+	var info = _box_info(b)
+	_stash_box = b
+	b["node"].texture = load(b["open"])
+	if L.inspect_text_panel:
+		L.inspect_text_panel.visible = false
+	var items: Array = []
+	for k in b["items"]:
+		items.append(_item_def(k))
+	var s = 8.0 if b["kind"] == "locker" else 10.0
+	_stash.open({"kind_title": info["kind_title"], "title": info["box_title"], "text": info["text"],
+		"closed_tex": b["closed"], "open_tex": b["open"], "scale": s, "items": items})
+	L._add_journal_note(info["id"], info["title"] + ": " + info["journal"])
+
+func _on_stash_closed() -> void:
+	if not _stash_box.is_empty() and is_instance_valid(_stash_box["node"]):
+		_stash_box["node"].texture = load(_stash_box["closed"])
+	_stash_box = {}
+
+func _near_box() -> Dictionary:
+	if L.player == null:
+		return {}
+	var best: Dictionary = {}
+	var bd := BOX_NEAR
+	for b in _boxes:
+		var n: Sprite2D = b["node"]
+		var cx = n.position.x + n.texture.get_width() * PX * 0.5
+		var d = abs(cx - L.player.global_position.x)
+		if d < bd:
+			bd = d
+			best = b
+	return best
+
+func _what_e() -> Array:
+	if L.player == null or _busy or not _on or L.state == L.State.INSPECT or stash_open():
+		return ["", null]
+	var px = L.player.global_position.x
+	var best = ["", null]
+	var bd := INF
+	if not _morning and _near_bed():
+		bd = abs(_bed_pos().x - px)
+		best = ["bed", null]
+	if _morning and _near_door():
+		var dd = abs(DOOR_X - px)
+		if dd < bd:
+			bd = dd
+			best = ["door", null]
+	var b = _near_box()
+	if not b.is_empty():
+		var n: Sprite2D = b["node"]
+		var d2 = abs(n.position.x + n.texture.get_width() * PX * 0.5 - px)
+		if d2 < bd:
+			bd = d2
+			best = ["box", b]
+	var f = _near_fish()
+	if f:
+		var d3 = abs(f.global_position.x - px)
+		if d3 < bd - 6.0:
+			best = ["fish", f]
+	return best
 
 func _near_door() -> bool:
 	return L.player != null and abs(L.player.global_position.x - DOOR_X) < 46.0
@@ -456,22 +600,24 @@ func _near_fish() -> Node:
 	return best
 
 func _input(event: InputEvent) -> void:
-	if not _on or _busy or L.journal_open or L._tut_reading or L.state == L.State.INSPECT:
+	if not _on or _busy or L.journal_open or L._tut_reading or L.state == L.State.INSPECT or stash_open():
 		return
 	if not event.is_action_pressed("interact"):
 		return
-	if not _morning and _near_bed():
-		get_viewport().set_input_as_handled()
-		_sleep()
-		return
-	if _morning and _near_door():
-		get_viewport().set_input_as_handled()
-		_go_out()
-		return
-	var f = _near_fish()
-	if f:
-		get_viewport().set_input_as_handled()
-		_emote(f)
+	var w = _what_e()
+	match w[0]:
+		"bed":
+			get_viewport().set_input_as_handled()
+			_sleep()
+		"door":
+			get_viewport().set_input_as_handled()
+			_go_out()
+		"box":
+			get_viewport().set_input_as_handled()
+			_open_box(w[1])
+		"fish":
+			get_viewport().set_input_as_handled()
+			_emote(w[1])
 
 func _emote(f: Node) -> void:
 	for e in _emotes:
@@ -482,7 +628,6 @@ func _emote(f: Node) -> void:
 		txt = "zZ"
 	else:
 		txt = EMOTES[randi() % EMOTES.size()]
-		# it turns to the player and hops a little
 		f.flip_h = L.player.global_position.x < f.global_position.x
 		var y0 = f.position.y
 		var tw = f.create_tween()
@@ -490,7 +635,6 @@ func _emote(f: Node) -> void:
 		tw.tween_property(f, "position:y", y0, 0.14).set_ease(Tween.EASE_IN)
 	_emotes.append({"fish": f, "text": txt, "t": 0.0})
 
-# ---------------------------------------------------------------- sleep and morning
 func _sleep() -> void:
 	_busy = true
 	if L._spot:
@@ -505,14 +649,15 @@ func _sleep() -> void:
 	var st = L._plan_next_station()
 	if L._dream and L._dream.night_has_lessons(sh, st):
 		L._room_on = false
+		_set_cam_bounds(false)
 		await L._dream.run_night(sh, st)
 		L._room_on = true
+		_set_cam_bounds(true)
 		if L._act_strip:
 			L._act_strip.visible = L._tut_done("journal")
 		L._set_hud_visible(false)
 		if L.player_gui:
 			L.player_gui.visible = false
-	# morning: standing by the bed, the others get up
 	if L.player:
 		L.player.global_position = Vector2(_bed_pos().x - 34.0, 350.0)
 		L.player.velocity = Vector2.ZERO
@@ -605,12 +750,9 @@ func _go_out() -> void:
 	await L._fade_black(true, 0.9)
 	finished.emit()
 
-# ---------------------------------------------------------------- drawing
 func _draw_room() -> void:
 	var v = _view
-	# outside the room: dark
 	v.draw_rect(Rect2(RX - 1400, -600, 2800, 1600), Color(0.03, 0.035, 0.05))
-	# above the ceiling slab: dark trusses; below the floor plates: the lower plating
 	var x0 = LEFT
 	var w = BACK_W * PX
 	v.draw_rect(Rect2(x0, CEIL_Y - 300.0, w, 300.0), Color(0.055, 0.065, 0.09))
@@ -621,7 +763,6 @@ func _draw_room() -> void:
 		bx += 72.0
 	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 9), Color(0.1, 0.11, 0.14))
 	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 3), Color(0.16, 0.17, 0.21))
-	# the room's own side walls (beyond them: thick steel, not a black hole)
 	for side in [-1.0, 1.0]:
 		var wx = x0 - 340.0 if side < 0 else x0 + w
 		v.draw_rect(Rect2(wx, CEIL_Y - 300.0, 340.0, 800.0), Color(0.1, 0.115, 0.15))
@@ -631,14 +772,12 @@ func _draw_room() -> void:
 			for rx in range(int(wx) + 12, int(wx + 340.0), 72):
 				v.draw_rect(Rect2(rx, py + 9, 3, 3), Color(0.18, 0.2, 0.25))
 			py += 66.0
-		# a thick pillar right at the edge of the room, with a hazard band
 		var pxl = x0 - 24.0 if side < 0 else x0 + w
 		v.draw_rect(Rect2(pxl, CEIL_Y - 300.0, 24.0, 800.0), Color(0.2, 0.22, 0.26))
 		v.draw_rect(Rect2(pxl + (21.0 if side < 0 else 0.0), CEIL_Y - 300.0, 3.0, 800.0), Color(0.3, 0.32, 0.37))
 		for hy in range(0, 4):
 			var yy = FLOOR_Y - 60.0 + hy * 6.0
 			v.draw_rect(Rect2(pxl, yy, 24.0, 3.0), Color(0.95, 0.6, 0.3) if hy % 2 == 0 else Color(0.08, 0.08, 0.08))
-		# pipes running into the wall
 		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 9.0), Color(0.36, 0.2, 0.15))
 		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 3.0), Color(0.5, 0.3, 0.22))
 	var fy = FLOOR_Y + (100.0 - BACK_FLOOR) * PX
@@ -649,7 +788,6 @@ func _draw_room() -> void:
 		fx += 90.0
 	for k in range(4):
 		v.draw_rect(Rect2(x0, fy + 30.0 + k * 66.0, w, 3), Color(0.04, 0.06, 0.12))
-	# the lamp over the door: red at night, blinking green in the morning
 	var lamp_on = _morning and fmod(_t, 1.0) < 0.6
 	var lc = Color(0.35, 1.0, 0.5) if lamp_on else Color(0.55, 0.12, 0.1)
 	var lp = Vector2(DOOR_X - 6.0, FLOOR_Y - 36.0 * PX - 12.0)
@@ -657,8 +795,6 @@ func _draw_room() -> void:
 	v.draw_rect(Rect2(lp, Vector2(12, 6)), lc)
 	v.draw_rect(Rect2(lp, Vector2(12, 2)), lc.lightened(0.4))
 
-## The interact key drawn like in the aquarium: a white key cap that is pressed now and then,
-## a soft glow and a ring around it, and a word under it.
 func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> void:
 	var f = L._bubble_font()
 	var key = L._key_name("interact")
@@ -693,7 +829,6 @@ func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> vo
 
 func _draw_front(front: Node2D) -> void:
 	var f = L._bubble_font()
-	# my bunk: a glowing outline, the label and a bobbing arrow (until morning)
 	if not _morning and L.state != L.State.INSPECT:
 		var bp = _bed_pos()
 		var bob = sin(_t * 4.0) * 2.0
@@ -704,10 +839,9 @@ func _draw_front(front: Node2D) -> void:
 			var sw = f.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
 			front.draw_rect(Rect2(bp.x - sw * 0.5 - 4, ay - 16, sw + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
 			front.draw_string(f, Vector2(bp.x - sw * 0.5, ay - 6), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
-			if _on and not _busy and _near_bed():
+			if _pick.size() > 0 and _pick[0] == "bed":
 				_draw_key_prompt(front, Vector2(bp.x, FLOOR_Y - 150.0), tr("СПАТЬ"), Color(1.0, 0.84, 0.35))
 	elif _morning and L.state != L.State.INSPECT:
-		# morning: the way out
 		var bob2 = sin(_t * 4.0) * 3.0
 		var ax = DOOR_X
 		var ay2 = FLOOR_Y - 158.0 + bob2
@@ -717,9 +851,26 @@ func _draw_front(front: Node2D) -> void:
 			var sw2 = f.get_string_size(lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
 			front.draw_rect(Rect2(ax - sw2 * 0.5 - 4, ay2 - 16, sw2 + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
 			front.draw_string(f, Vector2(ax - sw2 * 0.5, ay2 - 6), lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.5, 1.0, 0.6))
-		if _on and not _busy and _near_door():
+		if _pick.size() > 0 and _pick[0] == "door":
 			_draw_key_prompt(front, Vector2(ax, FLOOR_Y - 86.0), tr("ВЫЙТИ"), Color(0.5, 1.0, 0.6))
-	# the sleepers breathe out little "z"s
+	if _pick.size() > 1 and _pick[0] == "box":
+		var bn: Sprite2D = _pick[1]["node"]
+		var bx = bn.position.x + bn.texture.get_width() * PX * 0.5
+		var by = bn.position.y + 30.0 if _pick[1]["kind"] == "locker" else bn.position.y - 24.0
+		_draw_key_prompt(front, Vector2(bx, by), tr("ОТКРЫТЬ"), Color(1.0, 0.8, 0.4))
+	elif _pick.size() > 1 and _pick[0] == "fish":
+		var fn = _pick[1]
+		var fp = fn.global_position + Vector2(0, -66.0)
+		if fn in _sleepers:
+			for l in _lie_sprites:
+				if l[1] == fn and is_instance_valid(l[0]):
+					fp = l[0].position + Vector2(30.0, -26.0)
+		var talking := false
+		for e in _emotes:
+			if e["fish"] == fn:
+				talking = true
+		if not talking:
+			_draw_key_prompt(front, fp, tr("ПОЗВАТЬ"), Color(0.55, 0.85, 1.0))
 	if f:
 		for l in _lie_sprites:
 			var sp = l[0]
@@ -730,7 +881,6 @@ func _draw_front(front: Node2D) -> void:
 				var zp = sp.position + Vector2(14.0 + ph * 10.0 + sin(ph * 6.0) * 2.0, 4.0 - ph * 26.0)
 				var za = sin(ph * PI) * 0.75
 				front.draw_string(f, zp, "z" if k == 0 else "Z", HORIZONTAL_ALIGNMENT_LEFT, -1, 8 + k * 2, Color(0.85, 0.9, 1.0, za))
-	# the fish's little signs
 	for e in _emotes:
 		var fish = e["fish"]
 		if not is_instance_valid(fish) or f == null:

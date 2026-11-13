@@ -1,11 +1,9 @@
 extends PointLight2D
-## Makes a PointLight2D pulse (alarm beacons) or flicker (dying lamps).
 
 @export var speed: float = 3.0
 @export var min_energy: float = 0.15
 @export var max_energy: float = 1.0
 @export var phase: float = 0.0
-## 0 = smooth sine pulse, 1 = random flicker with short dropouts
 @export_range(0, 1) var mode: int = 0
 
 var _t: float = 0.0

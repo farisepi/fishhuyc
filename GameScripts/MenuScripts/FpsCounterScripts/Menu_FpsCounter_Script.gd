@@ -5,7 +5,7 @@ func _ready() -> void:
 	add_theme_color_override("font_color", Color.WHITE)
 	position = Vector2(10, 10)
 	z_index = 500
-	
+
 	var cfg = ConfigFile.new()
 	if cfg.load("user://settings.cfg") == OK:
 		visible = cfg.get_value("graphics", "show_fps", false)

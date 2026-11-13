@@ -19,7 +19,7 @@ func destroy_with_flash() -> void:
 	if is_destroyed:
 		return
 	is_destroyed = true
-	
+
 	var flash = ColorRect.new()
 	flash.color = Color(1, 1, 1, 0.9)
 	flash.size = Vector2(60, 60)
@@ -27,12 +27,12 @@ func destroy_with_flash() -> void:
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	flash.z_index = 100
 	add_child(flash)
-	
+
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(self, "scale", Vector2(1.3, 0.7), 0.2)
 	tween.tween_property(self, "modulate:a", 0.0, 0.2)
 	tween.tween_property(flash, "modulate:a", 0.0, 0.2)
-	
+
 	await tween.finished
 	queue_free()

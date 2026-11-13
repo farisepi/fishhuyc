@@ -1,10 +1,4 @@
 extends StorageEnemy
-## Storage mecha-pigeon (light blue).
-## A sniper: only shoots with a clear line of sight, leads a running fish, locks the aim a
-## moment before the shot (laser blinks - that is your cue to dodge), cycles the bolt after
-## every shot. When the fish gets close it drops the rifle, flies back on its mech wings and
-## fights with a pistol, keeps hopping away from melee, and as soon as it has room again it
-## walks back to the rifle, picks it up and returns to sniping.
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var aim_line: Line2D = get_node_or_null("AimLine")
@@ -17,17 +11,17 @@ var state: State = State.PATROL
 
 var FUR_SOURCE := [Color8(190, 198, 218), Color8(146, 156, 184), Color8(104, 112, 140)]
 var FUR_VARIANTS := [
-	[Color8(226, 226, 230), Color8(196, 196, 204), Color8(150, 150, 160)],  # white dove
-	[Color8(170, 140, 120), Color8(136, 106, 90), Color8(96, 72, 62)],      # brown
-	[Color8(120, 120, 128), Color8(86, 86, 96), Color8(56, 56, 66)],        # dark
+	[Color8(226, 226, 230), Color8(196, 196, 204), Color8(150, 150, 160)],
+	[Color8(170, 140, 120), Color8(136, 106, 90), Color8(96, 72, 62)],
+	[Color8(120, 120, 128), Color8(86, 86, 96), Color8(56, 56, 66)],
 ]
 const RIFLE_TEX := "res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaPigeonSprites/MechaPigeonRifleTextures/Enemy_MechaPigeon_Rifle_Texture.png"
 
 @export var sniper_min_range: float = 170.0
 @export var sniper_max_range: float = 760.0
 @export var aim_time: float = 1.15
-@export var aim_lock_time: float = 0.3      # last part of the aim: the laser stops tracking and blinks
-@export var aim_turn_speed: float = 3.2     # how fast the laser follows (rad/s)
+@export var aim_lock_time: float = 0.3
+@export var aim_turn_speed: float = 3.2
 @export var rifle_damage: int = 2
 @export var rifle_bullet_speed: float = 1900.0
 @export var pistol_damage: int = 1
@@ -44,7 +38,7 @@ var _fly_cooldown: float = 0.0
 var _burst_left: int = 0
 var _shot_timer: float = 0.0
 var _alerted: bool = false
-var _bullets: Array = []   # [{node, dir, speed, dmg, life}]
+var _bullets: Array = []
 var _fired: bool = false
 
 
@@ -77,7 +71,6 @@ func _play(anim_name: String, restart: bool = false) -> void:
 	_play_on(sprite, anim_name, Vector2.ZERO, restart)
 
 
-# ------------------------------------------------------------------ main loop
 func _physics_process(delta: float) -> void:
 	_update_bullets(delta)
 	if is_dead:
@@ -86,7 +79,6 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
 		move_and_slide()
 		return
-	# gliding: much lighter gravity while the wings are open
 	if state in [State.DROP_FLYBACK, State.FLYBACK] and velocity.y > 0.0:
 		velocity.y -= gravity * 0.6 * delta
 	super._physics_process(delta)
@@ -166,7 +158,6 @@ func _sees_player() -> bool:
 	return _player_ok() and _has_line_of_sight(_eye(), _player_center())
 
 
-# ------------------------------------------------------------------ sniper
 func _patrol_logic() -> void:
 	velocity.x = 0
 	_play("idle_aim" if has_rifle else "pistol_fire")
@@ -215,7 +206,6 @@ func _aim_logic(delta: float, dist: float, dx: float) -> void:
 	var origin = muzzle.global_position if muzzle else _eye()
 	var locked = t >= aim_time - aim_lock_time
 	if not locked:
-		# lead the target: aim where the fish will be when the bullet arrives
 		var lead = dist / rifle_bullet_speed
 		var want = (_predict_player(lead) + Vector2(0, -8) - origin).normalized()
 		var ang = _aim_dir.angle()
@@ -260,7 +250,6 @@ func _shoot_rifle(origin: Vector2) -> void:
 
 func _fire_logic(dist: float) -> void:
 	velocity.x = 0
-	# fire + bolt cycle; while reloading it can still bail out if the fish rushes in
 	if dist < sniper_min_range * 0.8 and t > 0.3:
 		_start_drop_flyback()
 		return
@@ -268,7 +257,6 @@ func _fire_logic(dist: float) -> void:
 		_start_aim()
 
 
-## No clear shot: walk a bit to find one (toward a better range).
 func _reposition_logic(dist: float, dx: float) -> void:
 	if not is_aggro:
 		_go(State.PATROL)
@@ -293,7 +281,6 @@ func _reposition_logic(dist: float, dx: float) -> void:
 		_go(State.PATROL)
 
 
-# ------------------------------------------------------------------ wings + pistol
 func _start_drop_flyback() -> void:
 	_hide_aim()
 	_go(State.DROP_FLYBACK)
@@ -334,7 +321,6 @@ func _pistol_logic(delta: float, dist: float, dx: float) -> void:
 		_go(State.PATROL)
 		return
 	_face(dx)
-	# fish too close: flap away (unless the wall is right behind - then it fights)
 	var cornered = _wall_ahead(-facing_dir, 60.0)
 	if dist < pistol_keep_min and _fly_cooldown <= 0.0 and not cornered:
 		_go(State.FLYBACK)
@@ -342,12 +328,10 @@ func _pistol_logic(delta: float, dist: float, dx: float) -> void:
 		velocity = Vector2(-facing_dir * 300.0, -230.0)
 		_fly_cooldown = 1.4
 		return
-	# plenty of room again: go and get the rifle back
 	if dist > 420.0 and _rifle_prop and is_instance_valid(_rifle_prop) \
 			and abs(_rifle_prop.global_position.y - global_position.y) < 60.0:
 		_go(State.GET_RIFLE)
 		return
-	# keep a comfortable pistol range
 	var move = 0
 	if dist > pistol_keep_max:
 		move = int(sign(dx))
@@ -383,7 +367,6 @@ func _pistol_logic(delta: float, dist: float, dx: float) -> void:
 
 func _flyback_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 5.0)
-	# a parting shot in the air
 	if not _fired and t > 0.25 and _sees_player():
 		_fired = true
 		var origin = pistol_muzzle.global_position if pistol_muzzle else _eye()
@@ -419,7 +402,6 @@ func _get_rifle_logic(dist: float) -> void:
 	_play("run_fast")
 
 
-# ------------------------------------------------------------------ bullets
 func _spawn_bullet(origin: Vector2, dir: Vector2, spd: float, dmg: int, life: float, col: Color) -> void:
 	var line = Line2D.new()
 	line.width = 2.0
@@ -452,7 +434,7 @@ func _update_bullets(delta: float) -> void:
 		if not done:
 			var hit = _ray(from, to)
 			if not hit.is_empty() and not (hit.collider is Node and hit.collider.is_in_group("player")):
-				done = true   # hit a wall
+				done = true
 		if done:
 			n.queue_free()
 		else:
@@ -461,10 +443,8 @@ func _update_bullets(delta: float) -> void:
 	_bullets = keep
 
 
-# ------------------------------------------------------------------ damage
 func _on_hurt() -> void:
 	_hide_aim()
-	# close and hurt: get out instead of flinching
 	if _player_ok() and global_position.distance_to(player.global_position) < 120.0 and _fly_cooldown <= 0.0:
 		if has_rifle:
 			_start_drop_flyback()

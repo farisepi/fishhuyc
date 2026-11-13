@@ -14,24 +14,23 @@ var can_interact: bool = false
 
 func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	
+
 	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	menu_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	quit_button.process_mode = Node.PROCESS_MODE_ALWAYS
-	
-	# СРАЗУ скрываем — без show()
+
 	hide()
-	
+
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
+
 	death_label.modulate = Color(1, 1, 1, 0)
 	restart_button.modulate = Color(1, 1, 1, 0)
 	menu_button.modulate = Color(1, 1, 1, 0)
 	quit_button.modulate = Color(1, 1, 1, 0)
 	background.color = Color(0, 0, 0, 0)
 	_build_fx()
-	
+
 	set_process(false)
 	hide()
 
@@ -70,7 +69,7 @@ func _process(delta):
 		get_tree().paused = true
 	if not fading_in:
 		return
-	
+
 	match state:
 		0:
 			fade_timer += delta
@@ -79,36 +78,34 @@ func _process(delta):
 			if fade_timer >= 1.0:
 				state = 1
 				appear_timer = 0.0
-		
+
 		1:
 			appear_timer += delta
-			
+
 			var label_alpha = min((appear_timer) / 0.8, 1.0)
 			death_label.modulate.a = label_alpha
-			
+
 			var restart_alpha = min(max((appear_timer - 0.2) / 0.4, 0.0), 1.0)
 			restart_button.modulate.a = restart_alpha
-			
+
 			var menu_alpha = min(max((appear_timer - 0.5) / 0.4, 0.0), 1.0)
 			menu_button.modulate.a = menu_alpha
-			
+
 			var quit_alpha = min(max((appear_timer - 0.8) / 0.4, 0.0), 1.0)
 			quit_button.modulate.a = quit_alpha
-			
+
 			var wave = sin(appear_timer * 1.5) * 0.075 + 0.925
 			death_label.modulate.a = death_label.modulate.a * wave
-			
+
 			if appear_timer >= 2.0:
 				fading_in = false
 				can_interact = true
-				# the world freezes only after the fish's air balloon has run dry
 				_pause_pending = true
 
 func _on_restart_button_pressed():
 	if not can_interact:
 		return
 	can_interact = false
-	print("рестарт нажат")
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	_fade_out_and_reload()
@@ -117,7 +114,6 @@ func _on_main_menu_button_pressed():
 	if not can_interact:
 		return
 	can_interact = false
-	print("меню нажато")
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	_fade_out_and_goto(Global.SCENE_MAIN_MENU_FACTORY)
@@ -125,7 +121,6 @@ func _on_main_menu_button_pressed():
 func _on_quit_button_pressed():
 	if not can_interact:
 		return
-	print("выход нажат")
 	get_tree().paused = false
 	get_tree().quit()
 
@@ -134,18 +129,18 @@ func _fade_out_and_reload():
 	canvas.layer = 500
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(canvas)
-	
+
 	var fade = ColorRect.new()
 	fade.color = Color(0, 0, 0, 0)
 	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(fade)
-	
+
 	var tween = create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(fade, "color:a", 1.0, 0.4)
 	await tween.finished
-	
+
 	var current_path = get_tree().current_scene.scene_file_path
 	_release_overlay_after_change(canvas, fade)
 	get_tree().paused = false
@@ -156,24 +151,22 @@ func _fade_out_and_goto(path: String):
 	canvas.layer = 500
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(canvas)
-	
+
 	var fade = ColorRect.new()
 	fade.color = Color(0, 0, 0, 0)
 	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(fade)
-	
+
 	var tween = create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(fade, "color:a", 1.0, 0.4)
 	await tween.finished
-	
+
 	_release_overlay_after_change(canvas, fade)
 	get_tree().paused = false
 	get_tree().change_scene_to_file(path)
 
-## The black overlay lives on the root and would survive the scene change forever (black screen).
-## Let it fade away by itself once the new scene is up.
 func _release_overlay_after_change(canvas: CanvasLayer, fade: ColorRect) -> void:
 	var t = canvas.create_tween()
 	t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
@@ -182,12 +175,6 @@ func _release_overlay_after_change(canvas: CanvasLayer, fade: ColorRect) -> void
 	t.tween_callback(canvas.queue_free)
 
 
-
-## ---------------------------------------------------------------- death effects
-## The moment of death: a red flash, the frozen world behind goes grey, blurred and red at
-## the edges (backdrop shader), a heartbeat pulses through the vignette twice and dies, an ECG
-## line beeps across the screen and goes flat, "СМЕРТЬ" slams in with a colour-split glitch,
-## and ash keeps drifting down.
 const BACKDROP_SHADER := "res://GameShaders/SharedShaders/Shared_PauseBackdrop_Shader.gdshader"
 const RED := Color(0.86, 0.12, 0.1)
 var _fx_t: float = -1.0
@@ -215,7 +202,6 @@ void fragment() {
 func _build_fx() -> void:
 	var vp = Vector2(1152, 648)
 	if death_label:
-		# scale around the middle of the title, keeping it where it was on screen
 		var centre = death_label.position + death_label.pivot_offset + (death_label.size * 0.5 - death_label.pivot_offset) * death_label.scale
 		death_label.pivot_offset = death_label.size * 0.5
 		death_label.position = centre - death_label.size * 0.5
@@ -224,7 +210,6 @@ func _build_fx() -> void:
 		death_label.add_theme_color_override("font_color", Color(0.95, 0.2, 0.16))
 		death_label.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.0))
 		death_label.add_theme_constant_override("outline_size", 3)
-		# two colour ghosts behind the title for the glitch
 		for col in [Color(0.2, 0.9, 1.0, 0.0), Color(1.0, 0.1, 0.4, 0.0)]:
 			var g = death_label.duplicate(0) as Label
 			g.add_theme_color_override("font_color", col)
@@ -246,7 +231,6 @@ func _build_fx() -> void:
 		_fx_back.material = _fx_mat
 		add_child(_fx_back)
 		move_child(_fx_back, 0)
-	# red vignette that beats
 	_fx_vig = ColorRect.new()
 	_fx_vig.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_vig.size = vp
@@ -258,7 +242,6 @@ func _build_fx() -> void:
 	add_child(_fx_vig)
 	if background:
 		move_child(_fx_vig, background.get_index() + 1)
-	# falling ash
 	_fx_ash = CPUParticles2D.new()
 	var img = Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
@@ -286,7 +269,6 @@ func _build_fx() -> void:
 	add_child(_fx_ash)
 	if background:
 		move_child(_fx_ash, background.get_index() + 2)
-	# ECG line
 	_fx_ecg = Control.new()
 	_fx_ecg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_ecg.size = vp
@@ -294,7 +276,6 @@ func _build_fx() -> void:
 	add_child(_fx_ecg)
 	if background:
 		move_child(_fx_ecg, background.get_index() + 3)
-	# the flash on top of everything
 	_fx_flash = ColorRect.new()
 	_fx_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_flash.size = vp
@@ -320,7 +301,6 @@ func _fx_process(delta: float) -> void:
 		_fx_flash.color.a = max(0.0, 0.75 - t * 2.2)
 	if _fx_mat:
 		_fx_mat.set_shader_parameter("amount", clamp(t / 0.8, 0.0, 1.0))
-	# heartbeat: two strong double beats, a weak one, then nothing
 	if _fx_vig_mat:
 		var beat = 0.0
 		for b in [[0.15, 1.0], [0.42, 0.7], [1.15, 0.8], [1.42, 0.5], [2.3, 0.35]]:
@@ -328,7 +308,6 @@ func _fx_process(delta: float) -> void:
 			if k > 0.0:
 				beat = max(beat, b[1] * exp(-k * 7.0))
 		_fx_vig_mat.set_shader_parameter("power", clamp(0.35 + 0.65 * beat, 0.0, 1.0) * clamp(t / 0.3, 0.0, 1.0))
-	# title: slams from big to its size during the label fade-in, glitches now and then
 	if death_label and state >= 1:
 		var k2 = clamp(appear_timer / 0.35, 0.0, 1.0)
 		var e = 1.0 - pow(1.0 - k2, 3.0)
@@ -356,7 +335,6 @@ func _draw_ecg() -> void:
 	var speed = 520.0
 	var head = x0 + _fx_t * speed
 	var span = x1 - x0
-	# pulses along the trace (the last ones get weaker, then flat)
 	var pulses = [[0.12, 1.0], [0.33, 0.75], [0.62, 0.45], [0.86, 0.15]]
 	var pts = PackedVector2Array()
 	var end_x = min(head, x1)
@@ -373,7 +351,7 @@ func _draw_ecg() -> void:
 					y += -7.0 * p[1] + (d + 8.0) * 5.0 * p[1]
 				else:
 					y += (22.0 - d) * 3.0 * p[1] - 6.0 * p[1]
-		pts.append(Vector2(x, round(y0 - (y - y0))))   # spikes point up
+		pts.append(Vector2(x, round(y0 - (y - y0))))
 		x += 3.0
 	if pts.size() >= 2:
 		var fade = clamp(1.0 - (_fx_t - 2.4) / 1.5, 0.35, 1.0)

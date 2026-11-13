@@ -1,4 +1,5 @@
 extends Control
+const PIXEL_SWITCH = preload("res://GameScripts/MenuScripts/MenuComponentScripts/PixelSwitchScript/Menu_PixelSwitch_Script.gd")
 const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Menu_StyledDialog.gd")
 
 @onready var graphics_tab: Button = $GeneralTab
@@ -37,6 +38,8 @@ const STYLED_DIALOG := preload("res://GameScripts/UIScripts/MenuDialogScripts/Me
 @onready var pause_btn: Button = $ControlsPage/ScrollContainer/ContentGrid/PauseButton
 @onready var inspect_btn: Button = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid/InspectButton")
 @onready var journal_btn: Button = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid/JournalButton")
+var dash_btn: Button = null
+var block_btn: Button = null
 
 @onready var apply_btn: Button = find_child("ApplyButton", true, false)
 @onready var default_btn: Button = find_child("DefaultButton", true, false)
@@ -88,22 +91,43 @@ var bubble_scene: PackedScene = preload("res://GameScenes/EntityScenes/BubbleEnt
 
 var _suppress_switch_sound: bool = false
 
+func _add_extra_bind_rows() -> void:
+	var grid = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid")
+	var src_l = get_node_or_null("ControlsPage/ScrollContainer/ContentGrid/JournalLabel")
+	if grid == null or src_l == null or journal_btn == null or grid.has_node("DashButton"):
+		return
+	for pair in [["Dash", tr("Рывок")], ["Block", tr("Блок")]]:
+		var l = src_l.duplicate()
+		l.name = pair[0] + "Label"
+		l.text = pair[1]
+		grid.add_child(l)
+		var b = journal_btn.duplicate()
+		b.name = pair[0] + "Button"
+		grid.add_child(b)
+		if pair[0] == "Dash":
+			dash_btn = b
+		else:
+			block_btn = b
+
 func _ready() -> void:
-	MenuHeader.style_scrolls.call_deferred(self, true, true)   # the game's scroll line + scroller
+	_add_extra_bind_rows()
+	MenuHeader.style_scrolls.call_deferred(self, true, true)
+	for c in find_children("*", "CheckButton", true, false):
+		PIXEL_SWITCH.attach(c, "aquarium")
 	if not has_meta("overlay"):
 		if is_instance_valid(Fade) and Fade.has_method("fade_in"):
 			Fade.fade_in()
 		UISounds.stop_everything_gameplay()
-	
+
 	if Global.came_from == Global.MenuSource.GAME:
 		pass
 	else:
 		GlobalMusic.play_menu_music()
-	
+
 	config.load(CONFIG_PATH)
 	Global.camera_sensitivity = config.get_value("camera", "sensitivity", 0.0)
 	InputRebind.keybinds_updated.connect(update_key_labels)
-	
+
 	_apply_fps_visibility()
 	_relayout()
 	_setup_ui()
@@ -111,21 +135,21 @@ func _ready() -> void:
 	_connect_signals()
 	setup_options()
 	setup_audio_options()
-	
+
 	_suppress_switch_sound = true
 	load_settings()
 	_suppress_switch_sound = false
-	
+
 	update_key_labels()
 	show_page(0)
-	
+
 	_create_percent_labels()
-	
+
 	_create_brightness_layer_deferred()
 	_apply_brightness_deferred()
-	
+
 	has_unsaved_changes = false
-	
+
 	call_deferred("_start_background_bubbles")
 
 func _process(_delta: float) -> void:
@@ -145,17 +169,17 @@ func _setup_dropdowns() -> void:
 func _create_dropdown(button: Button, id: String) -> Control:
 	if not button:
 		return null
-	
+
 	var container = Panel.new()
 	container.name = button.name + "Dropdown"
 	container.visible = false
 	container.z_index = 100
 	container.mouse_filter = Control.MOUSE_FILTER_STOP
-	
+
 	var bg = StyleBoxTexture.new()
 	bg.texture = load(POPUP_MENU_TEXTURE_PATH)
 	container.add_theme_stylebox_override("panel", MenuHeader.dropdown_panel_style(_accent_col()))
-	
+
 	var vbox = VBoxContainer.new()
 	vbox.name = "VBox"
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -165,11 +189,11 @@ func _create_dropdown(button: Button, id: String) -> Control:
 	vbox.offset_right = -6
 	vbox.offset_top = 6
 	vbox.offset_bottom = -6
-	
+
 	container.add_child(vbox)
 	add_child(container)
 	_create_arrow_for_button(button)
-	
+
 	container.set_meta("id", id)
 	container.set_meta("button", button)
 	button.pressed.connect(_on_dropdown_button_pressed.bind(container))
@@ -188,7 +212,7 @@ func _create_arrow_for_button(button: Button) -> void:
 	arrow.pivot_offset = Vector2(12, 12)
 	arrow.position = Vector2(button.size.x - 34, button.size.y / 2.0 - 12)
 	button.add_child(arrow)
-	
+
 	if button == resolution_button:
 		resolution_arrow = arrow
 	elif button == language_button:
@@ -213,13 +237,13 @@ func _open_dropdown(container: Control) -> void:
 	var button: Button = container.get_meta("button")
 	if not button:
 		return
-	
+
 	UISounds.play_option_open()
 	container.position = Vector2(button.global_position.x, button.global_position.y + button.size.y)
 	container.size = Vector2(button.size.x, 0)
 	container.custom_minimum_size = Vector2(button.size.x, 0)
 	container.visible = true
-	
+
 	await get_tree().process_frame
 	var vbox = container.get_node_or_null("VBox")
 	if vbox:
@@ -338,7 +362,6 @@ func _update_button_text(button: Button, items: Array[String], selected: int) ->
 		arrow.position = Vector2(button.size.x - 34, button.size.y / 2.0 - 12)
 
 func _create_brightness_layer_deferred() -> void:
-	# shared overlay owned by Global (it used to stack a new layer on every visit)
 	current_brightness_layer = Global.ensure_brightness_layer()
 
 func _apply_brightness_deferred() -> void:
@@ -378,7 +401,7 @@ func _create_percent_labels() -> void:
 	ambience_percent_label = _create_percent_label(ambience_slider)
 	master_percent_label = _create_percent_label(master_slider)
 	ui_percent_label = _create_percent_label(ui_slider)
-	
+
 	if brightness_slider:
 		brightness_slider.value_changed.connect(_on_brightness_slider_changed)
 	if camera_sensitivity_slider:
@@ -521,10 +544,12 @@ func _setup_ui() -> void:
 	]
 	if inspect_btn: controls.append(inspect_btn)
 	if journal_btn: controls.append(journal_btn)
+	if dash_btn: controls.append(dash_btn)
+	if block_btn: controls.append(block_btn)
 	if apply_btn: controls.append(apply_btn)
 	if default_btn: controls.append(default_btn)
 	if back_btn: controls.append(back_btn)
-	
+
 	var silent_click: Callable = Callable()
 	var click_targets: Array = [
 		resolution_button, language_button, dynamic_range_button,
@@ -544,15 +569,15 @@ func _connect_signals() -> void:
 	if back_btn: back_btn.pressed.connect(_on_back_pressed)
 	if apply_btn: apply_btn.pressed.connect(save_settings)
 	if default_btn: default_btn.pressed.connect(_show_reset_confirm)
-	
+
 	if fullscreen_check: fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	if vsync_check: vsync_check.toggled.connect(_on_vsync_toggled)
 	if effects_check: effects_check.toggled.connect(_on_effects_toggled)
 	if interface_attributes_check: interface_attributes_check.toggled.connect(_on_interface_attributes_toggled)
 	if fps_check: fps_check.toggled.connect(_on_fps_toggled)
-	
+
 	if brightness_slider: brightness_slider.value_changed.connect(_on_brightness_changed)
-	
+
 	if move_up_btn: move_up_btn.pressed.connect(func(): _start_rebind("ui_up"))
 	if move_down_btn: move_down_btn.pressed.connect(func(): _start_rebind("ui_down"))
 	if move_left_btn: move_left_btn.pressed.connect(func(): _start_rebind("ui_left"))
@@ -563,11 +588,12 @@ func _connect_signals() -> void:
 	if pause_btn: pause_btn.pressed.connect(func(): _start_rebind("ui_cancel"))
 	if inspect_btn: inspect_btn.pressed.connect(func(): _start_rebind("inspect"))
 	if journal_btn: journal_btn.pressed.connect(func(): _start_rebind("journal"))
+	if dash_btn: dash_btn.pressed.connect(func(): _start_rebind("dash"))
+	if block_btn: block_btn.pressed.connect(func(): _start_rebind("block"))
 
 func _default_resolution() -> int:
 	return Global.saved_resolution_index(ConfigFile.new())
 
-## F11 / Alt+Enter pressed somewhere: just show it on the checkbox.
 func _on_global_fullscreen(on: bool) -> void:
 	if fullscreen_check and fullscreen_check.button_pressed != on:
 		_suppress_switch_sound = true
@@ -577,6 +603,10 @@ func _on_global_fullscreen(on: bool) -> void:
 func _on_fullscreen_toggled(pressed: bool) -> void:
 	if pressed != Global.is_fullscreen():
 		Global.set_fullscreen(pressed, resolution_selected)
+	var cfg = ConfigFile.new()
+	cfg.load(CONFIG_PATH)
+	cfg.set_value("graphics", "fullscreen", pressed)
+	cfg.save(CONFIG_PATH)
 	if not _suppress_switch_sound:
 		if pressed: UISounds.play_switch_on()
 		else: UISounds.play_switch_off()
@@ -670,7 +700,7 @@ func load_settings() -> void:
 	_populate_dropdown(language_dropdown, language_items, language_selected, "language")
 	_update_button_text(language_button, language_items, language_selected)
 	if fps_check: fps_check.button_pressed = config.get_value("graphics", "show_fps", false)
-	if fullscreen_check: fullscreen_check.button_pressed = config.get_value("graphics", "fullscreen", false)
+	if fullscreen_check: fullscreen_check.set_pressed_no_signal(Global.is_fullscreen())
 	if vsync_check: vsync_check.button_pressed = config.get_value("graphics", "vsync", true)
 	if effects_check: effects_check.button_pressed = config.get_value("graphics", "effects", true)
 	if interface_attributes_check: interface_attributes_check.button_pressed = config.get_value("graphics", "interface_attributes", true)
@@ -753,7 +783,7 @@ func _show_reset_confirm() -> void:
 		2:
 			title = tr("Сброс управления")
 			text = tr("Сбросить управление по умолчанию?")
-	
+
 	var menu = STYLED_DIALOG.new()
 	menu.style = "aquarium"
 	menu.title = title
@@ -847,7 +877,7 @@ func _reset_controls_only() -> void:
 	var defaults = {
 		"ui_up": KEY_W, "ui_down": KEY_S, "ui_left": KEY_A, "ui_right": KEY_D,
 		"interact": KEY_E, "jump": KEY_SPACE, "inventory": KEY_TAB, "ui_cancel": KEY_ESCAPE,
-		"inspect": KEY_I, "journal": KEY_J
+		"inspect": KEY_I, "journal": KEY_J, "dash": KEY_SHIFT, "block": KEY_F
 	}
 	for action in defaults.keys():
 		if not InputMap.has_action(action):
@@ -902,7 +932,6 @@ func apply_audio_volumes() -> void:
 	if ui_slider: _apply_volume("UI", ui_slider.value)
 
 func apply_graphics_settings() -> void:
-	# what the checkbox says is what you get (also from the editor)
 	var fs = fullscreen_check.button_pressed if fullscreen_check else Global.is_fullscreen()
 	if fs != Global.is_fullscreen() or not fs:
 		Global.set_fullscreen(fs, resolution_selected)
@@ -935,6 +964,8 @@ func update_key_labels() -> void:
 	_update_button_label(pause_btn, "ui_cancel")
 	_update_button_label(inspect_btn, "inspect")
 	_update_button_label(journal_btn, "journal")
+	_update_button_label(dash_btn, "dash")
+	_update_button_label(block_btn, "block")
 
 func _update_button_label(btn: Button, action: String) -> void:
 	if not btn:
@@ -955,9 +986,8 @@ func _rebind_button(action: String) -> Button:
 	return {"ui_up": move_up_btn, "ui_down": move_down_btn, "ui_left": move_left_btn,
 		"ui_right": move_right_btn, "interact": interact_btn, "jump": jump_btn,
 		"inventory": inventory_btn, "ui_cancel": pause_btn, "inspect": inspect_btn,
-		"journal": journal_btn}.get(action, null)
+		"journal": journal_btn, "dash": dash_btn, "block": block_btn}.get(action, null)
 
-## While waiting for a key the button blinks "..." in the accent colour.
 func _rebind_blink(btn: Button, action: String) -> void:
 	var acc = _accent_col()
 	while is_inside_tree() and InputRebind.rebinding_action == action:
@@ -971,7 +1001,6 @@ func _rebind_blink(btn: Button, action: String) -> void:
 
 func _exit_to_main_menu() -> void:
 	if has_meta("overlay"):
-		# opened over the paused game from its pause menu: just close
 		var host = get_parent()
 		if host is CanvasLayer:
 			host.queue_free()
@@ -1030,7 +1059,6 @@ func _any_dropdown_open() -> bool:
 		(fps_dropdown and fps_dropdown.visible)
 
 func _start_background_bubbles() -> void:
-	# the bubbles from the previous aquarium menu carry over; a fresh set only the first time
 	if not BubbleScript.restore_menu_bubbles(self, bubble_scene, false):
 		for i in range(randi_range(3, 6)):
 			_make_menu_bubble()
@@ -1076,9 +1104,6 @@ func _make_menu_bubble() -> void:
 	bubble.start_life(randf_range(6.0, 15.0))
 
 
-# ---------------------------------------------------------------- layout (built at start)
-## A big title like in the pause menu, quiet text tabs, and the general page in two columns
-## with small section headers: ЭКРАН | ИЗОБРАЖЕНИЕ + ИГРА. Also adds the frame-rate row.
 var fps_button: Button = null
 var fps_dropdown: Control = null
 var fps_arrow: TextureRect = null
@@ -1093,12 +1118,10 @@ func _accent_col() -> Color:
 
 func _relayout() -> void:
 	var acc = _accent_col()
-	# rebind buttons never keep the focus: Space / Enter must not press them again
-	for b in [move_up_btn, move_down_btn, move_left_btn, move_right_btn, interact_btn, jump_btn, inventory_btn, pause_btn, inspect_btn, journal_btn]:
+	for b in [move_up_btn, move_down_btn, move_left_btn, move_right_btn, interact_btn, jump_btn, inventory_btn, pause_btn, inspect_btn, journal_btn, dash_btn, block_btn]:
 		if b:
 			b.focus_mode = Control.FOCUS_NONE
 	MenuHeader.attach(self, tr("НАСТРОЙКИ"), acc, 30.0, 32)
-	# tabs: plain words in a row, the active one lit
 	var tabs = [graphics_tab, audio_tab, controls_tab]
 	for i in range(tabs.size()):
 		var b: Button = tabs[i]
@@ -1124,7 +1147,6 @@ func _relayout() -> void:
 	if bot_line:
 		bot_line.color = Color(acc, 0.35)
 		bot_line.size.y = 2
-	# the frame-rate dropdown: a copy of the resolution one
 	if resolution_button and fps_button == null:
 		fps_button = resolution_button.duplicate()
 		fps_button.name = "FPSLimitButton"
@@ -1135,7 +1157,6 @@ func _relayout() -> void:
 		graphics_page.add_child(fl)
 		if Engine.has_singleton("ButtonEffects") or has_node("/root/ButtonEffects"):
 			ButtonEffects.setup(fps_button, Callable())
-	# two columns, page coordinates (the page sits at +8, +8)
 	var o = Vector2(8, 8)
 	var lx = 120.0 - o.x
 	var lend = 536.0 - o.x

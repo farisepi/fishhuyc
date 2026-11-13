@@ -10,7 +10,6 @@ extends Node2D
 @onready var layer3_clone: Sprite2D = $Layer3Clone
 @onready var layer3_clone2: Sprite2D = $Layer3Clone2
 
-# texture rows 0..BELT_ROWS = the moving belt surface, below = the still legs / supports
 const BELT_ROWS: int = 126
 
 var layer_width: float = 0.0
@@ -19,9 +18,6 @@ var spawn_timer: float = 0.0
 var scroll_offset: float = 0.0
 var belt_sprites: Array = []
 var rng := RandomNumberGenerator.new()
-## The belt and its boxes are the same in every factory menu: moving from the main menu to
-## the settings (and back) keeps them where they were instead of starting over. Boxes can only
-## be grabbed in the main menu.
 static var _saved: Dictionary = {}
 var draggable: bool = true
 
@@ -29,7 +25,6 @@ func _ready() -> void:
 	rng.randomize()
 
 	if not layer3 or not layer3_clone or not layer3_clone2 or not layer3.texture:
-		print("FactoryBackground: отсутствуют ноды или текстура!")
 		return
 
 	layer_width = layer3.texture.get_width() * abs(layer3.scale.x)
@@ -38,9 +33,6 @@ func _ready() -> void:
 	layer3_clone.position.x = start_x + layer_width
 	layer3_clone2.position.x = start_x + layer_width * 2.0
 
-	# split the conveyor tile: the upper rows are the belt (they scroll in place via texture
-	# repeat), the lower rows are the legs / frame (a still copy that never moves). Before, the
-	# whole sprite slid left, so the legs drifted too; now only the belt surface moves.
 	_split_belt_and_legs()
 
 	spawn_timer = box_spawn_interval
@@ -55,7 +47,6 @@ func _split_belt_and_legs() -> void:
 			continue
 		var tex_sz = spr.texture.get_size()
 		var belt_h = min(float(BELT_ROWS), tex_sz.y)
-		# still legs: a copy of the lower part on the tile's own place
 		var legs = Sprite2D.new()
 		legs.name = spr.name + "Legs"
 		legs.texture = spr.texture
@@ -69,7 +60,6 @@ func _split_belt_and_legs() -> void:
 		legs.region_rect = Rect2(0, belt_h, tex_sz.x, tex_sz.y - belt_h)
 		legs.offset = Vector2(-tex_sz.x * 0.5, belt_h - tex_sz.y * 0.5)
 		add_child(legs)
-		# the belt: only the upper rows, the tile stays put and the drawn texture scrolls inside it
 		spr.centered = false
 		spr.region_enabled = true
 		spr.region_rect = Rect2(0, 0, tex_sz.x, belt_h)
@@ -80,7 +70,6 @@ func _split_belt_and_legs() -> void:
 func _restore_state() -> void:
 	if _saved.is_empty():
 		return
-	# the time the menus were switching: everything moved on meanwhile
 	var gone = clamp((Time.get_ticks_msec() - int(_saved.get("t", 0))) / 1000.0, 0.0, 5.0)
 	scroll_offset = float(_saved.get("scroll", 0.0))
 	spawn_timer = float(_saved.get("spawn", box_spawn_interval))
@@ -112,7 +101,6 @@ func _process(delta: float) -> void:
 	if layer_width <= 0.0:
 		return
 
-	# only the belt surface scrolls; the legs stay where they are
 	scroll_offset += layer3_speed * delta
 	if scroll_offset >= layer_width:
 		scroll_offset -= layer_width
@@ -129,7 +117,6 @@ func _process(delta: float) -> void:
 
 func _spawn_box() -> void:
 	if not box_scene:
-		print("box_scene is NULL")
 		return
 
 	var box = box_scene.instantiate()
