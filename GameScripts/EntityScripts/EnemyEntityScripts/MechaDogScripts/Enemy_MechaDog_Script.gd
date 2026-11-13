@@ -244,6 +244,8 @@ func _start_jump_bite() -> void:
 	_damage_dealt_this_attack = false
 	if _jump_tween and _jump_tween.is_valid():
 		_jump_tween.kill()
+		position.y = _base_y
+	_base_y = position.y
 	_jump_tween = create_tween()
 	_jump_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_jump_tween.tween_property(self, "position:y", _base_y - 18.0, 0.12)
@@ -336,7 +338,7 @@ func _reset_quad_visual() -> void:
 		sprite.modulate = Color(1, 1, 1, 1)
 	if _jump_tween and _jump_tween.is_valid():
 		_jump_tween.kill()
-	position.y = _base_y
+		position.y = _base_y
 
 
 func _snap_jaw_effect() -> void:

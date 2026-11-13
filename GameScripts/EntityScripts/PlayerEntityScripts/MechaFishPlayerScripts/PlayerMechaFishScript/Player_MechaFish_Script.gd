@@ -41,6 +41,7 @@ extends CharacterBody2D
 @export var climb_horizontal_offset: float = 30.0
 
 var block_click_attack: bool = false
+var auto_climb: bool = false
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $MechaFishCamera
@@ -125,7 +126,6 @@ var parry_timer: float = 0.0
 
 var was_on_floor_last_frame: bool = true
 var is_landing: bool = false
-const LANDING_SPEED_MULT: float = 0.2
 
 var _current_anim: String = ""
 var scripted_anim: bool = false
@@ -148,6 +148,8 @@ func _play_anim(anim_name: String, force_restart: bool = false) -> void:
 		return
 	if not force_restart and sprite.animation == anim_name and sprite.is_playing():
 		return
+	if anim_name != "Run" and anim_name != "Jogging":
+		sprite.speed_scale = 1.0
 	sprite.play(anim_name)
 	_current_anim = anim_name
 
@@ -188,6 +190,17 @@ func _ready():
 	held_icon.z_index = 100
 	add_child(held_icon)
 	_update_stamina_ui(true)
+	_ensure_body_shape()
+	floor_snap_length = 14.0
+	if sprite:
+		for an in ["Fall", "GetUp", "Climb", "Jump", "Landing"]:
+			if sprite.sprite_frames.has_animation(an):
+				sprite.sprite_frames.set_animation_loop(an, false)
+		_build_anim_offsets()
+		sprite.frame_changed.connect(_apply_anim_offset)
+		sprite.frame_changed.connect(_on_frame_fx)
+		sprite.animation_changed.connect(_apply_anim_offset)
+		_apply_anim_offset()
 
 func get_hp() -> int:
 	return hp
@@ -438,132 +451,643 @@ func _physics_process(delta):
 		shift_held_time += delta
 	if dash_cooldown > 0:
 		dash_cooldown -= delta
-	if is_dashing or movement_blocked or minigame_lock:
-		velocity.x = 0.0
-		if not is_dashing and not is_on_floor() and not is_falling_into_pit:
-			velocity.y = min(velocity.y + gravity * delta, 900.0)
+	if is_dashing:
+		_process_dash(delta)
+		return
+	if movement_blocked or minigame_lock:
+		velocity.x = move_toward(velocity.x, 0.0, GROUND_DECEL * delta)
+		if not is_on_floor() and not is_falling_into_pit:
+			velocity.y = min(velocity.y + gravity * FALL_GRAVITY_MULT * delta, MAX_FALL_SPEED)
 		else:
 			velocity.y = 0.0
+		if is_on_floor():
+			velocity.x = 0.0
 		move_and_slide()
 		var moved = global_position.distance_to(_held_last_pos) > 0.3
 		_held_last_pos = global_position
-		if not is_dashing and not scripted_anim and not moved and sprite and (sprite.animation == "Run" or sprite.animation == "Jogging"):
+		if not scripted_anim and not moved and sprite and (sprite.animation == "Run" or sprite.animation == "Jogging"):
 			_play_anim("Idle" if is_on_floor() else "Falling")
+		if _slide_phase != "":
+			_finish_slide_now()
 		return
 	if is_vaulting or is_climbing or is_climbing_animation:
-		velocity.y = 0
-		move_and_slide()
+		velocity = Vector2.ZERO
 		return
-	if not is_on_floor():
-		velocity.y += gravity * delta
+	if _slide_phase != "" and not is_sliding and not _is_getting_up:
+		_finish_slide_now()
+
+	var on_floor_now = is_on_floor()
+	if on_floor_now:
+		_coyote_t = COYOTE_TIME
+		_jump_cut_done = false
+	else:
+		_coyote_t = max(0.0, _coyote_t - delta)
+	if Input.is_action_just_pressed("jump") and not block_jump:
+		_jump_buffer_t = JUMP_BUFFER
+	else:
+		_jump_buffer_t = max(0.0, _jump_buffer_t - delta)
+	_update_step_visual(delta)
 
 	var direction = Input.get_axis("ui_left", "ui_right")
-	if direction < 0:
-		facing_direction = -1
-	elif direction > 0:
-		facing_direction = 1
-	if not is_attacking and not is_landing and not is_sliding and not _is_getting_up and direction != 0:
-		sprite.scale.x = 1 if direction > 0 else -1
+	if abs(direction) < 0.2:
+		direction = 0.0
+	var dir_sign = signf(direction)
+	if dir_sign != 0.0 and _slide_phase == "":
+		facing_direction = int(dir_sign)
+	if not is_attacking and _slide_phase == "" and dir_sign != 0.0:
+		sprite.scale.x = dir_sign
 
 	if is_attacking:
-		velocity.x = 0
+		velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
+		if not on_floor_now:
+			velocity.y = min(velocity.y + gravity * FALL_GRAVITY_MULT * delta, MAX_FALL_SPEED)
 		move_and_slide()
 		if held_icon.visible:
 			held_icon.global_position = global_position + Vector2(0, -60)
 		return
 
-	var base_speed = run_speed
-	if not _can_sprint():
-		base_speed = run_speed * jog_speed_mult
-	var spd = base_speed
-	if is_landing:
-		spd = spd * LANDING_SPEED_MULT
+	var max_speed = run_speed if _can_sprint() else run_speed * jog_speed_mult
 
-	var on_floor_now = is_on_floor()
 	if not was_on_floor_last_frame and on_floor_now:
-		if not is_sliding and not is_vaulting and not is_climbing and not is_climbing_animation and not is_landing and not is_stunned and not _is_getting_up:
-			_play_landing()
+		_on_landed(_last_air_vy, direction)
 	was_on_floor_last_frame = on_floor_now
+	if not on_floor_now:
+		_last_air_vy = velocity.y
 
-	var crouch_pressed = Input.is_action_pressed("crouch")
-	var crouch_just = Input.is_action_just_pressed("crouch")
+	var crouch_pressed = Input.is_action_pressed("crouch") and not _is_low_stamina()
+	var crouch_just = Input.is_action_just_pressed("crouch") and not _is_low_stamina()
+	if _slide_phase == "" and crouch_just and on_floor_now and (abs(velocity.x) > 40.0 or direction != 0.0):
+		_start_slide(direction)
 
-	if not crouch_pressed:
-		_slide_triggered = false
-		_crouch_was_pressed = false
-
-	if _is_low_stamina():
-		crouch_pressed = false
-		crouch_just = false
-
-	if not is_sliding and not _slide_triggered and not _is_getting_up and crouch_just and abs(velocity.x) > 10 and is_on_floor():
-		_slide_triggered = true
-		is_sliding = true
-		slide_timer = 0.0
-		_slide_dir = direction
-		if _slide_dir == 0:
-			_slide_dir = 1.0 if facing_direction > 0 else -1.0
-		sprite.scale.x = 1 if _slide_dir > 0 else -1
-		_play_anim("Fall", true)
-		await _safe_timer(0.3)
-		if not is_inside_tree():
-			return
-		if is_sliding:
-			_play_anim("Slide", true)
-
-	if is_sliding:
-		slide_timer += delta
-		var sp = min(slide_timer / 2.0, 2.0)
-		velocity.x = lerp(slide_speed, 0.0, sp) * _slide_dir
-		if (not crouch_pressed and slide_timer > 0.35) or abs(velocity.x) < 20.0:
-			is_sliding = false
-			slide_timer = 0.0
-			_is_getting_up = true
-			_play_anim("GetUp", true)
-			await _safe_timer(0.3)
-			if not is_inside_tree():
-				return
-			_is_getting_up = false
-			_slide_dir = 0.0
+	if _slide_phase != "":
+		_process_slide(delta, crouch_pressed, direction, max_speed)
 	else:
-		if not _is_getting_up:
-			velocity.x = direction * spd
+		var target = direction * max_speed
+		var accel: float
+		if on_floor_now:
+			if direction == 0.0:
+				accel = GROUND_DECEL
+			elif signf(velocity.x) != dir_sign and abs(velocity.x) > 10.0:
+				accel = TURN_ACCEL
+			else:
+				accel = GROUND_ACCEL
 		else:
-			velocity.x = 0
+			accel = AIR_ACCEL if direction != 0.0 else AIR_DECEL
+		velocity.x = move_toward(velocity.x, target, accel * delta)
 
-	if Input.is_action_just_pressed("jump") and not block_jump and is_on_floor() and not is_sliding and not _is_getting_up:
+	if not on_floor_now:
+		var g = gravity
+		if velocity.y > 0.0:
+			g *= FALL_GRAVITY_MULT
+		elif Input.is_action_pressed("jump") and abs(velocity.y) < APEX_RANGE:
+			g *= APEX_GRAVITY_MULT
+		velocity.y = min(velocity.y + g * delta, MAX_FALL_SPEED)
+		if velocity.y < 0.0 and not Input.is_action_pressed("jump") and not _jump_cut_done:
+			velocity.y *= JUMP_CUT
+			_jump_cut_done = true
+
+	if _jump_buffer_t > 0.0 and _coyote_t > 0.0 and (_slide_phase == "" or (_slide_phase == "slide" and _can_stand())):
+		if _slide_phase != "":
+			_finish_slide_now()
 		velocity.y = jump_velocity
-		_play_anim("Jump", true)
+		_jump_buffer_t = 0.0
+		_coyote_t = 0.0
+		_jump_cut_done = false
+		is_landing = false
+		on_floor_now = false
+		_play_jump()
+		_dust(global_position + Vector2(0, FEET_Y), 3, 0.0, 0.6)
 
 	if Input.is_action_just_pressed("interact") and not only_basic_moves:
 		if not _try_climb_obstacle():
 			if nearby_ladder:
 				_try_ladder_climb()
-			elif not is_on_floor() and not has_item:
-				_try_climb()
 
-	if not is_landing and not is_sliding and not _is_getting_up and not is_vaulting and not is_climbing and not is_climbing_animation and not is_hurt and not is_dead and not is_stunned and not is_blocking and not is_parrying and not is_attacking:
-		if not is_on_floor():
-			if velocity.y < 0:
+	var can_auto = not only_basic_moves and _slide_phase == "" and (barriers_node != null or auto_climb)
+	if not on_floor_now and can_auto and _try_ledge_grab(direction):
+		return
+	if on_floor_now and can_auto and _try_ground_ledge(direction, delta):
+		return
+
+	var grounded_look = on_floor_now or (_coyote_t > 0.0 and velocity.y >= 0.0 and velocity.y < 140.0)
+	var pushing_wall = on_floor_now and dir_sign != 0.0 and is_on_wall() and get_wall_normal().x * dir_sign < -0.5
+	if _slide_phase == "" and not is_hurt and not is_dead and not is_stunned and not is_blocking and not is_parrying:
+		if not grounded_look:
+			if velocity.y < -20.0:
 				if sprite.animation != "Jump":
-					_play_anim("Jump", true)
-			else:
+					_play_jump()
+			elif velocity.y > 60.0 or sprite.animation != "Jump":
 				if sprite.animation != "Falling":
 					_play_anim("Falling", true)
-		elif direction != 0:
-			if not _can_sprint() and sprite.sprite_frames.has_animation("Jogging"):
-				_play_anim("Jogging")
+			sprite.speed_scale = 1.0
+		elif is_landing and direction != 0.0:
+			is_landing = false
+		if grounded_look and not is_landing:
+			if not pushing_wall and abs(velocity.x) > 25.0 and (direction != 0.0 or abs(velocity.x) > max_speed * 0.6):
+				if not _can_sprint() and sprite.sprite_frames.has_animation("Jogging"):
+					_play_anim("Jogging")
+				else:
+					_play_anim("Run")
+				sprite.speed_scale = clamp(abs(velocity.x) / max(1.0, max_speed), 0.6, 1.1) * 1.3
 			else:
-				_play_anim("Run")
-		else:
-			_play_anim("Idle")
+				_play_anim("Idle")
+				sprite.speed_scale = 1.0
 
 	move_and_slide()
-	if is_on_floor() and is_on_wall() and abs(get_real_velocity().x) < 4.0 and (_current_anim == "Run" or _current_anim == "Jogging"):
-		_play_anim("Idle")
 
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
+
+func _play_jump() -> void:
+	_play_anim("Jump", true)
+	if sprite and sprite.sprite_frames.get_frame_count("Jump") > 2:
+		sprite.frame = 2
+
+const GROUND_ACCEL := 2300.0
+const GROUND_DECEL := 2600.0
+const TURN_ACCEL := 3800.0
+const AIR_ACCEL := 1500.0
+const AIR_DECEL := 500.0
+const FALL_GRAVITY_MULT := 1.45
+const APEX_GRAVITY_MULT := 0.6
+const APEX_RANGE := 45.0
+const MAX_FALL_SPEED := 760.0
+const JUMP_CUT := 0.5
+const COYOTE_TIME := 0.1
+const JUMP_BUFFER := 0.13
+const DASH_SPEED := 640.0
+const DASH_TIME := 0.16
+const ROLL_SPEED := 440.0
+const ROLL_FRICTION := 520.0
+const ROLL_DOWN_T := 0.16
+const ROLL_MIN_T := 0.2
+const ROLL_MAX_T := 0.55
+const ROLL_UP_T := 0.18
+const LEDGE_MIN := 14.0
+const LEDGE_MAX := 104.0
+const STEP_MAX := 34.0
+const FEET_Y := 28.0
+
+var _coyote_t: float = 0.0
+var _jump_buffer_t: float = 0.0
+var _jump_cut_done: bool = false
+var _last_air_vy: float = 0.0
+var _dash_t: float = 0.0
+var _dash_dir: float = 1.0
+var _slide_phase: String = ""
+var _slide_t: float = 0.0
+var _body_shape: CollisionShape2D = null
+var _body_shape_pos: Vector2 = Vector2.ZERO
+var _body_shape_h: float = 0.0
+var _push_t: float = 0.0
+var _step_vis: float = 0.0
+var _sprite_base: Vector2 = Vector2.INF
+var _ghost_t: float = 0.0
+
+func _on_frame_fx() -> void:
+	if sprite == null or not is_on_floor():
+		return
+	var an = String(sprite.animation)
+	if (an == "Run" or an == "Jogging") and (sprite.frame == 1 or sprite.frame == 5) and abs(velocity.x) > 120.0:
+		_dust(global_position + Vector2(-signf(velocity.x) * 6.0, FEET_Y), 3, -signf(velocity.x), 0.7)
+
+func _dust(at: Vector2, n: int, dirx: float, power: float = 1.0) -> void:
+	if get_parent() == null:
+		return
+	var fx = Node2D.new()
+	fx.z_as_relative = false
+	fx.z_index = z_index + 1
+	get_parent().add_child(fx)
+	fx.global_position = at
+	var parts: Array = []
+	for i in range(n):
+		var vx = (dirx * randf_range(20.0, 60.0) if dirx != 0.0 else randf_range(-70.0, 70.0)) * power
+		parts.append([Vector2(randf_range(-4, 4), 0), Vector2(vx, randf_range(-28.0, -8.0) * power), randf_range(2.0, 3.5)])
+	var st = {"k": 0.0}
+	fx.draw.connect(func():
+		var k: float = st["k"]
+		for p in parts:
+			var pos: Vector2 = p[0] + p[1] * k * 0.45 + Vector2(0, 20.0 * k * k * 0.45)
+			var sz: float = p[2] * (1.0 + k * 0.6)
+			fx.draw_rect(Rect2(pos.round() - Vector2(sz, sz) * 0.5, Vector2(sz, sz)), Color(0.72, 0.7, 0.66, 0.55 * (1.0 - k))))
+	var tw = fx.create_tween()
+	tw.tween_method(func(v): st["k"] = v; fx.queue_redraw(), 0.0, 1.0, 0.45)
+	tw.tween_callback(fx.queue_free)
+
+func _spawn_ghost() -> void:
+	if sprite == null or get_parent() == null:
+		return
+	var tex = sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	if tex == null:
+		return
+	var g = Sprite2D.new()
+	g.texture = tex
+	g.texture_filter = sprite.texture_filter
+	g.offset = sprite.offset
+	g.z_index = max(0, sprite.z_index + z_index - 1)
+	g.z_as_relative = false
+	g.modulate = Color(0.55, 0.8, 1.0, 0.45)
+	get_parent().add_child(g)
+	g.global_transform = sprite.global_transform
+	var tw = g.create_tween()
+	tw.tween_property(g, "modulate:a", 0.0, 0.2)
+	tw.tween_callback(g.queue_free)
+
+func _on_landed(vy: float, direction: float) -> void:
+	if _slide_phase != "" or is_vaulting or is_climbing or is_climbing_animation or is_stunned:
+		return
+	if vy > 200.0:
+		_dust(global_position + Vector2(0, FEET_Y), 6 if vy > 450.0 else 4, 0.0, clamp(vy / 500.0, 0.6, 1.3))
+	if vy > 620.0:
+		_shake_camera(0.12)
+	if vy < 280.0:
+		return
+	if direction != 0.0 and abs(velocity.x) > 40.0:
+		return
+	_play_landing()
+
+func _process_dash(delta: float) -> void:
+	_dash_t -= delta
+	velocity = Vector2(_dash_dir * DASH_SPEED, 0.0)
+	_ghost_t -= delta
+	if _ghost_t <= 0.0:
+		_ghost_t = 0.035
+		_spawn_ghost()
+	move_and_slide()
+	if _dash_t <= 0.0 or is_on_wall() or is_hurt or is_dead or is_stunned:
+		is_dashing = false
+		var hold = Input.get_axis("ui_left", "ui_right")
+		velocity.x = _dash_dir * run_speed * (0.85 if signf(hold) == _dash_dir else 0.35)
+		if is_on_wall():
+			velocity.x = 0.0
+
+func _start_slide(direction: float) -> void:
+	_slide_dir = signf(direction) if direction != 0.0 else signf(velocity.x)
+	if _slide_dir == 0.0:
+		_slide_dir = float(facing_direction)
+	is_sliding = true
+	_slide_triggered = true
+	_slide_phase = "down"
+	_slide_t = 0.0
+	is_landing = false
+	facing_direction = int(_slide_dir)
+	sprite.scale.x = _slide_dir
+	velocity.x = _slide_dir * max(abs(velocity.x), ROLL_SPEED)
+	_set_low_body(true)
+	_dust(global_position + Vector2(0, FEET_Y), 5, -_slide_dir, 1.1)
+	_play_anim("Fall", true)
+	sprite.speed_scale = _anim_speed_for("Fall", ROLL_DOWN_T)
+
+func _anim_speed_for(anim: String, dur: float) -> float:
+	if sprite == null or not sprite.sprite_frames.has_animation(anim):
+		return 1.0
+	var n = sprite.sprite_frames.get_frame_count(anim)
+	var fps = sprite.sprite_frames.get_animation_speed(anim)
+	if fps <= 0.0 or dur <= 0.0:
+		return 1.0
+	return (n / fps) / dur
+
+func _process_slide(delta: float, crouch_pressed: bool, direction: float = 0.0, max_speed: float = 300.0) -> void:
+	_slide_t += delta
+	match _slide_phase:
+		"down":
+			velocity.x = move_toward(velocity.x, 0.0, ROLL_FRICTION * 0.4 * delta)
+			if _slide_t >= ROLL_DOWN_T:
+				_slide_phase = "slide"
+				_slide_t = 0.0
+				_play_anim("Slide", true)
+				sprite.speed_scale = 1.0
+		"slide":
+			velocity.x = move_toward(velocity.x, _slide_dir * 150.0, ROLL_FRICTION * delta)
+			var want_up = _slide_t >= ROLL_MIN_T and (not crouch_pressed or _slide_t >= ROLL_MAX_T)
+			if want_up and _can_stand():
+				_slide_phase = "up"
+				_slide_t = 0.0
+				_is_getting_up = true
+				_play_anim("GetUp", true)
+				sprite.speed_scale = _anim_speed_for("GetUp", ROLL_UP_T)
+			elif want_up:
+				velocity.x = _slide_dir * max(abs(velocity.x), 150.0)
+		"up":
+			var keep = signf(direction) == _slide_dir
+			var tgt = _slide_dir * max_speed * 0.85 if keep else 0.0
+			velocity.x = move_toward(velocity.x, tgt, (900.0 if keep else 1600.0) * delta)
+			if _slide_t >= ROLL_UP_T:
+				_finish_slide_now()
+				if keep and sprite:
+					_play_anim("Run")
+
+func _finish_slide_now() -> void:
+	_slide_phase = ""
+	_slide_t = 0.0
+	is_sliding = false
+	_is_getting_up = false
+	_slide_dir = 0.0
+	_set_low_body(false)
+	if sprite:
+		sprite.speed_scale = 1.0
+		if sprite.animation in ["Fall", "Slide", "GetUp"]:
+			_play_anim("Idle", true)
+
+func _update_step_visual(delta: float) -> void:
+	if sprite == null:
+		return
+	if _sprite_base == Vector2.INF:
+		_sprite_base = sprite.position
+	if _step_vis != 0.0:
+		_step_vis = move_toward(_step_vis, 0.0, max(240.0, abs(_step_vis) * 10.0) * delta)
+	sprite.position = _sprite_base + Vector2(0, _step_vis)
+
+func _wall_probe(dir: float, grounded: bool = false) -> Dictionary:
+	var space = get_world_2d().direct_space_state
+	var feet = global_position.y + FEET_Y
+	var hit_x := INF
+	for hy in [-30.0, -6.0, 14.0, 24.0]:
+		var q = PhysicsRayQueryParameters2D.create(global_position + Vector2(0, hy), global_position + Vector2(dir * 34.0, hy), collision_mask, [get_rid()])
+		var r = space.intersect_ray(q)
+		if not r.is_empty() and abs(r.normal.x) > 0.7:
+			hit_x = min(hit_x, abs(r.position.x - global_position.x))
+	if hit_x == INF:
+		return {}
+	if grounded:
+		var ql = PhysicsRayQueryParameters2D.create(global_position + Vector2(0, FEET_Y - 4.0), global_position + Vector2(dir * (hit_x + 4.0), FEET_Y - 4.0), collision_mask, [get_rid()])
+		if space.intersect_ray(ql).is_empty():
+			return {}
+	var wall_x = global_position.x + dir * hit_x
+	var probe_x = wall_x + dir * 6.0
+	var q2 = PhysicsRayQueryParameters2D.create(Vector2(probe_x, feet - LEDGE_MAX - 4.0), Vector2(probe_x, feet + 4.0), collision_mask, [get_rid()])
+	var r2 = space.intersect_ray(q2)
+	if r2.is_empty() or r2.normal.y > -0.7:
+		return {}
+	var top_y: float = r2.position.y
+	var end_pos = Vector2(wall_x + dir * 20.0, top_y - FEET_Y - 1.0)
+	var xf = Transform2D(0.0, end_pos)
+	if test_move(xf, Vector2(0, -2.0)) or test_move(xf, Vector2(dir * 1.0, 0.0)):
+		return {}
+	return {"wall_x": wall_x, "top_y": top_y, "rise": feet - top_y}
+
+func _try_ground_ledge(direction: float, delta: float) -> bool:
+	if direction == 0.0 or has_item or is_landing or is_blocking or is_stunned or is_parrying or is_hurt or is_dead:
+		_push_t = 0.0
+		return false
+	var dir = signf(direction)
+	var space = get_world_2d().direct_space_state
+	var q = PhysicsRayQueryParameters2D.create(global_position + Vector2(0, FEET_Y - 4.0), global_position + Vector2(dir * 30.0, FEET_Y - 4.0), collision_mask, [get_rid()])
+	var r = space.intersect_ray(q)
+	if r.is_empty() or abs(r.normal.x) < 0.7:
+		_push_t = 0.0
+		return false
+	var info = _wall_probe(dir, true)
+	if info.is_empty():
+		_push_t = 0.0
+		return false
+	var rise: float = info["rise"]
+	if rise < 2.0:
+		return false
+	if rise <= STEP_MAX:
+		var old_y = global_position.y
+		global_position = Vector2(float(info["wall_x"]) + dir * 2.0, float(info["top_y"]) - FEET_Y - 0.5)
+		_step_vis += old_y - global_position.y
+		velocity.y = 0.0
+		velocity.x = dir * max(abs(velocity.x), run_speed * 0.6)
+		was_on_floor_last_frame = true
+		_push_t = 0.0
+		return false
+	if rise > LEDGE_MAX:
+		_push_t = 0.0
+		return false
+	_push_t += delta
+	if _push_t < 0.1:
+		return false
+	_push_t = 0.0
+	_ledge_climb(float(info["wall_x"]), float(info["top_y"]), dir)
+	return true
+
+func _ensure_body_shape() -> void:
+	if _body_shape != null:
+		return
+	_body_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if _body_shape and _body_shape.shape is CapsuleShape2D:
+		_body_shape.shape = _body_shape.shape.duplicate()
+		_body_shape_pos = _body_shape.position
+		_body_shape_h = (_body_shape.shape as CapsuleShape2D).height
+
+func _set_low_body(low: bool) -> void:
+	_ensure_body_shape()
+	if _body_shape == null or not (_body_shape.shape is CapsuleShape2D):
+		return
+	var cap: CapsuleShape2D = _body_shape.shape
+	if low:
+		cap.height = max(cap.radius * 2.0, _body_shape_h - 22.0)
+		_body_shape.position = _body_shape_pos + Vector2(0, 11.0)
+	else:
+		cap.height = _body_shape_h
+		_body_shape.position = _body_shape_pos
+
+func _can_stand() -> bool:
+	_ensure_body_shape()
+	if _body_shape == null:
+		return true
+	return not test_move(global_transform, Vector2(0, -22.0))
+
+func _try_ledge_grab(direction: float) -> bool:
+	if direction == 0.0 or velocity.y < -80.0 or has_item:
+		return false
+	if is_climbing_animation or is_blocking or is_stunned or is_parrying or is_hurt or is_dead:
+		return false
+	var dir = signf(direction)
+	var info = _wall_probe(dir)
+	if info.is_empty():
+		return false
+	var rise: float = info["rise"]
+	if rise < LEDGE_MIN or rise > LEDGE_MAX:
+		return false
+	_ledge_climb(float(info["wall_x"]), float(info["top_y"]), dir)
+	return true
+
+const CLIMB_KEYS := [
+	[Vector2(-26.0, 26.0), 0],
+	[Vector2(-24.0, 19.0), 1],
+	[Vector2(-3.0, -7.0), 2],
+	[Vector2(8.0, -31.0), 3],
+]
+var _climb_manual: bool = false
+
+func _ledge_climb(wall_x: float, top_y: float, dir: float) -> void:
+	is_climbing_animation = true
+	velocity = Vector2.ZERO
+	_push_t = 0.0
+	facing_direction = int(dir)
+	if _sprite_base == Vector2.INF and sprite:
+		_sprite_base = sprite.position
+	_step_vis = 0.0
+	var base = _sprite_base if _sprite_base != Vector2.INF else Vector2.ZERO
+	if sprite:
+		sprite.position = base
+		sprite.scale.x = dir
+		sprite.speed_scale = 1.0
+		_play_anim("Climb", true)
+		sprite.pause()
+		_climb_manual = true
+		sprite.offset = Vector2.ZERO
+	var corner = Vector2(wall_x, top_y)
+	var feet = global_position.y + FEET_Y
+	var rise = feet - top_y
+	var first := 0
+	if rise < 58.0:
+		first = 2
+	elif rise < 76.0:
+		first = 1
+	var keys: Array = []
+	for i in range(first, CLIMB_KEYS.size()):
+		var k = CLIMB_KEYS[i]
+		var c = corner + Vector2(k[0].x * dir, k[0].y)
+		keys.append([c - base, k[1]])
+	var end_pos = Vector2(wall_x + dir * 18.0, top_y - FEET_Y - 0.5)
+	keys.append([end_pos, 4])
+	var start = global_position
+	var durs: Array = []
+	var prev = start
+	for i in range(keys.size()):
+		var dist = prev.distance_to(keys[i][0])
+		var dt = clamp(dist / 360.0, 0.06, 0.16)
+		if i == 0 and first == 0:
+			dt = clamp(dist / 520.0, 0.05, 0.12)
+		if keys[i][1] == 2:
+			dt += 0.04
+		durs.append(dt)
+		prev = keys[i][0]
+	var tw = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	prev = start
+	for i in range(keys.size()):
+		var from: Vector2 = prev
+		var to: Vector2 = keys[i][0]
+		var fr: int = keys[i][1]
+		tw.tween_callback(func():
+			if sprite and sprite.animation == "Climb":
+				sprite.frame = fr
+				sprite.offset = Vector2.ZERO)
+		tw.tween_method(func(u: float): global_position = from.lerp(to, u), 0.0, 1.0, durs[i]).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT if i < keys.size() - 1 else Tween.EASE_IN_OUT)
+		if fr == 0:
+			tw.tween_interval(0.05)
+		prev = to
+	await tw.finished
+	_climb_manual = false
+	if not is_inside_tree():
+		return
+	global_position = end_pos
+	is_climbing_animation = false
+	velocity = Vector2.ZERO
+	was_on_floor_last_frame = true
+	is_landing = false
+	_coyote_t = COYOTE_TIME
+	var hold = signf(Input.get_axis("ui_left", "ui_right"))
+	velocity = Vector2(dir * run_speed * 0.7 if hold == dir else 0.0, 30.0)
+	move_and_slide()
+	velocity.y = 0.0
+	was_on_floor_last_frame = true
+	if hold == dir:
+		_play_anim("Run")
+	else:
+		_play_anim("Idle")
+	_apply_anim_offset()
+
+const ANIM_ALIGN := {"Idle": "frame", "Run": "anim", "Jogging": "anim", "Landing": "frame", "Hit": "frame",
+	"AttackLeft": "frame", "AttackRight": "frame", "Jump": "anim", "Falling": "anim", "Climb": "last",
+	"Fall": "fall", "Slide": "fall", "GetUp": "fall"}
+static var _anim_offsets: Dictionary = {}
+
+func _frame_metrics(tex: Texture2D) -> Dictionary:
+	var img: Image
+	if tex is AtlasTexture:
+		var at: AtlasTexture = tex
+		img = at.atlas.get_image().get_region(Rect2i(at.region))
+	else:
+		img = tex.get_image()
+	if img == null:
+		return {}
+	if img.is_compressed():
+		img.decompress()
+	var w = img.get_width()
+	var h = img.get_height()
+	var miny = -1
+	var maxy = -1
+	for y in range(h):
+		for x in range(w):
+			if img.get_pixel(x, y).a > 0.3:
+				if miny < 0:
+					miny = y
+				maxy = y
+				break
+	if miny < 0:
+		return {}
+	var sx := 0.0
+	var n := 0
+	for y in range(miny, min(h, miny + 12)):
+		for x in range(w):
+			if img.get_pixel(x, y).a > 0.3:
+				sx += x + 0.5
+				n += 1
+	return {"w": w, "h": h, "maxy": maxy, "head": sx / max(1, n)}
+
+func _build_anim_offsets() -> void:
+	if not _anim_offsets.is_empty() or sprite == null or sprite.sprite_frames == null:
+		return
+	var sf = sprite.sprite_frames
+	var cache: Dictionary = {}
+	for an in sf.get_animation_names():
+		var arr: Array = []
+		for i in range(sf.get_frame_count(an)):
+			arr.append(_frame_metrics(sf.get_frame_texture(an, i)))
+		cache[an] = arr
+	for an in ANIM_ALIGN.keys():
+		if not cache.has(an):
+			continue
+		var mode: String = ANIM_ALIGN[an]
+		var ms: Array = cache[an]
+		var out: Array = []
+		var deepest := -1
+		var head_sum := 0.0
+		var head_n := 0
+		for m in ms:
+			if not m.is_empty():
+				deepest = max(deepest, int(m["maxy"]))
+				head_sum += float(m["head"]) - float(m["w"]) * 0.5
+				head_n += 1
+		var head_avg = head_sum / max(1, head_n)
+		for i in range(ms.size()):
+			var m: Dictionary = ms[i]
+			if m.is_empty():
+				out.append(Vector2.ZERO)
+				continue
+			var ref: Dictionary = m
+			if mode == "last":
+				ref = ms[ms.size() - 1]
+			elif mode == "fall" and cache.has("Fall") and not cache["Fall"].is_empty():
+				ref = cache["Fall"][0]
+			var w = float(m["w"])
+			var h = float(m["h"])
+			var bottom = int(ref["maxy"])
+			if mode == "anim":
+				bottom = deepest
+			var ox = w * 0.5 - round(float(ref["head"]))
+			if mode == "anim":
+				ox = -round(head_avg)
+			var oy = h * 0.5 + 35.0 - bottom
+			out.append(Vector2(ox, oy))
+		_anim_offsets[an] = out
+
+func _apply_anim_offset() -> void:
+	if sprite == null:
+		return
+	if _climb_manual:
+		sprite.offset = Vector2.ZERO
+		return
+	var arr = _anim_offsets.get(String(sprite.animation), null)
+	if arr is Array and sprite.frame < arr.size():
+		sprite.offset = arr[sprite.frame]
+	else:
+		sprite.offset = Vector2.ZERO
 
 func _try_climb_obstacle() -> bool:
 	if is_climbing_animation or is_climbing or is_vaulting or is_blocking or is_stunned or is_parrying:
@@ -617,8 +1141,15 @@ func _try_climb_obstacle() -> bool:
 
 	if best == null:
 		return false
-
-	_climb_over(best, best_data.center, best_data.left, best_data.right, best_data.top)
+	var rise = (player_pos.y + FEET_Y) - float(best_data.top)
+	if rise < LEDGE_MIN or rise > LEDGE_MAX + 16.0:
+		return false
+	var go_right = player_pos.x < float(best_data.center.x)
+	var edge = float(best_data.left) if go_right else float(best_data.right)
+	if abs(player_pos.x - edge) > 58.0:
+		return false
+	last_climbed_obstacle = best
+	_ledge_climb(edge, float(best_data.top), 1.0 if go_right else -1.0)
 	return true
 
 func _collect_rect_shapes(node: Node, out: Array) -> void:
@@ -630,55 +1161,6 @@ func _collect_rect_shapes(node: Node, out: Array) -> void:
 		else:
 			_collect_rect_shapes(child, out)
 
-func _climb_over(o: Node, center: Vector2, left_edge: float, right_edge: float, top_edge: float) -> void:
-	last_climbed_obstacle = o
-	is_climbing_animation = true
-	velocity = Vector2.ZERO
-
-	set_physics_process(false)
-
-	var go_right = global_position.x < center.x
-	facing_direction = 1 if go_right else -1
-	if sprite:
-		sprite.scale.x = 1 if go_right else -1
-
-	_play_anim("Climb", true)
-
-	var climb_anim_len = 0.4
-	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation("Climb"):
-		var count = sprite.sprite_frames.get_frame_count("Climb")
-		var spd = sprite.sprite_frames.get_animation_speed("Climb")
-		if spd > 0 and count > 0:
-			climb_anim_len = float(count) / spd
-
-	var dir = 1.0 if go_right else -1.0
-
-	var start_pos = global_position
-	var target_y = top_edge - climb_vertical_offset
-	var target_x = clamp(start_pos.x, left_edge + climb_horizontal_offset, right_edge - climb_horizontal_offset)
-
-	if abs(target_x - start_pos.x) < 1.0:
-		target_x = start_pos.x + dir * climb_horizontal_offset
-
-	var end_pos = Vector2(target_x + dir * climb_horizontal_offset, target_y)
-
-	var tw = create_tween()
-	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-	var mid_pos = Vector2(start_pos.x, target_y)
-	tw.tween_property(self, "global_position", mid_pos, climb_anim_len * 0.5)
-	tw.tween_property(self, "global_position", end_pos, climb_anim_len * 0.5)
-
-	await tw.finished
-
-	if not is_inside_tree():
-		return
-
-	is_climbing_animation = false
-	set_physics_process(true)
-	_play_anim("Idle")
-	velocity.y = 0
-
 func _play_landing() -> void:
 	if sprite == null:
 		return
@@ -688,7 +1170,6 @@ func _play_landing() -> void:
 		return
 	is_landing = true
 	_play_anim("Landing", true)
-	velocity.x *= LANDING_SPEED_MULT
 	await _await_anim_finished(1.0)
 	is_landing = false
 
@@ -737,6 +1218,28 @@ func _input(event: InputEvent) -> void:
 				if not _is_low_stamina():
 					_dash()
 
+const SFX_DIR := "res://GameAssets/Audio/SoundEffects/PlayerSounds/FishPlayerSounds/FishAttackSounds/"
+var _combo: int = 0
+var _combo_t: float = -10.0
+var _sfx_players: Dictionary = {}
+
+func _sfx(file: String, vol: float = -4.0, pitch_var: float = 0.08) -> void:
+	var pl: AudioStreamPlayer2D = _sfx_players.get(file, null)
+	if pl == null:
+		var st = load(SFX_DIR + file)
+		if st == null:
+			return
+		pl = AudioStreamPlayer2D.new()
+		pl.stream = st
+		pl.max_polyphony = 3
+		if AudioServer.get_bus_index("SFX") >= 0:
+			pl.bus = "SFX"
+		add_child(pl)
+		_sfx_players[file] = pl
+	pl.volume_db = vol
+	pl.pitch_scale = randf_range(1.0 - pitch_var, 1.0 + pitch_var)
+	pl.play()
+
 func _do_attack() -> void:
 	if sprite == null:
 		return
@@ -748,31 +1251,62 @@ func _do_attack() -> void:
 		return
 	if not _spend_stamina(attack_stamina_cost, "attack"):
 		return
+	var now = Time.get_ticks_msec() / 1000.0
+	_combo = _combo + 1 if now - _combo_t < 0.55 else 0
+	if _combo > 2:
+		_combo = 0
+	_combo_t = now
+	var heavy = _combo == 2
+	var hold = Input.get_axis("ui_left", "ui_right")
+	if abs(hold) > 0.2:
+		facing_direction = 1 if hold > 0.0 else -1
+	var tgt = _attack_target(abs(hold) <= 0.2)
+	if tgt and abs(hold) <= 0.2:
+		facing_direction = 1 if tgt.global_position.x >= global_position.x else -1
+	var dir = float(facing_direction)
+	sprite.scale.x = dir
+	if _slide_phase != "":
+		_finish_slide_now()
 	var use_left = next_attack_is_left
 	next_attack_is_left = not next_attack_is_left
 	is_attacking = true
 	attack_buffer = false
 	_hit_done_this_attack = false
-	velocity.x = 0
+	var lunge = 170.0 if heavy else 110.0
+	if tgt:
+		var gap = abs(tgt.global_position.x - global_position.x) - 58.0
+		lunge = clamp(gap * 5.0, lunge, 360.0)
+	velocity.x = dir * max(abs(velocity.x) * 0.5, lunge)
 	var anim = "AttackLeft" if use_left else "AttackRight"
 	_play_anim(anim, true)
 	sprite.frame = ATTACK_RESTART_FRAME
+	sprite.speed_scale = 1.15 if not heavy else 1.0
+	_sfx("Player_Fish_Swing_SoundEffect.wav", -8.0 if not heavy else -5.0, 0.12)
 	var hit_frame = min(attack_hit_frame, sprite.sprite_frames.get_frame_count(anim) - 1)
-	while sprite.is_playing() and sprite.frame < hit_frame:
+	while sprite.is_playing() and sprite.animation == anim and sprite.frame < hit_frame:
 		await get_tree().process_frame
 		if is_hurt or is_dead or is_stunned or is_parrying:
 			is_attacking = false
 			return
 	if not _hit_done_this_attack and not is_hurt and not is_dead and not is_stunned:
 		_hit_done_this_attack = true
-		_deal_attack_damage()
+		_deal_attack_damage(heavy)
 	if is_hurt or is_dead or is_stunned or is_parrying:
 		is_attacking = false
 		return
-	await _await_anim_finished(1.0)
-	if is_hurt or is_dead or is_stunned or is_parrying:
-		is_attacking = false
+	var t := 0.0
+	while sprite.is_playing() and sprite.animation == anim and t < 1.0:
+		if attack_buffer and sprite.frame >= hit_frame + 2:
+			break
+		await get_tree().process_frame
+		t += get_process_delta_time()
+		if is_hurt or is_dead or is_stunned or is_parrying:
+			is_attacking = false
+			return
+	if not is_inside_tree():
 		return
+	sprite.speed_scale = 1.0
+	_combo_t = Time.get_ticks_msec() / 1000.0
 	if attack_buffer:
 		attack_buffer = false
 		is_attacking = false
@@ -785,8 +1319,34 @@ func _do_attack() -> void:
 	if not is_hurt and not is_dead and not is_blocking and not is_stunned and not is_parrying:
 		_play_anim("Idle")
 
-func _deal_attack_damage() -> void:
-	var dir = 1 if facing_direction > 0 else -1
+func _enemy_list() -> Array:
+	var out: Array = []
+	if enemies_node:
+		for e in enemies_node.get_children():
+			out.append(e)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not out.has(e):
+			out.append(e)
+	return out.filter(func(e): return is_instance_valid(e) and e is Node2D and not e.is_queued_for_deletion() and e.has_method("take_damage") and not ("is_dead" in e and e.is_dead))
+
+func _attack_target(any_side: bool) -> Node2D:
+	var best: Node2D = null
+	var bd := 160.0
+	for e in _enemy_list():
+		var dx = e.global_position.x - global_position.x
+		if abs(e.global_position.y - global_position.y) > 80.0:
+			continue
+		if not any_side and dx * facing_direction < -10.0:
+			continue
+		if any_side and dx * facing_direction < -10.0 and abs(dx) > 90.0:
+			continue
+		if abs(dx) < bd:
+			bd = abs(dx)
+			best = e
+	return best
+
+func _deal_attack_damage(heavy: bool = false) -> void:
+	var dir = 1.0 if facing_direction > 0 else -1.0
 	var origin = global_position + Vector2(dir * attack_range * 0.5, 0)
 	var candidates: Array = []
 	if enemies_node:
@@ -795,22 +1355,75 @@ func _deal_attack_damage() -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not candidates.has(e):
 			candidates.append(e)
-	var best = null
-	var best_dist = attack_range
+	var hits: Array = []
+	var reach = attack_range * (1.3 if heavy else 1.15)
 	for e in candidates:
-		if not is_instance_valid(e) or e.is_queued_for_deletion():
+		if not is_instance_valid(e) or e.is_queued_for_deletion() or not (e is Node2D):
 			continue
 		if not e.has_method("take_damage"):
 			continue
+		if "is_dead" in e and e.is_dead:
+			continue
 		var d = origin.distance_to(e.global_position)
 		var side_ok = (e.global_position.x - global_position.x) * dir >= -15.0
-		if d < best_dist and side_ok:
-			best_dist = d
-			best = e
-	if best:
-		best.take_damage(attack_damage)
-		if camera and camera.has_method("add_trauma"):
-			camera.add_trauma(0.08)
+		if d < reach and side_ok and abs(e.global_position.y - global_position.y) < 90.0:
+			hits.append([d, e])
+	hits.sort_custom(func(a, b): return a[0] < b[0])
+	if hits.is_empty():
+		return
+	var n := 0
+	for h in hits:
+		if n >= (3 if heavy else 2):
+			break
+		var e = h[1]
+		e.take_damage(attack_damage)
+		if heavy and e.has_method("_knockback") and is_instance_valid(e) and not ("is_dead" in e and e.is_dead):
+			e._knockback(dir, 26.0, 0.22, 7.0)
+		var at = Vector2((global_position.x + e.global_position.x) * 0.5 + dir * 10.0, global_position.y - 12.0)
+		_spawn_hit_spark(at, dir, heavy)
+		n += 1
+	velocity.x = -dir * (60.0 if heavy else 30.0)
+	_sfx("Player_Fish_ImpactHeavy_SoundEffect.wav" if heavy else "Player_Fish_Impact_SoundEffect.wav", -3.0 if heavy else -5.0)
+	_shake_camera(0.24 if heavy else 0.13)
+	_hitstop(0.085 if heavy else 0.045)
+
+func _hitstop(dur: float) -> void:
+	if Engine.time_scale < 0.99 or not is_inside_tree():
+		return
+	Engine.time_scale = 0.04
+	await get_tree().create_timer(dur, true, false, true).timeout
+	if Engine.time_scale <= 0.05:
+		Engine.time_scale = 1.0
+
+func _spawn_hit_spark(at: Vector2, dir: float, heavy: bool) -> void:
+	if get_parent() == null:
+		return
+	var fx = Node2D.new()
+	fx.z_as_relative = false
+	fx.z_index = 120
+	get_parent().add_child(fx)
+	fx.global_position = at
+	var rays: Array = []
+	for i in range(9 if heavy else 6):
+		var a = randf_range(-1.1, 1.1) + (0.0 if dir > 0 else PI)
+		rays.append([a, randf_range(14.0, 30.0) * (1.4 if heavy else 1.0), randf_range(2.0, 3.0)])
+	var st = {"k": 0.0}
+	fx.draw.connect(func():
+		var k: float = st["k"]
+		var fade = 1.0 - k
+		var r0 = (10.0 if heavy else 7.0) * (0.6 + k * 0.8)
+		fx.draw_circle(Vector2.ZERO, r0 * 1.6, Color(1.0, 0.75, 0.35, 0.25 * fade))
+		fx.draw_circle(Vector2.ZERO, r0 * (1.0 - k * 0.6), Color(1.0, 0.96, 0.85, fade))
+		for rr in rays:
+			var d = Vector2(cos(rr[0]), sin(rr[0]))
+			var a0 = d * (r0 + k * rr[1] * 0.4)
+			var a1 = d * (r0 + rr[1] * (0.4 + k))
+			fx.draw_line(a0, a1, Color(1.0, 0.85, 0.45, fade), rr[2])
+		if heavy:
+			fx.draw_arc(Vector2.ZERO, r0 + k * 26.0, 0.0, TAU, 24, Color(1.0, 0.9, 0.7, 0.7 * fade), 2.0))
+	var tw = fx.create_tween().set_ignore_time_scale(true)
+	tw.tween_method(func(v): st["k"] = v; fx.queue_redraw(), 0.0, 1.0, 0.2 if heavy else 0.15)
+	tw.tween_callback(fx.queue_free)
 
 func _knock_dir_from(source) -> float:
 	var sx = NAN
@@ -977,25 +1590,16 @@ func _dash():
 		return
 	if not _spend_stamina(dash_stamina_cost, "dash"):
 		return
+	if _slide_phase != "":
+		_finish_slide_now()
 	is_dashing = true
 	dash_cooldown = 1.5
-	var dir = -1.0 if facing_direction == -1 else 1.0
-	var remaining = 100.0
-	var step = 8.0
-	while remaining > 0.0:
-		var motion = Vector2(dir * step, 0)
-		var col = move_and_collide(motion)
-		if col != null:
-			break
-		remaining -= step
-		await get_tree().physics_frame
-		if not is_inside_tree():
-			is_dashing = false
-			return
-		if is_hurt or is_dead or is_stunned:
-			is_dashing = false
-			return
-	is_dashing = false
+	var hold = Input.get_axis("ui_left", "ui_right")
+	_dash_dir = signf(hold) if abs(hold) > 0.2 else (-1.0 if facing_direction == -1 else 1.0)
+	facing_direction = int(_dash_dir)
+	if sprite:
+		sprite.scale.x = _dash_dir
+	_dash_t = DASH_TIME
 
 func do_parry():
 	if parry_done or not parry_active:
