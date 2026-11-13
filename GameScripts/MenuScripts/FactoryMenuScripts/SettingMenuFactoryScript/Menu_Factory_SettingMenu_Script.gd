@@ -528,6 +528,7 @@ func _setup_ui() -> void:
 		music_slider, sfx_slider, ambience_slider, master_slider, ui_slider,
 		camera_sensitivity_slider, brightness_slider
 	]
+	if fps_button: controls.append(fps_button)
 	if inspect_btn: controls.append(inspect_btn)
 	if journal_btn: controls.append(journal_btn)
 	if dash_btn: controls.append(dash_btn)
@@ -537,7 +538,7 @@ func _setup_ui() -> void:
 	if back_btn: controls.append(back_btn)
 	var silent_click: Callable = Callable()
 	var click_targets: Array = [
-		resolution_button, language_button, dynamic_range_button,
+		resolution_button, fps_button, language_button, dynamic_range_button,
 		fps_check, fullscreen_check, vsync_check, effects_check, interface_attributes_check
 	]
 	for control in controls:
@@ -984,7 +985,10 @@ func _exit_to_main_menu() -> void:
 	if has_meta("overlay"):
 		var host = get_parent()
 		if host is CanvasLayer:
-			host.queue_free()
+			if host.has_meta("close_fx"):
+				(host.get_meta("close_fx") as Callable).call()
+			else:
+				host.queue_free()
 		else:
 			queue_free()
 		return
@@ -1091,8 +1095,6 @@ func _relayout() -> void:
 		fl.name = "FPSLimitLabel"
 		fl.text = "Частота кадров"
 		graphics_page.add_child(fl)
-		if Engine.has_singleton("ButtonEffects") or has_node("/root/ButtonEffects"):
-			ButtonEffects.setup(fps_button, Callable())
 	var o = Vector2(8, 8)
 	var lx = 120.0 - o.x
 	var lend = 536.0 - o.x

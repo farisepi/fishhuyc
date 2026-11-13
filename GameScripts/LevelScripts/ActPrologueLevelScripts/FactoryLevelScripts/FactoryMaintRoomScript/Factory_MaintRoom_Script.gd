@@ -50,8 +50,6 @@ var _saved_gui: bool = false
 var _saved_nav_vis: bool = false
 var _saved_strip_vis: bool = false
 var _sleepers: Array = []
-var _zz_layer: CanvasLayer = null
-var _zz: Label = null
 var _saved_light: Color = Color.WHITE
 var _my_bunk: Sprite2D = null
 var _bunks: Array = []
@@ -180,6 +178,7 @@ func _front() -> Node2D:
 
 func enter() -> void:
 	_build()
+	_shuffle_items()
 	_on = true
 	_busy = false
 	_morning = false
@@ -515,6 +514,39 @@ func inspect_click(wp: Vector2) -> void:
 				n.material.set_shader_parameter("active", 0.0)
 			return
 
+func _shuffle_items() -> void:
+	for b in _boxes:
+		var placed: Array = []
+		var lay: Dictionary = {}
+		var keys: Array = b["items"].duplicate()
+		keys.shuffle()
+		for k in keys:
+			var d = _item_def(k)
+			var tex = load(d["tex"]) as Texture2D
+			var sz: Vector2 = tex.get_size() if tex else Vector2(8, 8)
+			var spot: Vector2 = d["origin"]
+			var locker: bool = b["kind"] == "locker"
+			for attempt in range(40):
+				var cand: Vector2
+				if locker:
+					var rest: float = [14.0, 27.0, 40.0][randi() % 3]
+					var hi = int(16.0 - sz.x)
+					cand = Vector2(randi_range(min(5, hi), hi), rest + 1.0 - sz.y)
+				else:
+					var hi2 = int(15.0 - sz.x)
+					cand = Vector2(randi_range(min(3, hi2), hi2), d["origin"].y)
+				var ok := true
+				for pr in placed:
+					if Rect2(cand, sz).grow(0.5).intersects(pr):
+						ok = false
+						break
+				if ok:
+					spot = cand
+					break
+			placed.append(Rect2(spot, sz))
+			lay[k] = {"origin": spot, "flip": locker and randf() < 0.5}
+		b["layout"] = lay
+
 func _open_box(b: Dictionary) -> void:
 	if stash_open() or _stash == null:
 		return
@@ -524,12 +556,19 @@ func _open_box(b: Dictionary) -> void:
 	if L.inspect_text_panel:
 		L.inspect_text_panel.visible = false
 	var items: Array = []
+	var lay: Dictionary = b.get("layout", {})
 	for k in b["items"]:
-		items.append(_item_def(k))
+		var d = _item_def(k)
+		if lay.has(k):
+			d["origin"] = lay[k]["origin"]
+			d["flip"] = lay[k]["flip"]
+		items.append(d)
 	var s = 8.0 if b["kind"] == "locker" else 10.0
+	var locked = not L._tut_done("inspect")
 	_stash.open({"kind_title": info["kind_title"], "title": info["box_title"], "text": info["text"],
-		"closed_tex": b["closed"], "open_tex": b["open"], "scale": s, "items": items})
-	L._add_journal_note(info["id"], info["title"] + ": " + info["journal"])
+		"closed_tex": b["closed"], "open_tex": b["open"], "scale": s, "items": items, "locked": locked})
+	if not locked:
+		L._add_journal_note(info["id"], info["title"] + ": " + info["journal"])
 
 func _on_stash_closed() -> void:
 	if not _stash_box.is_empty() and is_instance_valid(_stash_box["node"]):
@@ -644,7 +683,7 @@ func _sleep() -> void:
 	await L._fade_black(true, 1.3)
 	if not _on:
 		return
-	await _zzz(1.6)
+	await get_tree().create_timer(0.8).timeout
 	var sh = L.current_shift + 1
 	var st = L._plan_next_station()
 	if L._dream and L._dream.night_has_lessons(sh, st):
@@ -678,32 +717,6 @@ func _sleep() -> void:
 		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.") % L._key_name("interact"), ["A", L._key_name("interact")],
 			func(): return L._world_to_screen(Rect2(DOOR_X - 40, CEIL_Y + 60, 80, FLOOR_Y - CEIL_Y - 56)), false)
 		L._tut_mark("morning")
-
-func _zzz(t: float) -> void:
-	if _zz == null:
-		_zz_layer = CanvasLayer.new()
-		_zz_layer.layer = 90
-		add_child(_zz_layer)
-		_zz = Label.new()
-		_zz.text = "z  Z  z"
-		_zz.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_zz.set_anchors_preset(Control.PRESET_CENTER)
-		_zz.position = Vector2(476, 300)
-		_zz.size = Vector2(200, 40)
-		var f = L._bubble_font()
-		if f:
-			_zz.add_theme_font_override("font", f)
-		_zz.add_theme_font_size_override("font_size", 22)
-		_zz.add_theme_color_override("font_color", Color(0.75, 0.8, 0.9))
-		_zz_layer.add_child(_zz)
-	_zz.visible = true
-	_zz.modulate.a = 0.0
-	var tw = create_tween().set_ignore_time_scale(true)
-	tw.tween_property(_zz, "modulate:a", 1.0, t * 0.3)
-	tw.tween_interval(t * 0.4)
-	tw.tween_property(_zz, "modulate:a", 0.0, t * 0.3)
-	await tw.finished
-	_zz.visible = false
 
 func _wake_fish() -> void:
 	for l in _lie_sprites:
@@ -795,7 +808,7 @@ func _draw_room() -> void:
 	v.draw_rect(Rect2(lp, Vector2(12, 6)), lc)
 	v.draw_rect(Rect2(lp, Vector2(12, 2)), lc.lightened(0.4))
 
-func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> void:
+func _draw_key_prompt(c: Node2D, at: Vector2, _word: String, accent: Color) -> void:
 	var f = L._bubble_font()
 	var key = L._key_name("interact")
 	if key.length() > 3:
@@ -823,36 +836,45 @@ func _draw_key_prompt(c: Node2D, at: Vector2, word: String, accent: Color) -> vo
 		var tw = f.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
 		var base_y = y0 + 3 + dip + f.get_ascent(8)
 		c.draw_string(f, Vector2(round(at.x - tw / 2.0), base_y), key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.16, 0.18, 0.25))
-		var ww = f.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
-		c.draw_rect(Rect2(round(at.x - ww / 2.0) - 3, y0 + 21, ww + 6, 11), Color(0.04, 0.05, 0.07, 0.8))
-		c.draw_string(f, Vector2(round(at.x - ww / 2.0), y0 + 29), word, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, accent)
+
+func _draw_tag(c: Node2D, x: float, tip_y: float, text: String, acc: Color) -> float:
+	var f = L._bubble_font()
+	var dark = Color(0.04, 0.04, 0.06)
+	var bob = round(sin(_t * 4.0) * 2.0)
+	var tip = Vector2(round(x), round(tip_y + bob))
+	for r in range(5):
+		var hw = 4 - r
+		c.draw_rect(Rect2(tip.x - hw * 2 - 1, tip.y - 10 + r * 2 - 1, hw * 4 + 3, 4), dark)
+	for r in range(5):
+		var hw2 = 4 - r
+		c.draw_rect(Rect2(tip.x - hw2 * 2 + 1, tip.y - 10 + r * 2, hw2 * 4 - 1, 2), acc.lightened(0.18) if r % 2 == 0 else acc)
+	if f == null:
+		return tip.y - 14.0
+	var sw = round(f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x)
+	var box = Rect2(tip.x - round(sw * 0.5) - 7, tip.y - 29, sw + 14, 15)
+	c.draw_rect(Rect2(box.position.x + 1, box.position.y - 1, box.size.x - 2, box.size.y + 2), dark)
+	c.draw_rect(Rect2(box.position.x - 1, box.position.y + 1, box.size.x + 2, box.size.y - 2), dark)
+	c.draw_rect(box, Color(0.1, 0.1, 0.13, 0.96))
+	c.draw_rect(Rect2(box.position.x, box.position.y, box.size.x, 2), acc)
+	c.draw_rect(Rect2(box.position.x, box.end.y - 1, box.size.x, 1), acc.darkened(0.5))
+	c.draw_rect(Rect2(box.position.x + 2, box.position.y + 4, 2, 2), acc.darkened(0.2))
+	c.draw_rect(Rect2(box.end.x - 4, box.position.y + 4, 2, 2), acc.darkened(0.2))
+	var pulse = 0.85 + 0.15 * sin(_t * 3.0)
+	c.draw_string(f, Vector2(tip.x - round(sw * 0.5) + 1, box.position.y + 13), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0, 0, 0, 0.6))
+	c.draw_string(f, Vector2(tip.x - round(sw * 0.5), box.position.y + 12), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(acc.lightened(0.35), pulse))
+	return box.position.y
 
 func _draw_front(front: Node2D) -> void:
 	var f = L._bubble_font()
 	if not _morning and L.state != L.State.INSPECT:
 		var bp = _bed_pos()
-		var bob = sin(_t * 4.0) * 2.0
-		var ay = _bed_y(1) - 22.0 + bob
-		front.draw_colored_polygon(PackedVector2Array([Vector2(bp.x - 7, ay), Vector2(bp.x + 7, ay), Vector2(bp.x, ay + 9)]), Color(1.0, 0.82, 0.25))
-		if f:
-			var lbl = tr("ТВОЯ КОЙКА")
-			var sw = f.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
-			front.draw_rect(Rect2(bp.x - sw * 0.5 - 4, ay - 16, sw + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
-			front.draw_string(f, Vector2(bp.x - sw * 0.5, ay - 6), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
-			if _pick.size() > 0 and _pick[0] == "bed":
-				_draw_key_prompt(front, Vector2(bp.x, FLOOR_Y - 150.0), tr("СПАТЬ"), Color(1.0, 0.84, 0.35))
+		var top = _draw_tag(front, bp.x, _bed_y(1) - 10.0, tr("ТВОЯ КОЙКА"), Color(1.0, 0.8, 0.3))
+		if _pick.size() > 0 and _pick[0] == "bed":
+			_draw_key_prompt(front, Vector2(bp.x, top - 16.0), "", Color(1.0, 0.84, 0.35))
 	elif _morning and L.state != L.State.INSPECT:
-		var bob2 = sin(_t * 4.0) * 3.0
-		var ax = DOOR_X
-		var ay2 = FLOOR_Y - 158.0 + bob2
-		front.draw_colored_polygon(PackedVector2Array([Vector2(ax - 7, ay2), Vector2(ax + 7, ay2), Vector2(ax, ay2 + 9)]), Color(0.4, 1.0, 0.5))
-		if f:
-			var lbl2 = tr("НА СМЕНУ")
-			var sw2 = f.get_string_size(lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
-			front.draw_rect(Rect2(ax - sw2 * 0.5 - 4, ay2 - 16, sw2 + 8, 13), Color(0.05, 0.05, 0.06, 0.85))
-			front.draw_string(f, Vector2(ax - sw2 * 0.5, ay2 - 6), lbl2, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.5, 1.0, 0.6))
+		var top2 = _draw_tag(front, DOOR_X, FLOOR_Y - 140.0, tr("НА СМЕНУ"), Color(0.45, 1.0, 0.55))
 		if _pick.size() > 0 and _pick[0] == "door":
-			_draw_key_prompt(front, Vector2(ax, FLOOR_Y - 86.0), tr("ВЫЙТИ"), Color(0.5, 1.0, 0.6))
+			_draw_key_prompt(front, Vector2(DOOR_X, top2 - 16.0), "", Color(0.5, 1.0, 0.6))
 	if _pick.size() > 1 and _pick[0] == "box":
 		var bn: Sprite2D = _pick[1]["node"]
 		var bx = bn.position.x + bn.texture.get_width() * PX * 0.5

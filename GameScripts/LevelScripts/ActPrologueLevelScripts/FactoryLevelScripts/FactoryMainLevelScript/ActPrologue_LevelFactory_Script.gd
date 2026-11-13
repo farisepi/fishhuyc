@@ -588,8 +588,65 @@ var _nav_text: String = ""
 var _nav_dir: float = 1.0
 
 var _nav_near: bool = false
+var _esc_cd: float = -1.0
+var _esc_cd_ms: int = 0
 
 const NAV_IN_WORLD := false
+
+var _you: Node2D = null
+var _you_a: float = 0.0
+var _you_hold: float = 0.0
+
+func _update_you_marker(delta: float) -> void:
+	if player == null:
+		return
+	if _walkin_active:
+		_you_hold = 1.6
+	else:
+		_you_hold = max(0.0, _you_hold - delta)
+	var want = 1.0 if (_you_hold > 0.0 and state != State.DEAD and state != State.INSPECT and not _dream_on and not _room_on) else 0.0
+	_you_a = move_toward(_you_a, want, delta * 3.0)
+	if _you == null:
+		if _you_a <= 0.0:
+			return
+		_you = Node2D.new()
+		_you.z_as_relative = false
+		_you.z_index = 190
+		_you.draw.connect(_draw_you)
+		add_child(_you)
+	_you.visible = _you_a > 0.01
+	if _you.visible:
+		_you.global_position = player.global_position
+		_you.queue_redraw()
+
+func _draw_you() -> void:
+	var t = Time.get_ticks_msec() / 1000.0
+	var a = _you_a
+	var acc = Color(1.0, 0.82, 0.3)
+	var dark = Color(0.05, 0.05, 0.08)
+	var g = 0.5 + 0.5 * sin(t * 3.0)
+	for i in range(3):
+		var w = 30.0 + i * 8.0 + g * 4.0
+		_you.draw_rect(Rect2(-w * 0.5, 6.0 - i, w, 2.0 + i * 2.0), Color(acc, (0.16 - i * 0.04) * a))
+	var bob = round(sin(t * 4.0) * 2.0)
+	var tip = Vector2(0, -56.0 + bob)
+	for r in range(5):
+		var hw = 4 - r
+		_you.draw_rect(Rect2(tip.x - hw * 2 - 1, tip.y - 10 + r * 2 - 1, hw * 4 + 3, 4), Color(dark, a))
+	for r in range(5):
+		var hw2 = 4 - r
+		_you.draw_rect(Rect2(tip.x - hw2 * 2 + 1, tip.y - 10 + r * 2, hw2 * 4 - 1, 2), Color(acc.lightened(0.15 * (1 - r % 2)), a))
+	var f = _bubble_font()
+	if f == null:
+		return
+	var txt = tr("ТЫ")
+	var sw = f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x
+	var r2 = Rect2(round(-sw * 0.5) - 5, tip.y - 27, round(sw) + 10, 14)
+	_you.draw_rect(r2.grow(1), Color(dark, a))
+	_you.draw_rect(r2, Color(0.12, 0.1, 0.06, 0.95 * a))
+	_you.draw_rect(Rect2(r2.position, Vector2(r2.size.x, 1)), Color(acc, a))
+	_you.draw_rect(Rect2(r2.position.x, r2.end.y - 1, r2.size.x, 1), Color(acc.darkened(0.4), a))
+	_you.draw_string(f, Vector2(round(-sw * 0.5), r2.position.y + 10), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.92, 0.6, a))
 
 func _nav_arrow_update() -> void:
 	if player == null:
@@ -608,11 +665,23 @@ func _nav_arrow_update() -> void:
 		if not _escape_on() or h < ESCAPE_WINDOW_START - 1.0:
 			target_x = INF
 		elif h < ESCAPE_WINDOW_START:
-			var left = int(ceil(_real_until(ESCAPE_WINDOW_START)))
+			var model = _real_until(ESCAPE_WINDOW_START)
+			var now_ms = Time.get_ticks_msec()
+			var rdt = 0.0 if _esc_cd_ms == 0 else clamp((now_ms - _esc_cd_ms) / 1000.0, 0.0, 0.25)
+			_esc_cd_ms = now_ms
+			if _esc_cd < 0.0 or abs(model - _esc_cd) > 4.0:
+				_esc_cd = model
+			else:
+				_esc_cd = move_toward(_esc_cd - rdt, model, rdt * 0.6)
+			var left = int(ceil(max(0.0, _esc_cd)))
 			txt = tr("ЛИФТ  %d:%02d") % [left / 60, left % 60]
 		elif h < ESCAPE_WINDOW_END:
-			var real_left = (ESCAPE_WINDOW_END - h) / 0.25 * ESCAPE_WINDOW_REAL
-			txt = tr("ЛИФТ!  %d СЕК") % int(ceil(real_left))
+			_esc_cd = -1.0
+			if not _post_empty():
+				txt = tr("ЛИФТ  %d:%02d") % [0, 0]
+			else:
+				var real_left = max(0.0, (ESCAPE_WINDOW_END - h) / 0.25 * ESCAPE_WINDOW_REAL)
+				txt = tr("ЛИФТ!  %d СЕК") % int(ceil(real_left))
 		else:
 			target_x = INF
 		var dist = abs(player.global_position.x - target_x)
@@ -1561,6 +1630,7 @@ func _ready() -> void:
 		if z:
 			z.visible = false
 
+	_apply_station_sprites()
 	for press in presses:
 		if press and press.sprite_frames and press.sprite_frames.has_animation("press_down"):
 			press.stop()
@@ -1631,6 +1701,40 @@ func _ready() -> void:
 		_setup_accident_skip()
 
 const PRESS_FOOT_CX: float = 12.5
+
+const STATION_SHEETS := {0: "Cutter", 1: "Roller", 2: "RiceMold", 3: "NoriFeeder", 4: "Packer"}
+const STATION_SHEET_DIR := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_Station%s_SpriteList_Animation.png"
+
+func _apply_station_sprites() -> void:
+	for i in range(presses.size()):
+		var press: AnimatedSprite2D = presses[i]
+		if press == null or not STATION_SHEETS.has(i):
+			continue
+		var tex = load(STATION_SHEET_DIR % STATION_SHEETS[i]) as Texture2D
+		if tex == null:
+			continue
+		var sf = SpriteFrames.new()
+		if sf.has_animation("default"):
+			sf.remove_animation("default")
+		var frames: Array = []
+		for f in range(9):
+			var at = AtlasTexture.new()
+			at.atlas = tex
+			at.region = Rect2(f * 48, 0, 48, 39)
+			frames.append(at)
+		sf.add_animation("press_down")
+		sf.set_animation_loop("press_down", false)
+		sf.set_animation_speed("press_down", 22.0)
+		for at in frames:
+			sf.add_frame("press_down", at)
+		sf.add_animation("press_up")
+		sf.set_animation_loop("press_up", false)
+		sf.set_animation_speed("press_up", 15.0)
+		for k in range(frames.size() - 1, -1, -1):
+			sf.add_frame("press_up", frames[k])
+		press.sprite_frames = sf
+		press.animation = "press_down"
+		press.frame = 0
 
 func _get_stop_zone_x(index: int) -> float:
 	if index >= 0 and index < presses.size() and presses[index] != null:
@@ -2628,6 +2732,7 @@ func _tutorial_tick(delta: float) -> void:
 
 
 var _mg_forgive: bool = false
+var _mg_hard: float = 0.0
 
 func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void:
 	_mg_forgive = forgive
@@ -2638,6 +2743,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 	_mg_trail.clear()
 	_mg_station = station
 	mg_kind = STATION_MINIGAME.get(station, MG.SLIDER)
+	_mg_hard = 0.0 if (forgive or _dream_on) else clamp((_streak - 2) * 0.035, 0.0, 0.21)
 	mg_hits = 0
 	minigame_panel.modulate = Color.WHITE
 	_mg_canvas.modulate = Color.WHITE
@@ -2650,11 +2756,11 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 	match mg_kind:
 		MG.SLIDER:
 			_mg_title.text = tr(STATION_TITLE.get(station, tr("УПАКОВКА")))
-			_mg_title.position = Vector2(376, 246)
+			_mg_title.position = Vector2(376, 236)
 			hint_label.text = tr("НАЖМИ ") + key + tr(" В ЗЕЛЁНОЙ ЗОНЕ!")
 			_hint_at(-1.0)
 			zone_center = randf_range(0.3, 0.7)
-			zone_width = randf_range(0.32, 0.42)
+			zone_width = randf_range(0.32, 0.42) * (1.0 - 0.5 * _mg_hard)
 			var zw = round(TRACK_WIDTH * zone_width / MG_SCALE) * MG_SCALE
 			var zx = round((TRACK_WIDTH * zone_center - zw / 2) / MG_SCALE) * MG_SCALE
 			minigame_zone.size.x = zw
@@ -2664,7 +2770,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			minigame_slider.position.x = TRACK_X0 - minigame_slider.size.x / 2.0
 		MG.LOCK:
 			_mg_title.text = tr(STATION_TITLE.get(station, tr("ЗАМОК")))
-			_mg_title.position = Vector2(376, 186)
+			_mg_title.position = Vector2(376, 176)
 			var pins = 2
 			mg_pins.clear()
 			var a = randf() * TAU
@@ -2674,31 +2780,33 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 			mg_pin_index = 0
 			mg_angle = -PI / 2.0
 			mg_dir = 1.0 if randf() < 0.5 else -1.0
-			mg_speed = 1.9 + 0.1 * current_shift
-			mg_pin_half = 0.42
+			mg_speed = (1.9 + 0.1 * current_shift) * (1.0 + _mg_hard)
+			mg_pin_half = 0.42 * (1.0 - 0.4 * _mg_hard)
 			mg_timeout = 4.5 * pins
 			hint_label.text = key + tr(" — КОГДА СТРЕЛКА В ЗЕЛЁНОМ")
 			_hint_at(418.0)
 		MG.GAUGE:
 			_mg_title.text = tr(STATION_TITLE.get(station, tr("ДАВЛЕНИЕ")))
-			_mg_title.position = Vector2(376, 186)
+			_mg_title.position = Vector2(376, 176)
 			mg_level = 0.0
 			mg_vel = 0.12
 			var lo = randf_range(0.5, 0.74)
-			mg_band = Vector2(lo, lo + 0.13)
+			var bw = 0.17 * (1.0 - 0.4 * _mg_hard)
+			lo = min(lo, 0.86 - bw)
+			mg_band = Vector2(lo, lo + bw)
 			hint_label.text = key + tr(" — ОСТАНОВИ В ЗЕЛЁНОМ!")
 			_hint_at(418.0)
 		MG.RING:
 			_mg_title.text = tr(STATION_TITLE.get(station, tr("СКРУТКА")))
-			_mg_title.position = Vector2(376, 186)
+			_mg_title.position = Vector2(376, 176)
 			mg_hits_need = 2
-			mg_ring_speed = 58.0 + 5.0 * current_shift
+			mg_ring_speed = (58.0 + 5.0 * current_shift) * (1.0 + _mg_hard)
 			mg_ring_r = 86.0
 			hint_label.text = key + tr(" — КОГДА КОЛЬЦО СОВПАДЁТ (2 РАЗА)")
 			_hint_at(418.0)
 		MG.CUT:
 			_mg_title.text = tr(STATION_TITLE.get(station, tr("НАРЕЗКА")))
-			_mg_title.position = Vector2(376, 236)
+			_mg_title.position = Vector2(376, 226)
 			mg_knife = 0.0
 			mg_marks.clear()
 			var n = 2
@@ -2706,7 +2814,7 @@ func _start_minigame(station: int = STATION_PACK, forgive: bool = false) -> void
 				mg_marks.append(0.32 + i * 0.36 + randf_range(-0.05, 0.05))
 			mg_hits = 0
 			mg_hits_need = n
-			mg_speed = 0.36 + 0.025 * current_shift
+			mg_speed = (0.36 + 0.025 * current_shift) * (1.0 + _mg_hard)
 			hint_label.text = key + tr(" — РЕЖЬ ПО МЕТКАМ")
 			_hint_at(368.0)
 	_mg_title.size = Vector2.ZERO
@@ -3068,6 +3176,8 @@ func _create_action_strip() -> void:
 	_act_strip.visible = false
 	_act_strip.draw.connect(_draw_action_strip)
 	$UI.add_child(_act_strip)
+	if fade_rect and fade_rect.get_parent() == $UI:
+		$UI.move_child(_act_strip, fade_rect.get_index())
 	if _hud_panel and _hud_panel.material is ShaderMaterial:
 		var m = (_hud_panel.material as ShaderMaterial).duplicate()
 		m.set_shader_parameter("phase", 0.95)
@@ -3089,6 +3199,7 @@ func _act_half_w() -> int:
 func _update_action_strip(delta: float) -> void:
 	if _act_strip == null:
 		return
+	_place_streak_label()
 	var want_show = ((current_shift >= 2 and _hud_on) or (_room_on and _tut_done("journal")) or _dream_allow_inspect) and state != State.DEAD
 	if _act_strip.visible != want_show:
 		_act_strip.visible = want_show
@@ -3097,6 +3208,11 @@ func _update_action_strip(delta: float) -> void:
 			_act_strip.create_tween().tween_property(_act_strip, "modulate:a", 1.0, 0.5)
 	if not want_show:
 		return
+	if _hud_panel and _hud_panel.visible and _hud_on and not _room_on:
+		_act_strip.position = _hud_panel.position + Vector2(0, _hud_panel.size.y + 2.0 * HUD_PX)
+	else:
+		var vp = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1152, 648)
+		_act_strip.position = Vector2(vp.x - _act_strip.size.x - HUD_MARGIN, HUD_MARGIN)
 	if inspect_journal_notice and inspect_journal_notice.visible:
 		_act_note_t = 4.0
 	if journal_open:
@@ -3403,6 +3519,12 @@ func _create_inspect_targets() -> void:
 	_add_inspect_target("conveyor", Vector2(380, 368), Vector2(1240, 56),
 		tr("Конвейер"), tr("Сколько еще таких заводов они построили?"),
 		tr("%d коробок за смену. Лента не встаёт даже на пересменку: остановится она — остановится весь завод.") % TOTAL_OBJECTS, COLOR_HIGHLIGHT_BLUE, "")
+	for si in range(presses.size()):
+		if presses[si] == null or not STATION_INFO.has(si):
+			continue
+		var inf: Array = STATION_INFO[si]
+		_add_inspect_target("station_%d" % si, presses[si].global_position, Vector2(132, 105),
+			tr(inf[0]), tr(inf[1]), tr(inf[2]), COLOR_HIGHLIGHT_BLUE, "")
 	for h in GUARD_SHIFTS:
 		_add_inspect_target("guard_shift_" + _hour_id(h), GUARD_POSITION, Vector2(80, 80),
 			tr("Смена охранника"), tr("Охранник сменился.. Нужно записать"), tr("в %s — пост на пару минут пустеет") % _hour_text(h),
@@ -3411,6 +3533,14 @@ func _create_inspect_targets() -> void:
 		_add_inspect_target("sniper_shift_" + _hour_id(h), Vector2(1060, 60), Vector2(120, 80),
 			tr("Смена снайпера"), tr("Снайпер сменился.. Нужно записать"), tr("в %s — балкон на пару минут пустеет") % _hour_text(h),
 			COLOR_HIGHLIGHT_YELLOW, "sniper_shift", h)
+
+const STATION_INFO := {
+	0: ["Станок нарезки", "Гильотина падает каждые пару секунд. Плавники лучше держать подальше.", "гильотина режет роллы на порции. Нож не точили с самого открытия завода."],
+	1: ["Станок скрутки", "Бамбуковый валик сворачивает ролл. Пахнет водорослями — почти как дома.", "бамбуковый валик сворачивает ролл. Пахнет водорослями, почти как дома."],
+	2: ["Рисовый пресс", "Давит рис в форму. Стрелка давления никогда не стоит на месте.", "давит рис в форму. Передержишь — форма трескается."],
+	3: ["Подача нори", "Рулон нори и замок подачи. Шестерня щёлкает, как чьё-то сердце.", "подаёт листы нори. Замок надо открыть точно вовремя."],
+	4: ["Упаковка", "Плёнка, коробки и горячая планка. Отсюда суши уезжают наверх — туда, куда нам нельзя.", "запаивает коробки. Всё упакованное уезжает наверх, куда рабочим путь закрыт."],
+}
 
 func _hour_id(h: float) -> String:
 	return str(int(h)) if is_equal_approx(h, floor(h)) else "%d_%d" % [int(h), int(round((h - floor(h)) * 10.0))]
@@ -3572,11 +3702,10 @@ func _is_inspect_target_visible(area: Area2D) -> bool:
 	if special_type == "sniper_shift" and current_shift < 3:
 		return false
 	if special_type == "guard_shift" or special_type == "sniper_shift":
-		var hour = _current_hour()
-		if hour >= special_hour and hour <= special_hour + 0.25:
-			return true
-		var changing = guard_changing if special_type == "guard_shift" else sniper_changing
-		return changing and hour >= special_hour - 0.05 and hour <= special_hour + 0.75
+		var live = guard_changing if special_type == "guard_shift" else sniper_changing
+		var said = _guard_leave_said if special_type == "guard_shift" else _sniper_leave_said
+		var live_h = _guard_change_hour if special_type == "guard_shift" else _sniper_change_hour
+		return live and said and is_equal_approx(live_h, special_hour)
 	return true
 
 func _update_inspect_highlights() -> void:
@@ -3728,6 +3857,10 @@ func _outline_targets_for(id: String) -> Array:
 	elif id.begins_with("guard"):
 		if guard_sprite:
 			out.append(guard_sprite)
+	elif id.begins_with("station_"):
+		var si = int(id.substr(8))
+		if si >= 0 and si < presses.size() and presses[si]:
+			out.append(presses[si])
 	elif id == "conveyor":
 		for c in conveyor_sprites:
 			out.append(c)
@@ -3994,6 +4127,7 @@ func _process(delta: float) -> void:
 	_process_shift_end_npcs(delta)
 	_process_action_penalty(delta)
 	_nav_arrow_update()
+	_update_you_marker(delta / max(0.05, Engine.time_scale))
 	_update_elevator_prompt(delta)
 	if hint_label and hint_label.visible and hint_label.text != _hint_last_text:
 		_hint_last_text = hint_label.text
@@ -4072,6 +4206,15 @@ func _streak_reward() -> void:
 	UISounds.play_switch_on()
 
 
+func _place_streak_label() -> void:
+	if _streak_label == null or _hud_panel == null:
+		return
+	_streak_label.size = Vector2(_hud_panel.size.x - 6, 18)
+	var below = _hud_panel.size.y + 2
+	if _act_strip and _act_strip.visible and _act_strip.position.y > _hud_panel.position.y + 4.0:
+		below = _act_strip.position.y + _act_strip.size.y - _hud_panel.position.y + 3
+	_streak_label.position = Vector2(0, below)
+
 func _update_streak_label() -> void:
 	if _hud_panel == null:
 		return
@@ -4083,11 +4226,7 @@ func _update_streak_label() -> void:
 		_streak_label.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
 		_streak_label.add_theme_constant_override("outline_size", 4)
 		_hud_panel.add_child(_streak_label)
-	_streak_label.size = Vector2(_hud_panel.size.x - 6, 18)
-	var below = _hud_panel.size.y + 2
-	if _act_strip and current_shift >= 2:
-		below = _act_strip.position.y + _act_strip.size.y - _hud_panel.position.y + 3
-	_streak_label.position = Vector2(0, below)
+	_place_streak_label()
 	_streak_label.visible = _streak >= 2
 	var my_check = _inspection_active and _insp_station < 0
 	_streak_label.text = tr("СЕРИЯ x") + str(_streak) + (tr("   ПРОВЕРКА!") if my_check else "")
@@ -4909,6 +5048,8 @@ func _guard_return_lock() -> bool:
 	return _tut_wait_guard_note
 
 var _guard_change_hour: float = -1.0
+var _sniper_change_hour: float = -1.0
+var _sniper_leave_said: bool = false
 
 var _guard_leave_said: bool = false
 
@@ -5037,12 +5178,15 @@ func _on_sniper_shift_change(_hour: float) -> void:
 	if sniper_changing:
 		return
 	sniper_changing = true
+	_sniper_change_hour = _hour
+	_sniper_leave_said = false
 	var with_guard = is_equal_approx(_hour, ESCAPE_WINDOW_START) and _escape_on() and (guard_changing or GUARD_SHIFTS.has(ESCAPE_WINDOW_START))
 	if with_guard:
 		await _wait_until(func(): return _guard_leave_said or not guard_changing, 12.0)
 		if not is_inside_tree():
 			return
 	_speech(sniper_sprite, NAME_SNIPER, COLOR_NAME_SNIPER, SNIPER_LEAVE_LINES[randi() % SNIPER_LEAVE_LINES.size()], 1.6, true, "sniper", not sniper_shifts_found.has(_hour))
+	_sniper_leave_said = true
 	if with_guard:
 		await _wait_until(func(): return guard_sprite == null or not guard_sprite.visible, 30.0)
 	else:
@@ -5555,7 +5699,7 @@ func _run_incident(kind: int, forgive: bool = false) -> bool:
 	if not is_inside_tree():
 		return false
 	UISounds.play_hit()
-	_mg_title.position = Vector2(376, 186)
+	_mg_title.position = Vector2(376, 176)
 	_mg_title.modulate = Color.WHITE
 	_mg_title.visible = true
 	_hint_at(418.0)
@@ -6146,21 +6290,21 @@ func _draw_stuck_mg(c: Control, green: Color, green_d: Color, blue: Color, red: 
 		c.draw_rect(r.grow(-1), green if i < _stk_hits else green_d.darkened(0.5))
 	var ctr = Vector2(100, 78)
 	var shake = Vector2(sin(_inc_t * 70.0), cos(_inc_t * 63.0)) * 2.0 * _stk_power if _stk_power > 0.6 else Vector2.ZERO
-	c.draw_rect(Rect2(ctr.x - 44, ctr.y - 30, 88, 64), Color.BLACK)
-	c.draw_rect(Rect2(ctr.x - 42, ctr.y - 28, 84, 60), Color8(70, 76, 90))
-	c.draw_rect(Rect2(ctr.x - 42, ctr.y - 28, 84, 4), Color8(110, 118, 136))
-	for k in range(6):
-		c.draw_rect(Rect2(ctr.x - 40 + k * 14, ctr.y + 24, 7, 4), Color8(240, 170, 40))
-	var sink = 12.0 * (1.0 - _stk_btn)
-	var cap = Rect2(ctr.x - 24, ctr.y - 18 + sink, 48, 30 - sink * 0.5)
+	c.draw_rect(Rect2(ctr.x - 62, ctr.y - 38, 124, 80), Color.BLACK)
+	c.draw_rect(Rect2(ctr.x - 60, ctr.y - 36, 120, 76), Color8(70, 76, 90))
+	c.draw_rect(Rect2(ctr.x - 60, ctr.y - 36, 120, 4), Color8(110, 118, 136))
+	for k in range(8):
+		c.draw_rect(Rect2(ctr.x - 56 + k * 15, ctr.y + 34, 8, 4), Color8(240, 170, 40))
+	var sink = 14.0 * (1.0 - _stk_btn)
+	var cap = Rect2(ctr.x - 38, ctr.y - 26 + sink, 76, 42 - sink * 0.5)
 	cap.position += shake
 	c.draw_rect(cap.grow(2), Color.BLACK)
 	var capc = Color8(150, 40, 36).lerp(Color8(230, 60, 50), _stk_btn)
 	c.draw_rect(cap, capc)
 	c.draw_rect(Rect2(cap.position.x, cap.position.y, cap.size.x, 4), capc.lightened(0.35))
 	if _stk_btn < 1.0:
-		c.draw_line(ctr + Vector2(-30, -26), ctr + Vector2(-22, -14), Color8(30, 30, 36), 2)
-		c.draw_line(ctr + Vector2(30, 30), ctr + Vector2(24, 18), Color8(30, 30, 36), 2)
+		c.draw_line(ctr + Vector2(-48, -34), ctr + Vector2(-38, -20), Color8(30, 30, 36), 2)
+		c.draw_line(ctr + Vector2(48, 32), ctr + Vector2(40, 20), Color8(30, 30, 36), 2)
 	var bar = Rect2(20, 132, 160, 16)
 	_inc_text(c, tr("СИЛА ЗАМАХА"), 100, 125, 9, Color(0.7, 0.76, 0.86))
 	c.draw_rect(bar.grow(2), Color.BLACK)
@@ -6572,6 +6716,10 @@ func _player_press_result(success: bool, punish: bool = true) -> void:
 		else:
 			_register_fail()
 	_last_quality = 0.5
+	if practice and _dream_on:
+		_push_result(1 if success else 2)
+		_streak = _streak + 1 if success else 0
+		_update_streak_label()
 	if success and practice:
 		_tut_mark("st_%d" % st)
 	if success and not (current_shift == 1 and _pre_accident_lock) and not practice:
@@ -6676,7 +6824,7 @@ func _process_minigame(delta: float) -> void:
 		MG.SLIDER:
 			if mg_time < 0.175:
 				return
-			slider_pos += slider_dir * MINIGAME_SLIDER_SPEED * delta
+			slider_pos += slider_dir * MINIGAME_SLIDER_SPEED * (1.0 + _mg_hard) * delta
 			if slider_pos >= 1.0:
 				slider_pos = 1.0
 				slider_dir = -1.0
@@ -6709,7 +6857,7 @@ func _process_minigame(delta: float) -> void:
 				_on_minigame_edge_fail()
 				return
 		MG.GAUGE:
-			mg_vel += (0.22 + 0.5 * mg_level) * delta
+			mg_vel += (0.22 + 0.5 * mg_level) * (1.0 + _mg_hard) * delta
 			var wobble = sin(mg_time * 6.5) * 0.18 * delta
 			mg_level = clamp(mg_level + mg_vel * delta + wobble, 0.0, 1.0)
 			if mg_level >= 1.0:
@@ -6952,6 +7100,50 @@ func _guard_hit_npc(fish: Node) -> void:
 		guard_sprite.play("idle")
 	_guard_busy = false
 
+func dream_counters(save: bool) -> void:
+	if save:
+		var cols: Array = []
+		if progress_bar:
+			for ch in progress_bar.get_children():
+				cols.append((ch as ColorRect).color if ch is ColorRect else Color.BLACK)
+		_dream_saved_counters = {"states": _box_states.duplicate(), "fill": _box_fill, "streak": _streak,
+			"relief": _stress_relief, "extra": _stress_extra, "time": shift_time, "cols": cols}
+		for i in range(_box_states.size()):
+			_box_states[i] = 0
+		_box_fill = 0
+		_streak = 0
+		_stress_extra = 0
+		_stress_relief = 999
+		shift_time = 0.0
+		if progress_bar:
+			for ch in progress_bar.get_children():
+				if ch is ColorRect:
+					ch.color = Color(0.2, 0.2, 0.2)
+	else:
+		if _dream_saved_counters.is_empty():
+			return
+		var d = _dream_saved_counters
+		_box_states = d["states"]
+		_box_fill = d["fill"]
+		_streak = d["streak"]
+		_stress_relief = d["relief"]
+		_stress_extra = d["extra"]
+		shift_time = d["time"]
+		if progress_bar:
+			var cols: Array = d["cols"]
+			for i in range(min(cols.size(), progress_bar.get_child_count())):
+				var ch = progress_bar.get_child(i)
+				if ch is ColorRect:
+					ch.color = cols[i]
+		_dream_saved_counters = {}
+	_update_stress_from_hp()
+	_update_streak_label()
+	_update_clock_label()
+	if _hud_panel:
+		_hud_panel.queue_redraw()
+
+var _dream_saved_counters: Dictionary = {}
+
 func _push_result(kind: int) -> void:
 	var index = _box_fill
 	_box_fill += 1
@@ -7173,6 +7365,10 @@ func _fade_black(on: bool, t: float = 1.0) -> void:
 
 func _plan_next_station() -> int:
 	var sh = current_shift + 1
+	var fsx: Dictionary = Global.factory_state
+	if int(fsx.get("cur_station_shift", -1)) == sh:
+		_planned_station = int(fsx.get("cur_station", STATION_PACK))
+		return _planned_station
 	var worked: Array = Global.factory_state.get("stations", [])
 	var fresh: Array = []
 	for st in range(NUM_NPC_FISHES + 1):
@@ -7208,7 +7404,11 @@ func _get_player_shift_spawn() -> Vector2:
 	for st in range(NUM_NPC_FISHES + 1):
 		if not (st in worked):
 			fresh.append(st)
-	if _planned_station >= 0:
+	var fs0: Dictionary = Global.factory_state
+	if int(fs0.get("cur_station_shift", -1)) == current_shift and current_shift >= 2:
+		player_station = int(fs0.get("cur_station", STATION_PACK))
+		_planned_station = -1
+	elif _planned_station >= 0:
 		player_station = _planned_station
 		_planned_station = -1
 	elif current_shift >= 2 and not fresh.is_empty() and fresh.size() < NUM_NPC_FISHES + 1:
@@ -7217,6 +7417,9 @@ func _get_player_shift_spawn() -> Vector2:
 		player_station = randi() % NUM_NPC_FISHES
 	else:
 		player_station = STATION_PACK
+	fs0["cur_station_shift"] = current_shift
+	fs0["cur_station"] = player_station
+	Global.factory_state = fs0
 	_place_station_workers()
 	var spawn = Vector2(_get_stop_zone_x(player_station) + NPC_PRESS_OFFSET_X, 351)
 	player_turn_x = spawn.x
@@ -7800,8 +8003,13 @@ func _inspect_pick(world_pos: Vector2) -> Area2D:
 			if Rect2(d0.get("pos", Vector2.ZERO) - sz0 / 2.0, sz0).has_point(world_pos):
 				score = 100.0
 		else:
+			var loose: bool = d0.get("special_type", "") != ""
 			for n in nodes:
 				var h = _node_hit(n, world_pos)
+				if h < 0.0 and loose:
+					for ox in [-12.0, -6.0, 0.0, 6.0, 12.0]:
+						for oy in [-12.0, -6.0, 0.0, 6.0, 12.0]:
+							h = max(h, _node_hit(n, world_pos + Vector2(ox, oy)))
 				if h >= 0.0:
 					score = max(score, h)
 			var sid: String = d0.get("id", "")
@@ -8956,25 +9164,34 @@ func _elevator_cabin(layer: CanvasLayer) -> void:
 	await tin.finished
 	if not is_inside_tree():
 		return
-	await _tree().create_timer(1.6).timeout
-	var seq = [[0.08, 1.1, 0.0], [0.5, 0.9, 0.04], [0.3, 0.7, 0.08], [0.5, 0.0, 0.12]]
+	await _tree().create_timer(2.6).timeout
+	var seq = [
+		{"to": 1.0, "c": 0.1, "hold": 0.08, "back": 0.0, "o": 0.18, "nod": 0.0, "gap": 1.8},
+		{"to": 1.0, "c": 0.12, "hold": 0.15, "back": 0.04, "o": 0.22, "nod": 0.02, "gap": 1.5},
+		{"to": 1.0, "c": 0.25, "hold": 0.5, "back": 0.14, "o": 0.35, "nod": 0.05, "gap": 1.3},
+		{"to": 0.62, "c": 1.3, "hold": 0.9, "back": 0.0, "o": 0.14, "nod": -0.02, "gap": 1.5},
+		{"to": 1.0, "c": 0.4, "hold": 0.8, "back": 0.3, "o": 0.6, "nod": 0.08, "gap": 1.1},
+		{"to": 1.0, "c": 0.9, "hold": 0.6, "back": 0.55, "o": 0.8, "nod": 0.12, "gap": 0.8},
+		{"to": 1.0, "c": 1.5, "hold": 0.8, "back": -1.0, "o": 0.0, "nod": 0.14, "gap": 0.0},
+	]
+	var cur := 0.0
 	for i in range(seq.size()):
 		if not is_inside_tree():
 			return
-		var hold: float = seq[i][0]
-		var gap: float = seq[i][1]
-		var nod: float = seq[i][2]
+		var b: Dictionary = seq[i]
 		var close = create_tween()
-		close.tween_method(lids, 0.0, 1.0, 0.09 + i * 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		close.tween_method(lids, cur, float(b["to"]), float(b["c"])).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 		await close.finished
-		await _tree().create_timer(hold).timeout
-		if i == seq.size() - 1:
+		cur = float(b["to"])
+		await _tree().create_timer(float(b["hold"])).timeout
+		if float(b["back"]) < 0.0:
 			break
 		var open = create_tween().set_parallel(true)
-		open.tween_method(lids, 1.0, 0.0 + i * 0.12, 0.2 + i * 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		open.tween_property(fish, "rotation", nod, 0.4)
+		open.tween_method(lids, cur, float(b["back"]), float(b["o"])).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		open.tween_property(fish, "rotation", float(b["nod"]), 0.45)
 		await open.finished
-		await _tree().create_timer(gap).timeout
+		cur = float(b["back"])
+		await _tree().create_timer(float(b["gap"])).timeout
 	run["on"] = false
 	cabin.queue_free()
 	lid.queue_free()

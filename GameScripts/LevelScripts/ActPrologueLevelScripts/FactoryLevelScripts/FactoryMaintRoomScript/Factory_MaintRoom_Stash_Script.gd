@@ -41,6 +41,8 @@ var _hint: Label = null
 var _dust: Array = []
 var _text_tw: Tween = null
 var _sfx: AudioStreamPlayer = null
+var _locked := false
+var _wsize := WIN
 
 func setup(level) -> void:
 	L = level
@@ -116,6 +118,8 @@ func open(box: Dictionary) -> void:
 	if _open:
 		return
 	_box = box
+	_locked = bool(box.get("locked", false))
+	_wsize = Vector2(NICHE.x + 32.0, WIN.y) if _locked else WIN
 	_open = true
 	_closing = false
 	_sel = -1
@@ -142,7 +146,8 @@ func open(box: Dictionary) -> void:
 	tw.tween_property(_dim, "color:a", 0.66, 0.22)
 	tw.tween_property(_win, "modulate:a", 1.0, 0.16)
 	tw.tween_property(_win, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_show_box_text()
+	if not _locked:
+		_show_box_text()
 	var seq = create_tween().set_ignore_time_scale(true)
 	seq.tween_interval(0.3)
 	seq.tween_callback(_swing_open)
@@ -208,9 +213,9 @@ func _build() -> void:
 			close())
 	add_child(_dim)
 	_win = Control.new()
-	_win.size = WIN
-	_win.position = ((vp - WIN) * 0.5).round() + Vector2(0, 8)
-	_win.pivot_offset = WIN * 0.5
+	_win.size = _wsize
+	_win.position = ((vp - _wsize) * 0.5).round() + Vector2(0, 8)
+	_win.pivot_offset = _wsize * 0.5
 	_win.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_win)
 	_win.add_child(load("res://GameScripts/UIScripts/CardFrameScripts/UI_CardFrame.gd").make(ACC))
@@ -259,6 +264,14 @@ func _build() -> void:
 	fs.border_color = Color(0.2, 0.22, 0.28)
 	fr.add_theme_stylebox_override("panel", fs)
 	_niche.add_child(fr)
+	if _locked:
+		_build_items(s, 0.0)
+		_hint = _lbl(tr("%s / Esc — закрыть") % L._key_name("interact"), 13, Color(0.55, 0.58, 0.66))
+		_hint.position = Vector2(0, _wsize.y + 10.0)
+		_hint.size = Vector2(_wsize.x, 20)
+		_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_win.add_child(_hint)
+		return
 	var x0 = NICHE.x + 40.0
 	var cw = WIN.x - x0 - 22.0
 	_title = _lbl("", 22, ACC.lightened(0.15))
@@ -300,6 +313,20 @@ func _build() -> void:
 	_list.size = Vector2(cw, 120)
 	_list.add_theme_constant_override("separation", 6)
 	_win.add_child(_list)
+	_build_items(s, cw)
+	_notice = _lbl("", 14, OK_C)
+	_notice.position = Vector2(x0, WIN.y - 60)
+	_notice.size = Vector2(cw, 20)
+	_notice.modulate.a = 0.0
+	_win.add_child(_notice)
+	_hint = _lbl(tr("%s / Esc — закрыть") % L._key_name("interact"), 13, Color(0.55, 0.58, 0.66))
+	_hint.position = Vector2(x0, WIN.y - 34)
+	_hint.size = Vector2(cw, 20)
+	_hint.clip_text = true
+	_win.add_child(_hint)
+	_refresh_rows()
+
+func _build_items(s: float, cw: float) -> void:
 	var items: Array = _box.get("items", [])
 	for i in range(items.size()):
 		var d = items[i]
@@ -311,10 +338,16 @@ func _build() -> void:
 		r.size = tex.get_size() * s
 		r.position = _art.position + d["origin"] * s
 		r.pivot_offset = r.size * 0.5
-		r.mouse_filter = Control.MOUSE_FILTER_STOP
-		r.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		r.flip_h = bool(d.get("flip", false))
 		r.visible = false
 		r.modulate.a = 0.0
+		if _locked:
+			r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_niche.add_child(r)
+			_items.append({"data": d, "rect": r, "row": null, "hover": false})
+			continue
+		r.mouse_filter = Control.MOUSE_FILTER_STOP
+		r.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		L._ensure_outline(r, NEW_C)
 		if r.material is ShaderMaterial:
 			r.material.set_shader_parameter("width", 2.5 / s)
@@ -328,17 +361,6 @@ func _build() -> void:
 		var row = _make_row(i, d, cw)
 		_list.add_child(row)
 		_items.append({"data": d, "rect": r, "row": row, "hover": false})
-	_notice = _lbl("", 14, OK_C)
-	_notice.position = Vector2(x0, WIN.y - 60)
-	_notice.size = Vector2(cw, 20)
-	_notice.modulate.a = 0.0
-	_win.add_child(_notice)
-	_hint = _lbl(tr("%s / Esc — закрыть") % L._key_name("interact"), 13, Color(0.55, 0.58, 0.66))
-	_hint.position = Vector2(x0, WIN.y - 34)
-	_hint.size = Vector2(cw, 20)
-	_hint.clip_text = true
-	_win.add_child(_hint)
-	_refresh_rows()
 
 func _make_row(i: int, d: Dictionary, cw: float) -> Control:
 	var row = Panel.new()
@@ -396,6 +418,8 @@ func _seen(id: String) -> bool:
 	return L.journal_notes.has(id)
 
 func _refresh_rows() -> void:
+	if _locked:
+		return
 	var n_seen := 0
 	for i in range(_items.size()):
 		var it = _items[i]
@@ -420,7 +444,7 @@ func _refresh_rows() -> void:
 	_count.text = "%d / %d" % [n_seen, _items.size()]
 
 func _hover(i: int, on: bool) -> void:
-	if i < 0 or i >= _items.size():
+	if _locked or i < 0 or i >= _items.size():
 		return
 	_items[i]["hover"] = on
 	var r: TextureRect = _items[i]["rect"]
@@ -451,7 +475,7 @@ func _show_box_text() -> void:
 	_type(_box.get("title", ""), _box.get("text", ""))
 
 func _pick(i: int) -> void:
-	if i < 0 or i >= _items.size() or _closing:
+	if _locked or i < 0 or i >= _items.size() or _closing:
 		return
 	var d = _items[i]["data"]
 	_sel = i

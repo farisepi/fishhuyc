@@ -279,7 +279,7 @@ func _process(delta: float) -> void:
 		_framing.scale = _framing_scale * (1.0 + 0.004 * sin(_fx_t * 1.3))
 
 func _input(event: InputEvent) -> void:
-	if not visible or _transitioning or _settings_layer != null:
+	if not visible or _transitioning or _settings_layer != null or _overlay_busy:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -355,9 +355,45 @@ func _on_settings_pressed() -> void:
 		else "res://GameScenes/MenuScenes/FactoryMenuScenes/FactorySettingMenuScene/Menu_Factory_SettingMenu_Scene.tscn"
 	_open_overlay(path)
 
-func _open_overlay(path: String) -> void:
-	if _settings_layer and is_instance_valid(_settings_layer):
+func _menu_fade(to: float, dur: float) -> void:
+	if _veil_layer == null or not is_instance_valid(_veil_layer):
+		_veil_layer = CanvasLayer.new()
+		_veil_layer.layer = 1000
+		_veil_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+		get_tree().root.add_child(_veil_layer)
+		_veil = ColorRect.new()
+		_veil.color = Color(0, 0, 0, 0)
+		_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_veil_layer.add_child(_veil)
+	_veil.mouse_filter = Control.MOUSE_FILTER_STOP if to > 0.5 else Control.MOUSE_FILTER_IGNORE
+	var tw = _veil.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(_veil, "color:a", to, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tw.finished
+	if to <= 0.0 and is_instance_valid(_veil_layer):
+		_veil_layer.queue_free()
+		_veil_layer = null
+
+var _veil_layer: CanvasLayer = null
+var _veil: ColorRect = null
+var _overlay_busy: bool = false
+
+func _close_overlay_fx() -> void:
+	if _overlay_busy or _settings_layer == null or not is_instance_valid(_settings_layer):
 		return
+	_overlay_busy = true
+	await _menu_fade(1.0, 0.2)
+	if is_instance_valid(_settings_layer):
+		_settings_layer.queue_free()
+	await get_tree().process_frame
+	_overlay_busy = false
+	_menu_fade(0.0, 0.28)
+
+func _open_overlay(path: String) -> void:
+	if _settings_layer and is_instance_valid(_settings_layer) or _overlay_busy:
+		return
+	_overlay_busy = true
+	await _menu_fade(1.0, 0.2)
 	var sc = load(path).instantiate()
 	for cam in sc.find_children("*", "Camera2D", true, false):
 		cam.get_parent().remove_child(cam)
@@ -366,18 +402,27 @@ func _open_overlay(path: String) -> void:
 	sc.process_mode = Node.PROCESS_MODE_ALWAYS
 	_settings_layer = CanvasLayer.new()
 	_settings_layer.name = "SettingsOverlay"
-	_settings_layer.layer = 90
+	_settings_layer.layer = 92
 	_settings_layer.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(_settings_layer)
+	var back_layer = CanvasLayer.new()
+	back_layer.layer = 90
+	_settings_layer.add_child(back_layer)
 	var back = ColorRect.new()
 	back.color = Color.BLACK
 	back.mouse_filter = Control.MOUSE_FILTER_STOP
 	back.set_anchors_preset(Control.PRESET_FULL_RECT)
-	back.z_index = -1000
-	_settings_layer.add_child(back)
+	back_layer.add_child(back)
 	_settings_layer.add_child(sc)
+	for pb in sc.find_children("*", "ParallaxBackground", true, false):
+		pb.layer = 91
+		pb.scroll_base_scale = Vector2.ZERO
+		pb.scroll_ignore_camera_zoom = true
 	_settings_layer.tree_exited.connect(_on_settings_closed)
+	_settings_layer.set_meta("close_fx", _close_overlay_fx)
 	visible = false
+	_overlay_busy = false
+	_menu_fade(0.0, 0.28)
 
 var _settings_layer: CanvasLayer = null
 

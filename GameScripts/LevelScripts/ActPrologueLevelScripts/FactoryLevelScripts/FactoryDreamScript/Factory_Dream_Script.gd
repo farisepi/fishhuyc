@@ -6,6 +6,7 @@ const HAZE_SHADER := "res://GameShaders/SharedShaders/Shared_DreamHaze_Shader.gd
 const DREAM_NOTE := "dream_"
 var _haze_layer: CanvasLayer = null
 var _haze: ColorRect = null
+var _saved_ui_layer: int = -999
 var _saved_mats: Dictionary = {}
 
 var L = null
@@ -56,7 +57,7 @@ func white(on: bool, t: float = 0.9) -> void:
 	tw.tween_property(_white, "color:a", 1.0 if on else 0.0, t).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await tw.finished
 
-func enter(station: int) -> void:
+func enter(station: int, bare: bool = false) -> void:
 	_on = true
 	L._dream_on = true
 	_saved_state = L.state
@@ -68,6 +69,7 @@ func enter(station: int) -> void:
 	_saved_sniper_pos = L.sniper_sprite.position if L.sniper_sprite else Vector2.ZERO
 	_saved_hud_on = L._hud_on
 	_saved_gui = L.player_gui.visible if L.player_gui else false
+	L.dream_counters(true)
 	L.player_station = station
 	L.state = L.State.WORKING
 	L._update_escape_hint()
@@ -75,8 +77,11 @@ func enter(station: int) -> void:
 	_belt_x = L._get_stop_zone_x(station)
 	var keep: Array = [L.player, press, L.work_zone_rect, L._zone_marks, L.get_node_or_null("Background")]
 	var belt: Array = []
-	belt.append_array(L.conveyor_sprites)
-	belt.append_array(L.conveyor_legs)
+	if bare:
+		keep = [L.player, L.get_node_or_null("Background")]
+	else:
+		belt.append_array(L.conveyor_sprites)
+		belt.append_array(L.conveyor_legs)
 	keep.append_array(belt)
 	_saved_mats.clear()
 	var fm = ShaderMaterial.new()
@@ -125,7 +130,7 @@ func enter(station: int) -> void:
 	L.player_zone_center = Vector2(spawn_x, L.PLAYER_ZONE_CENTER.y)
 	L._update_work_zone_position()
 	if L.player:
-		L.player.global_position = Vector2(max(spawn_x - 430.0, -280.0), 350.0)
+		L.player.global_position = Vector2(spawn_x if bare else max(spawn_x - 430.0, -280.0), 350.0)
 		if "facing_direction" in L.player:
 			L.player.facing_direction = 1
 		if L.player_sprite:
@@ -196,6 +201,7 @@ func leave() -> void:
 		L.player_gui.visible = _saved_gui
 	L.state = _saved_state
 	L._dream_on = false
+	L.dream_counters(false)
 	L._dream_allow_inspect = false
 	L._update_escape_hint()
 	if L._spot:
@@ -263,8 +269,12 @@ func _set_haze(on: bool) -> void:
 	if on:
 		if _haze == null and ResourceLoader.exists(HAZE_SHADER):
 			_haze_layer = CanvasLayer.new()
-			_haze_layer.layer = 2
+			_haze_layer.layer = 1
 			add_child(_haze_layer)
+			var ui = L.get_node_or_null("UI") as CanvasLayer
+			if ui:
+				_saved_ui_layer = ui.layer
+				ui.layer = max(ui.layer, 3)
 			_haze = ColorRect.new()
 			_haze.set_anchors_preset(Control.PRESET_FULL_RECT)
 			_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -280,6 +290,10 @@ func _set_haze(on: bool) -> void:
 		_haze_layer.queue_free()
 		_haze_layer = null
 		_haze = null
+		var ui = L.get_node_or_null("UI") as CanvasLayer
+		if ui and _saved_ui_layer != -999:
+			ui.layer = _saved_ui_layer
+		_saved_ui_layer = -999
 
 func _drop_dream_notes() -> void:
 	for id in L.journal_notes.duplicate():
@@ -368,8 +382,18 @@ func _practice_item(st: int) -> Dictionary:
 	node.create_tween().tween_property(node, "modulate:a", 1.0, 0.3)
 	return {"node": node, "index": -1, "slot": slot, "broken": false, "done": false, "practice": true}
 
+func _back_to_station() -> void:
+	if L._is_player_in_zone():
+		return
+	L._spot_show(tr("НАЗАД К ПРЕССУ"), tr("Работа приехала! Вернись в безопасную зону у своего пресса."), ["A", "D"], L._zone_screen_rect, false)
+	await _until(func(): return L._is_player_in_zone())
+	if L._spot:
+		L._spot.hide_step()
+	await _wait(0.25)
+
 func practice(st: int, times: int, title: String, body: String) -> void:
 	for i in range(times):
+		await _back_to_station()
 		var it = _practice_item(st)
 		await _wait(0.35)
 		L._player_item = it
@@ -466,7 +490,7 @@ func run_first() -> void:
 
 func run_elevator(black: ColorRect) -> void:
 	white(true, 0.0)
-	enter(L.player_station)
+	enter(L.player_station, true)
 	var p = L.player
 	if p:
 		p.modulate.a = 1.0
@@ -633,7 +657,7 @@ func night_incident(sh: int) -> int:
 func night_has_lessons(sh: int, st: int) -> bool:
 	var inc = night_incident(sh)
 	return (sh >= 2 and not L._tut_done("inspect")) or not L._tut_done("st_%d" % st) \
-		or (sh == L.ESCAPE_FROM_SHIFT and not L._tut_done("escape_eve")) \
+		or sh >= L.ESCAPE_FROM_SHIFT \
 		or (inc != L.MGE_NONE and not L._tut_done("inc_%d" % inc))
 
 func run_night(sh: int, st: int) -> void:
@@ -649,7 +673,10 @@ func run_night(sh: int, st: int) -> void:
 	await _read(tr("СОН"), tr("Опять это белое место. Пока все спят — учись. Здесь ошибки ничего не стоят."), Callable(), false)
 	if sh >= 2 and not L._tut_done("inspect"):
 		await _inspect_lesson()
-	await _task(tr("К СТАНКУ"), tr("Справа — станок, за которым ты будешь работать в смену %d.") % sh, ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
+	var inc0 = night_incident(sh)
+	var work_lessons = not L._tut_done("st_%d" % st) or (inc0 != L.MGE_NONE and not L._tut_done("inc_%d" % inc0))
+	if work_lessons:
+		await _task(tr("К СТАНКУ"), tr("Справа — станок, за которым ты будешь работать в смену %d.") % sh, ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
 	if not L._tut_done("st_%d" % st):
 		await _read(tr("НОВЫЙ СТАНОК: ") + tr(String(L.STATION_TITLE.get(st, ""))), _howto(st), L._zone_screen_rect)
 		await practice(st, 2, tr(String(L.STATION_TITLE.get(st, ""))), _howto(st))
@@ -658,6 +685,7 @@ func run_night(sh: int, st: int) -> void:
 		var food = _practice_item(st)
 		var names = {L.MGE_FIRE: tr("ПОЖАР"), L.MGE_STUCK: tr("ЗАКЛИНИЛО КНОПКУ"), L.MGE_SHORT: tr("ЗАМЫКАНИЕ")}
 		await _read(tr("АВАРИЯ: ") + String(names.get(inc, "")), tr("С этой смены у станка может случиться авария. Тогда работа встаёт, и её надо ликвидировать самому. Сейчас попробуешь — подсказка будет рядом с окном аварии."), L._zone_screen_rect)
+		await _back_to_station()
 		await L._run_incident(inc, true)
 		L._tut_mark("inc_%d" % inc)
 		if is_instance_valid(food["node"]):
@@ -665,8 +693,10 @@ func run_night(sh: int, st: int) -> void:
 			ftw.tween_property(food["node"], "modulate:a", 0.0, 0.4)
 			ftw.tween_callback(food["node"].queue_free)
 		await _wait(0.6)
-	if sh == L.ESCAPE_FROM_SHIFT and not L._tut_done("escape_eve"):
-		await _read(tr("ВАЖНАЯ СМЕНА"), tr("Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись."), Callable(), false)
+	if sh >= L.ESCAPE_FROM_SHIFT and L._tut_done("escape_eve"):
+		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Завтра снова есть шанс сбежать. Запиши, когда уходят охрана и снайпер, и дождись, пока пост опустеет. Не упусти момент."), Callable(), false)
+	elif sh >= L.ESCAPE_FROM_SHIFT:
+		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись."), Callable(), false)
 		L._tut_mark("escape_eve")
 	await _read(tr("ПОРА ВСТАВАТЬ"), tr("Скоро подъём. Впереди смена %d.") % sh, Callable(), false)
 	await white(true, 1.0)
@@ -678,9 +708,28 @@ func run_night(sh: int, st: int) -> void:
 var _targets: Array = []
 var _clicked: Dictionary = {}
 
+const WRAP_HALF := 900.0
+
+func _wrap_player() -> void:
+	if not _on or L.player == null or L.state == L.State.INSPECT:
+		return
+	var cx = _zone_x()
+	var p = L.player.global_position
+	var d := 0.0
+	if p.x < cx - WRAP_HALF:
+		d = WRAP_HALF * 2.0
+	elif p.x > cx + WRAP_HALF:
+		d = -WRAP_HALF * 2.0
+	if d == 0.0:
+		return
+	L.player.global_position.x += d
+	if L.camera:
+		L.camera.global_position.x += d
+
 func _process(_d: float) -> void:
 	if _props:
 		_props.queue_redraw()
+	_wrap_player()
 	var insp = L != null and L.state == L.State.INSPECT
 	for t in _targets:
 		var n = t["node"]
@@ -688,9 +737,13 @@ func _process(_d: float) -> void:
 			continue
 		L._ensure_outline(n, t["color"])
 		if n.material is ShaderMaterial:
+			var col: Color = t["color"]
+			var deep = Color(0.1, 0.32, 1.0) if (col.h > 0.4 and col.h < 0.8) else Color(1.0, 0.6, 0.0)
+			var pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 4.0)
 			n.material.set_shader_parameter("active", 1.0 if (insp and n.visible and not _clicked.has(t["id"])) else 0.0)
-			n.material.set_shader_parameter("outline_color", t["color"])
-			n.material.set_shader_parameter("width", 1.0)
+			n.material.set_shader_parameter("outline_color", deep.lerp(col, pulse * 0.5))
+			n.material.set_shader_parameter("width", 2.0)
+			n.material.set_shader_parameter("glow", 0.3 + 0.2 * pulse)
 
 func _clear_targets() -> void:
 	for t in _targets:
@@ -698,6 +751,7 @@ func _clear_targets() -> void:
 		if is_instance_valid(n) and n.material is ShaderMaterial:
 			n.material.set_shader_parameter("active", 0.0)
 			n.material.set_shader_parameter("width", 1.0)
+			n.material.set_shader_parameter("glow", 0.24)
 	_targets.clear()
 
 func inspect_click(wp: Vector2) -> void:
@@ -745,7 +799,7 @@ func _inspect_lesson() -> void:
 	_targets = [
 		{"node": press, "id": "press", "color": L.COLOR_HIGHLIGHT_BLUE, "title": tr("СТАНОК"),
 			"text": tr("Мой пресс. Во сне он тихий — ни шипения, ни масла. Даже непривычно."),
-			"journal": tr("во сне он тихий — ни шипения, ни масла. (Запись из сна — проснёшься, и её не будет.)")},
+			"journal": tr("во сне он тихий — ни шипения, ни масла.")},
 		{"node": L.guard_sprite, "id": "guard", "color": L.COLOR_HIGHLIGHT_YELLOW, "title": tr("ПЕРЕСМЕНКА"),
 			"text": tr("Охранник уходит с поста. Запомню время — так и складывается расписание."),
 			"journal": tr("во сне охранник тоже уходит с поста. Наяву такие уходы отмечаются галочками со временем.")},

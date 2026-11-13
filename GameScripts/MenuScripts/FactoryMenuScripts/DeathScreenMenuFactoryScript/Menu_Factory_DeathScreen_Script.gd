@@ -35,6 +35,7 @@ func _ready():
 	hide()
 
 func show_death():
+	_fill_sub()
 	show()
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	state = 0
@@ -73,9 +74,9 @@ func _process(delta):
 	match state:
 		0:
 			fade_timer += delta
-			var alpha = min(fade_timer / 1.0, 1.0)
-			background.color.a = alpha * 0.8
-			if fade_timer >= 1.0:
+			var alpha = min(fade_timer / 0.8, 1.0)
+			background.color.a = alpha * 0.86
+			if fade_timer >= 0.8:
 				state = 1
 				appear_timer = 0.0
 
@@ -85,19 +86,23 @@ func _process(delta):
 			var label_alpha = min((appear_timer) / 0.8, 1.0)
 			death_label.modulate.a = label_alpha
 
-			var restart_alpha = min(max((appear_timer - 0.2) / 0.4, 0.0), 1.0)
-			restart_button.modulate.a = restart_alpha
-
-			var menu_alpha = min(max((appear_timer - 0.5) / 0.4, 0.0), 1.0)
-			menu_button.modulate.a = menu_alpha
-
-			var quit_alpha = min(max((appear_timer - 0.8) / 0.4, 0.0), 1.0)
-			quit_button.modulate.a = quit_alpha
+			var bi := 0
+			for b in [restart_button, menu_button, quit_button]:
+				var k = clamp((appear_timer - 0.35 - bi * 0.12) / 0.35, 0.0, 1.0)
+				var e = 1.0 - pow(1.0 - k, 3.0)
+				b.modulate.a = e
+				if _btn_base.has(b):
+					b.position = _btn_base[b] + Vector2(0, 18.0 * (1.0 - e))
+				bi += 1
+			if _sub:
+				_sub.modulate.a = clamp((appear_timer - 0.25) / 0.5, 0.0, 1.0)
+			if appear_timer >= 0.6 and not can_interact:
+				can_interact = true
 
 			var wave = sin(appear_timer * 1.5) * 0.075 + 0.925
 			death_label.modulate.a = death_label.modulate.a * wave
 
-			if appear_timer >= 2.0:
+			if appear_timer >= 1.2:
 				fading_in = false
 				can_interact = true
 				_pause_pending = true
@@ -205,8 +210,8 @@ func _build_fx() -> void:
 		var centre = death_label.position + death_label.pivot_offset + (death_label.size * 0.5 - death_label.pivot_offset) * death_label.scale
 		death_label.pivot_offset = death_label.size * 0.5
 		death_label.position = centre - death_label.size * 0.5
-		_label_base_pos = death_label.position
-		_label_base_scale = death_label.scale
+		_label_base_pos = death_label.position + Vector2(0, 8)
+		_label_base_scale = death_label.scale * 1.3
 		death_label.add_theme_color_override("font_color", Color(0.95, 0.2, 0.16))
 		death_label.add_theme_color_override("font_outline_color", Color(0.08, 0.0, 0.0))
 		death_label.add_theme_constant_override("outline_size", 3)
@@ -281,6 +286,89 @@ func _build_fx() -> void:
 	_fx_flash.size = vp
 	_fx_flash.color = Color(1.0, 0.25, 0.2, 0.0)
 	add_child(_fx_flash)
+	_style_buttons()
+
+var _sub: Label = null
+var _btn_base: Dictionary = {}
+
+func _fill_sub() -> void:
+	if _sub == null:
+		return
+	var sc = get_tree().current_scene
+	var parts: Array = []
+	if sc and "current_shift" in sc:
+		parts.append(tr("СМЕНА ") + str(sc.current_shift))
+	if sc and "_clock_text" in sc and String(sc._clock_text) != "":
+		parts.append(String(sc._clock_text))
+	_sub.text = "  ·  ".join(parts)
+	_sub.modulate.a = 0.0
+
+func _style_buttons() -> void:
+	var f = death_label.get_theme_font("font") if death_label else null
+	var ys = [318.0, 382.0, 446.0]
+	var i := 0
+	for b in [restart_button, menu_button, quit_button]:
+		if b == null:
+			continue
+		b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+		b.focus_mode = Control.FOCUS_NONE
+		b.size = Vector2(300, 50)
+		b.position = Vector2(576 - 150, ys[i])
+		b.pivot_offset = b.size * 0.5
+		_btn_base[b] = b.position
+		var looks = {"normal": [Color(0.07, 0.02, 0.02, 0.92), Color(0.4, 0.07, 0.05)],
+			"hover": [Color(0.24, 0.04, 0.03, 0.96), Color(1.0, 0.32, 0.22)],
+			"pressed": [Color(0.4, 0.06, 0.04, 1.0), Color(1.0, 0.5, 0.4)]}
+		for k in looks.keys():
+			var sb = StyleBoxFlat.new()
+			sb.bg_color = looks[k][0]
+			sb.border_color = looks[k][1]
+			sb.set_border_width_all(2)
+			sb.border_width_left = 6 if k != "normal" else 2
+			sb.shadow_color = Color(0, 0, 0, 0.5)
+			sb.shadow_size = 4
+			sb.shadow_offset = Vector2(0, 3)
+			b.add_theme_stylebox_override(k, sb)
+		b.add_theme_stylebox_override("hover_pressed", b.get_theme_stylebox("pressed"))
+		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		if f:
+			b.add_theme_font_override("font", f)
+		b.add_theme_font_size_override("font_size", 18)
+		b.add_theme_color_override("font_color", Color(0.92, 0.8, 0.76))
+		b.add_theme_color_override("font_hover_color", Color(1, 1, 1))
+		b.add_theme_color_override("font_pressed_color", Color(1, 0.9, 0.85))
+		b.add_theme_color_override("font_hover_pressed_color", Color(1, 0.9, 0.85))
+		b.mouse_entered.connect(func():
+			var tw = b.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+			tw.tween_property(b, "scale", Vector2(1.04, 1.04), 0.08))
+		b.mouse_exited.connect(func():
+			var tw = b.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+			tw.tween_property(b, "scale", Vector2.ONE, 0.1))
+		i += 1
+	_sub = Label.new()
+	_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_sub.size = Vector2(600, 24)
+	_sub.position = Vector2(576 - 300, 196)
+	if f:
+		_sub.add_theme_font_override("font", f)
+	_sub.add_theme_font_size_override("font_size", 16)
+	_sub.add_theme_color_override("font_color", Color(0.85, 0.55, 0.5))
+	_sub.add_theme_color_override("font_outline_color", Color(0.05, 0, 0))
+	_sub.add_theme_constant_override("outline_size", 4)
+	_sub.modulate.a = 0.0
+	add_child(_sub)
+	for k in range(2):
+		var rule = ColorRect.new()
+		rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rule.color = Color(0.85, 0.15, 0.12, 0.8) if k == 0 else Color(0.85, 0.15, 0.12, 0.25)
+		rule.size = Vector2(420 if k == 0 else 520, 2)
+		rule.position = Vector2(576 - rule.size.x * 0.5, 180 + k * 4)
+		_sub.add_child(rule)
+		rule.position -= _sub.position
+	var fr = get_node_or_null("Framing") as CanvasItem
+	if fr:
+		fr.modulate = Color(0.6, 0.2, 0.17)
 
 func _fx_start() -> void:
 	_fx_t = 0.0
@@ -329,7 +417,7 @@ func _draw_ecg() -> void:
 	if _fx_t < 0.0:
 		return
 	var c = _fx_ecg
-	var y0 = 216.0
+	var y0 = 262.0
 	var x0 = 140.0
 	var x1 = 1012.0
 	var speed = 520.0

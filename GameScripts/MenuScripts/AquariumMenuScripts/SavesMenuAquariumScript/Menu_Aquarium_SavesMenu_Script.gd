@@ -364,7 +364,10 @@ func _delete_save(index: int):
 func _close_overlay() -> void:
 	var host = get_parent()
 	if host is CanvasLayer:
-		host.queue_free()
+		if host.has_meta("close_fx"):
+			(host.get_meta("close_fx") as Callable).call()
+		else:
+			host.queue_free()
 	else:
 		queue_free()
 

@@ -80,6 +80,9 @@ const RIGHT_RESERVE := 40.0
 func set_dock_beside(v: bool) -> void:
 	dock_beside = v
 	_slot = -1
+	_locked = false
+	_lock_t = 0.0
+	_dock_side = 0
 	_layout_card()
 
 
@@ -136,6 +139,9 @@ func show_step(title: String, body: String, keys: Array, target: Callable, dim: 
 	_slot = -1
 	_bad_t = 0.0
 	_step_t = 0.0
+	_locked = false
+	_lock_t = 0.0
+	_dock_side = 0
 	_title.text = title
 	_body.text = body.replace("-", "-⁠")
 	_progress = -1.0
@@ -317,6 +323,9 @@ func _slot_cost(pos: Vector2, sz: Vector2, idx: int) -> float:
 var _slot: int = -1
 var _dock_anchor: Vector2 = Vector2.ZERO
 var _bad_t: float = 0.0
+var _locked: bool = false
+var _dock_side: int = 0
+var _lock_t: float = 0.0
 
 func _dock_pos(sz: Vector2):
 	if not _target.is_valid():
@@ -325,10 +334,16 @@ func _dock_pos(sz: Vector2):
 	if not (t is Rect2):
 		return null
 	var x = t.end.x + DOCK_GAP
-	if x + sz.x > SCREEN.x - EDGE_M - RIGHT_RESERVE + 1.0:
+	if _dock_side == 0:
+		_dock_side = 1
+		if x + sz.x > SCREEN.x - EDGE_M - RIGHT_RESERVE + 1.0:
+			_dock_side = -1
+			if t.position.x - DOCK_GAP - sz.x < EDGE_M:
+				_dock_side = 0
+				return null
+	if _dock_side < 0:
 		x = t.position.x - DOCK_GAP - sz.x
-		if x < EDGE_M:
-			return null
+	x = clamp(x, EDGE_M, SCREEN.x - EDGE_M - sz.x)
 	var y = clamp(t.position.y, 14.0, SCREEN.y - sz.y - 14.0)
 	if x + sz.x > SCREEN.x - 300.0:
 		y = max(y, 150.0)
@@ -338,17 +353,30 @@ func _place_card() -> void:
 	var sz = _card.size
 	if _card_to <= 0.0 and _slot != -1:
 		return
+	_lock_t += _last_dt
+	if _locked:
+		if _slot != 99 and fixed_place:
+			_card_xy.x = (SCREEN.x - sz.x) * 0.5
+		_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
+		return
 	if dock_beside:
 		var d = _dock_pos(sz)
-		if d != null:
-			if _slot != 99:
-				_card_xy = d
+		if d != null or _slot == 99:
+			if d != null:
+				if _slot != 99:
+					_card_xy = d + Vector2(12.0 * float(_dock_side), 0.0)
+					_dock_anchor = _card_xy
+					_slot = 99
+					_locked = true
+					_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
+					return
 				_dock_anchor = d
 			_slot = 99
-			if d.distance_to(_dock_anchor) > 20.0:
-				_dock_anchor = d
 			_card_xy = _card_xy.lerp(_dock_anchor, 1.0 - exp(-14.0 * _last_dt))
 			_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
+			if _lock_t > 0.35:
+				_card_xy = _dock_anchor
+				_locked = true
 			return
 	var slots = _slots(sz)
 	var want: int
@@ -380,6 +408,9 @@ func _place_card() -> void:
 		_card_xy = target
 	else:
 		_card_xy = _card_xy.lerp(target, 1.0 - exp(-10.0 * _last_dt))
+	if fixed_place and (first or _lock_t > 0.35):
+		_card_xy = target
+		_locked = true
 	_card.position = Vector2(round(_card_xy.x), round(_card_xy.y))
 
 func card_rect() -> Rect2:

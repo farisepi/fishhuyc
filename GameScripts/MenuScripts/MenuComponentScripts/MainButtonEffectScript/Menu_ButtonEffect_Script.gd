@@ -151,6 +151,11 @@ static func _apply_glass_effect(control: Control) -> void:
 		m.shader = sh
 		m.set_shader_parameter("amount", 0.0)
 		glass.material = m
+		var bb = BackBufferCopy.new()
+		bb.name = "LiquidGlassCopy"
+		bb.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+		bb.z_index = 5
+		control.add_child(bb)
 		control.add_child(glass)
 		glass.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		glass.set_meta("m", m)

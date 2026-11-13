@@ -62,6 +62,7 @@ func _ready() -> void:
 		return
 
 	process_mode = Node.PROCESS_MODE_PAUSABLE
+	_menu_mode.call_deferred()
 
 	mouse_entered.connect(_on_mouse_entered)
 	body_entered.connect(_on_body_entered)
@@ -97,8 +98,12 @@ func _on_body_entered(body: Node2D) -> void:
 	if body.name == "рыбка":
 		_pop()
 
+func _menu_mode() -> void:
+	if is_instance_valid(self) and has_meta("menu_bg"):
+		process_mode = Node.PROCESS_MODE_INHERIT
+
 func _process(delta: float) -> void:
-	if get_tree().paused:
+	if get_tree().paused and not has_meta("menu_bg"):
 		return
 
 	if popped:
