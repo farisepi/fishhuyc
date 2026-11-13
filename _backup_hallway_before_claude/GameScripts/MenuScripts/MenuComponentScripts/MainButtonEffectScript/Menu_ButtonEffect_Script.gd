@@ -1,0 +1,243 @@
+class_name ButtonEffects
+extends Node
+
+static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_click) -> void:
+	if not btn or not is_instance_valid(btn):
+		return
+
+	stabilize_text(btn)
+	complete_styles(btn)
+	add_shimmer(btn)
+	var original_alpha = 1.0
+	if btn.modulate.a < 0.99 and not btn.has_meta("fx_keep_alpha"):
+		btn.modulate.a = 1.0
+
+	if btn is Button:
+		btn.pivot_offset = btn.size / 2.0
+		if not btn.resized.is_connected(_on_pivot_resized.bind(btn)):
+			btn.resized.connect(_on_pivot_resized.bind(btn))
+		if click_sound_callable.is_valid() and not btn.pressed.is_connected(click_sound_callable):
+			btn.pressed.connect(click_sound_callable)
+
+	if not btn.mouse_entered.is_connected(_on_hover.bind(btn, original_alpha)):
+		btn.mouse_entered.connect(_on_hover.bind(btn, original_alpha))
+	if not btn.mouse_exited.is_connected(_on_unhover.bind(btn, original_alpha)):
+		btn.mouse_exited.connect(_on_unhover.bind(btn, original_alpha))
+
+static func add_shimmer(btn: Control) -> void:
+	if btn.material != null or not Global.button_effects_enabled:
+		return
+	var sh = load("res://GameShaders/SharedShaders/Shared_UIShimmer_Shader.gdshader")
+	if sh == null:
+		return
+	var m = ShaderMaterial.new()
+	m.shader = sh
+	m.set_shader_parameter("rect_min", Vector2.ZERO)
+	m.set_shader_parameter("rect_size", btn.size if btn.size.x > 1.0 else Vector2(200, 40))
+	m.set_shader_parameter("pixel", 2.0)
+	m.set_shader_parameter("period", 11.0)
+	m.set_shader_parameter("strength", 0.07)
+	m.set_shader_parameter("band", 0.07)
+	m.set_shader_parameter("phase", -clamp(btn.global_position.y / 2000.0, 0.0, 0.4))
+	btn.material = m
+	if not btn.resized.is_connected(_on_shimmer_resized.bind(btn)):
+		btn.resized.connect(_on_shimmer_resized.bind(btn))
+
+
+static func _on_pivot_resized(btn: Control) -> void:
+	if is_instance_valid(btn):
+		btn.pivot_offset = btn.size / 2.0
+
+static func _on_shimmer_resized(btn: Control) -> void:
+	if is_instance_valid(btn) and btn.material is ShaderMaterial:
+		btn.material.set_shader_parameter("rect_size", btn.size)
+
+
+static func complete_styles(btn: Control) -> void:
+	if not (btn is Button):
+		return
+	var b: Button = btn
+	if not b.has_theme_stylebox_override("normal"):
+		return
+	var normal = b.get_theme_stylebox("normal")
+	var hover = b.get_theme_stylebox("hover") if b.has_theme_stylebox_override("hover") else normal
+	var pressed = b.get_theme_stylebox("pressed") if b.has_theme_stylebox_override("pressed") else hover
+	if not b.has_theme_stylebox_override("hover"):
+		b.add_theme_stylebox_override("hover", normal)
+	if not b.has_theme_stylebox_override("pressed"):
+		b.add_theme_stylebox_override("pressed", hover)
+	if not b.has_theme_stylebox_override("hover_pressed"):
+		b.add_theme_stylebox_override("hover_pressed", pressed)
+	if not b.has_theme_stylebox_override("disabled"):
+		b.add_theme_stylebox_override("disabled", normal)
+	if not b.has_theme_stylebox_override("focus"):
+		b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	if b.has_theme_color_override("font_color"):
+		var c = b.get_theme_color("font_color")
+		for k in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+			if not b.has_theme_color_override(k):
+				b.add_theme_color_override(k, c)
+
+
+static func stabilize_text(btn: Control) -> void:
+	if btn is Button:
+		var t: String = btn.text.strip_edges()
+		if t != btn.text:
+			btn.text = t
+		if btn.has_theme_font_override("font"):
+			var own = btn.get_theme_font("font")
+			if own is SystemFont and (own as SystemFont).font_names.is_empty():
+				btn.remove_theme_font_override("font")
+	fix_font(btn.get_theme_font("font"))
+
+
+static func fix_font(f: Font) -> void:
+	if f == null:
+		return
+	if f is FontVariation and (f as FontVariation).base_font:
+		fix_font((f as FontVariation).base_font)
+		return
+	if "oversampling" in f and float(f.get("oversampling")) == 0.0:
+		f.set("oversampling", 2.0)
+
+
+static func _on_hover(control: Control, original_alpha: float) -> void:
+	if not control or not is_instance_valid(control):
+		return
+	if control.has_meta("fx_keep_alpha"):
+		return
+	_kill_meta(control, "color_tween")
+	_kill_meta(control, "glass_tween")
+
+	var color_tween = control.create_tween()
+	color_tween.set_loops()
+	color_tween.tween_property(control, "modulate", Color(0.75, 0.88, 1.0, original_alpha), 1.2).set_ease(Tween.EASE_IN_OUT)
+	color_tween.tween_property(control, "modulate", Color(0.55, 0.72, 1.0, original_alpha), 1.2).set_ease(Tween.EASE_IN_OUT)
+	control.set_meta("color_tween", color_tween)
+
+	_apply_glass_effect(control)
+	_spawn_bubbles(control)
+
+static func _on_unhover(control: Control, original_alpha: float) -> void:
+	if not control or not is_instance_valid(control):
+		return
+	_kill_meta(control, "color_tween")
+	_kill_meta(control, "glass_tween")
+
+	_kill_meta(control, "settle_tween")
+
+	_remove_glass_effect(control)
+
+	var settle = control.create_tween()
+	settle.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	if control.has_meta("fx_keep_alpha"):
+		settle.tween_property(control, "modulate:r", 1.0, 0.2)
+		settle.parallel().tween_property(control, "modulate:g", 1.0, 0.2)
+		settle.parallel().tween_property(control, "modulate:b", 1.0, 0.2)
+	else:
+		settle.tween_property(control, "modulate", Color(1.0, 1.0, 1.0, original_alpha), 0.4)
+	control.set_meta("settle_tween", settle)
+
+const LIQUID_GLASS_SHADER := "res://GameShaders/SharedShaders/Shared_LiquidGlass_Shader.gdshader"
+
+static func _apply_glass_effect(control: Control) -> void:
+	if not control or not is_instance_valid(control):
+		return
+	var glass = control.get_node_or_null("LiquidGlass")
+	if not glass:
+		var sh = load(LIQUID_GLASS_SHADER)
+		if sh == null:
+			return
+		glass = ColorRect.new()
+		glass.name = "LiquidGlass"
+		glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		glass.color = Color(1, 1, 1, 1)
+		glass.z_index = 5
+		var m = ShaderMaterial.new()
+		m.shader = sh
+		m.set_shader_parameter("amount", 0.0)
+		glass.material = m
+		var bb = BackBufferCopy.new()
+		bb.name = "LiquidGlassCopy"
+		bb.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+		bb.z_index = 5
+		control.add_child(bb)
+		control.add_child(glass)
+		glass.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		glass.set_meta("m", m)
+		control.gui_input.connect(func(ev):
+			if ev is InputEventMouseMotion and is_instance_valid(glass) and control.size.x > 0.0:
+				m.set_shader_parameter("mouse", (ev.position / control.size).clamp(Vector2.ZERO, Vector2.ONE)))
+	var mat: ShaderMaterial = glass.get_meta("m")
+	mat.set_shader_parameter("size", control.size)
+	mat.set_shader_parameter("radius", clamp(control.size.y * 0.22, 3.0, 10.0))
+	var mp = control.get_local_mouse_position()
+	if control.size.x > 0.0:
+		mat.set_shader_parameter("mouse", (mp / control.size).clamp(Vector2.ZERO, Vector2.ONE))
+	var from = float(mat.get_shader_parameter("amount"))
+	var glass_tween = control.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	glass_tween.tween_method(func(v): mat.set_shader_parameter("amount", v), from, 1.0, 0.22).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	control.set_meta("glass_tween", glass_tween)
+
+static func _remove_glass_effect(control: Control) -> void:
+	if not control or not is_instance_valid(control):
+		return
+	var glass = control.get_node_or_null("LiquidGlass")
+	if not glass:
+		return
+	var mat: ShaderMaterial = glass.get_meta("m")
+	var from = float(mat.get_shader_parameter("amount"))
+	var glass_tween = control.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	glass_tween.tween_method(func(v): mat.set_shader_parameter("amount", v), from, 0.0, 0.25).set_ease(Tween.EASE_OUT)
+	control.set_meta("glass_tween", glass_tween)
+
+static func _spawn_bubbles(control: Control) -> void:
+	if not Global.button_effects_enabled:
+		return
+	if not control or not is_instance_valid(control):
+		return
+
+	var root: Node = null
+	var p = control.get_parent()
+	while p:
+		if p is CanvasLayer:
+			root = p
+			break
+		p = p.get_parent()
+	if root == null:
+		root = control.get_viewport()
+	if not root or not is_instance_valid(root):
+		return
+
+	var r = control.get_global_rect()
+	var btn_global_pos = r.position
+	var btn_width = r.size.x
+	var btn_height = r.size.y
+
+	for _i in range(2):
+		var bubble = ColorRect.new()
+		bubble.color = Color(1.0, 1.0, 1.0, 0.4)
+		bubble.size = Vector2(4, 4)
+		bubble.z_index = 50
+		bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bubble.position = btn_global_pos + Vector2(randf_range(5, btn_width - 5), btn_height - 5)
+		root.add_child(bubble)
+
+		var start_pos = bubble.position
+		var t = bubble.create_tween()
+		t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		t.set_ease(Tween.EASE_IN_OUT)
+		t.tween_property(bubble, "position:y", start_pos.y - 50, 1.5)
+		t.parallel().tween_property(bubble, "position:x", start_pos.x + randf_range(-8, 8), 1.5)
+		t.parallel().tween_property(bubble, "modulate:a", 0.0, 1.5)
+		t.parallel().tween_property(bubble, "scale", Vector2(0.5, 0.5), 1.5)
+		t.finished.connect(bubble.queue_free)
+
+static func _kill_meta(control: Control, key: String) -> void:
+	if not control or not is_instance_valid(control):
+		return
+	if not control.has_meta(key):
+		return
+	var t: Tween = control.get_meta(key)
+	if t and t.is_valid():
+		t.kill()

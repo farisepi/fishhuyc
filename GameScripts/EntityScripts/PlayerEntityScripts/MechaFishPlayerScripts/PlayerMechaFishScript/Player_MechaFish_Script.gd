@@ -487,8 +487,9 @@ func _physics_process(delta):
 	else:
 		_jump_buffer_t = max(0.0, _jump_buffer_t - delta)
 	_update_step_visual(delta)
+	_skid_t = max(0.0, _skid_t - delta)
 
-	var direction = Input.get_axis("ui_left", "ui_right")
+	var direction = _h_axis()
 	if abs(direction) < 0.2:
 		direction = 0.0
 	var dir_sign = signf(direction)
@@ -528,7 +529,12 @@ func _physics_process(delta):
 			if direction == 0.0:
 				accel = GROUND_DECEL
 			elif signf(velocity.x) != dir_sign and abs(velocity.x) > 10.0:
-				accel = TURN_ACCEL
+				accel = GROUND_ACCEL
+				if abs(velocity.x) > 160.0 and _skid_t <= 0.0:
+					_skid_t = 0.25
+					_dust(global_position + Vector2(signf(velocity.x) * 8.0, FEET_Y), 3, 0.0, 0.7)
+					_squash(Vector2(1.06, 0.95))
+				velocity.x = dir_sign * min(abs(velocity.x) * 0.3, 70.0)
 			else:
 				accel = GROUND_ACCEL
 		else:
@@ -556,6 +562,7 @@ func _physics_process(delta):
 		is_landing = false
 		on_floor_now = false
 		_play_jump()
+		_squash(Vector2(0.88, 1.14))
 		_dust(global_position + Vector2(0, FEET_Y), 3, 0.0, 0.6)
 
 	if Input.is_action_just_pressed("interact") and not only_basic_moves:
@@ -579,7 +586,7 @@ func _physics_process(delta):
 			elif velocity.y > 60.0 or sprite.animation != "Jump":
 				if sprite.animation != "Falling":
 					_play_anim("Falling", true)
-			sprite.speed_scale = 1.0
+			sprite.speed_scale = 2.4 if (sprite.animation == "Jump" and sprite.frame < 2) else 1.0
 		elif is_landing and direction != 0.0:
 			is_landing = false
 		if grounded_look and not is_landing:
@@ -598,15 +605,37 @@ func _physics_process(delta):
 	if held_icon.visible:
 		held_icon.global_position = global_position + Vector2(0, -60)
 
+var _h_last := 0.0
+var _h_frame := -1
+
+func _h_axis() -> float:
+	var f = Engine.get_physics_frames()
+	if f != _h_frame:
+		_h_frame = f
+		if Input.is_action_just_pressed("ui_left"):
+			_h_last = -1.0
+		elif Input.is_action_just_pressed("ui_right"):
+			_h_last = 1.0
+	var l = Input.get_action_strength("ui_left")
+	var r = Input.get_action_strength("ui_right")
+	if l > 0.2 and r > 0.2:
+		if _h_last == 0.0:
+			_h_last = float(facing_direction) if facing_direction != 0 else 1.0
+		return _h_last * max(l, r)
+	if l > r:
+		_h_last = -1.0
+	elif r > l:
+		_h_last = 1.0
+	return r - l
+
 func _play_jump() -> void:
 	_play_anim("Jump", true)
 	if sprite and sprite.sprite_frames.get_frame_count("Jump") > 2:
-		sprite.frame = 2
+		sprite.frame = 1
 
-const GROUND_ACCEL := 2300.0
-const GROUND_DECEL := 2600.0
-const TURN_ACCEL := 3800.0
-const AIR_ACCEL := 1500.0
+const GROUND_ACCEL := 1250.0
+const GROUND_DECEL := 2100.0
+const AIR_ACCEL := 1000.0
 const AIR_DECEL := 500.0
 const FALL_GRAVITY_MULT := 1.45
 const APEX_GRAVITY_MULT := 0.6
@@ -696,6 +725,9 @@ func _spawn_ghost() -> void:
 func _on_landed(vy: float, direction: float) -> void:
 	if _slide_phase != "" or is_vaulting or is_climbing or is_climbing_animation or is_stunned:
 		return
+	if vy > 120.0:
+		var k = clamp(vy / 2600.0, 0.04, 0.2)
+		_squash(Vector2(1.0 + k, 1.0 - k))
 	if vy > 200.0:
 		_dust(global_position + Vector2(0, FEET_Y), 6 if vy > 450.0 else 4, 0.0, clamp(vy / 500.0, 0.6, 1.3))
 	if vy > 620.0:
@@ -716,7 +748,7 @@ func _process_dash(delta: float) -> void:
 	move_and_slide()
 	if _dash_t <= 0.0 or is_on_wall() or is_hurt or is_dead or is_stunned:
 		is_dashing = false
-		var hold = Input.get_axis("ui_left", "ui_right")
+		var hold = _h_axis()
 		velocity.x = _dash_dir * run_speed * (0.85 if signf(hold) == _dash_dir else 0.35)
 		if is_on_wall():
 			velocity.x = 0.0
@@ -796,7 +828,18 @@ func _update_step_visual(delta: float) -> void:
 		_sprite_base = sprite.position
 	if _step_vis != 0.0:
 		_step_vis = move_toward(_step_vis, 0.0, max(240.0, abs(_step_vis) * 10.0) * delta)
-	sprite.position = _sprite_base + Vector2(0, _step_vis)
+	_sq = _sq.lerp(Vector2.ONE, 1.0 - exp(-13.0 * delta))
+	if _sq.distance_squared_to(Vector2.ONE) < 0.00002:
+		_sq = Vector2.ONE
+	var sx = signf(sprite.scale.x) if sprite.scale.x != 0.0 else 1.0
+	sprite.scale = Vector2(sx * _sq.x, _sq.y)
+	sprite.position = _sprite_base + Vector2(0, _step_vis + 35.0 * (1.0 - _sq.y))
+
+var _sq := Vector2.ONE
+var _skid_t := 0.0
+
+func _squash(v: Vector2) -> void:
+	_sq = v
 
 func _wall_probe(dir: float, grounded: bool = false) -> Dictionary:
 	var space = get_world_2d().direct_space_state
@@ -981,7 +1024,7 @@ func _ledge_climb(wall_x: float, top_y: float, dir: float) -> void:
 	was_on_floor_last_frame = true
 	is_landing = false
 	_coyote_t = COYOTE_TIME
-	var hold = signf(Input.get_axis("ui_left", "ui_right"))
+	var hold = signf(_h_axis())
 	velocity = Vector2(dir * run_speed * 0.7 if hold == dir else 0.0, 30.0)
 	move_and_slide()
 	velocity.y = 0.0
@@ -1257,7 +1300,7 @@ func _do_attack() -> void:
 		_combo = 0
 	_combo_t = now
 	var heavy = _combo == 2
-	var hold = Input.get_axis("ui_left", "ui_right")
+	var hold = _h_axis()
 	if abs(hold) > 0.2:
 		facing_direction = 1 if hold > 0.0 else -1
 	var tgt = _attack_target(abs(hold) <= 0.2)
@@ -1594,7 +1637,7 @@ func _dash():
 		_finish_slide_now()
 	is_dashing = true
 	dash_cooldown = 1.5
-	var hold = Input.get_axis("ui_left", "ui_right")
+	var hold = _h_axis()
 	_dash_dir = signf(hold) if abs(hold) > 0.2 else (-1.0 if facing_direction == -1 else 1.0)
 	facing_direction = int(_dash_dir)
 	if sprite:
@@ -1874,21 +1917,28 @@ func _start_death_air() -> void:
 	_death_air_bar = cont.get_node_or_null("Air_Bar") as AnimatedSprite2D if cont else null
 	if _death_air_bar == null:
 		return
+	var shown = gui.visible and cont.visible and cont.modulate.a > 0.99 and _death_air_bar.visible and _death_air_bar.modulate.a > 0.99
+	if not (gui.visible and cont.visible):
+		cont.modulate.a = 0.0
 	gui.visible = true
 	cont.visible = true
-	cont.modulate.a = 1.0
-	var was = _death_air_bar.visible
-	_death_air_bar.visible = true
 	_death_air_bar.stop()
 	_death_air_bar.animation = &"AirBalloon"
 	_death_air_bar.frame = 0
-	if not was or _death_air_bar.modulate.a < 0.99:
-		var lvl = get_tree().current_scene
-		if lvl and lvl.has_method("_place_air_bar"):
-			lvl._place_air_bar()
-		_death_air_bar.visible = true
-		_death_air_bar.modulate = Color(1, 1, 1, _death_air_bar.modulate.a if was else 0.0)
-		_death_air_bar.create_tween().tween_property(_death_air_bar, "modulate:a", 1.0, 0.45)
+	if shown:
+		return
+	var lvl = get_tree().current_scene
+	if lvl and lvl.has_method("_place_air_bar"):
+		lvl._place_air_bar()
+	_death_air_bar.visible = true
+	var base_scale = _death_air_bar.scale
+	_death_air_bar.modulate = Color(1, 1, 1, 0.0)
+	_death_air_bar.scale = base_scale * 0.6
+	var tw = _death_air_bar.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_parallel(true)
+	tw.tween_property(_death_air_bar, "modulate:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT).set_delay(0.15)
+	tw.tween_property(_death_air_bar, "scale", base_scale, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.15)
+	if cont.modulate.a < 0.99:
+		tw.tween_property(cont, "modulate:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _update_death_air(delta: float) -> void:
 	if _death_air_t < 0.0 or _death_air_out:

@@ -1,0 +1,905 @@
+extends Node
+
+signal finished
+
+const RX := 6000.0
+const PX := 3.0
+const BACK_W := 292.0
+const BACK_FLOOR := 76.0
+const LEFT := RX - BACK_W * PX * 0.5
+const HALF := BACK_W * PX * 0.5 - 4.0
+const FLOOR_Y := 380.0
+const CEIL_Y := FLOOR_Y - BACK_FLOOR * PX
+const DOOR_X := LEFT + 6.0 * PX + 49.5
+const BUNK_XS := [RX - 190.0, RX, RX + 190.0]
+const BUNK_W := 38.0
+const BUNK_H := 49.0
+const MY_BUNK := 2
+const LOCKER_X := RX + 300.0
+const TEX_DIR := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryMaintRoomTextures/"
+const DOOR_TEX := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryTilesetTextures/ActPrologue_LevelFactory_TileSet_IronDoor_Texture.png"
+const LAMP_TEX := "res://GameAssets/LevelAssets/SharedLevelAssets/Shared_HangingLamp_Texture.png"
+const CONE_TEX := "res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png"
+const NPC_DIR := "res://GameAssets/Sprites/EntitySprites/NPCSprites/MechaFishNPCSprites/"
+const SLEEP_TEX := {
+	"WithScar": "ScarMechaFishFrames/NPC_MechaFish_WithScar_Sleep_SpriteList_Animation.png",
+	"WithBigEyes": "BigEyesMechaFishFrames/NPC_MechaFish_WithBigEyes_Sleep_SpriteList_Animation.png",
+	"WithFunnyHat": "FunnyHatMechaFishFrames/NPC_MechaFish_WithFunnyHat_Sleep_SpriteList_Animation.png",
+	"WithOutHand": "WithOutHandMechaFishFrames/NPC_MechaFish_WithOutHand_Sleep_SpriteList_Animation.png",
+}
+const NEAR := 46.0
+const BOX_NEAR := 28.0
+const STASH_SCRIPT := preload("res://GameScripts/LevelScripts/ActPrologueLevelScripts/FactoryLevelScripts/FactoryMaintRoomScript/Factory_MaintRoom_Stash_Script.gd")
+const ROOM_IDS := ["room_bunks", "room_mybunk", "room_lockers", "room_stand",
+	"room_caps", "room_filter", "room_pebble", "room_shell", "room_photo", "room_letter"]
+const EMOTES := ["...", "?", "!", "zZ", "~", "<3", ":)", "..?"]
+
+var L = null
+var _built: bool = false
+var _view: Node2D = null
+var _body: StaticBody2D = null
+var _on: bool = false
+var _busy: bool = false
+var _morning: bool = false
+var _t: float = 0.0
+var _emotes: Array = []
+var _saved_npc: Array = []
+var _saved_player_pos: Vector2 = Vector2.ZERO
+var _saved_hud: bool = false
+var _saved_gui: bool = false
+var _saved_nav_vis: bool = false
+var _saved_strip_vis: bool = false
+var _sleepers: Array = []
+var _saved_light: Color = Color.WHITE
+var _my_bunk: Sprite2D = null
+var _bunks: Array = []
+var _lockers: Array = []
+var _stands: Array = []
+var _boxes: Array = []
+var _stash = null
+var _stash_box: Dictionary = {}
+var _pick: Array = []
+var _fish_tweens: Array = []
+var _lie_sprites: Array = []
+var _lamp_cones: Array = []
+
+func setup(level) -> void:
+	L = level
+	set_process(false)
+	set_process_input(false)
+	for id in ROOM_IDS:
+		if not (id in L._all_target_ids):
+			L._all_target_ids.append(id)
+
+func stash_open() -> bool:
+	return _stash != null and _stash.is_open()
+
+func is_on() -> bool:
+	return _on
+
+func _bed_pos() -> Vector2:
+	return Vector2(BUNK_XS[MY_BUNK], FLOOR_Y)
+
+func _spr(tex_path: String, pos: Vector2, z: int, parent: Node = null) -> Sprite2D:
+	var sp = Sprite2D.new()
+	sp.texture = load(tex_path)
+	sp.centered = false
+	sp.scale = Vector2(PX, PX)
+	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sp.position = pos
+	if tex_path.begins_with(TEX_DIR) and not "Back" in tex_path:
+		sp.position -= Vector2(PX, PX)
+	sp.z_as_relative = false
+	sp.z_index = z
+	(parent if parent else _view).add_child(sp)
+	return sp
+
+func _build() -> void:
+	if _built:
+		return
+	_built = true
+	_view = Node2D.new()
+	_view.name = "MaintRoomView"
+	_view.z_as_relative = false
+	_view.z_index = -9
+	_view.draw.connect(_draw_room)
+	add_child(_view)
+	_spr(TEX_DIR + "Factory_MaintRoom_Back_Texture.png", Vector2(LEFT, CEIL_Y), -8)
+	_spr(DOOR_TEX, Vector2(LEFT + 6.0 * PX, FLOOR_Y - 36.0 * PX), -7)
+	for b in range(BUNK_XS.size()):
+		var tex = "Factory_MaintRoom_BunkMine_Texture.png" if b == MY_BUNK else "Factory_MaintRoom_Bunk_Texture.png"
+		var bs = _spr(TEX_DIR + tex, Vector2(BUNK_XS[b] - BUNK_W * PX * 0.5, FLOOR_Y - BUNK_H * PX), -6)
+		if b == MY_BUNK:
+			_my_bunk = bs
+		else:
+			_bunks.append(bs)
+	for sn in ["StandMug", "StandLamp"]:
+		var sx = RX - 95.0 if sn == "StandMug" else RX + 95.0
+		var st = _spr(TEX_DIR + "Factory_MaintRoom_%s_Texture.png" % sn, Vector2(sx - 24.0, FLOOR_Y - 22.0 * PX), -6)
+		_stands.append(st)
+		_boxes.append({"node": st, "kind": "stand", "closed": TEX_DIR + "Factory_MaintRoom_%s_Texture.png" % sn,
+			"open": TEX_DIR + "Factory_MaintRoom_%sOpen_Texture.png" % sn, "items": ["photo"] if sn == "StandMug" else ["letter"]})
+	for k in range(2):
+		var lk = _spr(TEX_DIR + "Factory_MaintRoom_Locker_Texture.png", Vector2(LOCKER_X - 24.0 + k * 48.0, FLOOR_Y - 41.0 * PX), -6)
+		_lockers.append(lk)
+		_boxes.append({"node": lk, "kind": "locker", "closed": TEX_DIR + "Factory_MaintRoom_Locker_Texture.png",
+			"open": TEX_DIR + "Factory_MaintRoom_LockerOpen_Texture.png", "items": ["caps"] if k == 0 else ["filter", "pebble", "shell"]})
+	_stash = STASH_SCRIPT.new()
+	_stash.name = "Stash"
+	add_child(_stash)
+	_stash.setup(L)
+	_stash.closed.connect(_on_stash_closed)
+	for lx in [RX - 95.0, RX + 95.0]:
+		var lamp = _spr(LAMP_TEX, Vector2(lx - 21.0, CEIL_Y + 21.0), -5)
+		lamp.modulate = Color(1.2, 1.1, 0.95)
+		if ResourceLoader.exists(CONE_TEX):
+			var cone = Sprite2D.new()
+			cone.texture = load(CONE_TEX)
+			cone.position = Vector2(lx, CEIL_Y + 130.0)
+			var ts = cone.texture.get_size()
+			cone.scale = Vector2(220.0 / ts.x, 240.0 / ts.y)
+			cone.modulate = Color(1.0, 0.82, 0.55, 0.22)
+			var cm = CanvasItemMaterial.new()
+			cm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+			cone.material = cm
+			cone.z_as_relative = false
+			cone.z_index = 30
+			_view.add_child(cone)
+			_lamp_cones.append(cone)
+	var front = Node2D.new()
+	front.name = "MaintRoomFront"
+	front.z_as_relative = false
+	front.z_index = 60
+	front.draw.connect(_draw_front.bind(front))
+	add_child(front)
+	_view.set_meta("front", front)
+	_body = StaticBody2D.new()
+	_body.name = "MaintRoomBody"
+	add_child(_body)
+	_add_box(Vector2(RX, FLOOR_Y + 40.0), Vector2(HALF * 2.0 + 400.0, 80.0))
+	_add_box(Vector2(RX - HALF - 20.0, 200.0), Vector2(40.0, 600.0))
+	_add_box(Vector2(RX + HALF + 20.0, 200.0), Vector2(40.0, 600.0))
+
+func _set_cam_bounds(on: bool) -> void:
+	if L == null or L.camera == null or not ("bounds" in L.camera):
+		return
+	L.camera.bounds = view_rect() if on else Rect2()
+
+func _add_box(at: Vector2, size: Vector2) -> void:
+	var cs = CollisionShape2D.new()
+	var rs = RectangleShape2D.new()
+	rs.size = size
+	cs.shape = rs
+	cs.position = at
+	_body.add_child(cs)
+
+func _front() -> Node2D:
+	return _view.get_meta("front") if _view else null
+
+func enter() -> void:
+	_build()
+	_shuffle_items()
+	_on = true
+	_busy = false
+	_morning = false
+	_emotes.clear()
+	L._room_on = true
+	L._update_escape_hint()
+	if L._bubble and is_instance_valid(L._bubble):
+		L._bubble.queue_free()
+	for ch in L._chan_bubbles.keys():
+		var old = L._chan_bubbles[ch]
+		if old.size() > 0 and is_instance_valid(old[0]):
+			old[0].queue_free()
+	L._chan_bubbles.clear()
+	_view.visible = true
+	_front().visible = true
+	_body.process_mode = Node.PROCESS_MODE_INHERIT
+	for cs in _body.get_children():
+		cs.set_deferred("disabled", false)
+	_saved_hud = L._hud_on
+	var lt = L.get_node_or_null("Lighting") as CanvasModulate
+	if lt:
+		_saved_light = lt.color
+		lt.color = Color(0.78, 0.74, 0.72)
+	_saved_gui = L.player_gui.visible if L.player_gui else false
+	L._set_hud_visible(false)
+	if L._nav:
+		_saved_nav_vis = L._nav.visible
+		L._nav.visible = false
+	if L._act_strip:
+		_saved_strip_vis = L._act_strip.visible
+		L._act_strip.visible = L._tut_done("journal")
+	if L.player:
+		_saved_player_pos = L.player.global_position
+		L.player.global_position = Vector2(DOOR_X + 30.0, 350.0)
+		L.player.velocity = Vector2.ZERO
+		if "facing_direction" in L.player:
+			L.player.facing_direction = 1
+		if L.player.has_method("set_movement_blocked"):
+			L.player.set_movement_blocked(false)
+		if L.camera and L.camera.has_method("snap_to"):
+			L.camera.snap_to(L.player.global_position)
+	_place_fish()
+	set_process(true)
+	set_process_input(true)
+	_first_visit_card()
+
+func leave() -> void:
+	if not _on:
+		return
+	_on = false
+	set_process(false)
+	set_process_input(false)
+	if stash_open():
+		_stash.visible = false
+		_stash._open = false
+		_on_stash_closed()
+	_set_cam_bounds(false)
+	L._room_on = false
+	L._update_escape_hint()
+	var lt = L.get_node_or_null("Lighting") as CanvasModulate
+	if lt:
+		lt.color = _saved_light
+	if _view:
+		_view.visible = false
+		_front().visible = false
+	if _body:
+		for cs in _body.get_children():
+			cs.set_deferred("disabled", true)
+	for tw in _fish_tweens:
+		if tw and tw.is_valid():
+			tw.kill()
+	_fish_tweens.clear()
+	for s in _saved_npc:
+		var n = s[0]
+		if not is_instance_valid(n):
+			continue
+		n.position = s[1]
+		n.flip_h = s[2]
+		n.visible = s[4]
+		n.rotation = s[5]
+		n.z_index = s[6]
+		n.modulate = Color.WHITE
+		if n.sprite_frames and n.sprite_frames.has_animation(s[3]):
+			n.play(s[3])
+	_saved_npc.clear()
+	_sleepers.clear()
+	for t in _room_targets():
+		var nn = t["node"]
+		if is_instance_valid(nn) and nn.material is ShaderMaterial:
+			nn.material.set_shader_parameter("active", 0.0)
+	for l in _lie_sprites:
+		if is_instance_valid(l[0]):
+			l[0].queue_free()
+	_lie_sprites.clear()
+	if L._nav:
+		L._nav.visible = _saved_nav_vis
+	if L._act_strip:
+		L._act_strip.visible = _saved_strip_vis
+	if L.player_gui:
+		L.player_gui.visible = _saved_gui
+	L._set_hud_visible(_saved_hud)
+	if L._spot:
+		L._spot.hide_step()
+
+func _variant(fish: AnimatedSprite2D) -> String:
+	if fish.sprite_frames == null:
+		return "WithScar"
+	for anim in fish.sprite_frames.get_animation_names():
+		if fish.sprite_frames.get_frame_count(anim) == 0:
+			continue
+		var tex = fish.sprite_frames.get_frame_texture(anim, 0)
+		var path = tex.resource_path
+		if tex is AtlasTexture and tex.atlas:
+			path = tex.atlas.resource_path
+		for k in SLEEP_TEX.keys():
+			if k in path or k.replace("FunnyHat", "FannyHat") in path:
+				return k
+	return "WithScar"
+
+func _lie_down(fish: AnimatedSprite2D, bunk: int, upper: bool) -> void:
+	var path = NPC_DIR + SLEEP_TEX[_variant(fish)]
+	if not ResourceLoader.exists(path):
+		return
+	var sp = Sprite2D.new()
+	sp.texture = load(path)
+	sp.hframes = 2
+	sp.centered = false
+	sp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var h = float(sp.texture.get_height())
+	sp.position = Vector2(BUNK_XS[bunk] - BUNK_W * PX * 0.5 + 9.0, _bed_y(0 if upper else 1) - h + 4.0)
+	sp.z_as_relative = false
+	sp.z_index = -5
+	_view.add_child(sp)
+	fish.visible = false
+	_sleepers.append(fish)
+	_lie_sprites.append([sp, fish, randf() * 3.0])
+
+func _place_fish() -> void:
+	_saved_npc.clear()
+	_sleepers.clear()
+	for l in _lie_sprites:
+		if is_instance_valid(l[0]):
+			l[0].queue_free()
+	_lie_sprites.clear()
+	var beds = [[0, true], [0, false], [1, true], [1, false], [2, true]]
+	beds.shuffle()
+	var stands = [
+		[LEFT + 190.0, false],
+		[RX - 95.0 + 34.0, true],
+		[LOCKER_X - 70.0, false],
+		[RX + 95.0 - 40.0, false],
+	]
+	stands.shuffle()
+	var fishes: Array = []
+	for fish in L.npc_fishes:
+		if fish != null:
+			fishes.append(fish)
+	fishes.shuffle()
+	var n_sleep = clamp(fishes.size() - 2, 1, 2) if fishes.size() > 1 else 0
+	if fishes.size() > 2 and randf() < 0.35:
+		n_sleep = min(3, fishes.size() - 1)
+	var i := 0
+	for fish in fishes:
+		_saved_npc.append([fish, fish.position, fish.flip_h, String(fish.animation), fish.visible, fish.rotation, fish.z_index])
+		fish.visible = true
+		fish.rotation = 0.0
+		fish.modulate = Color.WHITE
+		fish.z_index = 25
+		if i < n_sleep:
+			var b = beds[i]
+			_lie_down(fish, b[0], b[1])
+			fish.position = Vector2(BUNK_XS[b[0]] - 10.0, _bed_y(0 if b[1] else 1) - 14.0)
+		else:
+			var sp = stands[(i - n_sleep) % stands.size()]
+			fish.position = Vector2(sp[0] + randf_range(-8.0, 8.0), 344.0)
+			fish.flip_h = sp[1] if randf() < 0.75 else not sp[1]
+			if fish.sprite_frames and fish.sprite_frames.has_animation("idle"):
+				fish.play("idle")
+				fish.frame = randi() % max(1, fish.sprite_frames.get_frame_count("idle"))
+		i += 1
+
+func _bed_y(level: int) -> float:
+	return FLOOR_Y - (BUNK_H - (10.0 if level == 0 else 36.0)) * PX
+
+func _first_visit_card() -> void:
+	if L._tut_done("room"):
+		return
+	await get_tree().create_timer(0.9, false).timeout
+	if not _on:
+		return
+	var j = (tr(" Журнал — %s.") % L._key_name("journal")) if L._tut_done("journal") else ""
+	if L._tut_done("inspect"):
+		j += tr(" Осмотреть комнату — %s.") % L._key_name("inspect")
+	await L._tut_read(tr("КОМНАТА ТЕХОБСЛУЖИВАНИЯ"),
+		tr("Здесь рыбы спят между сменами. Охраны нет, время не идёт — ходи, сколько хочешь.") + j + "\n" + tr("Когда будешь готов, подойди к своей койке (она подсвечена) и нажми %s.") % L._key_name("interact"),
+		func(): return L._world_to_screen(Rect2(_bed_pos() + Vector2(-60, -112), Vector2(120, 116))), false)
+	L._tut_mark("room")
+
+func _process(delta: float) -> void:
+	_t += delta
+	for e in _emotes:
+		e["t"] += delta
+	_emotes = _emotes.filter(func(e): return e["t"] < 2.0)
+	for l in _lie_sprites:
+		if is_instance_valid(l[0]):
+			l[0].frame = 1 if fmod(_t + l[2], 3.2) < 1.4 else 0
+	_update_room_outlines()
+	_pick = _what_e()
+	if _my_bunk:
+		var on = not _morning and not _busy and L.state != L.State.INSPECT
+		if on and not (_my_bunk.material is ShaderMaterial):
+			L._ensure_outline(_my_bunk, L.COLOR_HIGHLIGHT_YELLOW)
+		if _my_bunk.material is ShaderMaterial:
+			_my_bunk.material.set_shader_parameter("active", 1.0 if on else 0.0)
+	var flick = 0.92 + 0.08 * sin(_t * 1.7) * sin(_t * 0.43 + 1.0)
+	for c in _lamp_cones:
+		c.modulate.a = 0.22 * flick
+	if _view:
+		_view.queue_redraw()
+		_front().queue_redraw()
+
+func view_rect() -> Rect2:
+	return Rect2(LEFT - 20.0, CEIL_Y - 40.0, BACK_W * PX + 40.0, BACK_FLOOR * PX + 110.0)
+
+func _room_targets() -> Array:
+	var out: Array = []
+	for b in _bunks:
+		out.append({"node": b, "id": "room_bunks", "title": tr("Койки"),
+			"text": tr("Двухъярусные, железные, с номерами. Матрас тоньше рыбьей чешуи, но после смены засыпаешь на чём угодно."),
+			"journal": tr("двухъярусные, железные. Матрас тоньше рыбьей чешуи.")})
+	if _my_bunk:
+		out.append({"node": _my_bunk, "id": "room_mybunk", "title": tr("Моя койка"),
+			"text": tr("Нижняя, с оранжевым одеялом. Одеяло досталось от прежнего жильца — о нём здесь не говорят."),
+			"journal": tr("нижняя, с оранжевым одеялом от прежнего жильца.")})
+	for b in _boxes:
+		var t = _box_info(b)
+		t["node"] = b["node"]
+		t["box"] = b
+		out.append(t)
+	for s2 in _saved_npc:
+		var f = s2[0]
+		if not is_instance_valid(f):
+			continue
+		var ident = L.npc_identities.get(f, "")
+		var info = L.NPC_IDENTITY_DATA.get(ident, {})
+		if info.is_empty():
+			continue
+		var node = f
+		for l2 in _lie_sprites:
+			if l2[1] == f and is_instance_valid(l2[0]):
+				node = l2[0]
+		out.append({"node": node, "id": "npc_" + ident, "title": tr(info.get("title", "")),
+			"text": tr(info.get("phrase", "")), "journal": tr(info.get("journal", ""))})
+	return out
+
+func _box_info(b: Dictionary) -> Dictionary:
+	if b["kind"] == "locker":
+		return {"id": "room_lockers", "title": tr("Шкафчики"), "kind_title": tr("ШКАФЧИК"), "box_title": tr("Шкафчик"),
+			"text": tr("У каждого рабочего свой. Хранить почти нечего: запасной фильтр для костюма, ракушка с воли, у кого-то — камешек со дна родного пруда. Замков нет: красть тоже нечего."),
+			"journal": tr("у каждого свой, без замков. Внутри — личные мелочи.")}
+	return {"id": "room_stand", "title": tr("Тумбочка"), "kind_title": tr("ТУМБОЧКА"), "box_title": tr("Тумбочка"),
+		"text": tr("Кружка с остывшим чаем из водорослей и лампа, которую никто не выключает. Ночью она — единственный свет в комнате."),
+		"journal": tr("кружка остывшего чая из водорослей и лампа, которую никто не выключает.")}
+
+func _item_def(key: String) -> Dictionary:
+	match key:
+		"caps":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemCaps_Texture.png", "origin": Vector2(4, 18), "id": "room_caps",
+				"title": tr("Кепки Никиты"),
+				"phrase": tr("Целая гора кепок. Внутри каждой нацарапано: «НИКИТА». Голов у Никиты одна, кепок — двенадцать."),
+				"journal": tr("гора кепок, все подписаны «НИКИТА». Кто такой Никита — в комнате не знает никто.")}
+		"filter":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemFilter_Texture.png", "origin": Vector2(5, 5), "id": "room_filter",
+				"title": tr("Запасной фильтр"),
+				"phrase": tr("Запасной фильтр для костюма. Пломба целая — значит, свой у хозяина ещё дышит."),
+				"journal": tr("запасной фильтр для костюма. Без него за стенами завода долго не протянуть.")}
+		"pebble":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemPebble_Texture.png", "origin": Vector2(7, 22), "id": "room_pebble",
+				"title": tr("Камешек"),
+				"phrase": tr("Гладкий камешек со дна пруда. Кто-то носит его с собой с самого первого дня."),
+				"journal": tr("камешек со дна родного пруда. Чей — неизвестно.")}
+		"shell":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemShell_Texture.png", "origin": Vector2(6, 35), "id": "room_shell",
+				"title": tr("Ракушка"),
+				"phrase": tr("Ракушка с воли. Если приложить к стеклу шлема — шумит, как настоящая вода."),
+				"journal": tr("ракушка с воли. Шумит, как настоящая вода.")}
+		"photo":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemPhoto_Texture.png", "origin": Vector2(4, 10), "id": "room_photo",
+				"title": tr("Фотография"),
+				"phrase": tr("Старый снимок: пруд, солнце, кувшинки. На обороте одно слово: «Вернёмся»."),
+				"journal": tr("фото пруда с подписью «Вернёмся».")}
+		"letter":
+			return {"tex": TEX_DIR + "Factory_MaintRoom_ItemLetter_Texture.png", "origin": Vector2(5, 11), "id": "room_letter",
+				"title": tr("Письмо"),
+				"phrase": tr("Неотправленное письмо. Вместо адреса — одно слово: «домой»."),
+				"journal": tr("письмо без адреса, только «домой». Его так и не отправили.")}
+	return {}
+
+func _target_live(t: Dictionary) -> bool:
+	if not L.journal_notes.has(t["id"]):
+		return true
+	if t.has("box"):
+		for k in t["box"]["items"]:
+			if not L.journal_notes.has(_item_def(k)["id"]):
+				return true
+	return false
+
+func _update_room_outlines() -> void:
+	var insp = L.state == L.State.INSPECT and not stash_open()
+	for t in _room_targets():
+		var n = t["node"]
+		if not is_instance_valid(n) or not n.visible:
+			continue
+		L._ensure_outline(n, L.COLOR_HIGHLIGHT_BLUE)
+		if n.material is ShaderMaterial:
+			n.material.set_shader_parameter("outline_color", L.COLOR_HIGHLIGHT_BLUE)
+			n.material.set_shader_parameter("active", 1.0 if (insp and _target_live(t)) else 0.0)
+
+func inspect_click(wp: Vector2) -> void:
+	if stash_open():
+		return
+	for t in _room_targets():
+		var n = t["node"]
+		if not is_instance_valid(n) or not n.visible or not _target_live(t):
+			continue
+		if L._node_hit(n, wp) != -1.0:
+			if t.has("box"):
+				_open_box(t["box"])
+				return
+			L._show_inspect_text(t["title"], t["text"], t.get("journal", ""))
+			L._add_journal_note(t["id"], t["title"] + ": " + t["journal"])
+			if n.material is ShaderMaterial:
+				n.material.set_shader_parameter("active", 0.0)
+			return
+
+func _shuffle_items() -> void:
+	for b in _boxes:
+		var placed: Array = []
+		var lay: Dictionary = {}
+		var keys: Array = b["items"].duplicate()
+		keys.shuffle()
+		for k in keys:
+			var d = _item_def(k)
+			var tex = load(d["tex"]) as Texture2D
+			var sz: Vector2 = tex.get_size() if tex else Vector2(8, 8)
+			var spot: Vector2 = d["origin"]
+			var locker: bool = b["kind"] == "locker"
+			for attempt in range(40):
+				var cand: Vector2
+				if locker:
+					var rest: float = [14.0, 27.0, 40.0][randi() % 3]
+					var hi = int(16.0 - sz.x)
+					cand = Vector2(randi_range(min(5, hi), hi), rest + 1.0 - sz.y)
+				else:
+					var hi2 = int(15.0 - sz.x)
+					cand = Vector2(randi_range(min(3, hi2), hi2), d["origin"].y)
+				var ok := true
+				for pr in placed:
+					if Rect2(cand, sz).grow(0.5).intersects(pr):
+						ok = false
+						break
+				if ok:
+					spot = cand
+					break
+			placed.append(Rect2(spot, sz))
+			lay[k] = {"origin": spot, "flip": locker and randf() < 0.5}
+		b["layout"] = lay
+
+func _open_box(b: Dictionary) -> void:
+	if stash_open() or _stash == null:
+		return
+	var info = _box_info(b)
+	_stash_box = b
+	b["node"].texture = load(b["open"])
+	if L.inspect_text_panel:
+		L.inspect_text_panel.visible = false
+	var items: Array = []
+	var lay: Dictionary = b.get("layout", {})
+	for k in b["items"]:
+		var d = _item_def(k)
+		if lay.has(k):
+			d["origin"] = lay[k]["origin"]
+			d["flip"] = lay[k]["flip"]
+		items.append(d)
+	var s = 8.0 if b["kind"] == "locker" else 10.0
+	var locked = not L._tut_done("inspect")
+	_stash.open({"kind_title": info["kind_title"], "title": info["box_title"], "text": info["text"],
+		"closed_tex": b["closed"], "open_tex": b["open"], "scale": s, "items": items, "locked": locked})
+	if not locked:
+		L._add_journal_note(info["id"], info["title"] + ": " + info["journal"])
+
+func _on_stash_closed() -> void:
+	if not _stash_box.is_empty() and is_instance_valid(_stash_box["node"]):
+		_stash_box["node"].texture = load(_stash_box["closed"])
+	_stash_box = {}
+
+func _near_box() -> Dictionary:
+	if L.player == null:
+		return {}
+	var best: Dictionary = {}
+	var bd := BOX_NEAR
+	for b in _boxes:
+		var n: Sprite2D = b["node"]
+		var cx = n.position.x + n.texture.get_width() * PX * 0.5
+		var d = abs(cx - L.player.global_position.x)
+		if d < bd:
+			bd = d
+			best = b
+	return best
+
+func _what_e() -> Array:
+	if L.player == null or _busy or not _on or L.state == L.State.INSPECT or stash_open():
+		return ["", null]
+	var px = L.player.global_position.x
+	var best = ["", null]
+	var bd := INF
+	if not _morning and _near_bed():
+		bd = abs(_bed_pos().x - px)
+		best = ["bed", null]
+	if _morning and _near_door():
+		var dd = abs(DOOR_X - px)
+		if dd < bd:
+			bd = dd
+			best = ["door", null]
+	var b = _near_box()
+	if not b.is_empty():
+		var n: Sprite2D = b["node"]
+		var d2 = abs(n.position.x + n.texture.get_width() * PX * 0.5 - px)
+		if d2 < bd:
+			bd = d2
+			best = ["box", b]
+	var f = _near_fish()
+	if f:
+		var d3 = abs(f.global_position.x - px)
+		if d3 < bd - 6.0:
+			best = ["fish", f]
+	return best
+
+func _near_door() -> bool:
+	return L.player != null and abs(L.player.global_position.x - DOOR_X) < 46.0
+
+func _near_bed() -> bool:
+	return L.player != null and abs(L.player.global_position.x - _bed_pos().x) < 60.0
+
+func _near_fish() -> Node:
+	if L.player == null:
+		return null
+	var best = null
+	var bd := NEAR
+	for s in _saved_npc:
+		var f = s[0]
+		if not is_instance_valid(f) or not (f.visible or f in _sleepers):
+			continue
+		var d = abs(f.global_position.x - L.player.global_position.x)
+		if d < bd:
+			bd = d
+			best = f
+	return best
+
+func _input(event: InputEvent) -> void:
+	if not _on or _busy or L.journal_open or L._tut_reading or L.state == L.State.INSPECT or stash_open():
+		return
+	if not event.is_action_pressed("interact"):
+		return
+	var w = _what_e()
+	match w[0]:
+		"bed":
+			get_viewport().set_input_as_handled()
+			_sleep()
+		"door":
+			get_viewport().set_input_as_handled()
+			_go_out()
+		"box":
+			get_viewport().set_input_as_handled()
+			_open_box(w[1])
+		"fish":
+			get_viewport().set_input_as_handled()
+			_emote(w[1])
+
+func _emote(f: Node) -> void:
+	for e in _emotes:
+		if e["fish"] == f and e["t"] < 1.2:
+			return
+	var txt: String
+	if f in _sleepers:
+		txt = "zZ"
+	else:
+		txt = EMOTES[randi() % EMOTES.size()]
+		f.flip_h = L.player.global_position.x < f.global_position.x
+		var y0 = f.position.y
+		var tw = f.create_tween()
+		tw.tween_property(f, "position:y", y0 - 6.0, 0.1).set_ease(Tween.EASE_OUT)
+		tw.tween_property(f, "position:y", y0, 0.14).set_ease(Tween.EASE_IN)
+	_emotes.append({"fish": f, "text": txt, "t": 0.0})
+
+func _sleep() -> void:
+	_busy = true
+	if L._spot:
+		L._spot.hide_step()
+	if L.player and L.player.has_method("set_movement_blocked"):
+		L.player.set_movement_blocked(true)
+	await L._fade_black(true, 1.3)
+	if not _on:
+		return
+	await get_tree().create_timer(0.8).timeout
+	var sh = L.current_shift + 1
+	var st = L._plan_next_station()
+	if L._dream and L._dream.night_has_lessons(sh, st):
+		L._room_on = false
+		_set_cam_bounds(false)
+		await L._dream.run_night(sh, st)
+		L._room_on = true
+		_set_cam_bounds(true)
+		if L._act_strip:
+			L._act_strip.visible = L._tut_done("journal")
+		L._set_hud_visible(false)
+		if L.player_gui:
+			L.player_gui.visible = false
+	if L.player:
+		L.player.global_position = Vector2(_bed_pos().x - 34.0, 350.0)
+		L.player.velocity = Vector2.ZERO
+		if "facing_direction" in L.player:
+			L.player.facing_direction = -1
+		if L.camera and L.camera.has_method("snap_to"):
+			L.camera.snap_to(L.player.global_position)
+	_wake_fish()
+	_morning = true
+	await L._fade_black(false, 1.2)
+	if not _on:
+		return
+	if L.player and L.player.has_method("set_movement_blocked"):
+		L.player.set_movement_blocked(false)
+	_busy = false
+	_walk_fish_out()
+	if not L._tut_done("morning"):
+		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.") % L._key_name("interact"), ["A", L._key_name("interact")],
+			func(): return L._world_to_screen(Rect2(DOOR_X - 40, CEIL_Y + 60, 80, FLOOR_Y - CEIL_Y - 56)), false)
+		L._tut_mark("morning")
+
+func _wake_fish() -> void:
+	for l in _lie_sprites:
+		if is_instance_valid(l[0]):
+			l[0].queue_free()
+	_lie_sprites.clear()
+	var i := 0
+	for s in _saved_npc:
+		var f = s[0]
+		if not is_instance_valid(f):
+			continue
+		f.rotation = 0.0
+		f.z_index = 25
+		f.visible = true
+		f.position = Vector2(BUNK_XS[i % BUNK_XS.size()] - 74.0 - (i / BUNK_XS.size()) * 22.0, 344.0)
+		f.flip_h = true
+		if f.sprite_frames and f.sprite_frames.has_animation("idle"):
+			f.play("idle")
+		i += 1
+	_sleepers.clear()
+
+func _walk_fish_out() -> void:
+	var i := 0
+	for s in _saved_npc:
+		var f = s[0]
+		if not is_instance_valid(f):
+			continue
+		var d = abs(f.position.x - DOOR_X)
+		var tw = f.create_tween()
+		_fish_tweens.append(tw)
+		tw.tween_interval(0.5 + i * 0.6)
+		tw.tween_callback(func():
+			if f.sprite_frames and f.sprite_frames.has_animation("jogging"):
+				f.play("jogging"))
+		tw.tween_property(f, "position:x", DOOR_X, d / max(1.0, L.NPC_WALK_SPEED))
+		tw.tween_property(f, "modulate:a", 0.0, 0.25)
+		tw.tween_callback(func(): f.visible = false)
+		i += 1
+
+func _go_out() -> void:
+	_busy = true
+	if L._spot:
+		L._spot.hide_step()
+	await L._fade_black(true, 0.9)
+	finished.emit()
+
+func _draw_room() -> void:
+	var v = _view
+	v.draw_rect(Rect2(RX - 1400, -600, 2800, 1600), Color(0.03, 0.035, 0.05))
+	var x0 = LEFT
+	var w = BACK_W * PX
+	v.draw_rect(Rect2(x0, CEIL_Y - 300.0, w, 300.0), Color(0.055, 0.065, 0.09))
+	var bx = x0
+	while bx < x0 + w:
+		v.draw_rect(Rect2(bx, CEIL_Y - 300.0, 9, 300.0), Color(0.09, 0.1, 0.13))
+		v.draw_rect(Rect2(bx, CEIL_Y - 300.0, 3, 300.0), Color(0.12, 0.13, 0.17))
+		bx += 72.0
+	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 9), Color(0.1, 0.11, 0.14))
+	v.draw_rect(Rect2(x0, CEIL_Y - 36.0, w, 3), Color(0.16, 0.17, 0.21))
+	for side in [-1.0, 1.0]:
+		var wx = x0 - 340.0 if side < 0 else x0 + w
+		v.draw_rect(Rect2(wx, CEIL_Y - 300.0, 340.0, 800.0), Color(0.1, 0.115, 0.15))
+		var py = CEIL_Y - 300.0
+		while py < FLOOR_Y + 500.0:
+			v.draw_rect(Rect2(wx, py, 340.0, 3), Color(0.06, 0.07, 0.1))
+			for rx in range(int(wx) + 12, int(wx + 340.0), 72):
+				v.draw_rect(Rect2(rx, py + 9, 3, 3), Color(0.18, 0.2, 0.25))
+			py += 66.0
+		var pxl = x0 - 24.0 if side < 0 else x0 + w
+		v.draw_rect(Rect2(pxl, CEIL_Y - 300.0, 24.0, 800.0), Color(0.2, 0.22, 0.26))
+		v.draw_rect(Rect2(pxl + (21.0 if side < 0 else 0.0), CEIL_Y - 300.0, 3.0, 800.0), Color(0.3, 0.32, 0.37))
+		for hy in range(0, 4):
+			var yy = FLOOR_Y - 60.0 + hy * 6.0
+			v.draw_rect(Rect2(pxl, yy, 24.0, 3.0), Color(0.95, 0.6, 0.3) if hy % 2 == 0 else Color(0.08, 0.08, 0.08))
+		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 9.0), Color(0.36, 0.2, 0.15))
+		v.draw_rect(Rect2(wx, CEIL_Y + 12.0, 340.0, 3.0), Color(0.5, 0.3, 0.22))
+	var fy = FLOOR_Y + (100.0 - BACK_FLOOR) * PX
+	v.draw_rect(Rect2(x0, fy, w, 400.0), Color(0.12, 0.125, 0.13))
+	var fx = x0
+	while fx < x0 + w:
+		v.draw_rect(Rect2(fx, fy, 3, 400.0), Color(0.04, 0.06, 0.12))
+		fx += 90.0
+	for k in range(4):
+		v.draw_rect(Rect2(x0, fy + 30.0 + k * 66.0, w, 3), Color(0.04, 0.06, 0.12))
+	var lamp_on = _morning and fmod(_t, 1.0) < 0.6
+	var lc = Color(0.35, 1.0, 0.5) if lamp_on else Color(0.55, 0.12, 0.1)
+	var lp = Vector2(DOOR_X - 6.0, FLOOR_Y - 36.0 * PX - 12.0)
+	v.draw_rect(Rect2(lp - Vector2(3, 3), Vector2(18, 12)), Color(0.04, 0.06, 0.12))
+	v.draw_rect(Rect2(lp, Vector2(12, 6)), lc)
+	v.draw_rect(Rect2(lp, Vector2(12, 2)), lc.lightened(0.4))
+
+func _draw_key_prompt(c: Node2D, at: Vector2, _word: String, accent: Color) -> void:
+	var f = L._bubble_font()
+	var key = L._key_name("interact")
+	if key.length() > 3:
+		key = key.substr(0, 3)
+	var t = _t
+	var pressed = fmod(t, 1.1) > 0.85
+	var dip = 2.0 if pressed else 0.0
+	var w = max(17.0, 6.0 * key.length() + 9.0)
+	var x0 = round(at.x - w / 2.0)
+	var y0 = round(at.y - 8.0)
+	var pulse = 0.5 + 0.5 * sin(t * 4.0)
+	for i in range(3):
+		c.draw_circle(at, 15.0 - i * 3.0, Color(accent, (0.05 + 0.03 * i) * (0.6 + 0.4 * pulse)))
+	var rt = fmod(t, 1.4) / 1.4
+	c.draw_arc(at, 9.0 + rt * 12.0, 0.0, TAU, 40, Color(accent.lightened(0.3), 0.55 * (1.0 - rt)), 1.0)
+	var o = Color(0.08, 0.09, 0.12)
+	c.draw_rect(Rect2(x0, y0 + 1, w, 15), o)
+	c.draw_rect(Rect2(x0 + 1, y0, w - 2, 17), o)
+	c.draw_rect(Rect2(x0 + 1, y0 + 1, w - 2, 15), Color(0.35, 0.39, 0.48))
+	c.draw_rect(Rect2(x0 + 1, y0 + 1 + dip, w - 2, 6), Color(0.95, 0.96, 0.98))
+	c.draw_rect(Rect2(x0 + 1, y0 + 7 + dip, w - 2, 5), Color(0.83, 0.86, 0.91))
+	c.draw_rect(Rect2(x0 + 2, y0 + 2 + dip, w - 4, 1), Color(1, 1, 1))
+	c.draw_rect(Rect2(x0 + 1, y0 + 12 + dip, w - 2, 1), Color(0.65, 0.69, 0.77))
+	if f:
+		var tw = f.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+		var base_y = y0 + 3 + dip + f.get_ascent(8)
+		c.draw_string(f, Vector2(round(at.x - tw / 2.0), base_y), key, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.16, 0.18, 0.25))
+
+func _draw_tag(c: Node2D, x: float, tip_y: float, text: String, acc: Color) -> float:
+	var f = L._bubble_font()
+	var dark = Color(0.04, 0.04, 0.06)
+	var bob = round(sin(_t * 4.0) * 2.0)
+	var tip = Vector2(round(x), round(tip_y + bob))
+	for r in range(5):
+		var hw = 4 - r
+		c.draw_rect(Rect2(tip.x - hw * 2 - 1, tip.y - 10 + r * 2 - 1, hw * 4 + 3, 4), dark)
+	for r in range(5):
+		var hw2 = 4 - r
+		c.draw_rect(Rect2(tip.x - hw2 * 2 + 1, tip.y - 10 + r * 2, hw2 * 4 - 1, 2), acc.lightened(0.18) if r % 2 == 0 else acc)
+	if f == null:
+		return tip.y - 14.0
+	var sw = round(f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9).x)
+	var box = Rect2(tip.x - round(sw * 0.5) - 7, tip.y - 29, sw + 14, 15)
+	c.draw_rect(Rect2(box.position.x + 1, box.position.y - 1, box.size.x - 2, box.size.y + 2), dark)
+	c.draw_rect(Rect2(box.position.x - 1, box.position.y + 1, box.size.x + 2, box.size.y - 2), dark)
+	c.draw_rect(box, Color(0.1, 0.1, 0.13, 0.96))
+	c.draw_rect(Rect2(box.position.x, box.position.y, box.size.x, 2), acc)
+	c.draw_rect(Rect2(box.position.x, box.end.y - 1, box.size.x, 1), acc.darkened(0.5))
+	c.draw_rect(Rect2(box.position.x + 2, box.position.y + 4, 2, 2), acc.darkened(0.2))
+	c.draw_rect(Rect2(box.end.x - 4, box.position.y + 4, 2, 2), acc.darkened(0.2))
+	var pulse = 0.85 + 0.15 * sin(_t * 3.0)
+	c.draw_string(f, Vector2(tip.x - round(sw * 0.5) + 1, box.position.y + 13), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0, 0, 0, 0.6))
+	c.draw_string(f, Vector2(tip.x - round(sw * 0.5), box.position.y + 12), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(acc.lightened(0.35), pulse))
+	return box.position.y
+
+func _draw_front(front: Node2D) -> void:
+	var f = L._bubble_font()
+	if not _morning and L.state != L.State.INSPECT:
+		var bp = _bed_pos()
+		var top = _draw_tag(front, bp.x, _bed_y(1) - 10.0, tr("ТВОЯ КОЙКА"), Color(1.0, 0.8, 0.3))
+		if _pick.size() > 0 and _pick[0] == "bed":
+			_draw_key_prompt(front, Vector2(bp.x, top - 16.0), "", Color(1.0, 0.84, 0.35))
+	elif _morning and L.state != L.State.INSPECT:
+		var top2 = _draw_tag(front, DOOR_X, FLOOR_Y - 140.0, tr("НА СМЕНУ"), Color(0.45, 1.0, 0.55))
+		if _pick.size() > 0 and _pick[0] == "door":
+			_draw_key_prompt(front, Vector2(DOOR_X, top2 - 16.0), "", Color(0.5, 1.0, 0.6))
+	if _pick.size() > 1 and _pick[0] == "box":
+		var bn: Sprite2D = _pick[1]["node"]
+		var bx = bn.position.x + bn.texture.get_width() * PX * 0.5
+		var by = bn.position.y + 30.0 if _pick[1]["kind"] == "locker" else bn.position.y - 24.0
+		_draw_key_prompt(front, Vector2(bx, by), tr("ОТКРЫТЬ"), Color(1.0, 0.8, 0.4))
+	if f:
+		for l in _lie_sprites:
+			var sp = l[0]
+			if not is_instance_valid(sp):
+				continue
+			for k in range(2):
+				var ph = fmod(_t * 0.45 + l[2] + k * 0.5, 1.0)
+				var zp = sp.position + Vector2(14.0 + ph * 10.0 + sin(ph * 6.0) * 2.0, 4.0 - ph * 26.0)
+				var za = sin(ph * PI) * 0.75
+				front.draw_string(f, zp, "z" if k == 0 else "Z", HORIZONTAL_ALIGNMENT_LEFT, -1, 8 + k * 2, Color(0.85, 0.9, 1.0, za))
+	for e in _emotes:
+		var fish = e["fish"]
+		if not is_instance_valid(fish) or f == null:
+			continue
+		var a = clamp(min(e["t"] / 0.15, (2.0 - e["t"]) / 0.4), 0.0, 1.0)
+		var pos = fish.global_position + Vector2(0, -34.0 - e["t"] * 6.0)
+		if fish in _sleepers:
+			pos = fish.global_position + Vector2(10, -18.0 - e["t"] * 8.0)
+		var tw = f.get_string_size(e["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x
+		var br = Rect2(pos.x - tw * 0.5 - 5, pos.y - 12, tw + 10, 15)
+		front.draw_rect(br, Color(0.95, 0.95, 0.92, 0.95 * a))
+		front.draw_colored_polygon(PackedVector2Array([Vector2(pos.x - 3, br.end.y), Vector2(pos.x + 3, br.end.y), Vector2(pos.x, br.end.y + 4)]), Color(0.95, 0.95, 0.92, 0.95 * a))
+		front.draw_string(f, Vector2(pos.x - tw * 0.5, pos.y), e["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.1, 0.1, 0.12, a))

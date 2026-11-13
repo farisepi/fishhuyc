@@ -372,6 +372,7 @@ const STRIKE_FORGIVE_TIME: float = 30.0
 var _strike_forgive: float = 0.0
 
 const DIALOG_BOX_PATH := "res://GameAssets/Sprites/UserInterfaceSprites/AquariumMenuUITextures/DialogBoxTextures/DialogBox_NinePath_Texture.png"
+const RICH_TEXT = preload("res://GameScripts/UIScripts/TextScripts/UI_RichText_Script.gd")
 const DIALOG_FONT_PATH := "res://GameAssets/Fonts/MainFont/FontFiles/MainFont_Font.ttf"
 const BUBBLE_MAX_W: float = 140.0
 const TYPEIN_EFFECT := preload("res://GameScripts/UIScripts/DialogScripts/Dialog_TypeIn_Effect.gd")
@@ -1813,6 +1814,69 @@ func _build_npc_identity_frames(identity: String) -> SpriteFrames:
 			_add_sliced_frames(frames, "hit", hit_tex, NPC_HIT_FRAMES, 0, NPC_HIT_FRAMES, false, 14.0)
 	return frames
 
+var _npc_offsets: Dictionary = {}
+
+func _npc_frame_metrics(tex: Texture2D) -> Vector2:
+	if tex == null:
+		return Vector2(INF, INF)
+	var img: Image
+	if tex is AtlasTexture:
+		var at: AtlasTexture = tex
+		var full = at.atlas.get_image()
+		if full == null:
+			return Vector2(INF, INF)
+		if full.is_compressed():
+			full.decompress()
+		img = full.get_region(Rect2i(at.region))
+	else:
+		img = tex.get_image()
+		if img and img.is_compressed():
+			img.decompress()
+	if img == null:
+		return Vector2(INF, INF)
+	var r = img.get_used_rect()
+	if r.size.x <= 0:
+		return Vector2(INF, INF)
+	var top = img.get_region(Rect2i(0, r.position.y, img.get_width(), min(12, r.size.y))).get_used_rect()
+	var head = top.position.x + top.size.x * 0.5 - img.get_width() * 0.5
+	var bottom = r.end.y - img.get_height() * 0.5
+	return Vector2(head, bottom)
+
+func _calc_npc_offsets(frames: SpriteFrames) -> Dictionary:
+	var out: Dictionary = {}
+	if frames == null or not frames.has_animation("idle") or frames.get_frame_count("idle") == 0:
+		return out
+	var ref = _npc_frame_metrics(frames.get_frame_texture("idle", 0))
+	if ref.x == INF:
+		return out
+	var ref_bottom := -INF
+	for i in range(frames.get_frame_count("idle")):
+		ref_bottom = max(ref_bottom, _npc_frame_metrics(frames.get_frame_texture("idle", i)).y)
+	for an in frames.get_animation_names():
+		var n = frames.get_frame_count(an)
+		if n == 0:
+			continue
+		var m0 = _npc_frame_metrics(frames.get_frame_texture(an, 0))
+		if m0.x == INF:
+			continue
+		var deepest := -INF
+		for i in range(n):
+			var m = _npc_frame_metrics(frames.get_frame_texture(an, i))
+			if m.y != INF:
+				deepest = max(deepest, m.y)
+		out[String(an)] = Vector2(round(ref.x - m0.x), round(ref_bottom - deepest))
+	return out
+
+func _apply_npc_offsets() -> void:
+	for fish in npc_fishes:
+		if fish == null or not (fish is AnimatedSprite2D):
+			continue
+		var d: Dictionary = _npc_offsets.get(fish, {})
+		var o: Vector2 = d.get(String(fish.animation), Vector2.ZERO)
+		if fish.flip_h:
+			o.x = -o.x
+		fish.offset = o
+
 func _assign_npc_identities() -> void:
 	npc_identities.clear()
 	for i in range(npc_fishes.size()):
@@ -1824,6 +1888,7 @@ func _assign_npc_identities() -> void:
 		if fish is AnimatedSprite2D:
 			var frames = _build_npc_identity_frames(identity)
 			fish.sprite_frames = frames
+			_npc_offsets[fish] = _calc_npc_offsets(frames)
 			if frames.has_animation("idle"):
 				fish.play("idle")
 
@@ -4090,6 +4155,7 @@ func _setup_hall_background() -> void:
 	_hall_mat = m
 
 func _process(delta: float) -> void:
+	_apply_npc_offsets()
 	if _hall_mat and camera and state != State.INSPECT:
 		_hall_mat.set_shader_parameter("cam_pos", camera.get_screen_center_position())
 	_apply_pre_accident_lock()
@@ -6826,10 +6892,9 @@ func _process_minigame(delta: float) -> void:
 				return
 			slider_pos += slider_dir * MINIGAME_SLIDER_SPEED * (1.0 + _mg_hard) * delta
 			if slider_pos >= 1.0:
-				slider_pos = 1.0
+				slider_pos = 2.0 - slider_pos
 				slider_dir = -1.0
-				_on_minigame_edge_fail()
-				return
+				UISounds.play_switch_off()
 			elif slider_pos <= 0.0:
 				slider_pos = 0.0
 				slider_dir = 1.0
@@ -8071,7 +8136,7 @@ func _show_inspect_text(title: String, phrase: String, _journal: String) -> void
 	_thought_name.size = tab_sz
 	inspect_text_label.fit_content = true
 	inspect_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	inspect_text_label.text = phrase.replace("-", "-\u2060")
+	inspect_text_label.text = RICH_TEXT.fmt(phrase.replace("-", "-\u2060"), [_key_name("inspect"), _key_name("journal"), _key_name("interact")])
 	var inner_w = THOUGHT_W - 36.0
 	inspect_text_label.size = Vector2(inner_w, 0)
 	inspect_text_label.custom_minimum_size = Vector2(inner_w, 0)
@@ -8644,7 +8709,7 @@ func _speech(speaker: Node2D, who: String, who_color: Color, text: String, durat
 	lbl.custom_effects = [typein]
 	lbl.bbcode_enabled = true
 	lbl.scroll_active = false
-	lbl.text = "[typein]" + text.replace("[", "[lb]") + "[/typein]"
+	lbl.text = "[typein]" + RICH_TEXT.fmt(text) + "[/typein]"
 	lbl.position = pad + Vector2(0, name_h)
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	if font:
@@ -9022,7 +9087,7 @@ func _update_elevator_prompt(delta: float) -> void:
 	_elev_prompt.visible = _elev_prompt_a > 0.01
 	if not _elev_prompt.visible:
 		return
-	_elev_prompt.global_position = elevator_button.global_position + Vector2(0, -74)
+	_elev_prompt.global_position = (elevator_button.global_position + Vector2(0, -58)).round()
 	_elev_prompt.modulate.a = _elev_prompt_a
 	_elev_prompt.queue_redraw()
 
@@ -9030,19 +9095,19 @@ func _draw_elev_prompt() -> void:
 	var f = _bubble_font()
 	if f == null:
 		return
-	var fs := 15
+	var fs := 8
 	var tw = f.get_string_size(_elev_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var w = tw + 20.0
-	var hh := 26.0
+	var w = 2.0 * ceil((tw + 10.0) * 0.5)
+	var hh := 12.0
 	var r = Rect2(Vector2(-w * 0.5, -hh * 0.5), Vector2(w, hh))
 	var pulse = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0 * 4.0) if _elev_in_window else 1.0
-	_elev_prompt.draw_rect(Rect2(r.position + Vector2(0, 3), r.size), Color(0, 0, 0, 0.5))
+	_elev_prompt.draw_rect(Rect2(r.position + Vector2(0, 1), r.size), Color(0, 0, 0, 0.5))
 	_elev_prompt.draw_rect(r, Color(0.05, 0.06, 0.09, 0.96))
 	var edge = Color(0.97, 0.76, 0.26, pulse) if _elev_in_window else Color(0.42, 0.47, 0.58)
-	_elev_prompt.draw_rect(r, edge, false, 2.0)
+	_elev_prompt.draw_rect(r.grow(-0.5), edge, false, 1.0)
 	var col = Color(1.0, 0.95, 0.8) if _elev_in_window else Color(0.76, 0.81, 0.9)
-	_elev_prompt.draw_string(f, Vector2(-tw * 0.5, fs * 0.42), _elev_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
-	var p = PackedVector2Array([Vector2(-6, hh * 0.5), Vector2(6, hh * 0.5), Vector2(0, hh * 0.5 + 7)])
+	_elev_prompt.draw_string(f, Vector2(round(-tw * 0.5), round(fs * 0.45)), _elev_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	var p = PackedVector2Array([Vector2(-3, hh * 0.5), Vector2(3, hh * 0.5), Vector2(0, hh * 0.5 + 3)])
 	_elev_prompt.draw_colored_polygon(p, Color(0.05, 0.06, 0.09, 0.96))
 
 func _enter_elevator() -> void:

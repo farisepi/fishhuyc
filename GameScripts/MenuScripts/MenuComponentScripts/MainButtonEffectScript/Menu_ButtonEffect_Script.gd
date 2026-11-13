@@ -14,6 +14,8 @@ static func setup(btn: Control, click_sound_callable: Callable = UISounds.play_c
 
 	if btn is Button:
 		btn.pivot_offset = btn.size / 2.0
+		if not btn.resized.is_connected(_on_pivot_resized.bind(btn)):
+			btn.resized.connect(_on_pivot_resized.bind(btn))
 		if click_sound_callable.is_valid() and not btn.pressed.is_connected(click_sound_callable):
 			btn.pressed.connect(click_sound_callable)
 
@@ -41,6 +43,10 @@ static func add_shimmer(btn: Control) -> void:
 	if not btn.resized.is_connected(_on_shimmer_resized.bind(btn)):
 		btn.resized.connect(_on_shimmer_resized.bind(btn))
 
+
+static func _on_pivot_resized(btn: Control) -> void:
+	if is_instance_valid(btn):
+		btn.pivot_offset = btn.size / 2.0
 
 static func _on_shimmer_resized(btn: Control) -> void:
 	if is_instance_valid(btn) and btn.material is ShaderMaterial:
@@ -191,13 +197,22 @@ static func _spawn_bubbles(control: Control) -> void:
 	if not control or not is_instance_valid(control):
 		return
 
-	var root = control.get_tree().current_scene
+	var root: Node = null
+	var p = control.get_parent()
+	while p:
+		if p is CanvasLayer:
+			root = p
+			break
+		p = p.get_parent()
+	if root == null:
+		root = control.get_viewport()
 	if not root or not is_instance_valid(root):
 		return
 
-	var btn_global_pos = control.global_position
-	var btn_width = control.size.x
-	var btn_height = control.size.y
+	var r = control.get_global_rect()
+	var btn_global_pos = r.position
+	var btn_width = r.size.x
+	var btn_height = r.size.y
 
 	for _i in range(2):
 		var bubble = ColorRect.new()

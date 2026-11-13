@@ -228,6 +228,16 @@ func _sniper_spot() -> Vector2:
 
 var _endless_floor: StaticBody2D = null
 
+func _floor_top() -> float:
+	var top = L.ZONE_FLOOR_Y
+	if L.player and L.player.is_inside_tree():
+		var from = L.player.global_position
+		var q = PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 220), 1, [L.player.get_rid()])
+		var r = L.player.get_world_2d().direct_space_state.intersect_ray(q)
+		if not r.is_empty() and abs(r.position.y - L.ZONE_FLOOR_Y) < 12.0:
+			top = r.position.y
+	return top
+
 func _set_walls(on: bool) -> void:
 	for w in L.get_tree().get_nodes_in_group("hall_walls"):
 		for cs in w.get_children():
@@ -237,10 +247,8 @@ func _set_walls(on: bool) -> void:
 		_endless_floor = StaticBody2D.new()
 		_endless_floor.name = "DreamEndlessFloor"
 		var cs2 = CollisionShape2D.new()
-		var rs = RectangleShape2D.new()
-		rs.size = Vector2(400000.0, 100.0)
-		cs2.shape = rs
-		cs2.position = Vector2(0.0, L.ZONE_FLOOR_Y + 50.0)
+		cs2.shape = WorldBoundaryShape2D.new()
+		cs2.position = Vector2(0.0, _floor_top())
 		_endless_floor.add_child(cs2)
 		L.add_child(_endless_floor)
 	elif on and _endless_floor:

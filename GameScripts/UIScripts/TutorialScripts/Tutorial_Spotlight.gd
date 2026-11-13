@@ -52,7 +52,9 @@ var _veil: ColorRect = null
 var _mat: ShaderMaterial = null
 var _card: Control = null
 var _title: Label = null
-var _body: Label = null
+var _body: RichTextLabel = null
+var _body_plain: String = ""
+const RICH = preload("res://GameScripts/UIScripts/TextScripts/UI_RichText_Script.gd")
 var _font: FontFile = null
 var _keys: Array = []
 var _target: Callable = Callable()
@@ -107,7 +109,17 @@ func _ready() -> void:
 	add_child(_card)
 	_title = _label(TITLE_SIZE)
 	_card.add_child(_title)
-	_body = _label(BODY_SIZE)
+	_body = RichTextLabel.new()
+	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_body.bbcode_enabled = true
+	_body.scroll_active = false
+	_body.clip_contents = false
+	if _font:
+		_body.add_theme_font_override("normal_font", _font)
+	_body.add_theme_font_size_override("normal_font_size", BODY_SIZE)
+	_body.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04))
+	_body.add_theme_constant_override("outline_size", 3)
+	_body.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_card.add_child(_body)
 	_card.visible = false
@@ -143,7 +155,7 @@ func show_step(title: String, body: String, keys: Array, target: Callable, dim: 
 	_lock_t = 0.0
 	_dock_side = 0
 	_title.text = title
-	_body.text = body.replace("-", "-⁠")
+	_set_body(body)
 	_progress = -1.0
 	_done_t = -1.0
 	_tag = tr("ОБУЧЕНИЕ")
@@ -158,14 +170,18 @@ func show_step(title: String, body: String, keys: Array, target: Callable, dim: 
 		get_node("/root/UISounds").play_switch_on()
 
 
+func _set_body(body: String) -> void:
+	_body_plain = body.replace("-", "-⁠")
+	_body.text = RICH.fmt(_body_plain, _keys)
+
 func set_target(target: Callable) -> void:
 	_target = target
 
 
 func set_text(title: String, body: String, keys: Array = []) -> void:
 	_title.text = title
-	_body.text = body.replace("-", "-⁠")
 	_keys = keys.duplicate()
+	_set_body(body)
 	_layout_card()
 
 
@@ -205,7 +221,7 @@ func _layout_card() -> void:
 	if _font:
 		title_w = _font.get_string_size(_title.text, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE).x
 	var base_w = CARD_W
-	var n = _body.text.length()
+	var n = _body_plain.length()
 	if n > 110:
 		base_w = 460.0
 	if n > 220:
@@ -225,7 +241,7 @@ func _layout_card() -> void:
 	_body.size = Vector2(w - 30, 0)
 	var hb = 20.0
 	if _font:
-		var ms = _font.get_multiline_string_size(_body.text, HORIZONTAL_ALIGNMENT_LEFT, w - 36.0, BODY_SIZE)
+		var ms = _font.get_multiline_string_size(_body_plain, HORIZONTAL_ALIGNMENT_LEFT, w - 36.0, BODY_SIZE)
 		var lines = max(1, int(round(ms.y / max(1.0, _font.get_height(BODY_SIZE)))))
 		hb = lines * (_font.get_height(BODY_SIZE) + 2.0) + 8.0
 	_body.size = Vector2(w - 30, hb)
@@ -233,7 +249,7 @@ func _layout_card() -> void:
 	_card.size = Vector2(w, 52.0 + hb + hk + 10.0 + (14.0 if skippable else 0.0))
 	_card.pivot_offset = _card.size * 0.5
 	_title.add_theme_color_override("font_color", Color(0.98, 0.97, 0.94))
-	_body.add_theme_color_override("font_color", Color(0.8, 0.82, 0.88))
+	_body.add_theme_color_override("default_color", Color(0.8, 0.82, 0.88))
 
 
 func _cap_w(k: String) -> float:

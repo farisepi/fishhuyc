@@ -880,19 +880,6 @@ func _draw_front(front: Node2D) -> void:
 		var bx = bn.position.x + bn.texture.get_width() * PX * 0.5
 		var by = bn.position.y + 30.0 if _pick[1]["kind"] == "locker" else bn.position.y - 24.0
 		_draw_key_prompt(front, Vector2(bx, by), tr("ОТКРЫТЬ"), Color(1.0, 0.8, 0.4))
-	elif _pick.size() > 1 and _pick[0] == "fish":
-		var fn = _pick[1]
-		var fp = fn.global_position + Vector2(0, -66.0)
-		if fn in _sleepers:
-			for l in _lie_sprites:
-				if l[1] == fn and is_instance_valid(l[0]):
-					fp = l[0].position + Vector2(30.0, -26.0)
-		var talking := false
-		for e in _emotes:
-			if e["fish"] == fn:
-				talking = true
-		if not talking:
-			_draw_key_prompt(front, fp, tr("ПОЗВАТЬ"), Color(0.55, 0.85, 1.0))
 	if f:
 		for l in _lie_sprites:
 			var sp = l[0]

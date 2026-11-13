@@ -688,7 +688,7 @@ func load_settings() -> void:
 	var err = config.load(CONFIG_PATH)
 	if err != OK:
 		apply_defaults()
-		save_settings()
+		save_settings(false)
 		return
 	resolution_selected = Global.saved_resolution_index(config)
 	fps_selected = _fps_index(int(config.get_value("graphics", "fps_limit", 0)))
@@ -727,7 +727,7 @@ func load_settings() -> void:
 	Global.interface_attributes_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
 	Global.button_effects_enabled = interface_attributes_check.button_pressed if interface_attributes_check else true
 	apply_audio_volumes()
-	apply_graphics_settings()
+	_apply_pacing_settings()
 	_apply_brightness_value()
 	apply_fps_visibility()
 	_update_all_percent_labels()
@@ -749,7 +749,7 @@ func apply_defaults() -> void:
 	if camera_sensitivity_slider:
 		camera_sensitivity_slider.max_value = 1.0
 		camera_sensitivity_slider.value = 0.0
-	if fullscreen_check: fullscreen_check.button_pressed = false
+	if fullscreen_check: fullscreen_check.set_pressed_no_signal(Global.is_fullscreen())
 	if vsync_check: vsync_check.button_pressed = true
 	if fps_check: fps_check.button_pressed = false
 	if effects_check: effects_check.button_pressed = true
@@ -891,7 +891,7 @@ func _reset_controls_only() -> void:
 	InputRebind.save_keybinds()
 	update_key_labels()
 
-func save_settings() -> void:
+func save_settings(apply_window: bool = true) -> void:
 	config.set_value("graphics", "resolution", resolution_selected)
 	config.set_value("graphics", "resolution_size", Global.resolution_size_text(resolution_selected))
 	config.set_value("graphics", "fps_limit", FPS_VALUES[fps_selected])
@@ -911,7 +911,10 @@ func save_settings() -> void:
 	config.set_value("audio", "dynamic_range", dynamic_range_selected)
 	config.save(CONFIG_PATH)
 	apply_audio_volumes()
-	apply_graphics_settings()
+	if apply_window:
+		apply_graphics_settings()
+	else:
+		_apply_pacing_settings()
 	_apply_brightness_value()
 	apply_fps_visibility()
 	if camera_sensitivity_slider:
@@ -931,6 +934,11 @@ func apply_audio_volumes() -> void:
 	if sfx_slider: _apply_volume("SFX", sfx_slider.value)
 	if ambience_slider: _apply_volume("Ambience", ambience_slider.value)
 	if ui_slider: _apply_volume("UI", ui_slider.value)
+
+func _apply_pacing_settings() -> void:
+	Global.fps_limit = FPS_VALUES[fps_selected]
+	if vsync_check:
+		Global.set_vsync(vsync_check.button_pressed)
 
 func apply_graphics_settings() -> void:
 	var fs = fullscreen_check.button_pressed if fullscreen_check else Global.is_fullscreen()
