@@ -45,6 +45,8 @@ var _drive_dir: int = 1
 var _passed_player: bool = false
 var _ko_finish: bool = false
 var _pogo_target_x: float = 0.0
+var _windup: float = 0.0
+var _swung: bool = false
 
 
 func _ready() -> void:
@@ -130,12 +132,18 @@ func _physics_process(delta: float) -> void:
 	if is_aggro:
 		_aggro_time += delta
 
+	if _on_head:
+		_play("idle")
+		if sprite:
+			sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
+		move_and_slide()
+		return
 	match state:
 		State.PATROL: _patrol(delta)
 		State.ALERT: _alert_logic(dx)
-		State.SPACING: _spacing_logic(dist, dx, dy)
-		State.ATTACK: _attack_logic(dist)
-		State.TAIL_ATTACK: _tail_attack_logic()
+		State.SPACING: _spacing_logic(delta, dist, dx, dy)
+		State.ATTACK: _attack_logic(delta, dist, dx)
+		State.TAIL_ATTACK: _tail_attack_logic(delta, dx)
 		State.TAIL_JUMP: _tail_jump_logic()
 		State.AIR: _air_logic()
 		State.LAND: _land_logic()
@@ -156,9 +164,11 @@ func _face(dx: float) -> void:
 
 
 func _go(s: State) -> void:
+	_clear_telegraph()
 	state = s
 	t = 0.0
 	hit_done = false
+	_swung = false
 
 
 func _patrol(delta: float) -> void:
@@ -185,97 +195,160 @@ func _alert_logic(dx: float) -> void:
 		_go(State.SPACING)
 
 
-func _spacing_logic(dist: float, dx: float, dy: float) -> void:
+func _walk_anim(vx: float) -> void:
+	if abs(vx) > 12.0 and sign(vx) == facing_dir:
+		_play("run_fast")
+		if sprite:
+			sprite.speed_scale = clamp(abs(vx) / run_speed, 0.45, 1.1)
+	else:
+		_play("idle")
+
+
+func _spacing_logic(delta: float, dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
 		_release_token()
 		_go(State.PATROL)
 		return
-	_face(dx)
+	_turn_to(dx, delta, 0.1)
 	if _should_use_forklift():
 		_release_token()
 		_go(State.GOTO_FORKLIFT)
 		return
 	var on_floor = is_on_floor()
-	if on_floor and pogo_cooldown <= 0.0 and _player_threatens(105.0) and randf() < 0.6:
+	if on_floor and pogo_cooldown <= 0.0 and _player_threatens(105.0) and randf() < 0.35:
 		var behind_free = not _ledge_ahead(-facing_dir, 60.0) and not _wall_ahead(-facing_dir, 70.0)
 		_start_pogo(not behind_free)
 		return
-	if on_floor and pogo_cooldown <= 0.0 and (_player_flag("is_blocking") or player_block_habit > 0.4) and dist < 220.0 and abs(dy) < 70.0:
+	if on_floor and pogo_cooldown <= 0.0 and (_player_flag("is_blocking") or player_block_habit > 0.4) and dist < 220.0 and abs(dy) < 70.0 and _think_t <= 0.0:
 		_start_pogo(true)
 		return
 	if _whiff_window > 0.0 and cooldown <= 0.0 and dist < poke_range and _request_token():
 		if dist < punch_range + 10.0:
-			_start_combo()
+			_start_combo(0.2)
 		else:
-			_start_tail()
+			_start_tail(0.26)
 		return
-	var want = keep_distance
-	var move = 0.0
-	if dist > want + 18.0:
-		move = 1.0
-	elif dist < want - 22.0:
-		move = -1.0
-	var dir = int(sign(dx)) * int(move)
-	if dir != 0 and (_ledge_ahead(dir) or _wall_ahead(dir)):
-		dir = 0
-		if move < 0.0 and pogo_cooldown <= 0.0 and dist < 90.0:
+	var holding = holding_token
+	var want = keep_distance if holding else keep_distance + 70.0
+	var vx := 0.0
+	if dist > want + 36.0:
+		var dir = int(sign(dx))
+		if on_floor and _wall_ahead(dir) and dir == facing_dir and _hop_over(dir, run_speed * 0.7):
+			_play("fall", true)
+			return
+		if not (_ledge_ahead(dir) or _wall_ahead(dir)):
+			vx = dir * run_speed * (1.0 if holding else 0.55)
+	elif dist < want - 40.0 and on_floor:
+		if _backstep(210.0):
+			_play("idle")
+			return
+		if pogo_cooldown <= 0.0 and dist < 80.0 and (_ledge_ahead(-facing_dir, 50.0) or _wall_ahead(-facing_dir, 50.0)):
 			_start_pogo(true)
 			return
-	velocity.x = dir * run_speed * (0.65 if move < 0.0 else 1.0) + _separation() * 120.0
-	_play("run_fast" if abs(velocity.x) > 10 else "idle")
-	if cooldown > 0.0 or abs(dy) > 70.0 or not on_floor:
+	vx += _separation() * 90.0
+	if on_floor:
+		velocity.x = move_toward(velocity.x, vx, 1000.0 * delta)
+		_walk_anim(velocity.x)
+	elif _climb_jump and state == State.SPACING:
+		velocity.x = facing_dir * max(abs(velocity.x), 140.0)
+	if cooldown > 0.0 or abs(dy) > 70.0 or not on_floor or _think_t > 0.0:
 		return
+	_think_t = randf_range(0.2, 0.42)
 	if not _request_token():
 		return
-	if dist < punch_range and not _player_flag("is_parrying"):
+	if dist < punch_range + 14.0 and not _player_flag("is_parrying"):
 		_start_combo()
-	elif dist < poke_range and tail_cooldown <= 0.0:
+	elif dist < poke_range + 6.0 and tail_cooldown <= 0.0:
 		_start_tail()
-	elif dist < 260.0 and dist > 150.0 and pogo_cooldown <= 0.0 and randf() < 0.012:
+	elif dist < 280.0 and dist > 150.0 and pogo_cooldown <= 0.0 and randf() < 0.3:
 		_start_pogo(true)
 
 
-func _start_combo() -> void:
+func _start_combo(windup: float = 0.36) -> void:
 	combo_left = 2 if randf() < 0.5 else 1
+	_begin_punch(windup, "attack_right")
+
+
+func _begin_punch(w: float, anim: String) -> void:
 	_go(State.ATTACK)
-	_play("attack_right", true)
+	velocity.x = 0.0
+	_windup = w
+	_play(anim, true)
+	if sprite:
+		sprite.pause()
+		sprite.frame = 1
+	_telegraph(sprite, w, Vector2(8, -44))
 
 
-func _attack_logic(dist: float) -> void:
-	velocity.x = 0
-	if not hit_done and t >= 0.22:
+func _attack_logic(delta: float, dist: float, dx: float) -> void:
+	if t < _windup:
+		velocity.x = move_toward(velocity.x, 0.0, 1200.0 * delta)
+		if t < _windup * 0.5:
+			_face(dx)
+		return
+	if not _swung:
+		_swung = true
+		_clear_telegraph()
+		if sprite:
+			sprite.play()
+		velocity.x = facing_dir * (200.0 if dist > punch_range * 0.6 else 70.0)
+		_esfx("Enemy_Swing_SoundEffect.wav", -7.0, 1.2)
+	velocity.x = move_toward(velocity.x, 0.0, 1000.0 * delta)
+	var st = t - _windup
+	if not hit_done and st >= 0.08:
 		hit_done = true
-		if dist < punch_range + 14.0 and _same_level():
-			_hurt_player_smart(1)
-	if t >= 0.52:
+		if _player_ok() and _same_level():
+			var rel = (player.global_position.x - global_position.x) * facing_dir
+			if rel > -14.0 and rel < punch_range + 16.0:
+				_hurt_player_smart(1)
+	if st >= 0.32:
 		combo_left -= 1
-		if combo_left > 0 and dist < punch_range + 16.0:
-			_go(State.ATTACK)
-			_play("attack_left", true)
+		if combo_left > 0 and dist < punch_range + 28.0:
+			_begin_punch(0.16, "attack_left")
 			return
-		cooldown = randf_range(0.5, 0.9)
+		cooldown = randf_range(0.6, 1.0)
 		_release_token()
-		_go(State.SPACING)
+		_think_t = 0.35
+		_go(State.LAND)
+		_play("idle")
 
 
-func _start_tail() -> void:
-	tail_cooldown = randf_range(1.6, 2.4)
+func _start_tail(windup: float = 0.46) -> void:
+	tail_cooldown = randf_range(1.8, 2.6)
 	_go(State.TAIL_ATTACK)
+	velocity.x = 0.0
+	_windup = windup
 	_play("tail_attack", true)
+	if sprite:
+		sprite.pause()
+		sprite.frame = 1
+	_telegraph(sprite, windup, Vector2(-14, -40))
 
 
-func _tail_attack_logic() -> void:
-	velocity.x = 0
-	if not hit_done and t >= 0.2:
+func _tail_attack_logic(delta: float, dx: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 1200.0 * delta)
+	if t < _windup:
+		if t < _windup * 0.5:
+			_face(dx)
+		return
+	if not _swung:
+		_swung = true
+		_clear_telegraph()
+		if sprite:
+			sprite.play()
+		_esfx("Enemy_Swing_SoundEffect.wav", -6.0, 0.8)
+	var st = t - _windup
+	if not hit_done and st >= 0.14:
 		hit_done = true
 		if _player_ok() and _same_level():
 			var rel = player.global_position.x - global_position.x
-			if rel * facing_dir > -20.0 and abs(rel) < poke_range + 8.0:
+			if rel * facing_dir > -20.0 and abs(rel) < poke_range + 10.0:
 				_hurt_player_smart(2)
 				_shake(0.12)
-	if t >= _anim_length(sprite, "tail_attack"):
-		cooldown = 0.45
+	if st >= _anim_length(sprite, "tail_attack"):
+		cooldown = 0.55
 		_release_token()
+		_think_t = 0.3
 		_go(State.SPACING)
 
 
@@ -299,11 +372,15 @@ func _start_pogo(over: bool) -> void:
 
 
 func _tail_jump_logic() -> void:
-	if t < 0.22:
+	if t < 0.3:
 		velocity.x = 0
+		if t < get_physics_process_delta_time() * 1.5:
+			_telegraph(sprite, 0.3, Vector2(0, -50))
 		return
 	if not hit_done:
 		hit_done = true
+		_clear_telegraph()
+		_dust_puff(global_position + Vector2(0, 32), 4)
 		var air_time = 2.0 * abs(pogo_velocity) / gravity
 		velocity.y = pogo_velocity
 		velocity.x = clamp((_pogo_target_x - global_position.x) / air_time, -420.0, 420.0)
@@ -326,16 +403,18 @@ func _air_logic() -> void:
 func _slam() -> void:
 	velocity.x = 0
 	_shake(0.1)
+	_dust_puff(global_position + Vector2(0, 32), 7)
+	_esfx("Enemy_Slam_SoundEffect.wav", -5.0, 1.0)
 	if _player_ok() and global_position.distance_to(player.global_position) < slam_radius and player.is_on_floor():
 		_hurt_player_smart(1)
 
 
 func _land_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 40.0)
-	if t >= 0.3:
+	if t >= 0.42:
 		if _player_ok() and abs(player.global_position.x - global_position.x) < poke_range and tail_cooldown <= 0.0 and _request_token():
 			_face(player.global_position.x - global_position.x)
-			_start_tail()
+			_start_tail(0.3)
 			return
 		_go(State.SPACING)
 
@@ -485,8 +564,11 @@ func _shake_then_drive() -> void:
 
 
 func _on_hurt() -> void:
-	if is_on_floor() and pogo_cooldown <= 0.0 and randf() < 0.4:
-		_start_pogo(randf() < 0.3)
+	_clear_telegraph()
+	if _poise_broken() and is_on_floor():
+		_release_token()
+		pogo_cooldown = 0.0
+		_start_pogo(randf() < 0.4)
 		return
 	_release_token()
 	state = State.STUN

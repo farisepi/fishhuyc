@@ -776,85 +776,11 @@ func _force_apply_seaweed(scene: Node) -> void:
 	seaweed_state_node.scan_and_apply(scene)
 	_force_show_decorations(scene)
 
-func _find_decoration_in_node(node: Node) -> Node:
-	if not node or not is_instance_valid(node):
-		return null
-
-	if not node.is_inside_tree():
-		return null
-
-	for child in node.get_children():
-		if not child or not is_instance_valid(child):
-			continue
-
-		if not child.is_inside_tree():
-			continue
-
-		if child.name == "Seaweed" or child.name == "Rust":
-			return child
-	return null
-
 func _force_show_decorations(node: Node) -> void:
 	if not node or not is_instance_valid(node):
 		return
-
-	if not node.is_inside_tree():
-		return
-
-	for child in node.get_children():
-		if not child or not is_instance_valid(child):
-			continue
-
-		if not child.is_inside_tree():
-			continue
-
-		if child is Button:
-			var decoration = _find_decoration_in_node(child)
-			if decoration and decoration.is_inside_tree():
-				var path = str(child.get_path())
-				var seaweed_state_node = get_node("SeaweedState")
-
-				if seaweed_state_node.states.has(path):
-					var data = seaweed_state_node.states[path]
-					decoration.visible = data["visible"] and interface_attributes_enabled
-
-					var original_scale = data.get("scale", Vector2.ONE)
-					if data.get("flip", false):
-						decoration.scale.x = -abs(original_scale.x)
-						decoration.scale.y = abs(original_scale.y)
-					else:
-						decoration.scale.x = abs(original_scale.x)
-						decoration.scale.y = abs(original_scale.y)
-
-					if decoration.name == "Rust" and decoration is Sprite2D:
-						var tex_data = data.get("texture_data", {})
-						if tex_data.has("path") and tex_data["path"] != "":
-							var texture = load(tex_data["path"])
-							if texture:
-								decoration.texture = texture
-				else:
-					var visible = randf() < 0.25
-					var flip = randf() < 0.5
-
-					var texture_path = ""
-					if decoration is Sprite2D and decoration.texture:
-						texture_path = decoration.texture.resource_path
-
-					seaweed_state_node.states[path] = {
-						"visible": visible,
-						"flip": flip,
-						"texture_data": {"path": texture_path} if texture_path != "" else {},
-						"type": decoration.name,
-						"scale": decoration.scale
-					}
-
-					decoration.visible = visible and interface_attributes_enabled
-					if flip:
-						decoration.scale.x = -abs(decoration.scale.x)
-					else:
-						decoration.scale.x = abs(decoration.scale.x)
-
-		_force_show_decorations(child)
+	if not interface_attributes_enabled:
+		_hide_all_decorations_recursive(node, true)
 
 func _apply_font(node: Node) -> void:
 	if not _font:

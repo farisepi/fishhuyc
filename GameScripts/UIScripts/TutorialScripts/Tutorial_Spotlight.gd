@@ -171,8 +171,9 @@ func show_step(title: String, body: String, keys: Array, target: Callable, dim: 
 
 
 func _set_body(body: String) -> void:
-	_body_plain = body.replace("-", "-⁠")
-	_body.text = RICH.fmt(_body_plain, _keys)
+	var b = body.replace("-", "-⁠")
+	_body_plain = RICH.plain(b)
+	_body.text = RICH.fmt(b, _keys)
 
 func set_target(target: Callable) -> void:
 	_target = target

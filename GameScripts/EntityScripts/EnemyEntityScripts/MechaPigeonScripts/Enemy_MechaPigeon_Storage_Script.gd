@@ -25,7 +25,7 @@ const RIFLE_TEX := "res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaPig
 @export var rifle_damage: int = 2
 @export var rifle_bullet_speed: float = 1900.0
 @export var pistol_damage: int = 1
-@export var pistol_bullet_speed: float = 820.0
+@export var pistol_bullet_speed: float = 600.0
 @export var pistol_keep_min: float = 150.0
 @export var pistol_keep_max: float = 320.0
 
@@ -40,6 +40,7 @@ var _shot_timer: float = 0.0
 var _alerted: bool = false
 var _bullets: Array = []
 var _fired: bool = false
+var _burst_armed: bool = false
 
 
 func _ready() -> void:
@@ -129,6 +130,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _go(s: State) -> void:
+	if s != State.PISTOL:
+		_clear_telegraph()
+		_burst_armed = false
 	state = s
 	t = 0.0
 	_fired = false
@@ -269,7 +273,10 @@ func _reposition_logic(dist: float, dx: float) -> void:
 	if _ledge_ahead(dir) or _wall_ahead(dir):
 		dir = 0
 	velocity.x = dir * speed * 1.6
-	_face(dx)
+	if dir != 0:
+		_face(float(dir))
+	else:
+		_face(dx)
 	_play("run_fast" if dir != 0 else ("idle_aim" if has_rifle else "pistol_fire"))
 	if _sees_player() and t > 0.25:
 		_no_los_time = 0.0
@@ -310,7 +317,7 @@ func _drop_flyback_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 6.0)
 	if t >= _anim_length(sprite, "drop_rifle_flyback") and is_on_floor():
 		_go(State.PISTOL)
-		_shot_timer = 0.15
+		_shot_timer = 0.6
 		_burst_left = 0
 	elif t > 2.0:
 		_go(State.PISTOL)
@@ -339,7 +346,12 @@ func _pistol_logic(delta: float, dist: float, dx: float) -> void:
 		move = -int(sign(dx))
 	if move != 0 and (_ledge_ahead(move) or _wall_ahead(move)):
 		move = 0
-	velocity.x = move * speed * 1.4
+	if move != 0 and move != facing_dir:
+		move = 0
+		if is_on_floor() and _backstep(190.0):
+			_play("flyback", true)
+	if is_on_floor():
+		velocity.x = move * speed * 1.4
 	_shot_timer -= delta
 	if not _sees_player():
 		_play("run_fast" if move != 0 else "pistol_fire")
@@ -351,29 +363,43 @@ func _pistol_logic(delta: float, dist: float, dx: float) -> void:
 		return
 	_no_los_time = 0.0
 	if _shot_timer <= 0.0:
+		if _burst_left <= 0 and not _burst_armed:
+			_burst_armed = true
+			_shot_timer = 0.45
+			velocity.x = 0.0
+			_play("pistol_fire", true)
+			if sprite:
+				sprite.pause()
+				sprite.frame = 0
+			_telegraph(sprite, 0.45, Vector2(14, -36))
+			return
 		if _burst_left <= 0:
-			_burst_left = 3 if cornered else 2
+			_burst_armed = false
+			_clear_telegraph()
+			_burst_left = 2 if cornered else 1
 		_burst_left -= 1
-		_shot_timer = 0.22 if _burst_left > 0 else randf_range(0.9, 1.3)
+		_shot_timer = 0.38 if _burst_left > 0 else randf_range(1.1, 1.5)
 		_play("pistol_fire", true)
 		var origin = pistol_muzzle.global_position if pistol_muzzle else _eye()
 		var lead = global_position.distance_to(player.global_position) / pistol_bullet_speed
-		var aim = (_predict_player(lead * 0.6) + Vector2(0, -8) - origin).normalized()
-		aim = aim.rotated(randf_range(-0.05, 0.05))
-		_spawn_bullet(origin, aim, pistol_bullet_speed, pistol_damage, 1.6, Color(1, 0.8, 0.35))
+		var aim = (_predict_player(lead * 0.2) + Vector2(0, -8) - origin).normalized()
+		aim = aim.rotated(randf_range(-0.045, 0.045))
+		_spawn_bullet(origin, aim, pistol_bullet_speed, pistol_damage, 1.2, Color(1, 0.8, 0.35), 13.0)
 	elif move != 0 and (sprite == null or sprite.animation != "pistol_fire" or not sprite.is_playing()):
 		_play("run_fast")
 
 
 func _flyback_logic() -> void:
 	velocity.x = move_toward(velocity.x, 0.0, 5.0)
-	if not _fired and t > 0.25 and _sees_player():
+	if not _fired and t > 0.25 and _sees_player() and randf() < 0.35:
 		_fired = true
 		var origin = pistol_muzzle.global_position if pistol_muzzle else _eye()
-		_spawn_bullet(origin, (_player_center() - origin).normalized(), pistol_bullet_speed, pistol_damage, 1.6, Color(1, 0.8, 0.35))
+		_spawn_bullet(origin, (_player_center() - origin).normalized().rotated(randf_range(-0.1, 0.1)), pistol_bullet_speed, pistol_damage, 1.2, Color(1, 0.8, 0.35), 13.0)
+	elif not _fired and t > 0.25:
+		_fired = true
 	if is_on_floor() and t > 0.2:
 		_go(State.PISTOL)
-		_shot_timer = 0.25
+		_shot_timer = 0.7
 	elif t > 2.0:
 		_go(State.PISTOL)
 
@@ -402,7 +428,7 @@ func _get_rifle_logic(dist: float) -> void:
 	_play("run_fast")
 
 
-func _spawn_bullet(origin: Vector2, dir: Vector2, spd: float, dmg: int, life: float, col: Color) -> void:
+func _spawn_bullet(origin: Vector2, dir: Vector2, spd: float, dmg: int, life: float, col: Color, hit_r: float = 18.0) -> void:
 	var line = Line2D.new()
 	line.width = 2.0
 	line.default_color = col
@@ -412,7 +438,7 @@ func _spawn_bullet(origin: Vector2, dir: Vector2, spd: float, dmg: int, life: fl
 	line.global_position = origin
 	line.rotation = dir.angle()
 	add_child(line)
-	_bullets.append({"node": line, "dir": dir, "speed": spd, "dmg": dmg, "life": life})
+	_bullets.append({"node": line, "dir": dir, "speed": spd, "dmg": dmg, "life": life, "r": hit_r})
 
 
 func _update_bullets(delta: float) -> void:
@@ -428,7 +454,7 @@ func _update_bullets(delta: float) -> void:
 		if not done and _player_ok():
 			var c = _player_center()
 			var closest = Geometry2D.get_closest_point_to_segment(c, from, to)
-			if closest.distance_to(c) < 18.0:
+			if closest.distance_to(c) < b["r"]:
 				done = true
 				_hurt_player_smart(b["dmg"])
 		if not done:
@@ -445,6 +471,8 @@ func _update_bullets(delta: float) -> void:
 
 func _on_hurt() -> void:
 	_hide_aim()
+	_clear_telegraph()
+	_burst_armed = false
 	if _player_ok() and global_position.distance_to(player.global_position) < 120.0 and _fly_cooldown <= 0.0:
 		if has_rifle:
 			_start_drop_flyback()

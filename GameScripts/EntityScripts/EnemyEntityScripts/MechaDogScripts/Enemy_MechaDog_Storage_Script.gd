@@ -3,7 +3,7 @@ extends StorageEnemy
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var detection_area: Area2D = get_node_or_null("DetectionArea")
 
-enum State { PATROL, ALERT, STALK, CHASE, ATTACK, DODGE, QUAD_START, QUAD_RUN, QUAD_BITE, BITE_RECOVER, GRAPPLE, JAW_BREAK, STUN, DEAD }
+enum State { PATROL, ALERT, STALK, CHASE, WINDUP, ATTACK, RECOVER, DODGE, QUAD_START, QUAD_RUN, QUAD_BITE, BITE_RECOVER, GRAPPLE, JAW_BREAK, STUN, DEAD }
 var state: State = State.PATROL
 
 var FUR_SOURCE := [Color8(204, 169, 110), Color8(178, 144, 98), Color8(153, 121, 81), Color8(126, 97, 68), Color8(97, 74, 60), Color8(69, 49, 37)]
@@ -23,7 +23,7 @@ const QUAD_CX := 52.0
 @export var punch_range: float = 72.0
 @export var bite_min_range: float = 110.0
 @export var bite_max_range: float = 320.0
-@export var stalk_distance: float = 175.0
+@export var stalk_distance: float = 165.0
 @export var grip_presses: int = 9
 @export var grip_time: float = 2.6
 
@@ -41,6 +41,19 @@ var _grip_ui: Node2D = null
 var _grip_bar: ProgressBar = null
 var _ko_finish: bool = false
 var _alerted_allies: bool = false
+var _windup: float = 0.0
+var _combo_i: int = 0
+var _quad_dir: int = 1
+var _lunge: float = 0.0
+const SHEET_DIR := "res://GameAssets/Sprites/EntitySprites/EnemySprites/MechaDogSprites/"
+const EXTRA_ANIMS := [
+	["run_fast", "MechaDogRunFrames/Enemy_MechaDog_Run_SpriteList_Animation.png", 75, 0, 8, 13.0, true],
+	["quad_start", "MechaDogQuadRunFrames/Enemy_MechaDog_QuadRun_SpriteList_Animation.png", 128, 0, 3, 12.0, false],
+	["quad_run", "MechaDogQuadRunFrames/Enemy_MechaDog_QuadRun_SpriteList_Animation.png", 128, 3, 6, 16.0, true],
+	["quad_bite", "MechaDogQuadBiteFrames/Enemy_MechaDog_QuadBite_SpriteList_Animation.png", 128, 0, 7, 16.0, false],
+	["grabbed_jaws", "MechaDogGrabbedJawsFrames/Enemy_MechaDog_GrabbedJaws_SpriteList_Animation.png", 128, 0, 6, 10.0, true],
+	["jaw_break", "MechaDogJawBreakFrames/Enemy_MechaDog_JawBreak_SpriteList_Animation.png", 128, 0, 12, 12.0, false],
+]
 
 
 func _ready() -> void:
@@ -52,6 +65,7 @@ func _ready() -> void:
 	aggro_range = 400.0
 	deaggro_range = 760.0
 	if sprite:
+		_ensure_anims()
 		_base_sprite_offset = sprite.offset
 		apply_fur_variant(sprite, FUR_SOURCE, FUR_VARIANTS)
 	if detection_area:
@@ -60,6 +74,28 @@ func _ready() -> void:
 				player = b
 		)
 	_play("idle")
+
+
+func _ensure_anims() -> void:
+	if sprite.sprite_frames == null:
+		return
+	var sf: SpriteFrames = sprite.sprite_frames.duplicate()
+	for a in EXTRA_ANIMS:
+		if sf.has_animation(a[0]):
+			continue
+		var tex = load(SHEET_DIR + a[1])
+		if tex == null:
+			continue
+		sf.add_animation(a[0])
+		sf.set_animation_speed(a[0], a[5])
+		sf.set_animation_loop(a[0], a[6])
+		var h = tex.get_height()
+		for i in range(a[4]):
+			var at = AtlasTexture.new()
+			at.atlas = tex
+			at.region = Rect2((a[3] + i) * a[2], 0, a[2], h)
+			sf.add_frame(a[0], at)
+	sprite.sprite_frames = sf
 
 
 func _play(anim_name: String, restart: bool = false) -> void:
@@ -115,19 +151,28 @@ func _physics_process(delta: float) -> void:
 		if is_aggro and abs(dy) > 160.0 and not _has_line_of_sight(global_position + Vector2(0, -20), player.global_position):
 			is_aggro = false
 
+	if _on_head:
+		_play("idle")
+		if sprite:
+			sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
+		move_and_slide()
+		return
 	match state:
 		State.PATROL: _patrol(delta)
 		State.ALERT: _alert_logic()
 		State.STALK: _stalk_logic(delta, dist, dx, dy)
-		State.CHASE: _chase_logic(dist, dx, dy)
-		State.ATTACK: _attack_logic(dist)
-		State.DODGE: _dodge_logic()
+		State.CHASE: _chase_logic(delta, dist, dx, dy)
+		State.WINDUP: _windup_logic(dist, dx)
+		State.ATTACK: _attack_logic(delta, dist)
+		State.RECOVER: _recover_logic(delta)
+		State.DODGE: _dodge_logic(delta)
 		State.QUAD_START: _quad_start_logic()
 		State.QUAD_RUN: _quad_run_logic(dist, dx, dy)
-		State.QUAD_BITE: _quad_bite_logic()
+		State.QUAD_BITE: _quad_bite_logic(delta)
 		State.BITE_RECOVER: _bite_recover_logic(delta)
 		State.GRAPPLE: _grapple_logic(delta)
 		State.JAW_BREAK: _jaw_break_logic()
+		State.STUN: _go(State.STALK)
 
 	if sprite:
 		sprite.scale.x = abs(sprite.scale.x) * (1 if facing_dir > 0 else -1)
@@ -140,6 +185,10 @@ func _face(dx: float) -> void:
 
 
 func _go(s: State) -> void:
+	if state == State.WINDUP and s != State.ATTACK:
+		_clear_telegraph()
+	if state == State.QUAD_START and s != State.QUAD_RUN:
+		_clear_telegraph()
 	state = s
 	t = 0.0
 	hit_done = false
@@ -154,8 +203,8 @@ func _patrol(delta: float) -> void:
 		patrol_dir = -patrol_dir
 	_patrol_step(delta)
 	_play("run_fast" if abs(velocity.x) > 5 else "idle")
-	if sprite:
-		sprite.speed_scale = 0.55
+	if sprite and abs(velocity.x) > 5:
+		sprite.speed_scale = 0.5
 
 
 func _alert_logic() -> void:
@@ -163,15 +212,15 @@ func _alert_logic() -> void:
 	if _player_ok():
 		_face(player.global_position.x - global_position.x)
 	_play("idle")
-	if sprite:
-		sprite.speed_scale = 1.0
-	if t == 0.0 or t < get_physics_process_delta_time() * 1.5:
+	if t < get_physics_process_delta_time() * 1.5:
 		_bark()
+		_glint(Vector2(0, -50))
 	if not _alerted_allies:
 		_alerted_allies = true
 		_alert_allies()
-	if t > 0.28:
-		_go(State.CHASE)
+	if t > 0.38:
+		_think_t = randf_range(0.1, 0.3)
+		_go(State.STALK)
 
 
 func _bark() -> void:
@@ -183,173 +232,243 @@ func _bark() -> void:
 	tw.tween_property(sprite, "scale:y", base.y, 0.1)
 
 
+func _walk_anim(vx: float, fast: bool) -> void:
+	if abs(vx) > 12.0 and sign(vx) == facing_dir:
+		_play("run_fast")
+		if sprite:
+			sprite.speed_scale = clamp(abs(vx) / run_speed, 0.45, 1.15)
+	else:
+		_play("idle")
+
+
 func _stalk_logic(delta: float, dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
 		_release_token()
 		_go(State.PATROL)
 		return
-	_face(dx)
+	_turn_to(dx, delta)
 	if _react_to_player(dist):
 		return
-	_stalk_timer -= delta
-	if _stalk_timer <= 0.0:
-		_stalk_timer = randf_range(0.35, 0.8)
-		_stalk_dir = -1 if randf() < 0.5 else 1
-	var want = stalk_distance + _stalk_dir * 40.0
-	var move = 0.0
-	if dist > want + 25.0:
-		move = 1.0
-	elif dist < want - 25.0:
-		move = -1.0
-	var dir = int(sign(dx)) * int(move)
-	if dir != 0 and (_ledge_ahead(dir) or _wall_ahead(dir)):
-		dir = 0
-	velocity.x = dir * run_speed * 0.55 + _separation() * 120.0
-	_play("run_fast" if abs(velocity.x) > 10 else "idle")
-	if sprite:
-		sprite.speed_scale = 0.8
-	if t > 0.5 and abs(dy) < 70.0 and _request_token():
+	var want = stalk_distance
+	var vx := 0.0
+	if not is_on_floor() and _climb_jump:
+		velocity.x = facing_dir * max(abs(velocity.x), 140.0)
+		return
+	if dist > want + 45.0:
+		var dir = int(sign(dx))
+		if _wall_ahead(dir) and dir == facing_dir and _hop_over(dir, run_speed * 0.6):
+			_play("idle")
+			return
+		if not (_ledge_ahead(dir) or _wall_ahead(dir)):
+			vx = dir * run_speed * 0.5
+	elif dist < want - 70.0 and is_on_floor():
+		if _backstep(200.0):
+			_play("idle")
+			return
+	vx += _separation() * 90.0
+	if is_on_floor():
+		velocity.x = move_toward(velocity.x, vx, 900.0 * delta)
+	_walk_anim(velocity.x, false)
+	if _think_t > 0.0 or cooldown > 0.0 or abs(dy) > 70.0:
+		return
+	_think_t = randf_range(0.25, 0.5)
+	if _request_token():
 		_go(State.CHASE)
 
 
-func _chase_logic(dist: float, dx: float, dy: float) -> void:
+func _chase_logic(delta: float, dist: float, dx: float, dy: float) -> void:
 	if not is_aggro:
 		_release_token()
 		_go(State.PATROL)
 		return
-	_face(dx)
-	if sprite:
-		sprite.speed_scale = 1.0
+	_turn_to(dx, delta, 0.08)
 	if _react_to_player(dist):
 		return
-	if not _request_token():
+	if dy < -90.0:
+		velocity.x = move_toward(velocity.x, sign(dx) * run_speed * 0.4 if dist > 40.0 else 0.0, 900.0 * delta)
+		_walk_anim(velocity.x, true)
+		if t > 2.5:
+			_release_token()
+			_go(State.STALK)
+		return
+	var dir = facing_dir
+	if not is_on_floor():
+		if _climb_jump:
+			velocity.x = dir * max(abs(velocity.x), 150.0)
+		return
+	if _wall_ahead(dir) and dist > 60.0:
+		if _hop_over(dir, run_speed * 0.8):
+			_play("idle")
+			return
+		_release_token()
 		_go(State.STALK)
 		return
-	if dy < -90.0:
-		velocity.x = sign(dx) * run_speed * 0.4 if dist > 40.0 else 0.0
-		_play("run_fast" if abs(velocity.x) > 5 else "idle")
-		return
-	var dir = int(sign(dx))
 	if _ledge_ahead(dir) and dy < 40.0:
 		velocity.x = 0
 		_play("idle")
 		_release_token()
 		_go(State.STALK)
 		return
-	velocity.x = dir * run_speed
-	_play("run_fast")
-	if cooldown > 0.0 or abs(dy) > 70.0:
-		return
-	var want_bite = quad_cooldown <= 0.0 and dist > bite_min_range and dist < bite_max_range
-	if player_block_habit > 0.35 and quad_cooldown <= 0.0 and dist < bite_max_range and dist > 70.0:
-		want_bite = true
-	if want_bite:
-		velocity.x = 0
-		_go(State.QUAD_START)
-		_play("quad_start", true)
-		return
-	if dist < punch_range:
-		_start_combo()
-
-
-func _react_to_player(dist: float) -> bool:
-	if dodge_cooldown <= 0.0 and _player_threatens(100.0) and randf() < 0.75:
-		_start_dodge()
-		return true
-	if _player_flag("is_parrying") and dist < 140.0:
-		velocity.x = -facing_dir * run_speed * 0.8
-		_play("run_fast")
-		return true
-	if _whiff_window > 0.0 and cooldown <= 0.0 and _request_token():
-		if dist < punch_range + 20.0:
-			_start_combo()
-			return true
-		if quad_cooldown <= 0.0 and dist < bite_max_range:
-			_go(State.QUAD_START)
-			_play("quad_start", true)
-			return true
-	return false
-
-
-func _start_combo() -> void:
-	combo_left = 2 if randf() < 0.6 else 1
-	_go(State.ATTACK)
-	_play("attack_right" if combo_left % 2 == 0 else "attack_left", true)
-
-
-func _attack_logic(dist: float) -> void:
-	velocity.x = move_toward(velocity.x, 0.0, 30.0)
-	if not hit_done and t >= 0.2:
-		hit_done = true
-		if dist < punch_range + 14.0 and _player_ok() and abs(player.global_position.y - global_position.y) < 60.0:
-			_snap_fx()
-			_hurt_player_smart(1)
-	if t >= 0.5:
-		combo_left -= 1
-		if combo_left > 0 and dist < punch_range + 20.0 and not _player_flag("is_parrying"):
-			_go(State.ATTACK)
-			_play("attack_left", true)
+	if t < 0.05 and quad_cooldown <= 0.0 and abs(dy) < 60.0 and dist > bite_min_range and dist < bite_max_range:
+		var want_bite = randf() < 0.45 or player_block_habit > 0.35
+		if want_bite:
+			_start_quad()
 			return
-		cooldown = randf_range(0.7, 1.1)
+	velocity.x = move_toward(velocity.x, dir * run_speed, 1400.0 * delta)
+	_walk_anim(velocity.x, true)
+	if abs(dy) > 70.0:
+		return
+	if dist < punch_range + 26.0:
+		_start_combo()
+	elif t > 2.2:
 		_release_token()
 		_go(State.STALK)
 
 
+func _react_to_player(dist: float) -> bool:
+	if dodge_cooldown <= 0.0 and _player_threatens(95.0) and randf() < 0.3:
+		_start_dodge()
+		return true
+	if _player_flag("is_parrying") and dist < 130.0 and _hop_cd <= 0.0:
+		if _backstep(240.0):
+			_play("idle")
+			return true
+	if _whiff_window > 0.0 and cooldown <= 0.0 and dist < punch_range + 40.0 and _request_token():
+		_start_combo(0.2)
+		return true
+	return false
+
+
+func _start_combo(windup: float = 0.4) -> void:
+	combo_left = 2 if randf() < 0.55 else 1
+	_combo_i = 0
+	_begin_windup(windup)
+
+
+func _begin_windup(w: float) -> void:
+	velocity.x = 0.0
+	_windup = w
+	_go(State.WINDUP)
+	var anim = "attack_right" if _combo_i % 2 == 0 else "attack_left"
+	_play(anim, true)
+	if sprite:
+		sprite.pause()
+		sprite.frame = 1
+	_telegraph(sprite, w, Vector2(10, -46))
+
+
+func _windup_logic(dist: float, dx: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 40.0)
+	if _combo_i == 0 and t < _windup * 0.5:
+		_face(dx)
+	if t >= _windup:
+		_clear_telegraph()
+		_go(State.ATTACK)
+		if sprite:
+			sprite.play()
+		_lunge = 230.0 if dist > punch_range * 0.6 else 90.0
+		velocity.x = facing_dir * _lunge
+		_esfx("Enemy_Swing_SoundEffect.wav", -7.0, 1.1)
+
+
+func _attack_logic(delta: float, dist: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 1100.0 * delta)
+	if not hit_done and t >= 0.08:
+		hit_done = true
+		if _player_ok() and abs(player.global_position.y - global_position.y) < 60.0:
+			var rel = (player.global_position.x - global_position.x) * facing_dir
+			if rel > -14.0 and rel < punch_range + 16.0:
+				_snap_fx()
+				_hurt_player_smart(1)
+	if t >= 0.34:
+		combo_left -= 1
+		_combo_i += 1
+		if combo_left > 0 and dist < punch_range + 34.0 and not _player_flag("is_parrying"):
+			_begin_windup(0.17)
+			return
+		_go(State.RECOVER)
+		_play("idle")
+
+
+func _recover_logic(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 1100.0 * delta)
+	if t >= 0.5:
+		cooldown = randf_range(0.6, 1.1)
+		_release_token()
+		_think_t = randf_range(0.2, 0.4)
+		if _player_ok() and abs(player.global_position.x - global_position.x) < stalk_distance * 0.6:
+			_face(player.global_position.x - global_position.x)
+			_backstep(210.0)
+		_go(State.STALK)
+
+
 func _start_dodge() -> void:
-	dodge_cooldown = 1.3
+	dodge_cooldown = 2.2
 	_go(State.DODGE)
-	velocity.x = -facing_dir * 380.0
+	velocity.x = -facing_dir * 360.0
 	if is_on_floor():
-		velocity.y = -170.0
-	_play("run_fast")
+		velocity.y = -190.0
+	_play("idle")
+	_dust_puff(global_position + Vector2(0, 30), 3)
 
 
-func _dodge_logic() -> void:
-	velocity.x = move_toward(velocity.x, 0.0, 25.0)
-	if t > 0.3:
-		if randf() < 0.5 and quad_cooldown <= 0.0 and _request_token():
-			_go(State.QUAD_START)
-			_play("quad_start", true)
+func _dodge_logic(delta: float) -> void:
+	if is_on_floor() and t > 0.1:
+		velocity.x = move_toward(velocity.x, 0.0, 1400.0 * delta)
+	if t > 0.38:
+		if quad_cooldown <= 0.0 and _player_ok() and abs(player.global_position.x - global_position.x) > bite_min_range and randf() < 0.5 and _request_token():
+			_start_quad()
 		else:
 			_go(State.STALK)
 
 
+func _start_quad() -> void:
+	velocity.x = 0
+	_go(State.QUAD_START)
+	_play("quad_start", true)
+	_telegraph(sprite, 0.45, Vector2(18, -30))
+
+
 func _quad_start_logic() -> void:
 	velocity.x = 0
-	_play("quad_start")
-	if t >= _anim_length(sprite, "quad_start"):
+	if _player_ok() and t < 0.2:
+		_face(_predict_player(0.3).x - global_position.x)
+	if t >= max(0.45, _anim_length(sprite, "quad_start")):
+		_clear_telegraph()
+		_quad_dir = facing_dir
 		_go(State.QUAD_RUN)
 		_play("quad_run", true)
+		_dust_puff(global_position + Vector2(-facing_dir * 10, 30), 4)
 
 
-func _quad_run_logic(dist: float, _dx: float, dy: float) -> void:
-	if _player_ok():
-		var target = _predict_player(0.25)
-		_face(target.x - global_position.x)
+func _quad_run_logic(dist: float, dx: float, dy: float) -> void:
+	facing_dir = _quad_dir
 	_play("quad_run")
-	if _ledge_ahead(facing_dir) or _wall_ahead(facing_dir) or abs(dy) > 90.0 or t > 1.3:
-		quad_cooldown = 2.0
+	velocity.x = _quad_dir * quad_speed
+	var passed = dx * _quad_dir < -30.0
+	if _ledge_ahead(_quad_dir) or _wall_ahead(_quad_dir) or abs(dy) > 90.0 or t > 1.2 or passed:
+		quad_cooldown = randf_range(2.4, 3.4)
 		_release_token()
 		_go(State.BITE_RECOVER)
+		_dust_puff(global_position + Vector2(_quad_dir * 14, 30), 5)
 		return
-	velocity.x = facing_dir * quad_speed
-	if dist < 78.0:
+	if dist < 80.0 and dx * _quad_dir > -10.0:
 		_go(State.QUAD_BITE)
 		_play("quad_bite", true)
-		velocity.x = facing_dir * 470.0
+		velocity.x = _quad_dir * 420.0
+		_esfx("Enemy_Swing_SoundEffect.wav", -6.0, 0.85)
 
 
-func _quad_bite_logic() -> void:
-	velocity.x = move_toward(velocity.x, 0.0, 22.0)
-	if not hit_done and t >= 0.13:
+func _quad_bite_logic(delta: float) -> void:
+	velocity.x = move_toward(velocity.x, 0.0, 1300.0 * delta)
+	if not hit_done and t >= 0.12:
 		hit_done = true
 		_snap_fx()
 		if _bite_connects():
 			if _player_flag("is_parrying"):
 				_get_parried()
-			elif _player_flag("is_dashing"):
-				pass
-			else:
+				return
+			elif not _player_flag("is_dashing"):
 				_start_grapple()
 				return
 	if t >= _anim_length(sprite, "quad_bite"):
@@ -362,19 +481,21 @@ func _bite_connects() -> bool:
 	if not _player_ok():
 		return false
 	var rel = player.global_position - global_position
-	return rel.x * facing_dir > -12.0 and abs(rel.x) < 82.0 and abs(rel.y) < 55.0
+	return rel.x * facing_dir > -12.0 and abs(rel.x) < 86.0 and abs(rel.y) < 55.0
 
 
 func _bite_recover_logic(delta: float) -> void:
-	velocity.x = move_toward(velocity.x, 0.0, 900.0 * delta)
+	velocity.x = move_toward(velocity.x, 0.0, 1000.0 * delta)
 	_play("idle")
-	if t > 0.55:
-		cooldown = 0.4
+	if t > 0.7:
+		cooldown = 0.5
+		_think_t = 0.3
 		_go(State.STALK if is_aggro else State.PATROL)
 
 
 func _get_parried() -> void:
 	_release_token()
+	_clear_telegraph()
 	velocity.x = -facing_dir * 220.0
 	is_stunned = true
 	stun_timer = 1.5
@@ -389,7 +510,8 @@ func _stun_logic(delta: float) -> void:
 		is_stunned = false
 		if sprite:
 			sprite.modulate = Color.WHITE
-		cooldown = 0.25
+		cooldown = 0.35
+		_think_t = 0.25
 		_go(State.STALK if is_aggro else State.PATROL)
 
 
@@ -550,8 +672,13 @@ func take_damage(amount: int) -> void:
 
 
 func _on_hurt() -> void:
-	if dodge_cooldown <= 0.0 and randf() < 0.35:
+	_clear_telegraph()
+	if _poise_broken() and is_on_floor():
+		_release_token()
 		_start_dodge()
+		dodge_cooldown = 1.2
+		return
+	if state in [State.QUAD_RUN, State.QUAD_BITE]:
 		return
 	_release_token()
 	state = State.STUN

@@ -6,7 +6,15 @@ var initialized: bool = false
 func scan_and_apply(scene: Node) -> void:
 	if not scene or not is_instance_valid(scene) or not scene.is_inside_tree():
 		return
-	_scan(scene, scene)
+	var fresh: Array = []
+	_scan(scene, scene, fresh)
+	if fresh.size() > 1:
+		var any := false
+		for k in fresh:
+			if states[k]["visible"]:
+				any = true
+		if not any:
+			states[fresh[randi() % fresh.size()]]["visible"] = true
 	initialized = true
 	_apply(scene, scene)
 
@@ -18,7 +26,7 @@ func _orig_scale(decoration: Node2D) -> Vector2:
 		decoration.set_meta("attr_orig_scale", decoration.scale.abs())
 	return decoration.get_meta("attr_orig_scale")
 
-func _scan(scene: Node, node: Node) -> void:
+func _scan(scene: Node, node: Node, fresh: Array) -> void:
 	for child in node.get_children():
 		if not is_instance_valid(child) or not child.is_inside_tree():
 			continue
@@ -35,7 +43,8 @@ func _scan(scene: Node, node: Node) -> void:
 						"flip": randf() < 0.5,
 						"texture_data": texture_data,
 					}
-		_scan(scene, child)
+					fresh.append(key)
+		_scan(scene, child, fresh)
 
 func _apply(scene: Node, node: Node) -> void:
 	for child in node.get_children():

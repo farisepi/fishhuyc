@@ -373,7 +373,7 @@ func _first_visit_card() -> void:
 	if L._tut_done("inspect"):
 		j += tr(" Осмотреть комнату — %s.") % L._key_name("inspect")
 	await L._tut_read(tr("КОМНАТА ТЕХОБСЛУЖИВАНИЯ"),
-		tr("Здесь рыбы спят между сменами. Охраны нет, время не идёт — ходи, сколько хочешь.") + j + "\n" + tr("Когда будешь готов, подойди к своей койке (она подсвечена) и нажми %s.") % L._key_name("interact"),
+		tr("Здесь спят между сменами. [g]Охраны нет[/g], время стоит.") + j + "\n" + tr("Готов — подойди к [y]своей койке[/y] и нажми %s.") % L._key_name("interact"),
 		func(): return L._world_to_screen(Rect2(_bed_pos() + Vector2(-60, -112), Vector2(120, 116))), false)
 	L._tut_mark("room")
 
@@ -686,10 +686,15 @@ func _sleep() -> void:
 	await get_tree().create_timer(0.8).timeout
 	var sh = L.current_shift + 1
 	var st = L._plan_next_station()
-	if L._dream and L._dream.night_has_lessons(sh, st):
+	var lessons = L._dream != null and L._dream.night_has_lessons(sh, st)
+	var fam = L._dream != null and not lessons and L._dream.roll_family(sh, st)
+	if L._dream and (fam or lessons):
 		L._room_on = false
 		_set_cam_bounds(false)
-		await L._dream.run_night(sh, st)
+		if fam:
+			await L._dream.run_family(sh)
+		else:
+			await L._dream.run_night(sh, st)
 		L._room_on = true
 		_set_cam_bounds(true)
 		if L._act_strip:
@@ -714,7 +719,7 @@ func _sleep() -> void:
 	_busy = false
 	_walk_fish_out()
 	if not L._tut_done("morning"):
-		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро начнётся. Иди за остальными к двери слева и нажми %s.") % L._key_name("interact"), ["A", L._key_name("interact")],
+		L._spot_show(tr("ПОДЪЁМ"), tr("Смена скоро. Иди к [y]двери слева[/y] и нажми %s.") % L._key_name("interact"), ["A", L._key_name("interact")],
 			func(): return L._world_to_screen(Rect2(DOOR_X - 40, CEIL_Y + 60, 80, FLOOR_Y - CEIL_Y - 56)), false)
 		L._tut_mark("morning")
 

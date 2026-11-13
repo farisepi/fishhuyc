@@ -57,10 +57,17 @@ func _physics_process(delta: float) -> void:
 		velocity.y += gravity * delta
 	if repath_timer > 0:
 		repath_timer -= delta
+	_slide_off_heads()
+	if _climb_jump and is_on_floor() and velocity.y >= 0.0:
+		_climb_jump = false
+	_poise = max(0.0, _poise - delta * POISE_DECAY)
+	_hop_cd = max(0.0, _hop_cd - delta)
+	_think_t -= delta
 
 func take_damage(amount: int) -> void:
 	if is_dead:
 		return
+	_poise += 1.0
 	hp -= amount
 	_flash_damage()
 	var dir = 1.0
@@ -401,3 +408,162 @@ func _anim_length(spr: AnimatedSprite2D, anim_name: String) -> float:
 	for i in range(spr.sprite_frames.get_frame_count(anim_name)):
 		total += spr.sprite_frames.get_frame_duration(anim_name, i)
 	return total / spd
+
+
+const ESFX_DIR := "res://GameAssets/Audio/SoundEffects/EnemySounds/EnemyAttackSounds/"
+const POISE_DECAY := 0.7
+const POISE_BREAK := 2.6
+
+var _poise: float = 0.0
+var _hop_cd: float = 0.0
+var _think_t: float = 0.0
+var _turn_hold: float = 0.0
+var _tele_tw: Tween = null
+var _tele_spr: CanvasItem = null
+static var _esfx_cache: Dictionary = {}
+
+
+func _esfx(file: String, vol: float = -6.0, pitch: float = 1.0) -> void:
+	var st = _esfx_cache.get(file)
+	if st == null:
+		st = load(ESFX_DIR + file)
+		_esfx_cache[file] = st
+	if st == null or not is_inside_tree():
+		return
+	var p = AudioStreamPlayer2D.new()
+	p.stream = st
+	p.volume_db = vol
+	p.pitch_scale = pitch * randf_range(0.94, 1.06)
+	p.max_distance = 1400.0
+	add_child(p)
+	p.play()
+	p.finished.connect(p.queue_free)
+
+
+func _telegraph(spr: CanvasItem, dur: float, head: Vector2 = Vector2(0, -44)) -> void:
+	if spr == null:
+		return
+	_clear_telegraph()
+	_tele_spr = spr
+	spr.self_modulate = Color.WHITE
+	_tele_tw = create_tween()
+	_tele_tw.tween_property(spr, "self_modulate", Color(2.1, 1.7, 1.25), max(0.05, dur * 0.4)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_tele_tw.tween_property(spr, "self_modulate", Color(1.35, 1.2, 1.05), max(0.05, dur * 0.6))
+	_glint(head)
+	_esfx("Enemy_Windup_SoundEffect.wav", -9.0, 1.0 + randf_range(-0.05, 0.05))
+
+
+func _clear_telegraph() -> void:
+	if _tele_tw and _tele_tw.is_valid():
+		_tele_tw.kill()
+	_tele_tw = null
+	if _tele_spr and is_instance_valid(_tele_spr):
+		_tele_spr.self_modulate = Color.WHITE
+	_tele_spr = null
+
+
+func _glint(at: Vector2) -> void:
+	var g = Node2D.new()
+	g.z_index = 60
+	g.position = Vector2(at.x * facing_dir, at.y)
+	add_child(g)
+	g.draw.connect(func():
+		var c = Color(1.0, 0.92, 0.55)
+		g.draw_rect(Rect2(-1, -7, 2, 14), c)
+		g.draw_rect(Rect2(-7, -1, 14, 2), c)
+		g.draw_rect(Rect2(-2, -2, 4, 4), Color(1, 1, 1)))
+	g.scale = Vector2(0.2, 0.2)
+	var tw = g.create_tween()
+	tw.tween_property(g, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(g, "scale", Vector2(0.6, 0.6), 0.16)
+	tw.parallel().tween_property(g, "modulate:a", 0.0, 0.16)
+	tw.tween_callback(g.queue_free)
+
+
+func _turn_to(dx: float, delta: float, delay: float = 0.14) -> void:
+	if abs(dx) < 6.0:
+		_turn_hold = 0.0
+		return
+	var want = 1 if dx > 0.0 else -1
+	if want == facing_dir:
+		_turn_hold = 0.0
+		return
+	_turn_hold += delta
+	if _turn_hold >= delay:
+		facing_dir = want
+		_turn_hold = 0.0
+
+
+func _backstep(power: float = 230.0) -> bool:
+	if _hop_cd > 0.0 or not is_on_floor():
+		return false
+	if _ledge_ahead(-facing_dir, 50.0) or _wall_ahead(-facing_dir, 50.0):
+		return false
+	_hop_cd = 0.9
+	velocity.x = -facing_dir * power
+	velocity.y = -150.0
+	return true
+
+
+func _poise_broken() -> bool:
+	if _poise >= POISE_BREAK:
+		_poise = 0.0
+		return true
+	return false
+
+
+func _dust_puff(at: Vector2, n: int = 4) -> void:
+	var parent = get_parent()
+	if parent == null:
+		return
+	for i in range(n):
+		var d = ColorRect.new()
+		d.size = Vector2(3, 3)
+		d.color = Color(0.75, 0.72, 0.68, 0.8)
+		d.z_index = 40
+		parent.add_child(d)
+		d.global_position = at + Vector2(randf_range(-10, 10), randf_range(-3, 1))
+		var tw = d.create_tween()
+		tw.tween_property(d, "global_position", d.global_position + Vector2(randf_range(-26, 26), randf_range(-14, -4)), 0.35).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(d, "modulate:a", 0.0, 0.35)
+		tw.tween_callback(d.queue_free)
+
+
+func _hop_over(dir: int, speed_x: float, max_h: float = 110.0) -> bool:
+	if dir == 0 or not is_on_floor() or not _wall_ahead(dir):
+		return false
+	var h := 0.0
+	var clear_at := -1.0
+	while h <= max_h:
+		h += 16.0
+		var from = global_position + Vector2(0, -6.0 - h)
+		if _ray(from, from + Vector2(dir * 40.0, 0)).is_empty():
+			clear_at = h
+			break
+	if clear_at < 0.0:
+		return false
+	if not _ray(global_position + Vector2(0, -20), global_position + Vector2(0, -40.0 - clear_at)).is_empty():
+		return false
+	_climb_jump = true
+	velocity.y = -sqrt(2.0 * gravity * (clear_at + 26.0))
+	velocity.x = dir * max(speed_x, 140.0)
+	_dust_puff(global_position + Vector2(0, 30), 3)
+	return true
+
+
+var _on_head: bool = false
+var _climb_jump: bool = false
+
+func _slide_off_heads() -> void:
+	_on_head = false
+	for i in range(get_slide_collision_count()):
+		var c = get_slide_collision(i)
+		var o = c.get_collider()
+		if o is Node and (o.is_in_group("player") or o.is_in_group("enemies")) and c.get_normal().y < -0.5:
+			var away = sign(global_position.x - o.global_position.x)
+			if away == 0:
+				away = -facing_dir
+			velocity.x = away * 240.0
+			velocity.y = -140.0
+			_on_head = true
+			return

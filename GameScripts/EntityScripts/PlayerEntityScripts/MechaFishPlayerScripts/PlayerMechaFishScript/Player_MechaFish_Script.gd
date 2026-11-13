@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 @export var speed: float = 240.0
-@export var run_speed: float = 300.0
+@export var run_speed: float = 245.0
 @export var jog_speed_mult: float = 0.5
 @export var jump_velocity: float = -300.0
 @export var slide_speed: float = 400.0
@@ -595,7 +595,7 @@ func _physics_process(delta):
 					_play_anim("Jogging")
 				else:
 					_play_anim("Run")
-				sprite.speed_scale = clamp(abs(velocity.x) / max(1.0, max_speed), 0.6, 1.1) * 1.3
+				sprite.speed_scale = clamp(abs(velocity.x) / max(1.0, max_speed), 0.6, 1.0) * 0.95
 			else:
 				_play_anim("Idle")
 				sprite.speed_scale = 1.0

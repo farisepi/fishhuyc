@@ -1499,7 +1499,7 @@ func _make_world_hint(text: String) -> Label:
 
 func _show_shelf_hint(r: Rect2):
 	if _shelf_hint == null:
-		_shelf_hint = _make_world_hint("E — залезть")
+		_shelf_hint = _make_world_hint(tr("E — залезть"))
 	_shelf_hint.position = to_local(Vector2(r.get_center().x - _shelf_hint.size.x * 0.5, r.position.y - 30.0))
 	var t = create_tween()
 	t.tween_property(_shelf_hint, "modulate:a", 1.0, 0.3)
@@ -1517,7 +1517,7 @@ func _set_elevator_hint(on: bool):
 	if _elevator_hint == null:
 		if not on:
 			return
-		_elevator_hint = _make_world_hint("E — вызвать лифт")
+		_elevator_hint = _make_world_hint(tr("E — вызвать лифт"))
 	if on:
 		_elevator_hint.position = to_local(elevator_button.global_position + Vector2(268 - _elevator_hint.size.x * 0.5, -40))
 	var target = 1.0 if on else 0.0
@@ -1931,7 +1931,7 @@ func _update_hints_and_arena(delta: float):
 		if o1 and player.global_position.x > _node_rect(o1).position.x - 260.0:
 			_climb_hint_queued = true
 			var past_x = _arenas[0]["left"] if _arenas.size() > 0 else INF
-			_hints.hint("climb", "ЗАЛЕЗТЬ|Встань вплотную к ящику — рыба вскарабкается наверх", ["interact"],
+			_hints.hint("climb", tr("ЗАЛЕЗТЬ|Встань вплотную к ящику — рыба вскарабкается наверх"), ["interact"],
 				func(): return player.is_climbing_animation or player.global_position.x > past_x, 1.5, 9.0)
 
 	for a in _arenas:
@@ -1983,17 +1983,17 @@ func _start_arena(a: Dictionary):
 		if camera:
 			_frame_camera_for_balcony(a)
 		if _hints:
-			_hints.hint("balcony", "СНАЙПЕР ВДАЛИ|Его не достать, а он достанет везде. Луч замер — жми рывок", ["Run"],
+			_hints.hint("balcony", tr("СНАЙПЕР ВДАЛИ|Его не достать, а он достанет везде. Луч замер — жми рывок"), ["Run"],
 				func(): return a["state"] == Arena.CLEARED, 2.5, 11.0)
 	elif _hints:
-		_hints.hint("fight", "ДРАТЬСЯ|Враги перекрыли путь. ЛКМ — удар, SHIFT — увернуться", ["ЛКМ"],
+		_hints.hint("fight", tr("ДРАТЬСЯ|Враги перекрыли путь. ЛКМ — удар, SHIFT — увернуться"), ["ЛКМ"],
 			func(): return a["state"] == Arena.CLEARED, 2.0, 10.0)
 
 	if a["items"] and not a["items_on"]:
 		a["items_on"] = true
 		_start_items(a)
 	if a["items"] and not _thrown_once and _hints:
-		_hints.hint("throw", "БРОСОК|Подбери паллет и швырни во врага — он оглушён на 2 секунды", ["interact"],
+		_hints.hint("throw", tr("БРОСОК|Подбери паллет и швырни во врага — он оглушён на 2 секунды"), ["interact"],
 			func(): return _thrown_once or a["state"] == Arena.CLEARED, 2.0, 10.0)
 	a["intro_t"] = ARENA_INTRO_DELAY
 	a["last_hp"] = player.hp if "hp" in player else -1
@@ -2198,7 +2198,7 @@ func _sniper_stand_down(e: Node) -> void:
 
 func _ring_label(e: Node) -> Label:
 	var l = Label.new()
-	l.text = "♪ дзынь-дзынь ♪"
+	l.text = tr("♪ дзынь-дзынь ♪")
 	l.z_index = 60
 	if ResourceLoader.exists(HINT_FONT_PATH):
 		l.add_theme_font_override("font", load(HINT_FONT_PATH))
@@ -2368,7 +2368,7 @@ func _clear_arena(a: Dictionary):
 		if "camera_offset" in camera and a.has("cam_offset"):
 			zt.tween_property(camera, "camera_offset", a["cam_offset"], 1.0)
 	if _arena_counter:
-		_arena_counter.text = "ПУТЬ СВОБОДЕН"
+		_arena_counter.text = tr("ПУТЬ СВОБОДЕН")
 		_arena_counter.reset_size()
 		_center_counter()
 		var t2 = create_tween()
@@ -2533,7 +2533,7 @@ func _make_arena_counter():
 func _update_arena_counter(a: Dictionary):
 	if _arena_counter == null or a["state"] != Arena.FIGHT:
 		return
-	var txt = "ВРАГИ  %d / %d" % [a["killed"], a["total"]]
+	var txt = tr("ВРАГИ  %d / %d") % [a["killed"], a["total"]]
 	if _arena_counter.text != txt:
 		_arena_counter.text = txt
 		_arena_counter.reset_size()

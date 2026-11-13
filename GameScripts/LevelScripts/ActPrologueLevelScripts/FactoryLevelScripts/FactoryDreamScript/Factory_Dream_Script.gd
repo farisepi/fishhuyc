@@ -393,7 +393,7 @@ func _practice_item(st: int) -> Dictionary:
 func _back_to_station() -> void:
 	if L._is_player_in_zone():
 		return
-	L._spot_show(tr("НАЗАД К ПРЕССУ"), tr("Работа приехала! Вернись в безопасную зону у своего пресса."), ["A", "D"], L._zone_screen_rect, false)
+	L._spot_show(tr("НАЗАД К ПРЕССУ"), tr("[y]Работа приехала![/y] Вернись в [g]свою зону[/g] у пресса."), ["A", "D"], L._zone_screen_rect, false)
 	await _until(func(): return L._is_player_in_zone())
 	if L._spot:
 		L._spot.hide_step()
@@ -431,16 +431,16 @@ func _appear(node: CanvasItem, at: Vector2) -> void:
 	await tw.finished
 
 const MG_HOWTO := {
-	0: "Ползунок бегает по полосе. Жми %s, когда он внутри ЗЕЛЁНОЙ зоны.",
-	1: "Стрелка крутится по кругу. Жми %s, когда она на ЗЕЛЁНОЙ метке. Меток две: после первой стрелка поворачивает в другую сторону.",
-	2: "Давление растёт само и раскачивается. Жми %s, чтобы остановить стрелку в ЗЕЛЁНОЙ полосе. Дойдёт до верха — лопнет.",
-	3: "Кольцо сжимается к центру. Жми %s, когда оно совпадёт с меткой. Нужно два раза подряд.",
-	4: "Нож едет вдоль ролла. Жми %s на каждой метке. Пропустил метку — брак.",
+	0: "Ползунок бегает по полосе. Жми %s, когда он в [g]ЗЕЛЁНОЙ[/g] зоне.",
+	1: "Стрелка крутится. Жми %s на [g]ЗЕЛЁНОЙ[/g] метке. После первой — [y]разворот[/y].",
+	2: "Давление растёт само. Жми %s в [g]ЗЕЛЁНОЙ[/g] полосе. Дойдёт до верха — [r]лопнет[/r].",
+	3: "Кольцо сжимается. Жми %s, когда оно [g]совпадёт с меткой[/g]. Дважды подряд.",
+	4: "Нож едет вдоль ролла. Жми %s на [g]каждой метке[/g]. Пропустил — [r]брак[/r].",
 }
 
 func _howto(st: int) -> String:
 	var kind = int(L.STATION_MINIGAME.get(st, 0))
-	return tr(MG_HOWTO.get(kind, MG_HOWTO[0])) % L._key_name("interact") + " " + tr("Во сне промахи не считаются.")
+	return tr(MG_HOWTO.get(kind, MG_HOWTO[0])) % L._key_name("interact") + " " + tr("Во сне [g]промахи не считаются[/g].")
 
 func run_first() -> void:
 	await white(true, 0.25)
@@ -450,45 +450,45 @@ func run_first() -> void:
 	await _wait(0.8)
 	await white(false, 1.6)
 	var key = L._key_name("interact")
-	await _read(tr("ГДЕ Я?"), tr("Удар тока выжег микрочип у тебя в голове. Впервые за долгое время ты думаешь сам. Но тело в меха-костюме чужое и тяжёлое — придётся заново учиться ходить, работать и выживать здесь."), Callable(), false)
+	await _read(tr("ГДЕ Я?"), tr("Удар тока выжег [y]микрочип[/y] в твоей голове. Ты снова [g]думаешь сам[/g]. Но костюм тяжёлый — учись всему [y]заново[/y]."), Callable(), false)
 	var x0 = L.player.global_position.x
 	var jumped := {"v": false}
-	await _task(tr("ДВИЖЕНИЕ"), tr("A и D — идти, ПРОБЕЛ — прыжок. Пройдись и подпрыгни."), ["A", "D", tr("ПРОБЕЛ")], L._player_screen_rect,
+	await _task(tr("ДВИЖЕНИЕ"), tr("A и D — [y]идти[/y], ПРОБЕЛ — [y]прыжок[/y]. Пройдись и подпрыгни."), ["A", "D", tr("ПРОБЕЛ")], L._player_screen_rect,
 		func():
 			if L.player and L.player.velocity.y < -60.0:
 				jumped["v"] = true
 			return abs(L.player.global_position.x - x0) > 90.0 and jumped["v"])
 	L._show_gui()
 	await _wait(0.6)
-	await _read(tr("ПРОЧНОСТЬ КОСТЮМА"), tr("Это здоровье твоего меха-костюма. Удары охраны и аварии его снимают. Кончится — костюм рухнет, и тебя выбросит наружу."), _gui_rect.bind("HP_Bar", 6.0))
-	await _read(tr("ВЫНОСЛИВОСТЬ"), tr("Оранжевая полоса под ней — силы. Прыжки и рывки их тратят, в покое они возвращаются."), func(): return Rect2(_gui_rect("HP_Bar", 0.0).position + Vector2(10, _gui_rect("HP_Bar", 0.0).size.y * 0.62), Vector2(_gui_rect("HP_Bar", 0.0).size.x * 0.7, _gui_rect("HP_Bar", 0.0).size.y * 0.45)))
-	await _read(tr("ИНДИКАТОР КОСТЮМА"), tr("Значок показывает, что ты внутри костюма и дышишь его воздухом."), _gui_rect.bind("SuitIcon", 8.0))
+	await _read(tr("ПРОЧНОСТЬ КОСТЮМА"), tr("[r]Здоровье[/r] костюма. Удары и аварии его снимают. Кончится — [r]тебя выбросит[/r]."), _gui_rect.bind("HP_Bar", 6.0))
+	await _read(tr("ВЫНОСЛИВОСТЬ"), tr("[o]Оранжевая полоса[/o] — силы. Прыжки и рывки их [r]тратят[/r], отдых [g]возвращает[/g]."), func(): return Rect2(_gui_rect("HP_Bar", 0.0).position + Vector2(10, _gui_rect("HP_Bar", 0.0).size.y * 0.62), Vector2(_gui_rect("HP_Bar", 0.0).size.x * 0.7, _gui_rect("HP_Bar", 0.0).size.y * 0.45)))
+	await _read(tr("ИНДИКАТОР КОСТЮМА"), tr("Значок: ты [g]в костюме[/g] и дышишь его воздухом."), _gui_rect.bind("SuitIcon", 8.0))
 	L.show_air_bar(true)
 	await _wait(0.35)
-	await _read(tr("БАЛЛОН ВОЗДУХА"), tr("Ты — рыба. Если костюм разобьют, у тебя останется только этот баллон. Воздух в нём кончается за несколько секунд."), _gui_rect.bind("Air_Bar", 6.0))
+	await _read(tr("БАЛЛОН ВОЗДУХА"), tr("Костюм разбит — остаётся [y]баллон[/y]. Воздуха в нём [r]на несколько секунд[/r]."), _gui_rect.bind("Air_Bar", 6.0))
 	L.show_air_bar(false)
-	await _task(tr("К СТАНКУ"), tr("Справа стоит станок. Подойди к нему."), ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
-	await _read(tr("БЕЗОПАСНАЯ ЗОНА"), tr("Свечение у станка — твоё место. Стоишь внутри — оно ЗЕЛЁНОЕ, всё хорошо. Вышел — оно становится КРАСНЫМ, и охрана это видит."), L._zone_screen_rect)
+	await _task(tr("К СТАНКУ"), tr("Подойди к [y]станку[/y] справа."), ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
+	await _read(tr("БЕЗОПАСНАЯ ЗОНА"), tr("Свечение — [y]твоё место[/y]. Внутри — [g]ЗЕЛЁНОЕ[/g]. Вышел — [r]КРАСНОЕ[/r], и охрана это видит."), L._zone_screen_rect)
 	L._set_hud_visible(true)
 	await _wait(0.5)
-	await _read(tr("ПАНЕЛЬ СМЕНЫ"), tr("Справа вверху — всё о смене. Разберём по строчкам."), _hud_all)
-	await _read(tr("ВРЕМЯ"), tr("Номер смены и часы. Смена идёт с 8:00 до 18:00."), _hud_row.bind(5.0, 10.0))
-	await _read(tr("КОРОБКИ"), tr("Каждая клетка — одна коробка за смену. Зелёная — ты сделал хорошо, красная — твоя ошибка, серая — испортил кто-то другой."), _hud_row.bind(15.0, 7.0))
-	await _read(tr("СТРЕСС"), tr("Чем выше стресс, тем чаще рука срывается, даже если ты нажал вовремя. Удары охраны поднимают стресс, серия хороших работ — снижает."), L._stress_screen_rect)
-	await _read(tr("РАБОТА"), tr("Еда сама приезжает к станку. Твоё дело — вовремя нажать %s. Попробуй.") % key, L._zone_screen_rect)
+	await _read(tr("ПАНЕЛЬ СМЕНЫ"), tr("Справа вверху — [y]всё о смене[/y]."), _hud_all)
+	await _read(tr("ВРЕМЯ"), tr("Номер смены и часы. Смена — с 8:00 до 18:00."), _hud_row.bind(5.0, 10.0))
+	await _read(tr("КОРОБКИ"), tr("Клетка — одна коробка. [g]Зелёная[/g] — ты справился, [r]красная[/r] — твоя ошибка, [gr]серая[/gr] — чужая."), _hud_row.bind(15.0, 7.0))
+	await _read(tr("СТРЕСС"), tr("[y]Стресс[/y] увеличивает [r]шанс промаха[/r]. Удары охраны его [r]поднимают[/r], серия хороших работ — [g]снижает[/g]."), L._stress_screen_rect)
+	await _read(tr("РАБОТА"), tr("Еда приезжает сама. [y]Вовремя[/y] нажми %s.") % key, L._zone_screen_rect)
 	await practice(L.player_station, 2, tr("РАБОТА"), _howto(L.player_station))
 	await _appear(L.guard_sprite, _guard_spot())
-	await _read(tr("ОХРАНА"), tr("Охранник следит за работой. Иногда он устраивает ПРОВЕРКУ: смотрит на две твои работы подряд. Хорошо — стресс падает, плохо — получишь удар."), L._guard_screen_rect)
+	await _read(tr("ОХРАНА"), tr("Иногда охранник устраивает [y]ПРОВЕРКУ[/y] двух работ. Хорошо — [g]стресс падает[/g], плохо — [r]удар[/r]."), L._guard_screen_rect)
 	await practice(L.player_station, 1, tr("ПРОВЕРКА"), tr("Охранник смотрит. Сделай работу как обычно."))
-	await _read(tr("НЕ УХОДИ ИЗ ЗОНЫ"), tr("Ушёл со своего места во время работы — охранник кричит. Не вернулся — подходит и бьёт, пока не вернёшься."), L._guard_screen_rect)
+	await _read(tr("НЕ УХОДИ ИЗ ЗОНЫ"), tr("Ушёл с места — охранник [r]кричит[/r]. Не вернулся — [r]бьёт[/r]."), L._guard_screen_rect)
 	if L.sniper_sprite:
 		L.sniper_sprite.flip_h = true
 	_balcony_a = 0.0
 	create_tween().tween_property(self, "_balcony_a", 1.0, 0.6)
 	await _appear(L.sniper_sprite, _sniper_spot())
-	await _read(tr("СНАЙПЕР"), tr("Над цехом сидит снайпер. Если ты так и не вернулся к станку — он стреляет. Одного выстрела хватает."), func(): return L._world_to_screen(L._sprite_screen_rect(L.sniper_sprite)).grow(14.0))
-	await _read(tr("КОНЕЦ СМЕНЫ"), tr("В 18:00 работа кончается, и все идут в комнату техобслуживания. Иди за остальными — стоять нельзя. Там можно спокойно отдохнуть и лечь спать на свою койку."), Callable(), false)
-	await _read(tr("ПОРА ПРОСЫПАТЬСЯ"), tr("Ты приходишь в себя у станка. Смена продолжается — теперь ты знаешь, что делать."), Callable(), false)
+	await _read(tr("СНАЙПЕР"), tr("Над цехом — [r]снайпер[/r]. Не вернёшься к станку — [r]выстрел[/r]. Одного хватит."), func(): return L._world_to_screen(L._sprite_screen_rect(L.sniper_sprite)).grow(14.0))
+	await _read(tr("КОНЕЦ СМЕНЫ"), tr("В 18:00 все идут [y]спать[/y]. Иди за остальными — [r]стоять нельзя[/r]."), Callable(), false)
+	await _read(tr("ПОРА ПРОСЫПАТЬСЯ"), tr("Ты у станка. Смена продолжается — [g]теперь ты знаешь, что делать[/g]."), Callable(), false)
 	for f in ["basics", "dream1", "maint", "st_%d" % L.player_station]:
 		L._tut_mark(f)
 	await white(true, 1.0)
@@ -524,16 +524,16 @@ func run_elevator(black: ColorRect) -> void:
 		tb.tween_property(black, "color:a", 0.0, 0.8)
 		await tb.finished
 	await white(false, 1.4)
-	await _read(tr("СОН В ЛИФТЕ"), tr("Лифт гудит, и ты проваливаешься в сон. Там, наверху, по тебе будут стрелять. Научись выживать — здесь ошибки ничего не стоят."), Callable(), false)
+	await _read(tr("СОН В ЛИФТЕ"), tr("Наверху [r]будут стрелять[/r]. Учись выживать — во сне [g]ошибки не страшны[/g]."), Callable(), false)
 	_balcony_a = 0.0
 	create_tween().tween_property(self, "_balcony_a", 1.0, 0.6)
 	await _appear(L.sniper_sprite, _sniper_spot())
 	var sn_rect = func(): return L._world_to_screen(L._sprite_screen_rect(L.sniper_sprite)).grow(14.0)
-	await _read(tr("УКЛОНЕНИЕ"), tr("Красный луч — снайпер целится. Когда он выстрелит, нажми %s в последний момент: рывок уведёт тебя из-под пули.") % L._key_name("dash"), sn_rect, false, [L._key_name("dash")])
+	await _read(tr("УКЛОНЕНИЕ"), tr("[r]Красный луч[/r] — снайпер целится. При выстреле жми %s — [g]рывок[/g] уведёт от пули.") % L._key_name("dash"), sn_rect, false, [L._key_name("dash")])
 	await _shots("dash", 2)
-	await _read(tr("БЛОК"), tr("Можно и не убегать. Зажми %s перед выстрелом — рыба закроется, и пуля отскочит.") % L._key_name("block"), sn_rect, false, [L._key_name("block")])
+	await _read(tr("БЛОК"), tr("Или зажми %s до выстрела — [g]пуля отскочит[/g].") % L._key_name("block"), sn_rect, false, [L._key_name("block")])
 	await _shots("block", 2)
-	await _read(tr("ЛИФТ ОСТАНАВЛИВАЕТСЯ"), tr("Теперь ты знаешь, как выжить под огнём. Двери вот-вот откроются."), Callable(), false)
+	await _read(tr("ЛИФТ ОСТАНАВЛИВАЕТСЯ"), tr("Ты готов. [y]Двери открываются[/y]."), Callable(), false)
 	L._tut_mark("dodge")
 	if p and "only_basic_moves" in p:
 		p.only_basic_moves = true
@@ -665,8 +665,11 @@ func night_incident(sh: int) -> int:
 func night_has_lessons(sh: int, st: int) -> bool:
 	var inc = night_incident(sh)
 	return (sh >= 2 and not L._tut_done("inspect")) or not L._tut_done("st_%d" % st) \
-		or sh >= L.ESCAPE_FROM_SHIFT \
+		or _eve_due(sh) \
 		or (inc != L.MGE_NONE and not L._tut_done("inc_%d" % inc))
+
+func _eve_due(sh: int) -> bool:
+	return sh >= L.ESCAPE_FROM_SHIFT and L.escape_info_shift != -1 and sh > L.escape_info_shift
 
 func run_night(sh: int, st: int) -> void:
 	white(true, 0.0)
@@ -678,13 +681,13 @@ func run_night(sh: int, st: int) -> void:
 	L._place_air_bar()
 	await _wait(0.4)
 	await white(false, 1.4)
-	await _read(tr("СОН"), tr("Опять это белое место. Пока все спят — учись. Здесь ошибки ничего не стоят."), Callable(), false)
+	await _read(tr("СОН"), tr("Опять белое место. Учись — тут [g]ошибки не страшны[/g]."), Callable(), false)
 	if sh >= 2 and not L._tut_done("inspect"):
 		await _inspect_lesson()
 	var inc0 = night_incident(sh)
 	var work_lessons = not L._tut_done("st_%d" % st) or (inc0 != L.MGE_NONE and not L._tut_done("inc_%d" % inc0))
 	if work_lessons:
-		await _task(tr("К СТАНКУ"), tr("Справа — станок, за которым ты будешь работать в смену %d.") % sh, ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
+		await _task(tr("К СТАНКУ"), tr("Справа — станок для [y]смены %d[/y].") % sh, ["D"], L._zone_screen_rect, func(): return L._is_player_in_zone())
 	if not L._tut_done("st_%d" % st):
 		await _read(tr("НОВЫЙ СТАНОК: ") + tr(String(L.STATION_TITLE.get(st, ""))), _howto(st), L._zone_screen_rect)
 		await practice(st, 2, tr(String(L.STATION_TITLE.get(st, ""))), _howto(st))
@@ -692,7 +695,7 @@ func run_night(sh: int, st: int) -> void:
 	if inc != L.MGE_NONE and not L._tut_done("inc_%d" % inc):
 		var food = _practice_item(st)
 		var names = {L.MGE_FIRE: tr("ПОЖАР"), L.MGE_STUCK: tr("ЗАКЛИНИЛО КНОПКУ"), L.MGE_SHORT: tr("ЗАМЫКАНИЕ")}
-		await _read(tr("АВАРИЯ: ") + String(names.get(inc, "")), tr("С этой смены у станка может случиться авария. Тогда работа встаёт, и её надо ликвидировать самому. Сейчас попробуешь — подсказка будет рядом с окном аварии."), L._zone_screen_rect)
+		await _read(tr("АВАРИЯ: ") + String(names.get(inc, "")), tr("С этой смены бывают [r]аварии[/r]: работа встаёт, чинить — [y]тебе[/y]. Сейчас попробуешь."), L._zone_screen_rect)
 		await _back_to_station()
 		await L._run_incident(inc, true)
 		L._tut_mark("inc_%d" % inc)
@@ -701,10 +704,10 @@ func run_night(sh: int, st: int) -> void:
 			ftw.tween_property(food["node"], "modulate:a", 0.0, 0.4)
 			ftw.tween_callback(food["node"].queue_free)
 		await _wait(0.6)
-	if sh >= L.ESCAPE_FROM_SHIFT and L._tut_done("escape_eve"):
-		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Завтра снова есть шанс сбежать. Запиши, когда уходят охрана и снайпер, и дождись, пока пост опустеет. Не упусти момент."), Callable(), false)
-	elif sh >= L.ESCAPE_FROM_SHIFT:
-		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Следующая смена — очень важная. С неё снайпер тоже начинает уходить с поста. Если охрана и снайпер уйдут в одно и то же время — пост опустеет, и это единственный шанс сбежать. Смотри внимательно и не ошибись."), Callable(), false)
+	if _eve_due(sh) and L._tut_done("escape_eve"):
+		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Завтра снова [g]шанс сбежать[/g]. Узнай, [y]когда уходят охрана и снайпер[/y], и жди [y]пустой пост[/y]."), Callable(), false)
+	elif _eve_due(sh):
+		await _read(tr("ЗАВТРА ВАЖНЫЙ ДЕНЬ"), tr("Ты знаешь, когда уходят [y]охрана[/y] и [r]снайпер[/r]. Уйдут вместе — [y]пост пуст[/y]. Это [g]шанс сбежать[/g]."), Callable(), false)
 		L._tut_mark("escape_eve")
 	await _read(tr("ПОРА ВСТАВАТЬ"), tr("Скоро подъём. Впереди смена %d.") % sh, Callable(), false)
 	await white(true, 1.0)
@@ -800,7 +803,7 @@ func _inspect_lesson() -> void:
 		L._act_strip.visible = true
 		L._act_strip.modulate.a = 1.0
 	L._act_sig = []
-	await _read(tr("РАЗВЕДКА"), tr("Чтобы сбежать, нужно знать, когда охрана и снайпер уходят с поста. Для этого есть режим осмотра и журнал."), Callable(), false)
+	await _read(tr("РАЗВЕДКА"), tr("Для побега узнай, [y]когда уходят охрана и снайпер[/y]. Помогут [y]осмотр[/y] и [y]журнал[/y]."), Callable(), false)
 	if L.guard_sprite and not L.guard_sprite.visible:
 		await _appear(L.guard_sprite, _guard_spot())
 	var press = L.presses[L.player_station] if L.player_station < L.presses.size() else null
@@ -812,25 +815,28 @@ func _inspect_lesson() -> void:
 			"text": tr("Охранник уходит с поста. Запомню время — так и складывается расписание."),
 			"journal": tr("во сне охранник тоже уходит с поста. Наяву такие уходы отмечаются галочками со временем.")},
 	]
-	await _task(tr("РЕЖИМ ОСМОТРА"), tr("Нажми %s: время замедлится, а всё полезное вокруг подсветится.") % L._key_name("inspect"), [L._key_name("inspect")], L._act_screen_rect.bind(false),
+	await _task(tr("РЕЖИМ ОСМОТРА"), tr("Нажми %s: время [y]замедлится[/y], полезное [y]подсветится[/y].") % L._key_name("inspect"), [L._key_name("inspect")], L._act_screen_rect.bind(false),
 		func(): return L.state == L.State.INSPECT)
-	await _task(tr("ВЗГЛЯД"), tr("В осмотре рыба стоит на месте, а взгляд летает по всему цеху: W A S D."), ["W", "A", "S", "D"], Callable(),
+	await _task(tr("ВЗГЛЯД"), tr("Рыба стоит, а [y]взгляд[/y] летает по цеху: W A S D."), ["W", "A", "S", "D"], Callable(),
 		func(): return L.inspect_camera_offset.length() > 100.0)
-	await _read(tr("ДВА ЦВЕТА"), tr("СИНЕЕ — по желанию: рабочие, вещи, места. Кликни — узнаешь что-то полезное или просто интересное.\nЖЁЛТОЕ — обязательно: так светится пересменка, когда охранник или снайпер уходит с поста. Кликни по жёлтому, пока он не вернулся, — время запишется в журнал. Без этого не узнать расписание."), Callable(), false)
-	await _task(tr("СИНЕЕ"), tr("Кликни мышкой по станку — он подсвечен синим."), [tr("ЛКМ")], Callable(),
+	await _read(tr("ДВА ЦВЕТА"), tr("[bl]СИНЕЕ[/bl] — по желанию: кликни и узнаешь что-то.\n[y]ЖЁЛТОЕ[/y] — обязательно: это [y]пересменка[/y]. Кликни, пока не вернулся, — [g]время запишется[/g]."), Callable(), false)
+	await _task(tr("СИНЕЕ"), tr("Кликни по станку — он [bl]синий[/bl]."), [tr("ЛКМ")], Callable(),
 		func(): return _clicked.has("press"))
-	await _wait(0.8)
+	await _wait(0.6)
+	L._show_guard_dialog(tr("ВСЁ, Я НА ОБЕД."), 2.4, true)
+	await _wait(0.7)
+	await _read(tr("УХОД ОХРАНЫ"), tr("[y]Мигающее окно с ![/y] — охранник [y]уходит с поста[/y]. Увидел такое — сразу [y]осматривай[/y] его."), Callable(), false)
 	_guard_run_loop()
-	await _task(tr("ЖЁЛТОЕ"), tr("Охранник уходит с поста — это пересменка, она светится жёлтым. Кликни по нему, пока он не ушёл."), [tr("ЛКМ")], Callable(),
+	await _task(tr("ЖЁЛТОЕ"), tr("Охранник уходит — [y]пересменка[/y]. [y]Кликни[/y] по нему, пока не ушёл."), [tr("ЛКМ")], Callable(),
 		func(): return _clicked.has("guard"))
 	await _wait(0.8)
 	await _task(tr("ВЫЙТИ ИЗ ОСМОТРА"), tr("Нажми %s ещё раз.") % L._key_name("inspect"), [L._key_name("inspect")], L._act_screen_rect.bind(false),
 		func(): return L.state != L.State.INSPECT)
 	_clear_targets()
-	await _task(tr("ЖУРНАЛ"), tr("Всё, что ты узнаёшь, записывается в журнал. Открой его: %s.") % L._key_name("journal"), [L._key_name("journal")], L._act_screen_rect.bind(true),
+	await _task(tr("ЖУРНАЛ"), tr("Всё узнанное — в [y]журнале[/y]. Открой: %s.") % L._key_name("journal"), [L._key_name("journal")], L._act_screen_rect.bind(true),
 		func(): return L.journal_open)
 	await _until(func(): return not L.journal_open)
-	await _read(tr("ЖУРНАЛ"), tr("Пересменки — галочками со временем, новые записи — со штампом НОВОЕ. Когда узнаешь всё про побег, наверху появится ВАЖНАЯ ПОМЕТКА."), L._act_screen_rect.bind(true))
+	await _read(tr("ЖУРНАЛ"), tr("Пересменки — [g]галочками[/g], новое — со штампом [y]НОВОЕ[/y]. Всё узнал — появится [r]ВАЖНАЯ ПОМЕТКА[/r]."), L._act_screen_rect.bind(true))
 	L._tut_mark("inspect")
 	L._tut_mark("journal")
 	L._dream_allow_inspect = false
@@ -839,3 +845,358 @@ func _inspect_lesson() -> void:
 	if L.guard_sprite:
 		var tw2 = L.guard_sprite.create_tween()
 		tw2.tween_property(L.guard_sprite, "modulate:a", 0.0, 0.5)
+
+const FAMILY_CHANCE := 0.5
+const LAKE_TEX := "res://GameAssets/LevelAssets/ActPrologue/FactoryLevelAssets/FactoryDreamLakeTextures/ActPrologue_LevelFactory_DreamLake_Layer%d_Texture.png"
+const SWIM_DIR := "res://GameAssets/Sprites/EntitySprites/PlayerSprites/FishPlayerSprites/FishSwimAnimationFrames/Player_Fish_Swim_Sprite%d_Animation.png"
+
+func family_ok(sh: int, st: int) -> bool:
+	if not L._tut_done("inspect"):
+		return false
+	for i in range(5):
+		if not L._tut_done("st_%d" % i):
+			return false
+	for inc in [L.MGE_FIRE, L.MGE_STUCK, L.MGE_SHORT]:
+		if not L._tut_done("inc_%d" % inc):
+			return false
+	return L._tut_done("st_%d" % st) and sh >= 2
+
+func roll_family(sh: int, st: int) -> bool:
+	return family_ok(sh, st) and randf() < FAMILY_CHANCE
+
+const FISH_BODY := Color(0.38, 0.63, 0.73)
+const MARK_RED := Color(0.82, 0.22, 0.2)
+const MARK_YEL := Color(0.98, 0.82, 0.25)
+const MARK_DARK := Color(0.12, 0.12, 0.16)
+const MARK_GREY := Color(0.72, 0.74, 0.78)
+const MARK_WHITE := Color(0.95, 0.94, 0.88)
+const MARK_SCAR := Color(0.93, 0.66, 0.66)
+
+func _swim_frames(mark: String = "") -> SpriteFrames:
+	var sf = SpriteFrames.new()
+	sf.add_animation("swim")
+	sf.set_animation_speed("swim", 8.0)
+	sf.set_animation_loop("swim", true)
+	for i in range(1, 6):
+		var tex: Texture2D = load(SWIM_DIR % i)
+		if tex == null:
+			continue
+		var img = tex.get_image()
+		if img.is_compressed():
+			img.decompress()
+		for y in range(26, 32):
+			for x in range(26, 32):
+				if x >= img.get_width() or y >= img.get_height():
+					continue
+				var c = img.get_pixel(x, y)
+				if c.a <= 0.0:
+					continue
+				var greenish = c.g > c.r + 0.15 and c.g > c.b
+				var greyish = abs(c.r - c.g) < 0.06 and abs(c.g - c.b) < 0.08 and c.r > 0.35 and c.r < 0.62
+				if greenish or greyish:
+					img.set_pixel(x, y, FISH_BODY)
+		_mark_img(img, mark)
+		sf.add_frame("swim", ImageTexture.create_from_image(img))
+	if sf.has_animation("default"):
+		sf.remove_animation("default")
+	return sf
+
+func _mark_img(img: Image, mark: String) -> void:
+	var px = func(x: int, y: int, c: Color) -> void:
+		if x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height():
+			img.set_pixel(x, y, c)
+	match mark:
+		"hat":
+			for x in range(21, 26):
+				px.call(x, 26, MARK_RED if x % 2 == 1 else MARK_YEL)
+				px.call(x, 25, MARK_RED if x % 2 == 1 else MARK_YEL)
+			for x in range(22, 25):
+				px.call(x, 24, MARK_RED)
+			px.call(23, 23, MARK_DARK)
+			for x in range(20, 27):
+				px.call(x, 22, MARK_GREY)
+		"scar":
+			for q in [Vector2i(24, 29), Vector2i(25, 30), Vector2i(27, 32), Vector2i(28, 33)]:
+				px.call(q.x, q.y, MARK_SCAR)
+		"eye":
+			for ex in [21, 24]:
+				px.call(ex, 25, MARK_WHITE)
+				px.call(ex + 1, 25, MARK_WHITE)
+				px.call(ex, 24, MARK_WHITE)
+				px.call(ex + 1, 24, MARK_DARK)
+		"nohand":
+			for y in range(33, 37):
+				for x in range(27, 30):
+					var c = img.get_pixel(x, y)
+					if c.a > 0.0 and c.r > c.b:
+						img.set_pixel(x, y, Color(c.r * 0.8, c.g * 0.8, c.b * 0.8, c.a))
+
+const DREAM_LEN := 5.0
+const DREAM_FADE := 1.1
+const SKIP_HOLD := 0.8
+const FAMILY_KINDS := ["family", "school", "crew", "alone", "surface"]
+var _last_family: String = ""
+
+func _family_text(kind: String) -> String:
+	match kind:
+		"school":
+			return tr("Тысячи рыб — и [y]ни одного чипа[/y]. Так и должно быть.")
+		"crew":
+			return tr("Мы [y]все[/y] выбрались. Однажды [g]так и будет[/g].")
+		"alone":
+			return tr("Тихо. [y]Никаких конвейеров[/y]. Только вода.")
+		"surface":
+			return tr("Там, наверху, — [y]солнце[/y]. Надо [g]выбраться[/g].")
+	return tr("Родное [y]озеро[/y]. [y]Мама и папа[/y] ждут. Надо [g]выбраться[/g].")
+
+func _family_cast(kind: String, W: float, H: float, rng: RandomNumberGenerator) -> Dictionary:
+	var cast: Array = []
+	var emotes: Array = []
+	var kid_sf = _swim_frames()
+	var add = func(sf: SpriteFrames, pos: Vector2, sc: float, tint: Color, amp: float = 3.0, path: Vector2 = Vector2.ZERO) -> int:
+		cast.append({"sf": sf, "pos": pos, "sc": sc, "tint": tint, "amp": amp, "ph": rng.randf_range(0.0, TAU), "path": path})
+		return cast.size() - 1
+	match kind:
+		"family":
+			var mom = add.call(kid_sf, Vector2(W * 0.38, H * 0.38), 0.85, Color(1.12, 0.86, 0.94))
+			var kid = add.call(kid_sf, Vector2(W * 0.52, H * 0.52), 0.65, Color.WHITE)
+			var dad = add.call(kid_sf, Vector2(W * 0.64, H * 0.33), 0.95, Color(0.82, 0.96, 0.86))
+			emotes = [[1.3, mom, "<3"], [2.2, kid, ":)"], [3.1, dad, "~"], [4.0, kid, "<3"]]
+		"school":
+			var palette = [Color(0.85, 0.9, 1.0), Color(1.0, 0.86, 0.7), Color(0.8, 1.0, 0.85), Color(0.95, 0.95, 0.95), Color(0.75, 0.85, 0.95)]
+			for i in range(46):
+				var a = rng.randf_range(0.0, TAU)
+				var r = sqrt(rng.randf())
+				var p = Vector2(W * 0.5 + cos(a) * r * W * 0.46, H * 0.44 + sin(a) * r * H * 0.32)
+				add.call(kid_sf, p, rng.randf_range(0.26, 0.42), palette[i % palette.size()], rng.randf_range(2.0, 5.0))
+			var kid = add.call(kid_sf, Vector2(W * 0.5, H * 0.48), 0.65, Color.WHITE)
+			emotes = [[1.5, kid, ":D"], [3.4, kid, "~"]]
+		"crew":
+			var kid = add.call(kid_sf, Vector2(W * 0.46, H * 0.5), 0.65, Color.WHITE)
+			var hat = add.call(_swim_frames("hat"), Vector2(W * 0.3, H * 0.32), 0.7, Color(0.95, 0.95, 1.0))
+			var scar = add.call(_swim_frames("scar"), Vector2(W * 0.64, H * 0.36), 0.72, Color(0.9, 0.98, 0.92))
+			var eye = add.call(_swim_frames("eye"), Vector2(W * 0.68, H * 0.6), 0.68, Color(1.05, 0.95, 0.88))
+			var noh = add.call(_swim_frames("nohand"), Vector2(W * 0.28, H * 0.62), 0.66, Color(0.92, 0.92, 1.05))
+			emotes = [[1.2, hat, "?"], [1.9, scar, ":)"], [2.6, eye, "o_o"], [3.3, noh, "<3"], [4.0, kid, ":D"]]
+		"alone":
+			var kid = add.call(kid_sf, Vector2(W * 0.5, H * 0.5), 0.75, Color.WHITE, 4.0)
+			emotes = [[2.0, kid, "..."], [3.8, kid, ":)"]]
+		"surface":
+			var kid = add.call(kid_sf, Vector2(W * 0.5, H * 0.72), 0.7, Color.WHITE, 1.5, Vector2(0, -H * 0.5))
+			emotes = [[3.6, kid, "!"]]
+	return {"cast": cast, "emotes": emotes}
+
+func _pick_family_kind() -> String:
+	var pool: Array = FAMILY_KINDS.filter(func(k): return k != _last_family)
+	var k: String = pool[randi() % pool.size()]
+	_last_family = k
+	return k
+
+func run_family(_sh: int, kind: String = "") -> void:
+	if kind == "":
+		kind = _pick_family_kind()
+	L._set_hud_visible(false)
+	if L.player_gui:
+		L.player_gui.visible = false
+	L.fade_rect.visible = true
+	L.fade_rect.color = Color(0, 0, 0, 1)
+	var layer = CanvasLayer.new()
+	layer.layer = 49
+	add_child(layer)
+	var vs = get_viewport().get_visible_rect().size
+	var shrink := 4
+	var cont = SubViewportContainer.new()
+	cont.stretch = true
+	cont.stretch_shrink = shrink
+	cont.size = vs
+	cont.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	cont.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cont.modulate.a = 0.0
+	layer.add_child(cont)
+	var sv = SubViewport.new()
+	sv.transparent_bg = false
+	sv.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	sv.snap_2d_transforms_to_pixel = true
+	sv.snap_2d_vertices_to_pixel = true
+	cont.add_child(sv)
+	var W = int(vs.x / shrink)
+	var H = int(vs.y / shrink)
+	var font = L._bubble_font()
+	var clk := {"t": 0.0, "on": true}
+	var lake = Control.new()
+	lake.size = Vector2(W, H)
+	lake.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sv.add_child(lake)
+	var front = Node2D.new()
+	front.z_index = 10
+	sv.add_child(front)
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var tex: Array = []
+	for i in range(5):
+		tex.append(load(LAKE_TEX % i))
+	var bubbles: Array = []
+	for i in range(7):
+		bubbles.append([rng.randf_range(0, W), rng.randf_range(0, H), rng.randf_range(6, 14), rng.randi_range(1, 2)])
+	var far: Array = []
+	for i in range(7):
+		far.append([rng.randf_range(-20, 20), rng.randf_range(-8, 8), rng.randf_range(0, TAU)])
+	var scroll_of = func(k: float) -> float:
+		return -clk["t"] * 9.0 * k
+	var tiled = func(ci: CanvasItem, t: Texture2D, off: float) -> void:
+		if t == null:
+			return
+		var tw = t.get_width()
+		var x = -fposmod(off, tw)
+		ci.draw_texture(t, Vector2(floor(x), 0))
+		ci.draw_texture(t, Vector2(floor(x) + tw, 0))
+	lake.draw.connect(func():
+		var tt: float = clk["t"]
+		if tex[0]:
+			lake.draw_texture(tex[0], Vector2.ZERO)
+		if kind == "surface":
+			for i in range(3):
+				var x0 = W * (0.3 + i * 0.2) + sin(tt * 0.5 + i) * 6.0
+				lake.draw_colored_polygon(PackedVector2Array([Vector2(x0, 0), Vector2(x0 + 14, 0), Vector2(x0 + 34, H * 0.8), Vector2(x0 + 18, H * 0.8)]), Color(0.75, 0.95, 0.85, 0.08 + 0.03 * sin(tt + i)))
+		tiled.call(lake, tex[1], scroll_of.call(0.2))
+		var sx = floor(fposmod(tt * 6.0 + W * 0.3, W + 80.0) - 40.0)
+		for f in far:
+			var fx = sx + f[0] + sin(tt * 2.0 + f[2]) * 2.0
+			var fy = 52 + f[1] + sin(tt * 1.3 + f[2]) * 1.5
+			lake.draw_rect(Rect2(floor(fx), floor(fy), 3, 1), Color8(34, 80, 98))
+			lake.draw_rect(Rect2(floor(fx) + 3, floor(fy) - 1, 1, 3), Color8(34, 80, 98))
+		tiled.call(lake, tex[2], scroll_of.call(0.5))
+		tiled.call(lake, tex[3], scroll_of.call(1.0))
+		)
+	var fgl = Node2D.new()
+	fgl.z_index = 5
+	sv.add_child(fgl)
+	fgl.draw.connect(func():
+		var tt: float = clk["t"]
+		for b in bubbles:
+			var by = fposmod(b[1] - tt * b[2], H)
+			var bx2 = floor(b[0] + sin(tt * 2.0 + b[1]) * 1.5)
+			var sz: int = b[3]
+			fgl.draw_rect(Rect2(bx2, floor(by), sz, sz), Color8(120, 184, 186))
+		tiled.call(fgl, tex[4], scroll_of.call(1.6)))
+	var data = _family_cast(kind, W, H, rng)
+	var cast: Array = data["cast"]
+	var fish: Array = []
+	for c in cast:
+		var fa = AnimatedSprite2D.new()
+		fa.sprite_frames = c["sf"]
+		fa.scale = Vector2(c["sc"], c["sc"])
+		fa.modulate = c["tint"]
+		fa.position = c["pos"] + Vector2(W * 0.45, 0)
+		fa.play("swim")
+		fa.frame = rng.randi() % 5
+		fa.speed_scale = rng.randf_range(0.85, 1.15)
+		sv.add_child(fa)
+		fish.append(fa)
+	var shown: Array = []
+	front.draw.connect(func():
+		if font == null:
+			return
+		for e in shown:
+			var who: Node2D = fish[e["i"]]
+			var el: float = clk["t"] - e["t0"]
+			if el > 1.8:
+				continue
+			var a = clamp(min(el / 0.15, (1.8 - el) / 0.4), 0.0, 1.0)
+			var pos = (who.position + Vector2(0, -26.0 * who.scale.y - floor(el * 3.0))).floor()
+			var tw = font.get_string_size(e["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+			var br = Rect2(floor(pos.x - tw * 0.5) - 3, pos.y - 9, tw + 6, 11)
+			front.draw_rect(br.grow(1), Color(0.06, 0.1, 0.16, 0.9 * a))
+			front.draw_rect(br, Color(0.95, 0.95, 0.92, 0.95 * a))
+			front.draw_rect(Rect2(pos.x - 1, br.end.y, 3, 2), Color(0.95, 0.95, 0.92, 0.95 * a))
+			front.draw_rect(Rect2(pos.x, br.end.y + 2, 1, 1), Color(0.95, 0.95, 0.92, 0.95 * a))
+			front.draw_string(font, Vector2(floor(pos.x - tw * 0.5), pos.y), e["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.1, 0.1, 0.12, a)))
+	var sub = RichTextLabel.new()
+	sub.bbcode_enabled = true
+	sub.fit_content = true
+	sub.scroll_active = false
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sub.size = Vector2(vs.x - 160.0, 0)
+	sub.position = Vector2(80.0, vs.y - 92.0)
+	if font:
+		sub.add_theme_font_override("normal_font", font)
+	sub.add_theme_font_size_override("normal_font_size", 16)
+	sub.add_theme_color_override("default_color", Color(0.95, 0.95, 0.9))
+	sub.add_theme_color_override("font_outline_color", Color(0.02, 0.04, 0.06))
+	sub.add_theme_constant_override("outline_size", 6)
+	sub.text = "[center]" + L.RICH_TEXT.fmt(_family_text(kind)) + "[/center]"
+	sub.modulate.a = 0.0
+	layer.add_child(sub)
+	var skip = Control.new()
+	skip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skip.size = Vector2(300, 44)
+	skip.position = Vector2(vs.x - 308.0, 8.0)
+	skip.modulate.a = 0.0
+	layer.add_child(skip)
+	var hold := {"v": 0.0}
+	skip.draw.connect(func():
+		var r = 13.0
+		var ctr = Vector2(skip.size.x - 22, 22)
+		skip.draw_arc(ctr, r, 0, TAU, 32, Color(1, 1, 1, 0.25), 3.0)
+		if hold["v"] > 0.0:
+			skip.draw_arc(ctr, r, -PI / 2.0, -PI / 2.0 + TAU * hold["v"], 32, Color(1.0, 0.75, 0.35), 3.0)
+		if font:
+			var kw = font.get_string_size(tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+			skip.draw_string(font, ctr + Vector2(-kw * 0.5, 3), tr("ЛКМ"), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.9))
+			var txt = tr("ПРОПУСКАЮ...") if hold["v"] > 0.0 else tr("ЗАЖМИ — ПРОПУСТИТЬ")
+			var tw2 = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+			skip.draw_string(font, Vector2(ctr.x - r - 10 - tw2, 27), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.92, 0.93, 0.96, 0.9)))
+	var total = DREAM_FADE + DREAM_LEN
+	var skipped := false
+	var out_t := -1.0
+	while is_instance_valid(layer):
+		await get_tree().process_frame
+		if not is_instance_valid(layer):
+			return
+		if get_tree().paused:
+			continue
+		var dt = get_process_delta_time() / max(0.05, Engine.time_scale)
+		clk["t"] += dt
+		var tt: float = clk["t"]
+		var held = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and out_t < 0.0
+		hold["v"] = clamp(hold["v"] + (dt if held else -dt * 2.0) / SKIP_HOLD, 0.0, 1.0)
+		if hold["v"] >= 1.0 and out_t < 0.0:
+			skipped = true
+			out_t = tt
+		if out_t < 0.0 and tt >= total:
+			out_t = tt
+		var k_in = clamp(tt / DREAM_FADE, 0.0, 1.0)
+		var k_out = 1.0 if out_t < 0.0 else clamp(1.0 - (tt - out_t) / (0.5 if skipped else DREAM_FADE), 0.0, 1.0)
+		cont.modulate.a = smoothstep(0.0, 1.0, k_in) * smoothstep(0.0, 1.0, k_out)
+		sub.modulate.a = clamp((tt - DREAM_FADE - 0.6) / 0.8, 0.0, 1.0) * smoothstep(0.0, 1.0, k_out)
+		skip.modulate.a = (0.85 if tt > 0.4 else tt / 0.4 * 0.85) * k_out
+		skip.queue_redraw()
+		for i in range(fish.size()):
+			var c = cast[i]
+			var arrive = clamp(tt / 2.4, 0.0, 1.0)
+			var ek = 1.0 - pow(1.0 - arrive, 3.0)
+			var lin = clamp(tt / total, 0.0, 1.0)
+			var base: Vector2 = c["pos"] + c["path"] * lin + Vector2(W * 0.45 * (1.0 - ek), 0)
+			var wob = Vector2(sin(tt * 0.7 + c["ph"]) * 2.0, sin(tt * 1.4 + c["ph"]) * c["amp"])
+			if kind == "school" and c["sc"] < 0.5:
+				wob += Vector2(sin(tt * 0.9 + c["ph"] * 2.0) * 6.0, cos(tt * 0.6 + c["ph"]) * 3.0)
+			fish[i].position = (base + wob).round()
+		for j in range(data["emotes"].size()):
+			var em = data["emotes"][j]
+			if tt >= em[0] and em.size() == 3:
+				em.append(true)
+				shown.append({"i": em[1], "text": em[2], "t0": tt})
+		lake.queue_redraw()
+		fgl.queue_redraw()
+		front.queue_redraw()
+		if out_t >= 0.0 and k_out <= 0.0:
+			break
+	clk["on"] = false
+	if is_instance_valid(layer):
+		layer.queue_free()
+	L._set_hud_visible(false)
+	if L.player_gui:
+		L.player_gui.visible = false
+	L.fade_rect.visible = true
+	L.fade_rect.color = Color(0, 0, 0, 1)
