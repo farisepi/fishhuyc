@@ -40,14 +40,24 @@ const CUTSCENE_CAM_DROP: float = 45.0
 const DEATH_SCREEN_SCENE: PackedScene = preload("res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn")
 
 const FL_SPAWN_AHEAD: float = 1200.0
-const FL_SPEED: float = 220.0
+const FL_SPEED: float = 430.0
 const FL_FISH_SPEED_MULT: float = 0.75
-const FL_QTE_GAP: float = 520.0
+const FL_QTE_GAP: float = 600.0
+const FL_BRAKE_MULT: float = 0.5
 const FL_SLOWMO: float = 0.15
 const FL_SLOWMO_RAMP: float = 0.5
 const FL_QTE_TIME: float = 2.0
 const FL_DASH_DIST: float = 100.0
 const FL_DASH_TIME: float = 0.28
+# общий план: погрузчик сначала показывают издалека, он ползёт, потом газует
+# погрузчик выезжает издалека и несётся; рыба бежит не останавливаясь, камера на ходу
+# коротко перебрасывается на погрузчик и обратно
+const FL_INTRO_AHEAD: float = 2500.0
+const FL_INTRO_LOOK_DELAY: float = 0.35
+const FL_INTRO_HOLD: float = 0.8
+# после попадания: виляя и замедляясь, доезжает и встаёт перед рыбой
+const FL_LIMP_SPEED: float = 260.0
+const FL_LIMP_STOP_GAP: float = 34.0
 
 const ENABLE_PARRY_SCENE: bool = false
 const ALLOW_BLOCK_AND_PARRY: bool = false
@@ -68,7 +78,6 @@ var forklift_charging: bool = false
 
 var parry_done: bool = false
 var parry_trigger: Area2D = null
-var passage_done: bool = false
 
 var _shake: float = 0.0
 var _shake_floor: float = 0.0
@@ -186,7 +195,6 @@ func _ready():
 	_create_fx_layer()
 
 	_setup_parry_scene()
-	_setup_entrance_gate()
 	_setup_hints_and_arena()
 	_last_ticks = Time.get_ticks_msec()
 	if camera:
@@ -359,51 +367,6 @@ func _setup_parry_scene():
 	if enemy:
 		enemy.collision_layer = 0
 		enemy.collision_mask = 0
-
-func _setup_entrance_gate():
-	var entrance_gate = get_node_or_null("EntranceGate")
-	var entrance_trigger = get_node_or_null("EntranceTrigger")
-	var passage_trigger = get_node_or_null("TightPassageTrigger")
-	if entrance_gate:
-		var col = entrance_gate.get_node_or_null("CollisionShape2D")
-		if col:
-			col.disabled = false
-	if passage_trigger and passage_trigger.has_signal("passage_completed"):
-		passage_trigger.passage_completed.connect(_on_passage_completed)
-	if entrance_trigger:
-		entrance_trigger.body_entered.connect(_on_entrance_entered)
-
-func _on_entrance_entered(_body):
-	pass
-
-func _update_passage_entry():
-	var entrance_trigger = get_node_or_null("EntranceTrigger")
-	var passage_trigger = get_node_or_null("TightPassageTrigger")
-	var can_enter = entrance_trigger != null and passage_trigger != null \
-		and not passage_trigger.is_active and entrance_trigger.overlaps_body(player)
-	_set_passage_hint(can_enter)
-	if can_enter and Input.is_action_just_pressed("interact"):
-		_set_passage_hint(false)
-		var gate = get_node_or_null("EntranceGate")
-		if gate:
-			var col = gate.get_node_or_null("CollisionShape2D")
-			if col:
-				col.set_deferred("disabled", true)
-		passage_trigger.call_deferred("activate", player)
-
-var _passage_hint: Label = null
-
-func _set_passage_hint(on: bool):
-	if _passage_hint == null:
-		if not on:
-			return
-		_passage_hint = _make_world_hint("E — протиснуться")
-	if on:
-		_passage_hint.position = to_local(player.global_position + Vector2(-_passage_hint.size.x * 0.5, -80))
-	_passage_hint.modulate.a = move_toward(_passage_hint.modulate.a, 1.0 if on else 0.0, 0.12)
-
-func _on_passage_completed():
-	passage_done = true
 
 func _start_intro():
 	if _intro_started:
@@ -804,7 +767,6 @@ func _process_gameplay(delta):
 		_check_enemy_collision()
 
 		_update_shelf_hint()
-		_update_passage_entry()
 		_update_hints_and_arena(delta)
 
 		if forklift_ready_for_throw and not forklift_stopped:
@@ -817,7 +779,7 @@ func _process_gameplay(delta):
 				player.set_can_throw(false)
 
 		var btn_pos = elevator_button.global_position + Vector2(268, 12) if elevator_button else Vector2.INF
-		var near_button = passage_done and player.global_position.distance_to(btn_pos) < 70.0
+		var near_button = player.global_position.distance_to(btn_pos) < 70.0
 		can_press_button = near_button
 		_set_elevator_hint(near_button)
 		if near_button and Input.is_action_just_pressed("interact"):
@@ -976,6 +938,7 @@ func _forklift_center() -> Vector2:
 	return forklift.global_position + Vector2(90, 50)
 
 var _shelf_base_y: float = 0.0
+var _fl_drive_speed: float = 0.0
 
 func _play_forklift_cutscene():
 	state = State.FORKLIFT_CUTSCENE
@@ -1008,23 +971,41 @@ func _play_forklift_cutscene():
 	forklift.collision_layer = 0
 	forklift.collision_mask = 0
 	var fc_off = _forklift_center() - forklift.global_position
-	forklift.global_position.x = player.global_position.x + FL_SPAWN_AHEAD - fc_off.x
+	forklift.global_position.x = player.global_position.x + FL_INTRO_AHEAD - fc_off.x
 	_prepare_shelf_on_forks()
 	forklift.visible = true
 	falling_shelf.visible = true
 
+	var cam_dy = cam_from.y - player.global_position.y + CUTSCENE_CAM_DROP
 	_cam_track = player
-	_cam_track_offset = Vector2(120.0, cam_from.y - player.global_position.y + CUTSCENE_CAM_DROP)
+	_cam_track_offset = Vector2(120.0, cam_dy)
 	var zt = create_tween()
 	zt.set_ignore_time_scale(true)
 	zt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	zt.tween_property(camera, "zoom", start_zoom * 0.85, 1.4)
+	zt.tween_property(camera, "zoom", start_zoom * 0.85, 0.8)
 
 	if player.sprite:
 		player.sprite.scale.x = 1
 		player.sprite.play("Run")
 	_cutscene_running = true
+	_fl_drive_speed = FL_SPEED
 	_shake_floor = 0.05
+
+	await _wait(FL_INTRO_LOOK_DELAY)
+	if not is_inside_tree():
+		return
+	_cam_track = forklift
+	_cam_track_offset = Vector2(-90.0, player.global_position.y + cam_dy - forklift.global_position.y)
+	await _wait(0.3)
+	if not is_inside_tree():
+		return
+	_forklift_headlights()
+	_add_shake(0.2)
+	await _wait(FL_INTRO_HOLD)
+	if not is_inside_tree():
+		return
+	_cam_track = player
+	_cam_track_offset = Vector2(120.0, cam_dy)
 
 	while _forklift_center().x - player.global_position.x > FL_QTE_GAP:
 		await get_tree().process_frame
@@ -1032,6 +1013,15 @@ func _play_forklift_cutscene():
 			return
 
 	state = State.FORKLIFT_QTE
+	# водитель тормозит, камера берёт в кадр и рыбу, и погрузчик
+	var br = create_tween()
+	br.tween_property(self, "_fl_drive_speed", FL_SPEED * FL_BRAKE_MULT, 0.4)
+	_spawn_sparks(_forklift_center() + Vector2(-20, 30), Color(1, 0.8, 0.4, 0.9), 12)
+	var qt = create_tween().set_parallel(true)
+	qt.set_ignore_time_scale(true)
+	qt.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	qt.tween_property(self, "_cam_track_offset:x", 220.0, 0.6)
+	qt.tween_property(camera, "zoom", start_zoom * 0.75, 0.6)
 	_start_sniper_aim()
 	_time_scale_to(FL_SLOWMO, FL_SLOWMO_RAMP)
 	_start_bullet()
@@ -1069,11 +1059,10 @@ func _ground_player() -> void:
 		await _wait(0.2)
 
 func _update_cutscene_motion(delta: float):
-	if not _cutscene_running:
-		return
-	player.global_position.x += player.run_speed * FL_FISH_SPEED_MULT * delta
-	if not forklift_stopped:
-		forklift.global_position.x -= FL_SPEED * delta
+	if _cutscene_running:
+		player.global_position.x += player.run_speed * FL_FISH_SPEED_MULT * delta
+	if _fl_drive_speed > 0.0 and not forklift_stopped:
+		forklift.global_position.x -= _fl_drive_speed * delta
 		_attach_shelf_to_forklift()
 
 func _prepare_shelf_on_forks():
@@ -1166,7 +1155,9 @@ func _forklift_success(start_zoom: Vector2) -> void:
 	await _bullet_fly_to(_forklift_center(), 0.35)
 	if not is_inside_tree():
 		return
-	_forklift_break()
+	await _forklift_limp_to_fish()
+	if not is_inside_tree():
+		return
 	await _drop_shelf()
 	if not is_inside_tree():
 		return
@@ -1238,6 +1229,62 @@ func _spawn_ghost():
 	t.set_ignore_time_scale(true)
 	t.tween_property(g, "modulate:a", 0.0, 0.4)
 	t.tween_callback(g.queue_free)
+
+func _forklift_headlights():
+	var c = _forklift_center()
+	for i in 2:
+		var g = Polygon2D.new()
+		g.z_index = 30
+		g.color = Color(1.0, 0.95, 0.7, 0.0)
+		var front = c + Vector2(-34.0, -10.0 + i * 14.0)
+		g.polygon = PackedVector2Array([Vector2.ZERO, Vector2(-150, -26), Vector2(-150, 26)])
+		forklift.add_child(g)
+		g.global_position = front
+		var t = create_tween()
+		t.tween_property(g, "color:a", 0.35, 0.08)
+		t.tween_property(g, "color:a", 0.05, 0.12)
+		t.tween_property(g, "color:a", 0.3, 0.08)
+		t.tween_property(g, "color:a", 0.0, 0.9)
+		t.tween_callback(g.queue_free)
+	_spawn_sparks(c + Vector2(30, 20), Color(0.55, 0.55, 0.6, 0.8), 10)
+
+func _forklift_limp_to_fish() -> void:
+	forklift_stopped = true
+	_fl_drive_speed = 0.0
+	_flash(Color(1, 1, 1, 0.3), 0.2)
+	_add_shake(0.5)
+	_spawn_sparks(_forklift_center(), Color(1, 0.75, 0.3), 28)
+	var dim = create_tween()
+	dim.tween_property(forklift, "modulate", Color(0.45, 0.42, 0.42, 1), 0.6)
+	var target_front = player.global_position.x + FL_LIMP_STOP_GAP + 18.0
+	var dist = max(_shelf_rect().position.x - target_front, 0.0)
+	var dur = clamp(2.0 * dist / FL_LIMP_SPEED, 0.6, 3.6)
+	var x0 = forklift.global_position.x
+	var t = create_tween()
+	t.tween_method(_limp_step.bind(x0, dist), 0.0, 1.0, dur)
+	var smoke_n = int(dur / 0.25)
+	for i in smoke_n:
+		get_tree().create_timer(i * 0.25).timeout.connect(func():
+			if is_instance_valid(forklift):
+				_spawn_sparks(_forklift_center() + Vector2(10, -20), Color(0.35, 0.35, 0.38, 0.7), 3))
+	await t.finished
+	var settle = create_tween()
+	settle.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	settle.tween_property(forklift, "rotation", deg_to_rad(-6.0), 0.15)
+	settle.tween_property(forklift, "rotation", deg_to_rad(-3.5), 0.25)
+	await settle.finished
+	_add_shake(0.25)
+
+func _limp_step(k: float, x0: float, dist: float) -> void:
+	if not is_instance_valid(forklift):
+		return
+	var e = 1.0 - (1.0 - k) * (1.0 - k)
+	forklift.global_position.x = x0 - dist * e
+	var wob = sin(k * 26.0) * (1.0 - k) * 4.0
+	forklift.rotation = deg_to_rad(-3.5 * min(k * 4.0, 1.0) + wob)
+	_attach_shelf_to_forklift()
+	falling_shelf.global_position.y += abs(sin(k * 26.0)) * (1.0 - k) * -3.0
+	falling_shelf.rotation = deg_to_rad(wob * 0.5)
 
 func _forklift_break():
 	forklift_stopped = true
@@ -1665,14 +1712,24 @@ const ARENA_MONKEY := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/M
 const ARENA_PIGEON := preload("res://GameScenes/EntityScenes/EnemyEntityScenes/MechaPigeonScenes/Enemy_MechaPigeon_Storage_Scene.tscn")
 
 const ARENA_ENEMY_HP: int = 3
-const ARENA_SPAWN_GAP: float = 3.5
 const ARENA_HEAL: int = 2
 
-const ARENA_INTRO_DELAY: float = 1.3
-const ARENA_DROP_WARN: float = 0.8
-const ARENA_LANDING_STUN: float = 1.0
+const ARENA_INTRO_DELAY: float = 0.35
+const ARENA_ENGAGE_DIST: float = 230.0
 const ARENA_SPEED_MULT: float = 0.74
 const ARENA_HIT_BREATHER: float = 1.6
+# враги уже стоят в зоне и топчутся у своих мест; нападает только один, следующий — после паузы
+const ARENA_TURN_GAP: float = 1.1
+const ARENA_FOLLOW_GAP: float = 75.0
+const ARENA_FOLLOW_MIN: float = 120.0
+const ARENA_FOLLOW_SPEED: float = 0.55
+const ARENA_IDLE_SWAY: float = 10.0
+const ARENA_ROW_GAP: float = 70.0
+const ARENA_ROW_MARGIN: float = 70.0
+# голубь «далеко»: на фоне, меньше и в дымке, бьёт сквозь всё
+const FAR_SNIPER_SCALE: float = 0.62
+const FAR_TINT := Color(0.55, 0.6, 0.74)
+const FAR_Z: int = -2
 
 const ITEM_SCENE := preload("res://GameScenes/LevelScenes/ActPrologueLevelScenes/HallwayLevelScenes/HallwayEntityScenes/HallwayGrabbableItemScene/ActPrologue_LevelHallway_GrabbableItem_Scene.tscn")
 const ITEM_PICK_RADIUS: float = 46.0
@@ -1685,6 +1742,10 @@ const ARENA1_MIN_ENEMIES: int = 2
 const ARENA1_MAX_ENEMIES: int = 3
 const ARENA1_MAX_ALIVE: int = 2
 
+# зона 3 — там, где был узкий проход: между погрузчиком и Obstacle8
+const ARENA3_LEFT_X: float = 5200.0
+const ARENA3_GAP_BEFORE_O8: float = 84.0
+const ARENA_TURN_HITS: int = 2
 const ARENA2_GAP_AFTER_O9: float = 140.0
 const ARENA2_WIDTH: float = 1100.0
 const ARENA2_MAX_ALIVE: int = 1
@@ -1750,7 +1811,98 @@ func _setup_hints_and_arena():
 			right2 = min(right2, btn.global_position.x + 268.0 - 220.0)
 		_build_balcony(left2 + BALCONY_X_FROM_LEFT)
 		_arenas.append(_new_arena("arena2", left2, right2, [ARENA_DOG, ARENA_MONKEY, ARENA_DOG], ARENA2_MAX_ALIVE,
-			[right2 - 90.0, left2 + 60.0, right2 - 160.0], false, true))
+			[right2 - 90.0, left2 + 260.0, right2 - 330.0], false, true))
+
+	var o8 = get_node_or_null("Barriers/Obstacle8")
+	if o8:
+		var right3 = _node_rect(o8).position.x - ARENA3_GAP_BEFORE_O8
+		_arenas.append(_new_arena("arena3", ARENA3_LEFT_X, right3, [ARENA_MONKEY, ARENA_DOG, ARENA_DOG], 1,
+			[], false, false))
+
+	_place_arena_enemies.call_deferred()
+
+func _place_arena_enemies():
+	for a in _arenas:
+		var q: Array = a["ground"].duplicate()
+		if a["id"] == "arena1" and not arena_debug_queue.is_empty():
+			q = arena_debug_queue.duplicate()
+		var floor_top = _floor_top_y()
+		if is_nan(floor_top):
+			floor_top = player.global_position.y + 28.0
+		for i in q.size():
+			var x = a["right"] - ARENA_ROW_MARGIN - (q.size() - 1 - i) * ARENA_ROW_GAP
+			var e = q[i].instantiate()
+			_arena_node.add_child(e)
+			e.global_position = Vector2(x, floor_top - 80.0)
+			_setup_arena_enemy(e, a)
+			_set_enemy_waiting(e, x)
+		a["total"] = q.size()
+		if a["sniper"]:
+			_arena_spawn_balcony_sniper(a)
+
+func _set_enemy_waiting(e: Node, x: float) -> void:
+	e.set_meta("arena_wait", true)
+	e.aggro_range = 0.0
+	e.deaggro_range = 0.0
+	e.is_aggro = false
+	if e.has_method("_release_token"):
+		e._release_token()
+	e.set_meta("arena_spot", x)
+	e.set_meta("wait_hp", e.hp)
+	e.patrol_origin = Vector2(x - 1.0, e.global_position.y)
+	e.patrol_range = 0.0
+	e.patrol_dir = -1
+	e.patrol_speed_mult = 0.0
+
+func _update_waiting(e: Node, x: float, mult: float) -> void:
+	e.is_aggro = false
+	if e.has_method("_release_token"):
+		e._release_token()
+	var dx = x - e.global_position.x
+	if abs(dx) > 6.0:
+		e.patrol_origin.x = x
+		e.patrol_speed_mult = mult
+	else:
+		e.patrol_origin.x = e.global_position.x - 1.0
+		e.patrol_speed_mult = 0.0
+		e.patrol_dir = 1 if player.global_position.x > e.global_position.x else -1
+
+# до боя строй переминается на месте
+func _update_row_idle(a: Dictionary) -> void:
+	var t = Time.get_ticks_msec() / 1000.0
+	var i := 0
+	for e in a["enemies"]:
+		if is_instance_valid(e) and not e.get("is_dead") and e.has_meta("arena_wait"):
+			var spot: float = e.get_meta("arena_spot", e.global_position.x)
+			_update_waiting(e, spot + sin(t * 0.7 + i * 1.9) * ARENA_IDLE_SWAY, 0.25)
+			i += 1
+
+# в бою ждущие неспешно идут следом за нападающим, держась позади
+func _update_followers(a: Dictionary, alive: Array, cur) -> void:
+	var waiting: Array = []
+	for e in alive:
+		if e.has_meta("arena_wait"):
+			waiting.append(e)
+	waiting.sort_custom(func(p, q): return abs(p.global_position.x - player.global_position.x) < abs(q.global_position.x - player.global_position.x))
+	for i in waiting.size():
+		var e = waiting[i]
+		var side = 1.0 if e.global_position.x >= player.global_position.x else -1.0
+		var anchor = cur.global_position.x if cur else player.global_position.x + side * ARENA_FOLLOW_MIN
+		var x = anchor + side * ARENA_FOLLOW_GAP * (i + 1)
+		var min_off = ARENA_FOLLOW_MIN + ARENA_FOLLOW_GAP * i
+		if side * (x - player.global_position.x) < min_off:
+			x = player.global_position.x + side * min_off
+		x = clamp(x, a["left"] + 30.0, a["right"] - 30.0)
+		_update_waiting(e, x, ARENA_FOLLOW_SPEED)
+
+func _set_enemy_attacker(e: Node) -> void:
+	e.remove_meta("arena_wait")
+	e.set_meta("turn_hp", e.hp)
+	e.patrol_speed_mult = 0.35
+	e.aggro_range = 2000.0
+	e.deaggro_range = 3000.0
+	if e.has_method("hear_alert"):
+		e.hear_alert(player)
 
 func _new_arena(id: String, left: float, right: float, ground: Array, max_alive: int,
 		spots: Array, block_climb: bool, with_balcony_sniper: bool) -> Dictionary:
@@ -1758,10 +1910,10 @@ func _new_arena(id: String, left: float, right: float, ground: Array, max_alive:
 		"id": id, "left": left, "right": right, "ground": ground.duplicate(),
 		"max_alive": max_alive, "spots": spots, "block_climb": block_climb,
 		"sniper": with_balcony_sniper, "state": Arena.WAITING, "enemies": [],
-		"queue": [], "total": 0, "killed": 0, "next_timer": 0.0, "spawn_i": 0,
+		"total": 0, "killed": 0,
 		"saved_barriers": null, "gate": null, "wall": null, "zoom": Vector2.ZERO,
-		"intro_t": 0.0, "pending": 0, "last_hp": -1, "items": with_balcony_sniper,
-		"sniper_leaving": false,
+		"intro_t": 0.0, "last_hp": -1, "items": true, "items_on": false,
+		"sniper_leaving": false, "attacker": null, "turn_t": 0.0,
 	}
 
 func _node_rect(o: Node) -> Rect2:
@@ -1785,21 +1937,33 @@ func _update_hints_and_arena(delta: float):
 	for a in _arenas:
 		match a["state"]:
 			Arena.WAITING:
-				if player.global_position.x > a["left"] + 70.0 and player.global_position.x < a["right"] \
+				_update_row_idle(a)
+				if a["items"] and player.global_position.x > a["left"] and player.global_position.x < a["right"]:
+					if not a["items_on"]:
+						a["items_on"] = true
+						_start_items(a)
+					_update_items(a, delta)
+				if player.global_position.x > _arena_engage_x(a) and player.global_position.x < a["right"] \
 						and player.is_on_floor() and not player.is_dead:
 					_start_arena(a)
 			Arena.FIGHT:
 				_update_arena(a, delta)
 
+# бой начинается, когда рыба подошла к строю
+func _arena_engage_x(a: Dictionary) -> float:
+	var front := INF
+	for e in a["enemies"]:
+		if is_instance_valid(e) and not e.get("is_dead") and not e.has_meta("arena_sniper"):
+			front = min(front, e.global_position.x)
+	if front == INF:
+		return a["left"] + 70.0
+	return max(a["left"] + 70.0, front - ARENA_ENGAGE_DIST)
+
 func _start_arena(a: Dictionary):
 	a["state"] = Arena.FIGHT
-	a["queue"] = a["ground"].duplicate()
-	if a["id"] == "arena1" and not arena_debug_queue.is_empty():
-		a["queue"] = arena_debug_queue.duplicate()
-	a["total"] = a["queue"].size()
 	a["killed"] = 0
-	a["enemies"] = []
-	a["spawn_i"] = 0
+	a["attacker"] = null
+	a["turn_t"] = 0.0
 
 	_deactivate_sniper()
 	if a["block_climb"] and "barriers_node" in player:
@@ -1810,23 +1974,28 @@ func _start_arena(a: Dictionary):
 	_add_shake(0.25)
 
 	if a["sniper"]:
-		_arena_spawn_balcony_sniper(a)
-		if _hints:
-			_hints.hint("throw", "БРОСОК|Подбери паллет и швырни во врага — он оглушён на 2 секунды", ["interact"],
-				func(): return _thrown_once or a["state"] == Arena.CLEARED, 2.0, 10.0)
+		for e in a["enemies"]:
+			if is_instance_valid(e) and e.has_meta("arena_sniper"):
+				e.aggro_range = 4000.0
+				e.deaggro_range = 6000.0
+				if e.has_method("hear_alert"):
+					e.hear_alert(player)
 		if camera:
 			_frame_camera_for_balcony(a)
 		if _hints:
-			_hints.hint("balcony", "СНАЙПЕР НА БАЛКОНЕ|Его не достать. Луч замер — жми рывок, под балконом пули не долетят", ["Run"],
+			_hints.hint("balcony", "СНАЙПЕР ВДАЛИ|Его не достать, а он достанет везде. Луч замер — жми рывок", ["Run"],
 				func(): return a["state"] == Arena.CLEARED, 2.5, 11.0)
 	elif _hints:
 		_hints.hint("fight", "ДРАТЬСЯ|Враги перекрыли путь. ЛКМ — удар, SHIFT — увернуться", ["ЛКМ"],
 			func(): return a["state"] == Arena.CLEARED, 2.0, 10.0)
 
-	if a["items"]:
+	if a["items"] and not a["items_on"]:
+		a["items_on"] = true
 		_start_items(a)
+	if a["items"] and not _thrown_once and _hints:
+		_hints.hint("throw", "БРОСОК|Подбери паллет и швырни во врага — он оглушён на 2 секунды", ["interact"],
+			func(): return _thrown_once or a["state"] == Arena.CLEARED, 2.0, 10.0)
 	a["intro_t"] = ARENA_INTRO_DELAY
-	a["next_timer"] = ARENA_SPAWN_GAP
 	a["last_hp"] = player.hp if "hp" in player else -1
 
 func _frame_camera_for_balcony(a: Dictionary):
@@ -1858,76 +2027,31 @@ func _setup_arena_enemy(e: Node, a: Dictionary):
 			e.set(k, e.get(k) * ARENA_SPEED_MULT)
 	if "quad_cooldown" in e:
 		e.quad_cooldown = 4.0
-	if e.has_method("hear_alert"):
-		e.hear_alert(player)
 	a["enemies"].append(e)
-
-func _arena_spawn_next(a: Dictionary):
-	if a["queue"].is_empty() or not is_inside_tree():
-		return
-	var spots: Array = a["spots"]
-	var x = clamp(spots[min(a["spawn_i"], spots.size() - 1)], a["left"] + 40.0, a["right"] - 40.0)
-	a["spawn_i"] += 1
-	var scene: PackedScene = a["queue"].pop_front()
-	var floor_top = _floor_top_y()
-	if is_nan(floor_top):
-		floor_top = player.global_position.y + 28.0
-	a["pending"] += 1
-	var marker = _drop_marker(Vector2(x, floor_top))
-	await get_tree().create_timer(ARENA_DROP_WARN).timeout
-	if is_instance_valid(marker):
-		marker.queue_free()
-	if not is_inside_tree() or a["state"] != Arena.FIGHT:
-		a["pending"] -= 1
-		return
-	var e = scene.instantiate()
-	_arena_node.add_child(e)
-	e.global_position = Vector2(x, floor_top - 150.0)
-	if "patrol_range" in e:
-		e.patrol_range = 60.0
-	_setup_arena_enemy(e, a)
-	if e.has_method("stun"):
-		e.stun(ARENA_LANDING_STUN)
-	a["pending"] -= 1
-	_spawn_sparks(Vector2(x, floor_top), Color(0.7, 0.68, 0.65, 0.9), 10)
-	_update_arena_counter(a)
-
-func _drop_marker(at: Vector2) -> Node2D:
-	var m = Node2D.new()
-	m.z_index = 55
-	add_child(m)
-	m.global_position = at
-	var bar = ColorRect.new()
-	bar.color = Color(1, 0.2, 0.15, 0.8)
-	bar.position = Vector2(-20, -3)
-	bar.size = Vector2(40, 3)
-	m.add_child(bar)
-	var arrow = Polygon2D.new()
-	arrow.color = Color(1, 0.25, 0.2, 0.95)
-	arrow.polygon = PackedVector2Array([Vector2(-7, -30), Vector2(7, -30), Vector2(0, -20)])
-	m.add_child(arrow)
-	var t = create_tween().set_loops()
-	t.bind_node(m)
-	t.tween_property(m, "modulate:a", 0.35, 0.12)
-	t.tween_property(m, "modulate:a", 1.0, 0.12)
-	return m
 
 func _arena_spawn_balcony_sniper(a: Dictionary):
 	var e = ARENA_PIGEON.instantiate()
 	e.set_meta("arena_sniper", true)
 	_arena_node.add_child(e)
-	e.global_position = Vector2(_balcony_rect.get_center().x + 50.0, _balcony_rect.position.y - 60.0)
-	e.collision_mask |= 16
+	e.scale = Vector2(FAR_SNIPER_SCALE, FAR_SNIPER_SCALE)
+	e.global_position = Vector2(_balcony_rect.get_center().x + 50.0, _balcony_rect.position.y - 60.0 * FAR_SNIPER_SCALE)
+	e.collision_layer = 0
+	e.collision_mask = 16
+	e.z_index = FAR_Z
+	e.modulate = FAR_TINT
+	e.aggro_range = 0.0
+	e.deaggro_range = 0.0
 	if "patrol_range" in e:
 		e.patrol_range = 30.0
 	if "pistol_keep_min" in e:
 		e.pistol_keep_min = 0.0
-	if e.has_method("hear_alert"):
-		e.hear_alert(player)
+	if "sniper_min_range" in e:
+		e.sniper_min_range = 0.0
+	if "sniper_max_range" in e:
+		e.sniper_max_range = 4000.0
 	if e.is_in_group("enemies"):
 		e.remove_from_group("enemies")
 	a["enemies"].append(e)
-	_spawn_sparks(e.global_position, Color(0.6, 0.85, 1.0, 0.9), 8)
 
 var _call_cam_on: bool = false
 var _call_start_zoom: Vector2 = Vector2.ONE
@@ -2095,7 +2219,9 @@ func _sniper_exit_through_door(e: Node) -> void:
 	var door_x = _balcony_rect.end.x - 26.0
 	var floor_y = _balcony_rect.position.y
 	var door = Node2D.new()
-	door.z_index = 2
+	door.z_index = FAR_Z - 1
+	door.modulate = FAR_TINT
+	door.scale = Vector2(FAR_SNIPER_SCALE, FAR_SNIPER_SCALE)
 	add_child(door)
 	door.global_position = Vector2(door_x, floor_y)
 	var frame = ColorRect.new()
@@ -2143,48 +2269,73 @@ func _sniper_exit_through_door(e: Node) -> void:
 	door.queue_free()
 
 func _update_arena(a: Dictionary, delta: float):
-	if a["items"] and not a["sniper_leaving"]:
+	if a["items_on"] and not a["sniper_leaving"]:
 		_update_items(a, delta)
 	if "hp" in player:
 		if a["last_hp"] >= 0 and player.hp < a["last_hp"]:
 			for e in a["enemies"]:
-				if is_instance_valid(e) and not e.get("is_dead") and not e.has_meta("arena_sniper"):
-					if "cooldown" in e:
-						e.cooldown = max(e.cooldown, ARENA_HIT_BREATHER)
-					if "quad_cooldown" in e:
-						e.quad_cooldown = max(e.quad_cooldown, ARENA_HIT_BREATHER * 2.0)
+				if is_instance_valid(e) and not e.get("is_dead") and e.has_meta("arena_sniper"):
+					if e.get("state") == e.State.AIM:
+						e._hide_aim()
+						e.t = -ARENA_HIT_BREATHER
 		a["last_hp"] = player.hp
-	if a["intro_t"] > 0.0:
-		a["intro_t"] -= delta
-		if a["intro_t"] <= 0.0:
-			_arena_spawn_next(a)
-			a["next_timer"] = ARENA_SPAWN_GAP
-		return
-	var alive_ground: int = a["pending"]
-	var ground_spawned := 0
+	var alive: Array = []
 	var pigeon: Node = null
 	for e in a["enemies"]:
-		var is_sniper = is_instance_valid(e) and e.has_meta("arena_sniper")
-		if is_sniper:
-			if not e.get("is_dead"):
-				pigeon = e
+		if not is_instance_valid(e) or e.get("is_dead"):
 			continue
-		ground_spawned += 1
-		if is_instance_valid(e) and not e.get("is_dead"):
-			alive_ground += 1
-	a["killed"] = ground_spawned - (alive_ground - a["pending"])
+		if e.has_meta("arena_sniper"):
+			pigeon = e
+		else:
+			alive.append(e)
+	a["killed"] = a["total"] - alive.size()
 	_update_arena_counter(a)
 	if a["sniper_leaving"]:
 		return
-
-	if not a["queue"].is_empty():
-		a["next_timer"] -= delta
-		if alive_ground == 0 or (a["next_timer"] <= 0.0 and alive_ground < a["max_alive"]):
-			_arena_spawn_next(a)
-			a["next_timer"] = ARENA_SPAWN_GAP
+	if a["intro_t"] > 0.0:
+		a["intro_t"] -= delta
 		return
 
-	if alive_ground == 0 and a["pending"] == 0 and ground_spawned > 0:
+	var cur = a["attacker"]
+	if cur != null and (not is_instance_valid(cur) or cur.get("is_dead")):
+		cur = null
+		a["attacker"] = null
+		a["turn_t"] = ARENA_TURN_GAP
+	# ударили того, кто ждал, — он вступает, а прежний отходит к своему месту
+	for e in alive:
+		if e != cur and e.has_meta("arena_wait") and e.hp < int(e.get_meta("wait_hp", e.max_hp)):
+			if cur:
+				_set_enemy_waiting(cur, cur.get_meta("arena_spot", cur.global_position.x))
+			_set_enemy_attacker(e)
+			cur = e
+			a["attacker"] = e
+			break
+	# по нападающему попали ARENA_TURN_HITS раз — он отходит в строй, бить идёт следующий
+	if cur and cur.hp <= int(cur.get_meta("turn_hp", cur.hp)) - ARENA_TURN_HITS:
+		var nxt = null
+		for e in alive:
+			if e != cur and e.has_meta("arena_wait"):
+				if nxt == null or abs(e.global_position.x - player.global_position.x) < abs(nxt.global_position.x - player.global_position.x):
+					nxt = e
+		if nxt:
+			_set_enemy_waiting(cur, cur.get_meta("arena_spot", cur.global_position.x))
+			_set_enemy_attacker(nxt)
+			cur = nxt
+			a["attacker"] = nxt
+		else:
+			cur.set_meta("turn_hp", cur.hp)
+	_update_followers(a, alive, cur)
+	if cur == null and not alive.is_empty():
+		a["turn_t"] -= delta
+		if a["turn_t"] <= 0.0:
+			var best = null
+			for e in alive:
+				if best == null or abs(e.global_position.x - player.global_position.x) < abs(best.global_position.x - player.global_position.x):
+					best = e
+			_set_enemy_attacker(best)
+			a["attacker"] = best
+
+	if alive.is_empty():
 		if pigeon:
 			a["sniper_leaving"] = true
 			_sniper_phone_call(a, pigeon)
@@ -2193,7 +2344,7 @@ func _update_arena(a: Dictionary, delta: float):
 
 func _clear_arena(a: Dictionary):
 	a["state"] = Arena.CLEARED
-	if a["items"]:
+	if a["items_on"]:
 		_stop_items()
 	if a["block_climb"] and "barriers_node" in player and a["saved_barriers"]:
 		player.barriers_node = a["saved_barriers"]
@@ -2284,14 +2435,16 @@ func _build_balcony(cx: float):
 	var barriers = get_node_or_null("Barriers")
 	if barriers == null:
 		return
-	var thick := 12.0
+	var thick := 8.0
 	var top = min(_tiles_top_y() - BALCONY_ABOVE_TILES, floor_top - 100.0)
 	_balcony_h = floor_top - top
 	_balcony_rect = Rect2(Vector2(cx - BALCONY_WIDTH * 0.5, top), Vector2(BALCONY_WIDTH, thick))
 
 	_balcony = StaticBody2D.new()
 	_balcony.name = "Balcony2F"
-	barriers.add_child(_balcony)
+	_balcony.collision_layer = 16
+	_balcony.collision_mask = 0
+	add_child(_balcony)
 	_balcony.global_position = _balcony_rect.get_center()
 	var cs = CollisionShape2D.new()
 	var rs = RectangleShape2D.new()
@@ -2300,7 +2453,8 @@ func _build_balcony(cx: float):
 	_balcony.add_child(cs)
 
 	var vis = Node2D.new()
-	vis.z_index = 3
+	vis.z_index = FAR_Z - 1
+	vis.modulate = FAR_TINT
 	_balcony.add_child(vis)
 	var w = BALCONY_WIDTH
 	var deck = ColorRect.new()
@@ -2322,11 +2476,11 @@ func _build_balcony(cx: float):
 		vis.add_child(st)
 	for sx in [-w * 0.5 + 8.0, w * 0.5 - 14.0]:
 		var post = ColorRect.new()
-		post.color = Color(0.2, 0.21, 0.24)
+		post.color = Color(0.16, 0.17, 0.2)
 		post.position = Vector2(sx, thick * 0.5)
-		post.size = Vector2(6, _balcony_h - thick)
+		post.size = Vector2(4, _balcony_h - thick)
 		vis.add_child(post)
-	var rail_h := 22.0
+	var rail_h := 22.0 * FAR_SNIPER_SCALE
 	var rail = Line2D.new()
 	rail.width = 2.0
 	rail.default_color = Color(0.6, 0.62, 0.68)
@@ -2396,7 +2550,13 @@ func _start_items(a: Dictionary):
 	var floor_top = _floor_top_y()
 	if is_nan(floor_top):
 		return
-	var xs = [a["left"] + 160.0, a["left"] + 360.0, a["right"] - 170.0]
+	var n_row = a["ground"].size()
+	var front = a["right"] - ARENA_ROW_MARGIN - (n_row - 1) * ARENA_ROW_GAP - 90.0
+	var from_x = a["left"] + 90.0
+	var count = 3 if front - from_x > 360.0 else 2
+	var xs: Array = []
+	for i in count:
+		xs.append(lerp(from_x, front, float(i) / float(count - 1)))
 	for x in xs:
 		var en = {"node": null, "spot": Vector2(x, floor_top - 9.25), "respawn": 0.0}
 		_items.append(en)
@@ -2437,7 +2597,8 @@ func _update_items(_a: Dictionary, delta: float):
 					best = d
 					near = en
 	if "barriers_node" in player:
-		player.barriers_node = null if (near != null or holding) else _player_barriers
+		var base_b = null if (_item_arena.get("block_climb", false) and _item_arena.get("state", 0) == Arena.FIGHT) else _player_barriers
+		player.barriers_node = null if (near != null or holding) else base_b
 	_set_item_hint(near != null or holding, tr("E — бросить") if holding else tr("E — взять"))
 	if Input.is_action_just_pressed("interact") and not player.is_dead and not player.movement_blocked:
 		if holding:
