@@ -95,6 +95,7 @@ func _refresh_prompt() -> void:
 			set_prompt(_panel, "")
 
 func _process(_delta: float) -> void:
+	super._process(_delta)
 	if _state() == 1 and _leds.size() > 0:
 		var on = int(Time.get_ticks_msec() / 300.0) % 2 == 0
 		for i in range(_leds.size()):

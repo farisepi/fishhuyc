@@ -50,23 +50,23 @@ shape = SubResource("s4")
 [node name="Decor" type="Node2D" parent="."]
 
 [node name="D0_shelf1" type="Sprite2D" parent="Decor"]
-position = Vector2(300, 905.5)
-scale = Vector2(3, 3)
+position = Vector2(300, 937)
+scale = Vector2(2, 2)
 texture = ExtResource("e3")
 
 [node name="D1_shelf2" type="Sprite2D" parent="Decor"]
-position = Vector2(420, 905.5)
-scale = Vector2(3, 3)
+position = Vector2(420, 937)
+scale = Vector2(2, 2)
 texture = ExtResource("e4")
 
 [node name="D2_ibox1" type="Sprite2D" parent="Decor"]
-position = Vector2(620, 973)
-scale = Vector2(3, 3)
+position = Vector2(620, 982)
+scale = Vector2(2, 2)
 texture = ExtResource("e5")
 
 [node name="D3_ibox2" type="Sprite2D" parent="Decor"]
-position = Vector2(660, 973)
-scale = Vector2(3, 3)
+position = Vector2(660, 982)
+scale = Vector2(2, 2)
 texture = ExtResource("e6")
 
 [node name="Doors" type="Node2D" parent="."]

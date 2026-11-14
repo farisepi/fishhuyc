@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageRoomMainScript/ActStorage_Room_Script.gd" id="e1"]
 [ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageDoorScript/ActStorage_Door_Script.gd" id="e2"]
@@ -7,207 +7,484 @@
 [ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="e5"]
 [ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option3_Texture.png" id="e6"]
 [ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option3_Texture.png" id="e7"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option4_Texture.png" id="e8"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Back_Texture.png" id="e9"]
-[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="e10"]
-[ext_resource type="PackedScene" path="res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelEntityScenes/NearFactoryLadderScene/ActStorage_LevelNearFactory_Ladder_Scene.tscn" id="e11"]
-[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e12"]
-[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e13"]
-[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e14"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_CrateWide_Option1_Texture.png" id="e8"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="e9"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_HazardSign_Option1_Texture.png" id="e10"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_CrateTall_Option1_Texture.png" id="e11"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_CrateSmall_Option1_Texture.png" id="e12"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_Scaffold_Option1_Texture.png" id="e13"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_Chain_Option1_Texture.png" id="e14"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_TileSet_Railing_Option1_Texture.png" id="e15"]
+[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e16"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e17"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e18"]
 
 [sub_resource type="RectangleShape2D" id="s1"]
-size = Vector2(480, 40)
+size = Vector2(800, 20)
 
 [sub_resource type="RectangleShape2D" id="s2"]
-size = Vector2(540, 40)
+size = Vector2(200, 20)
 
 [sub_resource type="RectangleShape2D" id="s3"]
-size = Vector2(800, 40)
+size = Vector2(200, 20)
 
 [sub_resource type="RectangleShape2D" id="s4"]
-size = Vector2(220, 40)
+size = Vector2(800, 20)
 
 [sub_resource type="RectangleShape2D" id="s5"]
-size = Vector2(240, 40)
+size = Vector2(800, 20)
 
 [sub_resource type="RectangleShape2D" id="s6"]
-size = Vector2(780, 40)
+size = Vector2(200, 20)
 
 [sub_resource type="RectangleShape2D" id="s7"]
-size = Vector2(60, 35)
+size = Vector2(200, 20)
 
 [sub_resource type="RectangleShape2D" id="s8"]
-size = Vector2(80, 35)
+size = Vector2(800, 20)
 
 [sub_resource type="RectangleShape2D" id="s9"]
-size = Vector2(70, 35)
-
-[sub_resource type="RectangleShape2D" id="s10"]
 size = Vector2(60, 35)
 
+[sub_resource type="RectangleShape2D" id="s10"]
+size = Vector2(60, 32)
+
 [sub_resource type="RectangleShape2D" id="s11"]
-size = Vector2(80, 1540)
+size = Vector2(70, 32)
 
 [sub_resource type="RectangleShape2D" id="s12"]
-size = Vector2(80, 1540)
+size = Vector2(70, 32)
 
 [sub_resource type="RectangleShape2D" id="s13"]
-size = Vector2(1100, 40)
+size = Vector2(72, 12)
 
 [sub_resource type="RectangleShape2D" id="s14"]
-size = Vector2(1100, 40)
+size = Vector2(72, 12)
 
 [sub_resource type="RectangleShape2D" id="s15"]
-size = Vector2(72, 264)
+size = Vector2(72, 12)
 
 [sub_resource type="RectangleShape2D" id="s16"]
-size = Vector2(72, 264)
+size = Vector2(72, 12)
 
 [sub_resource type="RectangleShape2D" id="s17"]
-size = Vector2(72, 264)
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s18"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s19"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s20"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s21"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s22"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s23"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s24"]
+size = Vector2(16, 48)
+
+[sub_resource type="RectangleShape2D" id="s25"]
+size = Vector2(80, 1380)
+
+[sub_resource type="RectangleShape2D" id="s26"]
+size = Vector2(80, 1380)
+
+[sub_resource type="RectangleShape2D" id="s27"]
+size = Vector2(1100, 40)
+
+[sub_resource type="RectangleShape2D" id="s28"]
+size = Vector2(1100, 40)
 
 [node name="StorageCluttered" type="Node2D"]
 script = ExtResource("e1")
 room_id = "cluttered"
-room_rect = Rect2(0, 60, 900, 980)
+room_rect = Rect2(0, 220, 900, 820)
 
 [node name="Solids" type="Node2D" parent="."]
 
 [node name="Body" type="StaticBody2D" parent="Solids"]
 
 [node name="S0" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(140, 780)
+position = Vector2(300, 842)
 shape = SubResource("s1")
 
 [node name="S1" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(730, 780)
+position = Vector2(900, 842)
 shape = SubResource("s2")
 
 [node name="S2" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(300, 540)
+position = Vector2(0, 674)
 shape = SubResource("s3")
 
 [node name="S3" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(890, 540)
+position = Vector2(600, 674)
 shape = SubResource("s4")
 
 [node name="S4" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(20, 300)
+position = Vector2(300, 506)
 shape = SubResource("s5")
 
 [node name="S5" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(610, 300)
+position = Vector2(900, 506)
 shape = SubResource("s6")
 
 [node name="S6" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(590, 982.5)
+position = Vector2(0, 338)
 shape = SubResource("s7")
 
 [node name="S7" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(190, 742.5)
+position = Vector2(600, 338)
 shape = SubResource("s8")
 
 [node name="S8" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(435, 502.5)
+position = Vector2(590, 982.5)
 shape = SubResource("s9")
 
 [node name="S9" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(450, 262.5)
+position = Vector2(330, 816)
 shape = SubResource("s10")
 
 [node name="S10" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(-40, 330)
+position = Vector2(485, 648)
 shape = SubResource("s11")
 
 [node name="S11" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(940, 330)
+position = Vector2(295, 480)
 shape = SubResource("s12")
 
 [node name="S12" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(450, 1020)
+position = Vector2(751, 922)
 shape = SubResource("s13")
+metadata/novis = true
 
 [node name="S13" type="CollisionShape2D" parent="Solids/Body"]
-position = Vector2(450, 60)
+position = Vector2(151, 754)
 shape = SubResource("s14")
+metadata/novis = true
+
+[node name="S14" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(751, 586)
+shape = SubResource("s15")
+metadata/novis = true
+
+[node name="S15" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(151, 418)
+shape = SubResource("s16")
+metadata/novis = true
+
+[node name="S16" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(692, 876)
+shape = SubResource("s17")
+
+[node name="S17" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(808, 876)
+shape = SubResource("s18")
+
+[node name="S18" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(92, 708)
+shape = SubResource("s19")
+
+[node name="S19" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(208, 708)
+shape = SubResource("s20")
+
+[node name="S20" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(692, 540)
+shape = SubResource("s21")
+
+[node name="S21" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(808, 540)
+shape = SubResource("s22")
+
+[node name="S22" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(92, 372)
+shape = SubResource("s23")
+
+[node name="S23" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(208, 372)
+shape = SubResource("s24")
+
+[node name="S24" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(-40, 410)
+shape = SubResource("s25")
+
+[node name="S25" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(940, 410)
+shape = SubResource("s26")
+
+[node name="S26" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(450, 1020)
+shape = SubResource("s27")
+
+[node name="S27" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(450, 220)
+shape = SubResource("s28")
 
 [node name="Decor" type="Node2D" parent="."]
 
 [node name="D0_washbag" type="Sprite2D" parent="Decor"]
-position = Vector2(300, 917.5)
-scale = Vector2(3, 3)
+position = Vector2(300, 945)
+scale = Vector2(2, 2)
 texture = ExtResource("e3")
 
 [node name="D1_box2" type="Sprite2D" parent="Decor"]
-position = Vector2(800, 901)
-scale = Vector2(3, 3)
+position = Vector2(820, 934)
+scale = Vector2(2, 2)
 texture = ExtResource("e4")
 
 [node name="D2_barrel2" type="Sprite2D" parent="Decor"]
-position = Vector2(60, 700)
-scale = Vector2(3, 3)
+position = Vector2(60, 792)
+scale = Vector2(2, 2)
 texture = ExtResource("e5")
 
 [node name="D3_barrel3" type="Sprite2D" parent="Decor"]
-position = Vector2(110, 700)
-scale = Vector2(3, 3)
+position = Vector2(110, 792)
+scale = Vector2(2, 2)
 texture = ExtResource("e6")
 
 [node name="D4_shelf3" type="Sprite2D" parent="Decor"]
-position = Vector2(620, 665.5)
-scale = Vector2(3, 3)
+position = Vector2(400, 601)
+scale = Vector2(2, 2)
 texture = ExtResource("e7")
 
-[node name="D5_box4" type="Sprite2D" parent="Decor"]
-position = Vector2(250, 464.5)
+[node name="D5_crateW" type="Sprite2D" parent="Decor"]
+position = Vector2(500, 298)
 scale = Vector2(3, 3)
 texture = ExtResource("e8")
 
-[node name="D6_con1b" type="Sprite2D" parent="Decor"]
-position = Vector2(560, 185.5)
-scale = Vector2(3, 3)
+[node name="D6_barrel1" type="Sprite2D" parent="Decor"]
+position = Vector2(860, 288)
+scale = Vector2(2, 2)
 texture = ExtResource("e9")
 
-[node name="D7_barrel1" type="Sprite2D" parent="Decor"]
-position = Vector2(860, 220)
+[node name="D7_hazard" type="Sprite2D" parent="Decor"]
+position = Vector2(760, 759)
 scale = Vector2(3, 3)
 texture = ExtResource("e10")
+z_index = -3
 
-[node name="Ladder0" parent="." instance=ExtResource("e11")]
-position = Vector2(420, 842)
+[node name="D8_crateA" type="Sprite2D" parent="Decor"]
+position = Vector2(300, 791.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e11")
 
-[node name="CollisionShape2D" parent="Ladder0" index="0"]
-shape = SubResource("s15")
+[node name="D9_crateS" type="Sprite2D" parent="Decor"]
+position = Vector2(485, 640)
+scale = Vector2(3, 3)
+texture = ExtResource("e12")
 
-[node name="Sprite2D" parent="Ladder0" index="1"]
+[node name="D10_crateS" type="Sprite2D" parent="Decor"]
+position = Vector2(295, 472)
+scale = Vector2(3, 3)
+texture = ExtResource("e12")
+
+[node name="D11_scaffold" type="Sprite2D" parent="Decor"]
+z_index = -1
 texture_repeat = 2
-position = Vector2(0, 38)
+position = Vector2(715, 913)
+scale = Vector2(3, 3)
+texture = ExtResource("e13")
+centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 24, 80)
+region_rect = Rect2(0, 0, 24, 6)
 
-[node name="Ladder1" parent="." instance=ExtResource("e11")]
-position = Vector2(740, 602)
-
-[node name="CollisionShape2D" parent="Ladder1" index="0"]
-shape = SubResource("s16")
-
-[node name="Sprite2D" parent="Ladder1" index="1"]
+[node name="D12_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
 texture_repeat = 2
-position = Vector2(0, 38)
+position = Vector2(721, 852)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 24, 80)
+region_rect = Rect2(0, 0, 5, 21.333)
 
-[node name="Ladder2" parent="." instance=ExtResource("e11")]
-position = Vector2(180, 362)
-
-[node name="CollisionShape2D" parent="Ladder2" index="0"]
-shape = SubResource("s17")
-
-[node name="Sprite2D" parent="Ladder2" index="1"]
+[node name="D13_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
 texture_repeat = 2
-position = Vector2(0, 38)
+position = Vector2(766, 852)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 24, 80)
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D14_scaffold" type="Sprite2D" parent="Decor"]
+z_index = -1
+texture_repeat = 2
+position = Vector2(115, 745)
+scale = Vector2(3, 3)
+texture = ExtResource("e13")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 6)
+
+[node name="D15_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(121, 684)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D16_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(166, 684)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D17_scaffold" type="Sprite2D" parent="Decor"]
+z_index = -1
+texture_repeat = 2
+position = Vector2(715, 577)
+scale = Vector2(3, 3)
+texture = ExtResource("e13")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 6)
+
+[node name="D18_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(721, 516)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D19_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(766, 516)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D20_scaffold" type="Sprite2D" parent="Decor"]
+z_index = -1
+texture_repeat = 2
+position = Vector2(115, 409)
+scale = Vector2(3, 3)
+texture = ExtResource("e13")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 6)
+
+[node name="D21_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(121, 348)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D22_chain" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(166, 348)
+scale = Vector2(3, 3)
+texture = ExtResource("e14")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 5, 21.333)
+
+[node name="D23_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(0, 796)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 233.333, 12)
+
+[node name="D24_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(800, 796)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 33.333, 12)
+
+[node name="D25_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(0, 628)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 33.333, 12)
+
+[node name="D26_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(200, 628)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 233.333, 12)
+
+[node name="D27_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(0, 460)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 233.333, 12)
+
+[node name="D28_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(800, 460)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 33.333, 12)
+
+[node name="D29_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(0, 292)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 33.333, 12)
+
+[node name="D30_railing" type="Sprite2D" parent="Decor"]
+z_index = -2
+texture_repeat = 2
+position = Vector2(200, 292)
+scale = Vector2(3, 3)
+texture = ExtResource("e15")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 233.333, 12)
 
 [node name="Doors" type="Node2D" parent="."]
 
@@ -223,7 +500,7 @@ spawn_dir = 1
 arrow = "↓"
 
 [node name="Door_c_v" type="Area2D" parent="Doors"]
-position = Vector2(720, 280)
+position = Vector2(620, 328)
 script = ExtResource("e2")
 door_id = "c_v"
 target_room = "vent"
@@ -233,62 +510,67 @@ lock = ""
 spawn_dir = -1
 arrow = "↑"
 
+[node name="Heals" type="Node2D" parent="."]
+
+[node name="Food1" type="Marker2D" parent="Heals"]
+position = Vector2(450, 296)
+
 [node name="Lamps" type="Node2D" parent="."]
 
 [node name="L0" type="Marker2D" parent="Lamps"]
-position = Vector2(250, 816)
-metadata/beam_h = 184
+position = Vector2(250, 868)
+metadata/beam_h = 132
 
 [node name="L1" type="Marker2D" parent="Lamps"]
-position = Vector2(650, 816)
-metadata/beam_h = 184
+position = Vector2(450, 868)
+metadata/beam_h = 132
 metadata/flicker = true
 
 [node name="L2" type="Marker2D" parent="Lamps"]
-position = Vector2(300, 576)
-metadata/beam_h = 184
+position = Vector2(450, 700)
+metadata/beam_h = 132
 
 [node name="L3" type="Marker2D" parent="Lamps"]
-position = Vector2(560, 576)
-metadata/beam_h = 184
+position = Vector2(650, 700)
+metadata/beam_h = 132
 
 [node name="L4" type="Marker2D" parent="Lamps"]
-position = Vector2(420, 336)
-metadata/beam_h = 184
+position = Vector2(300, 532)
+metadata/beam_h = 132
 
 [node name="L5" type="Marker2D" parent="Lamps"]
-position = Vector2(780, 336)
-metadata/beam_h = 184
+position = Vector2(500, 532)
+metadata/beam_h = 132
 
 [node name="L6" type="Marker2D" parent="Lamps"]
-position = Vector2(300, 96)
-metadata/beam_h = 184
+position = Vector2(450, 256)
+metadata/beam_h = 72
 
 [node name="L7" type="Marker2D" parent="Lamps"]
-position = Vector2(700, 96)
-metadata/beam_h = 184
+position = Vector2(750, 256)
+metadata/beam_h = 72
 
 [node name="Enemies" type="Node2D" parent="."]
 
 [node name="SpawnPoints" type="Node2D" parent="."]
 
 [node name="Dog1" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(260, 720)
+position = Vector2(400, 792)
 metadata/enemy_type = "dog"
 
 [node name="Monkey1" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(520, 480)
+position = Vector2(650, 624)
 metadata/enemy_type = "monkey"
 
 [node name="Pigeon1" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(850, 240)
+position = Vector2(850, 288)
 metadata/enemy_type = "pigeon"
 
-[node name="Mecha_Fish" parent="." instance=ExtResource("e12")]
+[node name="Mecha_Fish" parent="." instance=ExtResource("e16")]
 position = Vector2(120, 970)
 
-[node name="DeathScreen" parent="." instance=ExtResource("e13")]
+[node name="DeathScreen" parent="." instance=ExtResource("e17")]
 visible = false
 
-[node name="Pausemenu" parent="." instance=ExtResource("e14")]
+[node name="Pausemenu" parent="." instance=ExtResource("e18")]
 visible = false

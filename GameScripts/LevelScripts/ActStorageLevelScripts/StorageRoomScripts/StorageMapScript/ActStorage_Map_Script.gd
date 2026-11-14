@@ -74,3 +74,18 @@ static func mark_dead(room_id: String, markers: Array) -> void:
 			arr.append(m)
 	d[room_id] = arr
 	Global.storage_state["dead"] = d
+
+static func is_taken(room_id: String, id: String) -> bool:
+	var d = Global.storage_state.get("taken", {})
+	return d is Dictionary and (d.get(room_id, []) as Array).has(id)
+
+static func mark_taken(room_id: String, id: String) -> void:
+	var d = Global.storage_state.get("taken", {})
+	if not d is Dictionary:
+		d = {}
+	var arr: Array = (d.get(room_id, []) as Array).duplicate()
+	if not arr.has(id):
+		arr.append(id)
+	d[room_id] = arr
+	Global.storage_state["taken"] = d
+	Global.save_factory_state()

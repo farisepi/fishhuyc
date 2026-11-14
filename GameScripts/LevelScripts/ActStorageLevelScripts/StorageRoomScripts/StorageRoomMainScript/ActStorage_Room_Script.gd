@@ -16,6 +16,8 @@ const TX_LAMP := preload("res://GameAssets/LevelAssets/SharedLevelAssets/Shared_
 const TX_CONE := preload("res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png")
 
 const GROUND_Y := 1000.0
+const DROP_HEAL_CHANCE := 0.3
+const BG_DIR := "res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActStorage_LevelNearFactory_Background_"
 
 @export var room_id: String = ""
 @export var room_rect: Rect2 = Rect2(0, 380, 1200, 620)
@@ -23,6 +25,7 @@ const GROUND_Y := 1000.0
 @export var dress: bool = true
 @export var flash_title: bool = true
 @export var stub_name: String = ""
+@export var backdrop: String = ""
 
 var player: CharacterBody2D = null
 var camera: Camera2D = null
@@ -33,9 +36,22 @@ var travelling: bool = false
 var _pending_dead: Array = []
 var _modulate: CanvasModulate = null
 var _interacts: Array = []
+var _spinners: Array = []
+var _layers: Array = []
+
+func _process(delta: float) -> void:
+	if not _layers.is_empty() and is_instance_valid(camera):
+		var c: Vector2 = camera.get_screen_center_position()
+		var a: Vector2 = room_rect.get_center()
+		for l in _layers:
+			l[0].position = Vector2(round((c.x - a.x) * (1.0 - l[1])), round((c.y - a.y) * (1.0 - l[2])))
+	for d in _spinners:
+		if is_instance_valid(d):
+			d.rotation += float(d.get_meta("spin")) * delta
 
 func _ready() -> void:
 	randomize()
+	process_priority = 100
 	player = get_tree().get_first_node_in_group("player")
 	pausemenu = get_node_or_null("Pausemenu")
 	if player:
@@ -44,10 +60,21 @@ func _ready() -> void:
 	GlobalMusic.play_level_music()
 	if dress:
 		_dress()
+	if player and "auto_climb" in player:
+		player.auto_climb = true
+	if player and "hp" in player and Global.storage_state.has("hp"):
+		player.hp = clampi(int(Global.storage_state["hp"]), 1, int(player.max_hp))
+	Global.storage_state.erase("hp")
+	var deco = get_node_or_null("Decor")
+	if deco:
+		for d in deco.get_children():
+			if d.has_meta("spin"):
+				_spinners.append(d)
 	_place_player()
 	_setup_camera()
 	_spawn_hud()
 	_spawn_enemies()
+	_spawn_heals()
 	var ds = get_node_or_null("DeathScreen")
 	if ds and ds.has_method("hide_death"):
 		ds.hide_death()
@@ -230,14 +257,17 @@ func _dress() -> void:
 	vis.name = "AutoVisuals"
 	add_child(vis)
 	move_child(vis, 0)
-	var bg = ColorRect.new()
-	bg.z_index = -10
-	bg.material = _mat_wall()
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var r = room_rect.grow(700)
-	bg.position = r.position
-	bg.size = r.size
-	vis.add_child(bg)
+	if backdrop == "hall":
+		_build_hall(vis)
+	else:
+		var bg = ColorRect.new()
+		bg.z_index = -10
+		bg.material = _mat_wall()
+		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var r = room_rect.grow(700)
+		bg.position = r.position
+		bg.size = r.size
+		vis.add_child(bg)
 	var solids = get_node_or_null("Solids")
 	if solids:
 		for body in solids.get_children():
@@ -245,6 +275,8 @@ func _dress() -> void:
 				continue
 			for cs in body.get_children():
 				if not cs is CollisionShape2D or not cs.shape is RectangleShape2D:
+					continue
+				if bool(cs.get_meta("novis", false)):
 					continue
 				var sz: Vector2 = cs.shape.size
 				var c: Vector2 = cs.global_position
@@ -302,6 +334,57 @@ func _dress() -> void:
 	post.position = pr.position
 	post.size = pr.size
 	vis.add_child(post)
+
+func _hall_layer(vis: Node, tex_name: String, sx: float, sy: float, z: int, bottom: float, top_fill: Color, px: float = 3.0) -> void:
+	var tex: Texture2D = load(BG_DIR + tex_name + "_Texture.png")
+	if tex == null:
+		return
+	var holder = Node2D.new()
+	holder.z_index = z
+	vis.add_child(holder)
+	var w: float = room_rect.size.x + 2400.0
+	var x0: float = room_rect.position.x - 1200.0
+	var spr = Sprite2D.new()
+	spr.texture = tex
+	spr.centered = false
+	spr.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	spr.region_enabled = true
+	spr.region_rect = Rect2(0, 0, ceil(w / px), tex.get_height())
+	spr.scale = Vector2(px, px)
+	spr.position = Vector2(x0, bottom - tex.get_height() * px)
+	holder.add_child(spr)
+	if top_fill.a > 0.0:
+		var fill = ColorRect.new()
+		fill.color = top_fill
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fill.position = Vector2(x0, spr.position.y - 2000.0)
+		fill.size = Vector2(w, 2001.0)
+		holder.add_child(fill)
+	_layers.append([holder, sx, sy])
+
+func _build_hall(vis: Node) -> void:
+	var bottom: float = GROUND_Y + 36.0
+	_hall_layer(vis, "Far", 0.22, 0.6, -14, bottom, Color(10.0 / 255.0, 10.0 / 255.0, 15.0 / 255.0), 2.0)
+	_hall_layer(vis, "Mid", 0.5, 0.75, -13, bottom - 4.0, Color(0, 0, 0, 0), 2.0)
+	_hall_layer(vis, "Near", 0.8, 0.9, -12, bottom + 16.0, Color(0, 0, 0, 0), 2.0)
+	_hall_layer(vis, "Fore", 1.25, 1.0, 40, room_rect.position.y + 410.0, Color(0, 0, 0, 0))
+	for side in [-1, 1]:
+		var wall = ColorRect.new()
+		wall.z_index = -10
+		wall.material = _mat_wall()
+		wall.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ex: float = room_rect.position.x - 700.0 if side < 0 else room_rect.end.x - 420.0
+		wall.position = Vector2(ex, room_rect.position.y - 700.0)
+		wall.size = Vector2(1120.0, room_rect.size.y + 1400.0)
+		vis.add_child(wall)
+		var edge = ColorRect.new()
+		edge.z_index = -10
+		edge.color = Color(0.03, 0.03, 0.04)
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var gx: float = room_rect.position.x + 420.0 if side < 0 else room_rect.end.x - 426.0
+		edge.position = Vector2(gx, room_rect.position.y - 700.0)
+		edge.size = Vector2(6.0, room_rect.size.y + 1400.0)
+		vis.add_child(edge)
 
 func _add_lamp(parent: Node, p: Vector2, beam_h: float, i: int, flicker: bool) -> void:
 	var cable = ColorRect.new()
@@ -382,7 +465,23 @@ func _setup_camera() -> void:
 	if camera.has_method("snap_to"):
 		camera.snap_to(player.global_position)
 
+func _show_player_gui() -> void:
+	if player == null:
+		return
+	var gui = player.get_node_or_null("GUI") as CanvasLayer
+	if gui == null:
+		return
+	gui.visible = true
+	var cont = gui.get_node_or_null("UI_Container") as CanvasItem
+	if cont:
+		cont.visible = true
+		cont.modulate.a = 1.0
+		var air = cont.get_node_or_null("Air_Bar") as CanvasItem
+		if air:
+			air.visible = false
+
 func _spawn_hud() -> void:
+	_show_player_gui()
 	hud_instance = HUD_SCENE.instantiate()
 	add_child(hud_instance)
 	inventory_instance = INVENTORY_SCENE.instantiate()
@@ -456,8 +555,24 @@ func spawn_enemy_at(point: Marker2D, parent: Node = null) -> Node:
 	parent.add_child(enemy)
 	var mname = String(point.name)
 	if enemy.has_signal("died"):
-		enemy.died.connect(func(_c): _pending_dead.append(mname))
+		enemy.died.connect(func(_c): _on_enemy_died(mname, enemy))
 	return enemy
+
+func _on_enemy_died(mname: String, enemy: Node) -> void:
+	_pending_dead.append(mname)
+	if is_instance_valid(enemy) and randf() < DROP_HEAL_CHANCE:
+		StorageHeal.drop(self, enemy.global_position + Vector2(0, -20))
+
+func _spawn_heals() -> void:
+	var hs = get_node_or_null("Heals")
+	if hs == null:
+		return
+	for mk in hs.get_children():
+		if mk is Marker2D:
+			var h = StorageHeal.new()
+			h.heal_id = String(mk.name)
+			h.position = mk.global_position
+			add_child(h)
 
 func alive_enemies() -> Array:
 	var out: Array = []
@@ -478,6 +593,8 @@ func travel(target_room: String, target_door: String) -> void:
 			player.set_movement_blocked(true)
 	StorageMap.mark_dead(room_id, _pending_dead)
 	_pending_dead.clear()
+	if player and "hp" in player:
+		Global.storage_state["hp"] = int(player.hp)
 	Global.storage_state["entry"] = target_door
 	Global.storage_state["room"] = target_room
 	Global.goto_scene(path)

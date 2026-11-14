@@ -48,8 +48,8 @@ shape = SubResource("s4")
 [node name="Decor" type="Node2D" parent="."]
 
 [node name="D0_barrel1" type="Sprite2D" parent="Decor"]
-position = Vector2(520, 940)
-scale = Vector2(3, 3)
+position = Vector2(520, 960)
+scale = Vector2(2, 2)
 texture = ExtResource("e3")
 
 [node name="Doors" type="Node2D" parent="."]
