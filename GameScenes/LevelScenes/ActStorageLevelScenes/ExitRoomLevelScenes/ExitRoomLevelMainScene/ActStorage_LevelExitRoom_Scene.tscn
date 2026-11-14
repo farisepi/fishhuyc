@@ -1,0 +1,137 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/ExitRoomLevelScripts/ExitRoomLevelMainScript/ActStorage_LevelExitRoom_Script.gd" id="e1"]
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageDoorScript/ActStorage_Door_Script.gd" id="e2"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option2_Texture.png" id="e3"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option1_Texture.png" id="e4"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option2_Texture.png" id="e5"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option2_Texture.png" id="e6"]
+[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e7"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e8"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e9"]
+
+[sub_resource type="RectangleShape2D" id="s1"]
+size = Vector2(80, 940)
+
+[sub_resource type="RectangleShape2D" id="s2"]
+size = Vector2(80, 940)
+
+[sub_resource type="RectangleShape2D" id="s3"]
+size = Vector2(1300, 40)
+
+[sub_resource type="RectangleShape2D" id="s4"]
+size = Vector2(1300, 40)
+
+[node name="StorageExitRoom" type="Node2D"]
+script = ExtResource("e1")
+room_id = "exit"
+room_rect = Rect2(0, 660, 1100, 380)
+
+[node name="Solids" type="Node2D" parent="."]
+
+[node name="Body" type="StaticBody2D" parent="Solids"]
+
+[node name="S0" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(-40, 630)
+shape = SubResource("s1")
+
+[node name="S1" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(1140, 630)
+shape = SubResource("s2")
+
+[node name="S2" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(550, 1020)
+shape = SubResource("s3")
+
+[node name="S3" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(550, 660)
+shape = SubResource("s4")
+
+[node name="Decor" type="Node2D" parent="."]
+
+[node name="D0_fork2" type="Sprite2D" parent="Decor"]
+position = Vector2(680, 910)
+scale = Vector2(3, 3)
+texture = ExtResource("e3")
+
+[node name="D1_pallet1" type="Sprite2D" parent="Decor"]
+position = Vector2(480, 980.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e4")
+
+[node name="D2_pallet2" type="Sprite2D" parent="Decor"]
+position = Vector2(520, 980.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e5")
+
+[node name="D3_box2" type="Sprite2D" parent="Decor"]
+position = Vector2(800, 901)
+scale = Vector2(3, 3)
+texture = ExtResource("e6")
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="Door_x_h" type="Area2D" parent="Doors"]
+position = Vector2(10, 1000)
+script = ExtResource("e2")
+door_id = "x_h"
+target_room = "room_h"
+target_door = "h_x"
+kind = "edge"
+lock = ""
+spawn_dir = 1
+
+[node name="Door_x_f" type="Area2D" parent="Doors"]
+position = Vector2(300, 1000)
+script = ExtResource("e2")
+door_id = "x_f"
+target_room = "room_f"
+target_door = "f_x"
+kind = "door"
+lock = ""
+spawn_dir = 1
+arrow = "↑"
+
+[node name="Door_x_m" type="Area2D" parent="Doors"]
+position = Vector2(1010, 1000)
+script = ExtResource("e2")
+door_id = "x_m"
+target_room = "motherbird"
+target_door = "m_x"
+kind = "door"
+lock = "keycard"
+spawn_dir = 1
+
+[node name="Lamps" type="Node2D" parent="."]
+
+[node name="L0" type="Marker2D" parent="Lamps"]
+position = Vector2(200, 696)
+metadata/beam_h = 300
+
+[node name="L1" type="Marker2D" parent="Lamps"]
+position = Vector2(560, 696)
+metadata/beam_h = 300
+
+[node name="L2" type="Marker2D" parent="Lamps"]
+position = Vector2(900, 696)
+metadata/beam_h = 300
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Dog1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(600, 960)
+metadata/enemy_type = "dog"
+
+[node name="NoteVent" type="Marker2D" parent="."]
+position = Vector2(880, 680)
+
+[node name="Mecha_Fish" parent="." instance=ExtResource("e7")]
+position = Vector2(120, 970)
+
+[node name="DeathScreen" parent="." instance=ExtResource("e8")]
+visible = false
+
+[node name="Pausemenu" parent="." instance=ExtResource("e9")]
+visible = false

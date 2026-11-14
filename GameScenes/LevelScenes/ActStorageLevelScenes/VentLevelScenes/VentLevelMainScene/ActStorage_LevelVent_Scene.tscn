@@ -1,0 +1,84 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/VentLevelScripts/VentLevelMainScript/ActStorage_LevelVent_Script.gd" id="e1"]
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageDoorScript/ActStorage_Door_Script.gd" id="e2"]
+[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e3"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e4"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e5"]
+
+[sub_resource type="RectangleShape2D" id="s1"]
+size = Vector2(1600, 40)
+
+[sub_resource type="RectangleShape2D" id="s2"]
+size = Vector2(80, 720)
+
+[sub_resource type="RectangleShape2D" id="s3"]
+size = Vector2(80, 720)
+
+[sub_resource type="RectangleShape2D" id="s4"]
+size = Vector2(1600, 40)
+
+[node name="StorageVent" type="Node2D"]
+script = ExtResource("e1")
+room_id = "vent"
+room_rect = Rect2(0, 880, 1400, 160)
+ambient = Color(0.42, 0.42, 0.48, 1)
+
+[node name="Solids" type="Node2D" parent="."]
+
+[node name="Body" type="StaticBody2D" parent="Solids"]
+
+[node name="S0" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(700, 890)
+shape = SubResource("s1")
+
+[node name="S1" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(-40, 740)
+shape = SubResource("s2")
+
+[node name="S2" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(1440, 740)
+shape = SubResource("s3")
+
+[node name="S3" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(700, 1020)
+shape = SubResource("s4")
+
+[node name="Decor" type="Node2D" parent="."]
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="Door_v_c" type="Area2D" parent="Doors"]
+position = Vector2(10, 1000)
+script = ExtResource("e2")
+door_id = "v_c"
+target_room = "cluttered"
+target_door = "c_v"
+kind = "edge"
+lock = ""
+spawn_dir = 1
+
+[node name="Door_v_acc" type="Area2D" parent="Doors"]
+position = Vector2(1390, 1000)
+script = ExtResource("e2")
+door_id = "v_acc"
+target_room = "accountant"
+target_door = "acc_v"
+kind = "edge"
+lock = ""
+spawn_dir = -1
+
+[node name="Lamps" type="Node2D" parent="."]
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Mecha_Fish" parent="." instance=ExtResource("e3")]
+position = Vector2(120, 970)
+
+[node name="DeathScreen" parent="." instance=ExtResource("e4")]
+visible = false
+
+[node name="Pausemenu" parent="." instance=ExtResource("e5")]
+visible = false

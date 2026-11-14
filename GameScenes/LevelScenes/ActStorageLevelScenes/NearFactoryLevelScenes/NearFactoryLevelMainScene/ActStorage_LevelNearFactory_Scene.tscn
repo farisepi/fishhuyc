@@ -1,2015 +1,270 @@
-[gd_scene format=3 uid="uid://ds3i0mktve5rp"]
+[gd_scene load_steps=28 format=3]
 
-[ext_resource type="Script" uid="uid://b2qp27ydyl87c" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/NearFactoryLevelMainScript/ActStorage_LevelNearFactory_Script.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://b78p05we4k3he" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://ddcd2c3myeks3" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="3_death"]
-[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="4_pause"]
-[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="5_btnn"]
-[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="6_btnp"]
-[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="7_btnh"]
-[ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="8_framing"]
-[ext_resource type="PackedScene" uid="uid://bot41jsp3sjpc" path="res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelEntityScenes/NearFactoryLadderScene/ActStorage_LevelNearFactory_Ladder_Scene.tscn" id="9_ladder_scene"]
-[ext_resource type="Texture2D" uid="uid://bpam00ltom6y5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactoryTileSet_Barrel_Option4_Texture.png" id="10_barrel4"]
-[ext_resource type="Texture2D" uid="uid://dhyb0xr1wv32f" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="11_barrel1"]
-[ext_resource type="Texture2D" uid="uid://dllm44c2sp1fi" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="12_barrel2"]
-[ext_resource type="Texture2D" uid="uid://c6apw8h3vgnbi" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option3_Texture.png" id="13_barrel3"]
-[ext_resource type="Texture2D" uid="uid://ci7a61l22xm78" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option1_Texture.png" id="14_box1"]
-[ext_resource type="Texture2D" uid="uid://c7b4f5lsvj8lx" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option2_Texture.png" id="15_box2"]
-[ext_resource type="Texture2D" uid="uid://d0302s5e4s2j5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option4_Texture.png" id="16_box4"]
-[ext_resource type="Texture2D" uid="uid://d1ph1hd743pgd" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option5_Texture.png" id="17_box5"]
-[ext_resource type="Texture2D" uid="uid://pivutylbvkp5" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Back_Texture.png" id="18_con1b"]
-[ext_resource type="Texture2D" uid="uid://7xh71tmbl12a" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Front_Texture.png" id="19_con1f"]
-[ext_resource type="Texture2D" uid="uid://bjkh4arwfu2dm" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Back_Texture.png" id="20_con2b"]
-[ext_resource type="Texture2D" uid="uid://cn66hm8kudvw6" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Front_Texture.png" id="21_con2f"]
-[ext_resource type="Texture2D" uid="uid://b76wc1q05dchm" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option1_Texture.png" id="22_fork1"]
-[ext_resource type="Texture2D" uid="uid://5gsapumvk4ch" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option2_Texture.png" id="23_fork2"]
-[ext_resource type="Texture2D" uid="uid://d23k13dmviwvs" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option3_Texture.png" id="24_fork3"]
-[ext_resource type="Texture2D" uid="uid://c3mmm6osforcr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option1_Texture.png" id="26_fuel1"]
-[ext_resource type="Texture2D" uid="uid://p6im7x3sa3s1" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Fuel_Option2_Texture.png" id="27_fuel2"]
-[ext_resource type="Texture2D" uid="uid://c7jfyknwugbgj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option1_Texture.png" id="28_ibox1"]
-[ext_resource type="Texture2D" uid="uid://5vb5ao386eei" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_InstrumentBox_Option2_Texture.png" id="29_ibox2"]
-[ext_resource type="Texture2D" uid="uid://r34pme42x5pj" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_IronDoor_Texture.png" id="30_door"]
-[ext_resource type="Texture2D" uid="uid://bojplhlaq3jqr" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option1_Texture.png" id="32_pallet1"]
-[ext_resource type="Texture2D" uid="uid://8h5nwdkfctte" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option2_Texture.png" id="33_pallet2"]
-[ext_resource type="Texture2D" uid="uid://cx65c5nch1trt" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option1_Texture.png" id="34_shelf1"]
-[ext_resource type="Texture2D" uid="uid://crk8fsa333yts" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option2_Texture.png" id="35_shelf2"]
-[ext_resource type="Texture2D" uid="uid://dqbumpxmolyfo" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option3_Texture.png" id="36_shelf3"]
-[ext_resource type="Texture2D" uid="uid://d21xy4m8myegn" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_WashBag_Texture.png" id="37_washbag"]
-[ext_resource type="Shader" uid="uid://d1rnprj64sac6" path="res://GameShaders/SharedShaders/Shared_LightBeam_Shader.gdshader" id="fx_sh_beam"]
-[ext_resource type="Shader" uid="uid://bnd70aigya00x" path="res://GameShaders/SharedShaders/Shared_IndustrialFloor_Shader.gdshader" id="fx_sh_floor"]
-[ext_resource type="Shader" uid="uid://oycp5pyns0mn" path="res://GameShaders/SharedShaders/Shared_PostProcess_Shader.gdshader" id="fx_sh_post"]
-[ext_resource type="Shader" uid="uid://ce1ofbir3f6iy" path="res://GameShaders/SharedShaders/Shared_IndustrialWall_Shader.gdshader" id="fx_sh_wall"]
-[ext_resource type="Texture2D" uid="uid://dmhg14cfavk3v" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option9_Texture.png" id="fx_tx_cone"]
-[ext_resource type="Texture2D" uid="uid://8da31j6540ay" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_HangingLamp_Texture.png" id="fx_tx_lamp"]
-[ext_resource type="Texture2D" uid="uid://deqs8kq7hgy18" path="res://GameAssets/Sprites/UserInterfaceSprites/LightTextures/Light_Option10_Texture.png" id="fx_tx_round"]
-[ext_resource type="Texture2D" uid="uid://xry8xc5rrmit" path="res://GameAssets/LevelAssets/SharedLevelAssets/Shared_WallLamp_Texture.png" id="fx_tx_walllamp"]
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/NearFactoryLevelScripts/NearFactoryLevelMainScript/ActStorage_LevelNearFactory_Script.gd" id="e1"]
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageDoorScript/ActStorage_Door_Script.gd" id="e2"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option1_Texture.png" id="e3"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="e4"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="e5"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option3_Texture.png" id="e6"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Back_Texture.png" id="e7"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Front_Texture.png" id="e8"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option1_Texture.png" id="e9"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Pallet_Option1_Texture.png" id="e10"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option2_Texture.png" id="e11"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Back_Texture.png" id="e12"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option2_Front_Texture.png" id="e13"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Forklift_Option3_Texture.png" id="e14"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactoryTileSet_Barrel_Option4_Texture.png" id="e15"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option4_Texture.png" id="e16"]
+[ext_resource type="PackedScene" path="res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelEntityScenes/NearFactoryLadderScene/ActStorage_LevelNearFactory_Ladder_Scene.tscn" id="e17"]
+[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e18"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e19"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e20"]
 
-[sub_resource type="ShaderMaterial" id="M_Wall"]
-shader = ExtResource("fx_sh_wall")
-shader_parameter/pixel_size = 3.0
-shader_parameter/col_seam = Color(0.045, 0.04, 0.05, 1)
-shader_parameter/col_base = Color(0.115, 0.105, 0.1, 1)
-shader_parameter/col_light = Color(0.185, 0.17, 0.16, 1)
-shader_parameter/col_rust = Color(0.3, 0.16, 0.08, 1)
-shader_parameter/col_pipe = Color(0.21, 0.23, 0.25, 1)
-shader_parameter/col_stripe = Color(0.42, 0.3, 0.08, 1)
-shader_parameter/panel_size = Vector2(96, 72)
-shader_parameter/column_spacing = 600.0
-shader_parameter/column_width = 33.0
-shader_parameter/pipe_y1 = -99999.0
-shader_parameter/pipe_y2 = -99999.0
-shader_parameter/pipe_radius = 9.0
-shader_parameter/stripe_y = -99999.0
-shader_parameter/stripe_height = 15.0
-shader_parameter/gloom_y = -99999.0
-shader_parameter/gloom_length = 380.0
-shader_parameter/rust_amount = 0.5
+[sub_resource type="RectangleShape2D" id="s1"]
+size = Vector2(1240, 40)
 
-[sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(9000, 40)
+[sub_resource type="RectangleShape2D" id="s2"]
+size = Vector2(480, 40)
 
-[sub_resource type="ShaderMaterial" id="M_Ground"]
-shader = ExtResource("fx_sh_floor")
-shader_parameter/pixel_size = 3.0
-shader_parameter/col_top = Color(0.6, 0.55, 0.48, 1)
-shader_parameter/col_plate = Color(0.29, 0.26, 0.23, 1)
-shader_parameter/col_dark = Color(0.09, 0.08, 0.08, 1)
-shader_parameter/col_rust = Color(0.36, 0.19, 0.1, 1)
-shader_parameter/col_stripe = Color(0.85, 0.62, 0.12, 1)
-shader_parameter/plate_width = 96.0
-shader_parameter/plate_depth = 24.0
-shader_parameter/hazard_edge = false
-shader_parameter/girder = true
-shader_parameter/rust_amount = 0.35
+[sub_resource type="RectangleShape2D" id="s3"]
+size = Vector2(80, 1200)
 
-[sub_resource type="RectangleShape2D" id="WallShape"]
-size = Vector2(80, 1400)
+[sub_resource type="RectangleShape2D" id="s4"]
+size = Vector2(80, 1200)
 
-[sub_resource type="ShaderMaterial" id="M_WallDark"]
-shader = ExtResource("fx_sh_wall")
-shader_parameter/pixel_size = 3.0
-shader_parameter/col_seam = Color(0.045, 0.04, 0.05, 1)
-shader_parameter/col_base = Color(0.06, 0.055, 0.06, 1)
-shader_parameter/col_light = Color(0.1, 0.095, 0.1, 1)
-shader_parameter/col_rust = Color(0.26, 0.14, 0.08, 1)
-shader_parameter/col_pipe = Color(0.21, 0.23, 0.25, 1)
-shader_parameter/col_stripe = Color(0.42, 0.3, 0.08, 1)
-shader_parameter/panel_size = Vector2(48, 144)
-shader_parameter/column_spacing = 9999.0
-shader_parameter/column_width = 0.0
-shader_parameter/pipe_y1 = -99999.0
-shader_parameter/pipe_y2 = -99999.0
-shader_parameter/pipe_radius = 9.0
-shader_parameter/stripe_y = -99999.0
-shader_parameter/stripe_height = 18.0
-shader_parameter/gloom_y = -99999.0
-shader_parameter/gloom_length = 260.0
-shader_parameter/rust_amount = 0.25
+[sub_resource type="RectangleShape2D" id="s5"]
+size = Vector2(1800, 40)
 
-[sub_resource type="RectangleShape2D" id="MidFloorSeg0"]
-size = Vector2(960, 40)
+[sub_resource type="RectangleShape2D" id="s6"]
+size = Vector2(1800, 40)
 
-[sub_resource type="RectangleShape2D" id="MidFloorSeg1"]
-size = Vector2(5420, 40)
+[sub_resource type="RectangleShape2D" id="s7"]
+size = Vector2(72, 344)
 
-[sub_resource type="RectangleShape2D" id="MidFloorSeg2"]
-size = Vector2(2460, 40)
+[node name="StorageNearFactory" type="Node2D"]
+script = ExtResource("e1")
+room_id = "nearfactory"
+room_rect = Rect2(0, 400, 1600, 640)
 
-[sub_resource type="ShaderMaterial" id="M_Slab"]
-shader = ExtResource("fx_sh_floor")
-shader_parameter/pixel_size = 3.0
-shader_parameter/col_top = Color(0.62, 0.57, 0.5, 1)
-shader_parameter/col_plate = Color(0.3, 0.27, 0.24, 1)
-shader_parameter/col_dark = Color(0.09, 0.08, 0.08, 1)
-shader_parameter/col_rust = Color(0.36, 0.19, 0.1, 1)
-shader_parameter/col_stripe = Color(0.85, 0.62, 0.12, 1)
-shader_parameter/plate_width = 96.0
-shader_parameter/plate_depth = 15.0
-shader_parameter/hazard_edge = true
-shader_parameter/girder = true
-shader_parameter/rust_amount = 0.35
+[node name="Solids" type="Node2D" parent="."]
 
-[sub_resource type="RectangleShape2D" id="TopFloorSeg0"]
-size = Vector2(2960, 40)
+[node name="Body" type="StaticBody2D" parent="Solids"]
 
-[sub_resource type="RectangleShape2D" id="TopFloorSeg1"]
-size = Vector2(1320, 40)
+[node name="S0" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(520, 700)
+shape = SubResource("s1")
 
-[sub_resource type="RectangleShape2D" id="TopFloorSeg2"]
-size = Vector2(4560, 40)
+[node name="S1" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(1460, 700)
+shape = SubResource("s2")
 
-[sub_resource type="RectangleShape2D" id="PlatShape"]
-size = Vector2(320, 24)
-
-[sub_resource type="ShaderMaterial" id="M_Catwalk"]
-shader = ExtResource("fx_sh_floor")
-shader_parameter/pixel_size = 3.0
-shader_parameter/col_top = Color(0.58, 0.58, 0.6, 1)
-shader_parameter/col_plate = Color(0.26, 0.26, 0.28, 1)
-shader_parameter/col_dark = Color(0.09, 0.08, 0.08, 1)
-shader_parameter/col_rust = Color(0.36, 0.19, 0.1, 1)
-shader_parameter/col_stripe = Color(0.85, 0.62, 0.12, 1)
-shader_parameter/plate_width = 48.0
-shader_parameter/plate_depth = 9.0
-shader_parameter/hazard_edge = true
-shader_parameter/girder = false
-shader_parameter/rust_amount = 0.35
-
-[sub_resource type="ShaderMaterial" id="M_Beam0"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 0.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam1"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 7.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam2"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 14.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam3"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 21.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam4"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.04
-shader_parameter/seed = 5.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam5"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 12.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam6"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 19.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam7"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 3.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam8"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 10.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam9"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 258)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 17.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam10"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 1.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam11"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 8.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam12"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 15.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam13"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.04
-shader_parameter/seed = 22.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam14"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 6.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam15"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 13.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam16"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 20.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam17"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 4.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam18"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 11.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam19"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 18.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam20"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 2.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam21"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 9.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam22"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.04
-shader_parameter/seed = 16.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam23"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 0.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam24"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 7.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam25"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 14.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam26"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 21.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Beam27"]
-shader = ExtResource("fx_sh_beam")
-shader_parameter/light_color = Color(1, 0.78, 0.45, 1)
-shader_parameter/intensity = 0.22
-shader_parameter/top_width = 0.1
-shader_parameter/bottom_width = 0.95
-shader_parameter/falloff = 1.4
-shader_parameter/rect_size = Vector2(300, 238)
-shader_parameter/pixel_size = 3.0
-shader_parameter/flicker_amount = 0.06
-shader_parameter/flicker_speed = 6.0
-shader_parameter/dropout_chance = 0.004
-shader_parameter/seed = 5.0
-shader_parameter/dust_density = 0.012
-
-[sub_resource type="ShaderMaterial" id="M_Post"]
-shader = ExtResource("fx_sh_post")
-shader_parameter/vignette_strength = 0.55
-shader_parameter/vignette_radius = 0.78
-shader_parameter/shadow_tint = Color(0.1, 0.14, 0.2, 1)
-shader_parameter/highlight_tint = Color(1, 0.84, 0.62, 1)
-shader_parameter/grade_amount = 0.6
-shader_parameter/contrast = 1.12
-shader_parameter/saturation = 0.92
-shader_parameter/aberration = 0.0015
-shader_parameter/grain_amount = 0.045
-shader_parameter/grain_pixel = 3.0
-shader_parameter/scanline_amount = 0.035
-
-[node name="ActStorageLevel" type="Node2D" unique_id=1363322540]
-script = ExtResource("1_main")
-
-[node name="Background" type="ColorRect" parent="." unique_id=645495121]
-z_index = -10
-material = SubResource("M_Wall")
-offset_left = -10000.0
-offset_top = -10000.0
-offset_right = 14000.0
-offset_bottom = 10000.0
-mouse_filter = 2
-
-[node name="Floor" type="StaticBody2D" parent="." unique_id=732160124]
-position = Vector2(4000, 1020)
-
-[node name="FloorShape" type="CollisionShape2D" parent="Floor" unique_id=230197101]
-shape = SubResource("GroundShape")
-
-[node name="FloorVisual" type="ColorRect" parent="." unique_id=8476992]
-material = SubResource("M_Ground")
-offset_left = -500.0
-offset_top = 1000.0
-offset_right = 8500.0
-offset_bottom = 1400.0
-mouse_filter = 2
-
-[node name="LeftWall" type="StaticBody2D" parent="." unique_id=930000001]
+[node name="S2" type="CollisionShape2D" parent="Solids/Body"]
 position = Vector2(-40, 500)
+shape = SubResource("s3")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall" unique_id=930000002]
-shape = SubResource("WallShape")
+[node name="S3" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(1640, 500)
+shape = SubResource("s4")
 
-[node name="Visual" type="ColorRect" parent="LeftWall" unique_id=930000003]
-material = SubResource("M_WallDark")
-offset_left = -40.0
-offset_top = -700.0
-offset_right = 40.0
-offset_bottom = 580.0
-mouse_filter = 2
+[node name="S4" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(800, 1020)
+shape = SubResource("s5")
 
-[node name="RightWall" type="StaticBody2D" parent="." unique_id=930000004]
-position = Vector2(8240, 500)
+[node name="S5" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(800, 400)
+shape = SubResource("s6")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall" unique_id=930000005]
-shape = SubResource("WallShape")
+[node name="Decor" type="Node2D" parent="."]
 
-[node name="Visual" type="ColorRect" parent="RightWall" unique_id=930000006]
-material = SubResource("M_WallDark")
-offset_left = -40.0
-offset_top = -700.0
-offset_right = 40.0
-offset_bottom = 580.0
-mouse_filter = 2
-
-[node name="MidFloor" type="StaticBody2D" parent="." unique_id=1569298157]
-position = Vector2(0, 700)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MidFloor" unique_id=742841210]
-position = Vector2(-20, 0)
-shape = SubResource("MidFloorSeg0")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="MidFloor" unique_id=930000007]
-position = Vector2(3250, 0)
-shape = SubResource("MidFloorSeg1")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="MidFloor" unique_id=930000008]
-position = Vector2(7270, 0)
-shape = SubResource("MidFloorSeg2")
-
-[node name="MidFloorVisual" type="Node2D" parent="." unique_id=592552351]
-
-[node name="Segment1" type="ColorRect" parent="MidFloorVisual" unique_id=930000009]
-material = SubResource("M_Slab")
-offset_left = -500.0
-offset_top = 680.0
-offset_right = 460.0
-offset_bottom = 720.0
-mouse_filter = 2
-
-[node name="Segment2" type="ColorRect" parent="MidFloorVisual" unique_id=930000010]
-material = SubResource("M_Slab")
-offset_left = 540.0
-offset_top = 680.0
-offset_right = 5960.0
-offset_bottom = 720.0
-mouse_filter = 2
-
-[node name="Segment3" type="ColorRect" parent="MidFloorVisual" unique_id=930000011]
-material = SubResource("M_Slab")
-offset_left = 6040.0
-offset_top = 680.0
-offset_right = 8500.0
-offset_bottom = 720.0
-mouse_filter = 2
-
-[node name="TopFloor" type="StaticBody2D" parent="." unique_id=1399525065]
-position = Vector2(0, 400)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="TopFloor" unique_id=2033687358]
-position = Vector2(980, 0)
-shape = SubResource("TopFloorSeg0")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="TopFloor" unique_id=930000012]
-position = Vector2(3200, 0)
-shape = SubResource("TopFloorSeg1")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="TopFloor" unique_id=930000013]
-position = Vector2(6220, 0)
-shape = SubResource("TopFloorSeg2")
-
-[node name="TopFloorVisual" type="Node2D" parent="." unique_id=6506057]
-
-[node name="Segment1" type="ColorRect" parent="TopFloorVisual" unique_id=930000014]
-material = SubResource("M_Slab")
-offset_left = -500.0
-offset_top = 380.0
-offset_right = 2460.0
-offset_bottom = 420.0
-mouse_filter = 2
-
-[node name="Segment2" type="ColorRect" parent="TopFloorVisual" unique_id=930000015]
-material = SubResource("M_Slab")
-offset_left = 2540.0
-offset_top = 380.0
-offset_right = 3860.0
-offset_bottom = 420.0
-mouse_filter = 2
-
-[node name="Segment3" type="ColorRect" parent="TopFloorVisual" unique_id=930000016]
-material = SubResource("M_Slab")
-offset_left = 3940.0
-offset_top = 380.0
-offset_right = 8500.0
-offset_bottom = 420.0
-mouse_filter = 2
-
-[node name="Ladder1" parent="." unique_id=330355348 instance=ExtResource("9_ladder_scene")]
-position = Vector2(500, 802)
-
-[node name="Ladder2" parent="." unique_id=478986571 instance=ExtResource("9_ladder_scene")]
-position = Vector2(2500, 492)
-
-[node name="Ladder3" parent="." unique_id=988921575 instance=ExtResource("9_ladder_scene")]
-position = Vector2(5615, 276)
-
-[node name="Ladder4" parent="." unique_id=930000017 instance=ExtResource("9_ladder_scene")]
-position = Vector2(6000, 802)
-
-[node name="Ladder5" parent="." unique_id=930000018 instance=ExtResource("9_ladder_scene")]
-position = Vector2(3900, 492)
-
-[node name="Platform6" type="StaticBody2D" parent="." unique_id=1665889210]
-position = Vector2(5800, 260)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform6" unique_id=2074283534]
-shape = SubResource("PlatShape")
-one_way_collision = true
-
-[node name="Visual" type="ColorRect" parent="Platform6" unique_id=930000019]
-material = SubResource("M_Catwalk")
-offset_left = -160.0
-offset_top = -12.0
-offset_right = 160.0
-offset_bottom = 12.0
-mouse_filter = 2
-
-[node name="Shelf1" type="Sprite2D" parent="." unique_id=2139600401]
-position = Vector2(300, 905.5)
+[node name="D0_shelf1" type="Sprite2D" parent="Decor"]
+position = Vector2(430, 905.5)
 scale = Vector2(3, 3)
-texture = ExtResource("34_shelf1")
+texture = ExtResource("e3")
 
-[node name="Shelf2" type="Sprite2D" parent="." unique_id=1352411252]
-position = Vector2(760, 905.5)
+[node name="D1_barrel1" type="Sprite2D" parent="Decor"]
+position = Vector2(620, 940)
 scale = Vector2(3, 3)
-texture = ExtResource("35_shelf2")
+texture = ExtResource("e4")
 
-[node name="Barrel1" type="Sprite2D" parent="." unique_id=1473697485]
-position = Vector2(900, 940)
+[node name="D2_barrel2" type="Sprite2D" parent="Decor"]
+position = Vector2(685, 940)
 scale = Vector2(3, 3)
-texture = ExtResource("11_barrel1")
+texture = ExtResource("e5")
 
-[node name="Barrel2" type="Sprite2D" parent="." unique_id=2051649408]
-position = Vector2(965, 940)
+[node name="D3_barrel3" type="Sprite2D" parent="Decor"]
+position = Vector2(750, 940)
 scale = Vector2(3, 3)
-texture = ExtResource("12_barrel2")
+texture = ExtResource("e6")
 
-[node name="Barrel3" type="Sprite2D" parent="." unique_id=583084217]
-position = Vector2(1030, 940)
+[node name="D4_con1b" type="Sprite2D" parent="Decor"]
+position = Vector2(960, 905.5)
 scale = Vector2(3, 3)
-texture = ExtResource("13_barrel3")
+texture = ExtResource("e7")
 
-[node name="Barrel4" type="Sprite2D" parent="." unique_id=362947977]
-position = Vector2(1095, 940)
+[node name="D5_con1f" type="Sprite2D" parent="Decor"]
+position = Vector2(960, 905.5)
 scale = Vector2(3, 3)
-texture = ExtResource("10_barrel4")
+texture = ExtResource("e8")
 
-[node name="Container1Back" type="Sprite2D" parent="." unique_id=605066788]
-position = Vector2(1330, 905.5)
+[node name="D6_fork1" type="Sprite2D" parent="Decor"]
+position = Vector2(1320, 904)
 scale = Vector2(3, 3)
-texture = ExtResource("18_con1b")
+texture = ExtResource("e9")
+flip_h = true
 
-[node name="Container1Front" type="Sprite2D" parent="." unique_id=2047258505]
-position = Vector2(1330, 905.5)
+[node name="D7_pallet1" type="Sprite2D" parent="Decor"]
+position = Vector2(1540, 980.5)
 scale = Vector2(3, 3)
-texture = ExtResource("19_con1f")
+texture = ExtResource("e10")
 
-[node name="Container2Back" type="Sprite2D" parent="." unique_id=1953956153]
-position = Vector2(1780, 905.5)
+[node name="D8_shelf2" type="Sprite2D" parent="Decor"]
+position = Vector2(470, 585.5)
 scale = Vector2(3, 3)
-texture = ExtResource("20_con2b")
+texture = ExtResource("e11")
 
-[node name="Container2Front" type="Sprite2D" parent="." unique_id=1694483615]
-position = Vector2(1780, 905.5)
+[node name="D9_con2b" type="Sprite2D" parent="Decor"]
+position = Vector2(760, 585.5)
 scale = Vector2(3, 3)
-texture = ExtResource("21_con2f")
+texture = ExtResource("e12")
 
-[node name="Shelf3" type="Sprite2D" parent="." unique_id=365726016]
-position = Vector2(2120, 905.5)
+[node name="D10_con2f" type="Sprite2D" parent="Decor"]
+position = Vector2(760, 585.5)
 scale = Vector2(3, 3)
-texture = ExtResource("36_shelf3")
+texture = ExtResource("e13")
 
-[node name="Box1" type="Sprite2D" parent="." unique_id=1944799132]
-position = Vector2(2400, 974.5)
+[node name="D11_fork3" type="Sprite2D" parent="Decor"]
+position = Vector2(1020, 579.5)
 scale = Vector2(3, 3)
-texture = ExtResource("14_box1")
+texture = ExtResource("e14")
 
-[node name="Box2" type="Sprite2D" parent="." unique_id=2136574564]
-position = Vector2(2470, 901)
+[node name="D12_barrel4" type="Sprite2D" parent="Decor"]
+position = Vector2(1380, 620)
 scale = Vector2(3, 3)
-texture = ExtResource("15_box2")
+texture = ExtResource("e15")
 
-[node name="Box4" type="Sprite2D" parent="." unique_id=126127950]
-position = Vector2(2540, 944.5)
+[node name="D13_barrel1" type="Sprite2D" parent="Decor"]
+position = Vector2(1445, 620)
 scale = Vector2(3, 3)
-texture = ExtResource("16_box4")
+texture = ExtResource("e4")
 
-[node name="Box5" type="Sprite2D" parent="." unique_id=606484210]
-position = Vector2(2600, 944.5)
+[node name="D14_box4" type="Sprite2D" parent="Decor"]
+position = Vector2(1530, 624.5)
 scale = Vector2(3, 3)
-texture = ExtResource("17_box5")
+texture = ExtResource("e16")
 
-[node name="Fuel1" type="Sprite2D" parent="." unique_id=917937188]
-position = Vector2(2700, 961)
-scale = Vector2(3, 3)
-texture = ExtResource("26_fuel1")
+[node name="Ladder0" parent="." instance=ExtResource("e17")]
+position = Vector2(1180, 802)
 
-[node name="Fuel2" type="Sprite2D" parent="." unique_id=1698467150]
-position = Vector2(2760, 961)
-scale = Vector2(3, 3)
-texture = ExtResource("27_fuel2")
+[node name="CollisionShape2D" parent="Ladder0" index="0"]
+shape = SubResource("s7")
 
-[node name="Forklift1" type="Sprite2D" parent="." unique_id=107130289]
-position = Vector2(3500, 904)
-scale = Vector2(3, 3)
-texture = ExtResource("22_fork1")
+[node name="Sprite2D" parent="Ladder0" index="1"]
+texture_repeat = 2
+position = Vector2(0, 38)
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 106.667)
 
-[node name="InstrumentBox1" type="Sprite2D" parent="." unique_id=1135682207]
-position = Vector2(3800, 973)
-scale = Vector2(3, 3)
-texture = ExtResource("28_ibox1")
+[node name="Doors" type="Node2D" parent="."]
 
-[node name="InstrumentBox2" type="Sprite2D" parent="." unique_id=63542993]
-position = Vector2(3860, 973)
-scale = Vector2(3, 3)
-texture = ExtResource("29_ibox2")
+[node name="Door_n_hall" type="Area2D" parent="Doors"]
+position = Vector2(90, 1000)
+script = ExtResource("e2")
+door_id = "n_hall"
+target_room = ""
+target_door = ""
+kind = "door"
+lock = "sealed"
+spawn_dir = 1
 
-[node name="Pallet1" type="Sprite2D" parent="." unique_id=1223617285]
-position = Vector2(4800, 980.5)
-scale = Vector2(3, 3)
-texture = ExtResource("32_pallet1")
+[node name="Door_n_e" type="Area2D" parent="Doors"]
+position = Vector2(1590, 1000)
+script = ExtResource("e2")
+door_id = "n_e"
+target_room = "room_e"
+target_door = "e_n"
+kind = "edge"
+lock = ""
+spawn_dir = -1
 
-[node name="Pallet2" type="Sprite2D" parent="." unique_id=343133307]
-position = Vector2(4900, 980.5)
-scale = Vector2(3, 3)
-texture = ExtResource("33_pallet2")
+[node name="Door_n_g" type="Area2D" parent="Doors"]
+position = Vector2(1440, 1000)
+script = ExtResource("e2")
+door_id = "n_g"
+target_room = "room_g"
+target_door = "g_n"
+kind = "door"
+lock = ""
+spawn_dir = 1
+arrow = "↓"
 
-[node name="WashBag1" type="Sprite2D" parent="." unique_id=1723183316]
-position = Vector2(5600, 917.5)
-scale = Vector2(3, 3)
-texture = ExtResource("37_washbag")
+[node name="Door_n_a" type="Area2D" parent="Doors"]
+position = Vector2(240, 680)
+script = ExtResource("e2")
+door_id = "n_a"
+target_room = "room_a"
+target_door = "a_n"
+kind = "door"
+lock = ""
+spawn_dir = 1
+arrow = "↑"
 
-[node name="WashBag2" type="Sprite2D" parent="." unique_id=2028313526]
-position = Vector2(6260, 917.5)
-scale = Vector2(3, 3)
-texture = ExtResource("37_washbag")
+[node name="Lamps" type="Node2D" parent="."]
 
-[node name="Forklift2" type="Sprite2D" parent="." unique_id=1194512584]
-position = Vector2(7000, 910)
-scale = Vector2(3, 3)
-texture = ExtResource("23_fork2")
-
-[node name="IronDoor1" type="Sprite2D" parent="." unique_id=1463761614]
-position = Vector2(8000, 946)
-scale = Vector2(3, 3)
-texture = ExtResource("30_door")
-
-[node name="Shelf4" type="Sprite2D" parent="." unique_id=1969939931]
-position = Vector2(3000, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("34_shelf1")
-
-[node name="Container3Back" type="Sprite2D" parent="." unique_id=1106847410]
-position = Vector2(4220, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("18_con1b")
-
-[node name="Container3Front" type="Sprite2D" parent="." unique_id=1617568493]
-position = Vector2(4220, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("19_con1f")
-
-[node name="Container4Back" type="Sprite2D" parent="." unique_id=1001048205]
-position = Vector2(4640, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("20_con2b")
-
-[node name="Container4Front" type="Sprite2D" parent="." unique_id=1459037623]
-position = Vector2(4640, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("21_con2f")
-
-[node name="Forklift3" type="Sprite2D" parent="." unique_id=1615822716]
-position = Vector2(5230, 579.5)
-scale = Vector2(3, 3)
-texture = ExtResource("24_fork3")
-
-[node name="Shelf5" type="Sprite2D" parent="." unique_id=2040541689]
-position = Vector2(5520, 585.5)
-scale = Vector2(3, 3)
-texture = ExtResource("35_shelf2")
-
-[node name="Barrel5" type="Sprite2D" parent="." unique_id=70174868]
-position = Vector2(6600, 620)
-scale = Vector2(3, 3)
-texture = ExtResource("11_barrel1")
-
-[node name="Barrel6" type="Sprite2D" parent="." unique_id=97354523]
-position = Vector2(6665, 620)
-scale = Vector2(3, 3)
-texture = ExtResource("12_barrel2")
-
-[node name="IronDoor2" type="Sprite2D" parent="." unique_id=248310702]
-position = Vector2(7800, 626)
-scale = Vector2(3, 3)
-texture = ExtResource("30_door")
-
-[node name="Shelf6" type="Sprite2D" parent="." unique_id=2086107831]
-position = Vector2(6300, 285.5)
-scale = Vector2(3, 3)
-texture = ExtResource("36_shelf3")
-
-[node name="InstrumentBox3" type="Sprite2D" parent="." unique_id=1450107323]
-position = Vector2(5000, 353)
-scale = Vector2(3, 3)
-texture = ExtResource("28_ibox1")
-
-[node name="Pallet3" type="Sprite2D" parent="." unique_id=1049680112]
-position = Vector2(3600, 360.5)
-scale = Vector2(3, 3)
-texture = ExtResource("32_pallet1")
-
-[node name="IronDoor3" type="Sprite2D" parent="." unique_id=1873097226]
-position = Vector2(6700, 326)
-scale = Vector2(3, 3)
-texture = ExtResource("30_door")
-
-[node name="Lighting" type="CanvasModulate" parent="." unique_id=970000001]
-color = Color(0.5, 0.49, 0.57, 1)
-
-[node name="Lamps" type="Node2D" parent="." unique_id=970000002]
-
-[node name="Cable0" type="ColorRect" parent="Lamps" unique_id=970000004]
-offset_left = 258.5
-offset_top = 720.0
-offset_right = 261.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp0" type="Sprite2D" parent="Lamps" unique_id=970000005]
+[node name="L0" type="Marker2D" parent="Lamps"]
 position = Vector2(260, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
+metadata/beam_h = 258
 
-[node name="Beam0" type="ColorRect" parent="Lamps" unique_id=970000006]
-z_index = 20
-material = SubResource("M_Beam0")
-offset_left = 110.0
-offset_top = 742.0
-offset_right = 410.0
-offset_bottom = 1000.0
-mouse_filter = 2
+[node name="L1" type="Marker2D" parent="Lamps"]
+position = Vector2(700, 736)
+metadata/beam_h = 258
 
-[node name="Cable1" type="ColorRect" parent="Lamps" unique_id=970000008]
-offset_left = 1048.5
-offset_top = 720.0
-offset_right = 1051.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
+[node name="L2" type="Marker2D" parent="Lamps"]
+position = Vector2(1060, 736)
+metadata/beam_h = 258
+metadata/flicker = true
 
-[node name="Lamp1" type="Sprite2D" parent="Lamps" unique_id=970000009]
-position = Vector2(1050, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
+[node name="L3" type="Marker2D" parent="Lamps"]
+position = Vector2(1460, 736)
+metadata/beam_h = 258
 
-[node name="Beam1" type="ColorRect" parent="Lamps" unique_id=970000010]
-z_index = 20
-material = SubResource("M_Beam1")
-offset_left = 900.0
-offset_top = 742.0
-offset_right = 1200.0
-offset_bottom = 1000.0
-mouse_filter = 2
+[node name="L4" type="Marker2D" parent="Lamps"]
+position = Vector2(300, 436)
+metadata/beam_h = 238
 
-[node name="Cable2" type="ColorRect" parent="Lamps" unique_id=970000012]
-offset_left = 1898.5
-offset_top = 720.0
-offset_right = 1901.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
+[node name="L5" type="Marker2D" parent="Lamps"]
+position = Vector2(760, 436)
+metadata/beam_h = 238
 
-[node name="Lamp2" type="Sprite2D" parent="Lamps" unique_id=970000013]
-position = Vector2(1900, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
+[node name="L6" type="Marker2D" parent="Lamps"]
+position = Vector2(1150, 436)
+metadata/beam_h = 238
 
-[node name="Beam2" type="ColorRect" parent="Lamps" unique_id=970000014]
-z_index = 20
-material = SubResource("M_Beam2")
-offset_left = 1750.0
-offset_top = 742.0
-offset_right = 2050.0
-offset_bottom = 1000.0
-mouse_filter = 2
+[node name="L7" type="Marker2D" parent="Lamps"]
+position = Vector2(1480, 436)
+metadata/beam_h = 238
 
-[node name="Cable3" type="ColorRect" parent="Lamps" unique_id=970000016]
-offset_left = 2848.5
-offset_top = 720.0
-offset_right = 2851.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
+[node name="Enemies" type="Node2D" parent="."]
 
-[node name="Lamp3" type="Sprite2D" parent="Lamps" unique_id=970000017]
-position = Vector2(2850, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
+[node name="SpawnPoints" type="Node2D" parent="."]
 
-[node name="Beam3" type="ColorRect" parent="Lamps" unique_id=970000018]
-z_index = 20
-material = SubResource("M_Beam3")
-offset_left = 2700.0
-offset_top = 742.0
-offset_right = 3000.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable4" type="ColorRect" parent="Lamps" unique_id=970000020]
-offset_left = 3698.5
-offset_top = 720.0
-offset_right = 3701.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp4" type="Sprite2D" parent="Lamps" unique_id=970000021]
-position = Vector2(3700, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam4" type="ColorRect" parent="Lamps" unique_id=970000022]
-z_index = 20
-material = SubResource("M_Beam4")
-offset_left = 3550.0
-offset_top = 742.0
-offset_right = 3850.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable5" type="ColorRect" parent="Lamps" unique_id=970000024]
-offset_left = 4548.5
-offset_top = 720.0
-offset_right = 4551.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp5" type="Sprite2D" parent="Lamps" unique_id=970000025]
-position = Vector2(4550, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam5" type="ColorRect" parent="Lamps" unique_id=970000026]
-z_index = 20
-material = SubResource("M_Beam5")
-offset_left = 4400.0
-offset_top = 742.0
-offset_right = 4700.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable6" type="ColorRect" parent="Lamps" unique_id=970000028]
-offset_left = 5398.5
-offset_top = 720.0
-offset_right = 5401.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp6" type="Sprite2D" parent="Lamps" unique_id=970000029]
-position = Vector2(5400, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam6" type="ColorRect" parent="Lamps" unique_id=970000030]
-z_index = 20
-material = SubResource("M_Beam6")
-offset_left = 5250.0
-offset_top = 742.0
-offset_right = 5550.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable7" type="ColorRect" parent="Lamps" unique_id=970000032]
-offset_left = 6248.5
-offset_top = 720.0
-offset_right = 6251.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp7" type="Sprite2D" parent="Lamps" unique_id=970000033]
-position = Vector2(6250, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam7" type="ColorRect" parent="Lamps" unique_id=970000034]
-z_index = 20
-material = SubResource("M_Beam7")
-offset_left = 6100.0
-offset_top = 742.0
-offset_right = 6400.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable8" type="ColorRect" parent="Lamps" unique_id=970000036]
-offset_left = 7098.5
-offset_top = 720.0
-offset_right = 7101.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp8" type="Sprite2D" parent="Lamps" unique_id=970000037]
-position = Vector2(7100, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam8" type="ColorRect" parent="Lamps" unique_id=970000038]
-z_index = 20
-material = SubResource("M_Beam8")
-offset_left = 6950.0
-offset_top = 742.0
-offset_right = 7250.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable9" type="ColorRect" parent="Lamps" unique_id=970000040]
-offset_left = 7848.5
-offset_top = 720.0
-offset_right = 7851.5
-offset_bottom = 730.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp9" type="Sprite2D" parent="Lamps" unique_id=970000041]
-position = Vector2(7850, 736)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam9" type="ColorRect" parent="Lamps" unique_id=970000042]
-z_index = 20
-material = SubResource("M_Beam9")
-offset_left = 7700.0
-offset_top = 742.0
-offset_right = 8000.0
-offset_bottom = 1000.0
-mouse_filter = 2
-
-[node name="Cable10" type="ColorRect" parent="Lamps" unique_id=970000044]
-offset_left = 178.5
-offset_top = 420.0
-offset_right = 181.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp10" type="Sprite2D" parent="Lamps" unique_id=970000045]
-position = Vector2(180, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam10" type="ColorRect" parent="Lamps" unique_id=970000046]
-z_index = 20
-material = SubResource("M_Beam10")
-offset_left = 30.0
-offset_top = 442.0
-offset_right = 330.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable11" type="ColorRect" parent="Lamps" unique_id=970000048]
-offset_left = 898.5
-offset_top = 420.0
-offset_right = 901.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp11" type="Sprite2D" parent="Lamps" unique_id=970000049]
-position = Vector2(900, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam11" type="ColorRect" parent="Lamps" unique_id=970000050]
-z_index = 20
-material = SubResource("M_Beam11")
-offset_left = 750.0
-offset_top = 442.0
-offset_right = 1050.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable12" type="ColorRect" parent="Lamps" unique_id=970000052]
-offset_left = 1698.5
-offset_top = 420.0
-offset_right = 1701.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp12" type="Sprite2D" parent="Lamps" unique_id=970000053]
-position = Vector2(1700, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam12" type="ColorRect" parent="Lamps" unique_id=970000054]
-z_index = 20
-material = SubResource("M_Beam12")
-offset_left = 1550.0
-offset_top = 442.0
-offset_right = 1850.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable13" type="ColorRect" parent="Lamps" unique_id=970000056]
-offset_left = 2648.5
-offset_top = 420.0
-offset_right = 2651.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp13" type="Sprite2D" parent="Lamps" unique_id=970000057]
-position = Vector2(2650, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam13" type="ColorRect" parent="Lamps" unique_id=970000058]
-z_index = 20
-material = SubResource("M_Beam13")
-offset_left = 2500.0
-offset_top = 442.0
-offset_right = 2800.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable14" type="ColorRect" parent="Lamps" unique_id=970000060]
-offset_left = 3448.5
-offset_top = 420.0
-offset_right = 3451.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp14" type="Sprite2D" parent="Lamps" unique_id=970000061]
-position = Vector2(3450, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam14" type="ColorRect" parent="Lamps" unique_id=970000062]
-z_index = 20
-material = SubResource("M_Beam14")
-offset_left = 3300.0
-offset_top = 442.0
-offset_right = 3600.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable15" type="ColorRect" parent="Lamps" unique_id=970000064]
-offset_left = 4398.5
-offset_top = 420.0
-offset_right = 4401.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp15" type="Sprite2D" parent="Lamps" unique_id=970000065]
-position = Vector2(4400, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam15" type="ColorRect" parent="Lamps" unique_id=970000066]
-z_index = 20
-material = SubResource("M_Beam15")
-offset_left = 4250.0
-offset_top = 442.0
-offset_right = 4550.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable16" type="ColorRect" parent="Lamps" unique_id=970000068]
-offset_left = 5148.5
-offset_top = 420.0
-offset_right = 5151.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp16" type="Sprite2D" parent="Lamps" unique_id=970000069]
-position = Vector2(5150, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam16" type="ColorRect" parent="Lamps" unique_id=970000070]
-z_index = 20
-material = SubResource("M_Beam16")
-offset_left = 5000.0
-offset_top = 442.0
-offset_right = 5300.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable17" type="ColorRect" parent="Lamps" unique_id=970000072]
-offset_left = 5998.5
-offset_top = 420.0
-offset_right = 6001.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp17" type="Sprite2D" parent="Lamps" unique_id=970000073]
-position = Vector2(6000, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam17" type="ColorRect" parent="Lamps" unique_id=970000074]
-z_index = 20
-material = SubResource("M_Beam17")
-offset_left = 5850.0
-offset_top = 442.0
-offset_right = 6150.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable18" type="ColorRect" parent="Lamps" unique_id=970000076]
-offset_left = 6848.5
-offset_top = 420.0
-offset_right = 6851.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp18" type="Sprite2D" parent="Lamps" unique_id=970000077]
-position = Vector2(6850, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam18" type="ColorRect" parent="Lamps" unique_id=970000078]
-z_index = 20
-material = SubResource("M_Beam18")
-offset_left = 6700.0
-offset_top = 442.0
-offset_right = 7000.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable19" type="ColorRect" parent="Lamps" unique_id=970000080]
-offset_left = 7648.5
-offset_top = 420.0
-offset_right = 7651.5
-offset_bottom = 430.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp19" type="Sprite2D" parent="Lamps" unique_id=970000081]
-position = Vector2(7650, 436)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam19" type="ColorRect" parent="Lamps" unique_id=970000082]
-z_index = 20
-material = SubResource("M_Beam19")
-offset_left = 7500.0
-offset_top = 442.0
-offset_right = 7800.0
-offset_bottom = 680.0
-mouse_filter = 2
-
-[node name="Cable20" type="ColorRect" parent="Lamps" unique_id=970000084]
-offset_left = 298.5
-offset_top = -600.0
-offset_right = 301.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp20" type="Sprite2D" parent="Lamps" unique_id=970000085]
-position = Vector2(300, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam20" type="ColorRect" parent="Lamps" unique_id=970000086]
-z_index = 20
-material = SubResource("M_Beam20")
-offset_left = 150.0
-offset_top = 142.0
-offset_right = 450.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable21" type="ColorRect" parent="Lamps" unique_id=970000088]
-offset_left = 1298.5
-offset_top = -600.0
-offset_right = 1301.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp21" type="Sprite2D" parent="Lamps" unique_id=970000089]
-position = Vector2(1300, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam21" type="ColorRect" parent="Lamps" unique_id=970000090]
-z_index = 20
-material = SubResource("M_Beam21")
-offset_left = 1150.0
-offset_top = 142.0
-offset_right = 1450.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable22" type="ColorRect" parent="Lamps" unique_id=970000092]
-offset_left = 2248.5
-offset_top = -600.0
-offset_right = 2251.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp22" type="Sprite2D" parent="Lamps" unique_id=970000093]
-position = Vector2(2250, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam22" type="ColorRect" parent="Lamps" unique_id=970000094]
-z_index = 20
-material = SubResource("M_Beam22")
-offset_left = 2100.0
-offset_top = 142.0
-offset_right = 2400.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable23" type="ColorRect" parent="Lamps" unique_id=970000096]
-offset_left = 3198.5
-offset_top = -600.0
-offset_right = 3201.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp23" type="Sprite2D" parent="Lamps" unique_id=970000097]
-position = Vector2(3200, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam23" type="ColorRect" parent="Lamps" unique_id=970000098]
-z_index = 20
-material = SubResource("M_Beam23")
-offset_left = 3050.0
-offset_top = 142.0
-offset_right = 3350.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable24" type="ColorRect" parent="Lamps" unique_id=970000100]
-offset_left = 4248.5
-offset_top = -600.0
-offset_right = 4251.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp24" type="Sprite2D" parent="Lamps" unique_id=970000101]
-position = Vector2(4250, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam24" type="ColorRect" parent="Lamps" unique_id=970000102]
-z_index = 20
-material = SubResource("M_Beam24")
-offset_left = 4100.0
-offset_top = 142.0
-offset_right = 4400.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable25" type="ColorRect" parent="Lamps" unique_id=970000104]
-offset_left = 5298.5
-offset_top = -600.0
-offset_right = 5301.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp25" type="Sprite2D" parent="Lamps" unique_id=970000105]
-position = Vector2(5300, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam25" type="ColorRect" parent="Lamps" unique_id=970000106]
-z_index = 20
-material = SubResource("M_Beam25")
-offset_left = 5150.0
-offset_top = 142.0
-offset_right = 5450.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable26" type="ColorRect" parent="Lamps" unique_id=970000108]
-offset_left = 6248.5
-offset_top = -600.0
-offset_right = 6251.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp26" type="Sprite2D" parent="Lamps" unique_id=970000109]
-position = Vector2(6250, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam26" type="ColorRect" parent="Lamps" unique_id=970000110]
-z_index = 20
-material = SubResource("M_Beam26")
-offset_left = 6100.0
-offset_top = 142.0
-offset_right = 6400.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="Cable27" type="ColorRect" parent="Lamps" unique_id=970000112]
-offset_left = 7298.5
-offset_top = -600.0
-offset_right = 7301.5
-offset_bottom = 130.0
-mouse_filter = 2
-color = Color(0.05, 0.05, 0.06, 1)
-
-[node name="Lamp27" type="Sprite2D" parent="Lamps" unique_id=970000113]
-position = Vector2(7300, 136)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_lamp")
-
-[node name="Beam27" type="ColorRect" parent="Lamps" unique_id=970000114]
-z_index = 20
-material = SubResource("M_Beam27")
-offset_left = 7150.0
-offset_top = 142.0
-offset_right = 7450.0
-offset_bottom = 380.0
-mouse_filter = 2
-
-[node name="ExitDoorLamp" type="Sprite2D" parent="Lamps" unique_id=970000116]
-modulate = Color(0.45, 1, 0.55, 1)
-position = Vector2(8000, 878)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_walllamp")
-
-[node name="DoorMidLamp" type="Sprite2D" parent="Lamps" unique_id=970000118]
-modulate = Color(1, 0.35, 0.3, 1)
-position = Vector2(7800, 558)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_walllamp")
-
-[node name="DoorTopLamp" type="Sprite2D" parent="Lamps" unique_id=970000120]
-modulate = Color(1, 0.35, 0.3, 1)
-position = Vector2(6700, 258)
-scale = Vector2(3, 3)
-texture = ExtResource("fx_tx_walllamp")
-
-[node name="Lights" type="Node2D" parent="." unique_id=970000003]
-
-[node name="Light0" type="PointLight2D" parent="Lights" unique_id=970000007]
-position = Vector2(260, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light1" type="PointLight2D" parent="Lights" unique_id=970000011]
-position = Vector2(1050, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light2" type="PointLight2D" parent="Lights" unique_id=970000015]
-position = Vector2(1900, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light3" type="PointLight2D" parent="Lights" unique_id=970000019]
-position = Vector2(2850, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light4" type="PointLight2D" parent="Lights" unique_id=970000023]
-position = Vector2(3700, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light5" type="PointLight2D" parent="Lights" unique_id=970000027]
-position = Vector2(4550, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light6" type="PointLight2D" parent="Lights" unique_id=970000031]
-position = Vector2(5400, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light7" type="PointLight2D" parent="Lights" unique_id=970000035]
-position = Vector2(6250, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light8" type="PointLight2D" parent="Lights" unique_id=970000039]
-position = Vector2(7100, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light9" type="PointLight2D" parent="Lights" unique_id=970000043]
-position = Vector2(7850, 742)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light10" type="PointLight2D" parent="Lights" unique_id=970000047]
-position = Vector2(180, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light11" type="PointLight2D" parent="Lights" unique_id=970000051]
-position = Vector2(900, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light12" type="PointLight2D" parent="Lights" unique_id=970000055]
-position = Vector2(1700, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light13" type="PointLight2D" parent="Lights" unique_id=970000059]
-position = Vector2(2650, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light14" type="PointLight2D" parent="Lights" unique_id=970000063]
-position = Vector2(3450, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light15" type="PointLight2D" parent="Lights" unique_id=970000067]
-position = Vector2(4400, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light16" type="PointLight2D" parent="Lights" unique_id=970000071]
-position = Vector2(5150, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light17" type="PointLight2D" parent="Lights" unique_id=970000075]
-position = Vector2(6000, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light18" type="PointLight2D" parent="Lights" unique_id=970000079]
-position = Vector2(6850, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light19" type="PointLight2D" parent="Lights" unique_id=970000083]
-position = Vector2(7650, 442)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light20" type="PointLight2D" parent="Lights" unique_id=970000087]
-position = Vector2(300, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light21" type="PointLight2D" parent="Lights" unique_id=970000091]
-position = Vector2(1300, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light22" type="PointLight2D" parent="Lights" unique_id=970000095]
-position = Vector2(2250, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light23" type="PointLight2D" parent="Lights" unique_id=970000099]
-position = Vector2(3200, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light24" type="PointLight2D" parent="Lights" unique_id=970000103]
-position = Vector2(4250, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light25" type="PointLight2D" parent="Lights" unique_id=970000107]
-position = Vector2(5300, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light26" type="PointLight2D" parent="Lights" unique_id=970000111]
-position = Vector2(6250, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="Light27" type="PointLight2D" parent="Lights" unique_id=970000115]
-position = Vector2(7300, 142)
-rotation = 1.5707964
-color = Color(1, 0.8, 0.56, 1)
-energy = 1.05
-texture = ExtResource("fx_tx_cone")
-offset = Vector2(140, 0)
-texture_scale = 1.45
-
-[node name="ExitDoorGlow" type="PointLight2D" parent="Lights" unique_id=970000117]
-position = Vector2(8000, 878)
-color = Color(0.45, 1, 0.55, 1)
-energy = 0.9
-texture = ExtResource("fx_tx_round")
-texture_scale = 0.6
-
-[node name="DoorMidGlow" type="PointLight2D" parent="Lights" unique_id=970000119]
-position = Vector2(7800, 558)
-color = Color(1, 0.35, 0.3, 1)
-energy = 0.9
-texture = ExtResource("fx_tx_round")
-texture_scale = 0.6
-
-[node name="DoorTopGlow" type="PointLight2D" parent="Lights" unique_id=970000121]
-position = Vector2(6700, 258)
-color = Color(1, 0.35, 0.3, 1)
-energy = 0.9
-texture = ExtResource("fx_tx_round")
-texture_scale = 0.6
-
-[node name="PostFX" type="ColorRect" parent="." unique_id=970000123]
-z_index = 1000
-material = SubResource("M_Post")
-offset_left = -10000.0
-offset_top = -10000.0
-offset_right = 14000.0
-offset_bottom = 10000.0
-mouse_filter = 2
-
-[node name="Enemies" type="Node2D" parent="." unique_id=1294940449]
-
-[node name="SpawnPoints" type="Node2D" parent="." unique_id=1812275916]
-
-[node name="SpawnDog1" type="Marker2D" parent="SpawnPoints" unique_id=1286193541]
-position = Vector2(1500, 960)
+[node name="Dog1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(880, 960)
 metadata/enemy_type = "dog"
 
-[node name="SpawnDog2" type="Marker2D" parent="SpawnPoints" unique_id=317171698]
-position = Vector2(3600, 640)
+[node name="Monkey1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(640, 640)
+metadata/enemy_type = "monkey"
+
+[node name="Dog2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1400, 640)
 metadata/enemy_type = "dog"
 
-[node name="SpawnDog3" type="Marker2D" parent="SpawnPoints" unique_id=528603912]
-position = Vector2(5300, 340)
-metadata/enemy_type = "dog"
+[node name="Mecha_Fish" parent="." instance=ExtResource("e18")]
+position = Vector2(180, 970)
 
-[node name="SpawnDog4" type="Marker2D" parent="SpawnPoints" unique_id=1609347350]
-position = Vector2(7200, 960)
-metadata/enemy_type = "dog"
-
-[node name="SpawnMonkey1" type="Marker2D" parent="SpawnPoints" unique_id=454351932]
-position = Vector2(2100, 960)
-metadata/enemy_type = "monkey"
-metadata/has_forklift = true
-
-[node name="SpawnMonkey2" type="Marker2D" parent="SpawnPoints" unique_id=1534680470]
-position = Vector2(3200, 640)
-metadata/enemy_type = "monkey"
-
-[node name="SpawnMonkey3" type="Marker2D" parent="SpawnPoints" unique_id=1571012030]
-position = Vector2(4430, 640)
-metadata/enemy_type = "monkey"
-metadata/has_forklift = true
-
-[node name="SpawnMonkey4" type="Marker2D" parent="SpawnPoints" unique_id=2017920154]
-position = Vector2(5850, 208)
-metadata/enemy_type = "monkey"
-
-[node name="SpawnMonkey5" type="Marker2D" parent="SpawnPoints" unique_id=1993999855]
-position = Vector2(6600, 960)
-metadata/enemy_type = "monkey"
-metadata/has_forklift = true
-
-[node name="SpawnPigeon1" type="Marker2D" parent="SpawnPoints" unique_id=1055674269]
-position = Vector2(4800, 320)
-metadata/enemy_type = "pigeon"
-
-[node name="SpawnPigeon2" type="Marker2D" parent="SpawnPoints" unique_id=1748762148]
-position = Vector2(6400, 320)
-metadata/enemy_type = "pigeon"
-
-[node name="Mecha_Fish" parent="." unique_id=777806985 instance=ExtResource("2_player")]
-position = Vector2(200, 940)
-
-[node name="DeathScreen" parent="." unique_id=1693973687 instance=ExtResource("3_death")]
+[node name="DeathScreen" parent="." instance=ExtResource("e19")]
 visible = false
 
-[node name="Pausemenu" type="CanvasLayer" parent="." unique_id=1975166785]
-process_mode = 3
-layer = 100
+[node name="Pausemenu" parent="." instance=ExtResource("e20")]
 visible = false
-script = ExtResource("4_pause")
-
-[node name="ColorRect" type="ColorRect" parent="Pausemenu" unique_id=1642171371]
-offset_left = -10000.0
-offset_top = -10000.0
-offset_right = 10000.0
-offset_bottom = 10000.0
-color = Color(0, 0, 0, 0.69803923)
-
-[node name="ContinueButton" type="Button" parent="Pausemenu" unique_id=1785814906]
-offset_left = 486.0
-offset_top = 176.5
-offset_right = 666.0
-offset_bottom = 231.5
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("5_btnn")
-theme_override_styles/pressed = ExtResource("6_btnp")
-theme_override_styles/hover = ExtResource("7_btnh")
-text = "Продолжить"
-
-[node name="SaveButton" type="Button" parent="Pausemenu" unique_id=5181022]
-offset_left = 486.0
-offset_top = 236.5
-offset_right = 666.0
-offset_bottom = 291.5
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("5_btnn")
-theme_override_styles/pressed = ExtResource("6_btnp")
-theme_override_styles/hover = ExtResource("7_btnh")
-text = "Сохраниться"
-
-[node name="RestartButton" type="Button" parent="Pausemenu" unique_id=1857308960]
-offset_left = 486.0
-offset_top = 296.5
-offset_right = 666.0
-offset_bottom = 351.5
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("5_btnn")
-theme_override_styles/pressed = ExtResource("6_btnp")
-theme_override_styles/hover = ExtResource("7_btnh")
-text = "Рестарт"
-
-[node name="SettingsButton" type="Button" parent="Pausemenu" unique_id=590342072]
-offset_left = 486.0
-offset_top = 356.5
-offset_right = 666.0
-offset_bottom = 411.5
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("5_btnn")
-theme_override_styles/pressed = ExtResource("6_btnp")
-theme_override_styles/hover = ExtResource("7_btnh")
-text = "Настройки"
-
-[node name="ExitButton" type="Button" parent="Pausemenu" unique_id=1050739274]
-offset_left = 486.0
-offset_top = 416.5
-offset_right = 666.0
-offset_bottom = 471.5
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = ExtResource("5_btnn")
-theme_override_styles/pressed = ExtResource("6_btnp")
-theme_override_styles/hover = ExtResource("7_btnh")
-text = "Выход"
-
-[node name="Framing" type="Sprite2D" parent="Pausemenu" unique_id=1598484262]
-position = Vector2(575.99994, 324)
-scale = Vector2(3.9999993, 4)
-texture = ExtResource("8_framing")
-
-[connection signal="pressed" from="Pausemenu/ContinueButton" to="Pausemenu" method="_on_continue_pressed"]
-[connection signal="pressed" from="Pausemenu/SaveButton" to="Pausemenu" method="_on_save_pressed"]
-[connection signal="pressed" from="Pausemenu/RestartButton" to="Pausemenu" method="_on_restart_pressed"]
-[connection signal="pressed" from="Pausemenu/SettingsButton" to="Pausemenu" method="_on_settings_pressed"]
-[connection signal="pressed" from="Pausemenu/ExitButton" to="Pausemenu" method="_on_exit_pressed"]

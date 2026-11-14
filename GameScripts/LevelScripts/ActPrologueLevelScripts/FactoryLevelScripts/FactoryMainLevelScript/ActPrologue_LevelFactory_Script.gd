@@ -4458,8 +4458,11 @@ var _cine_bot: ColorRect = null
 var _cine_k: float = 0.0
 const CINE_BAR_H := 62.0
 
+var _cine_hold: int = 0
+var _cine_dot: ColorRect = null
+
 func _update_cinema_bars(delta: float) -> void:
-	var want = current_shift == 1 and _pre_accident_lock and state != State.DEAD
+	var want = (current_shift == 1 and _pre_accident_lock and state != State.DEAD) or _cine_hold > 0
 	if _cine_layer == null:
 		if not want:
 			return
@@ -4473,6 +4476,24 @@ func _update_cinema_bars(delta: float) -> void:
 			r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			r.size = Vector2(1152, CINE_BAR_H)
 			_cine_layer.add_child(r)
+		_cine_dot = ColorRect.new()
+		_cine_dot.color = Color(0.9, 0.2, 0.18)
+		_cine_dot.size = Vector2(8, 8)
+		_cine_dot.position = Vector2(28, CINE_BAR_H * 0.5 - 4.0)
+		_cine_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_cine_bot.add_child(_cine_dot)
+		var lab = Label.new()
+		lab.text = tr("КАТСЦЕНА")
+		lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var lf = _bubble_font()
+		if lf:
+			lab.add_theme_font_override("font", lf)
+		lab.add_theme_font_size_override("font_size", 12)
+		lab.add_theme_color_override("font_color", Color(0.78, 0.78, 0.82))
+		lab.position = Vector2(46, CINE_BAR_H * 0.5 - 9.0)
+		_cine_bot.add_child(lab)
+	if _cine_dot:
+		_cine_dot.visible = int(Time.get_ticks_msec() / 500.0) % 2 == 0
 	var target = 1.0 if want else 0.0
 	_cine_k = move_toward(_cine_k, target, delta / 0.6)
 	var e = _cine_k * _cine_k * (3.0 - 2.0 * _cine_k)
@@ -5233,6 +5254,8 @@ func _forced_guard_inspect() -> void:
 	if state == State.INSPECT:
 		_exit_inspect()
 	_guard_busy = true
+	_cine_hold += 1
+	_lock_player_scene(true)
 	var gp = guard_sprite.get_parent()
 	var pl = gp.to_local(player.global_position) if gp else player.global_position
 	var side = 1.0 if guard_sprite.position.x > pl.x else -1.0
@@ -5244,6 +5267,8 @@ func _forced_guard_inspect() -> void:
 		guard_sprite.play("idle")
 	_show_guard_dialog(tr("Бро, я сейчас ухожу. Осмотри меня, когда я уйду."), 2.6, true)
 	await _tree().create_timer(3.4, false).timeout
+	_cine_hold = max(0, _cine_hold - 1)
+	_lock_player_scene(false)
 	if not is_inside_tree() or state == State.DEAD:
 		return
 	_guard_busy = false
@@ -5505,11 +5530,13 @@ func _sniper_floor_walk(to_x: float) -> void:
 	var from = sniper_sprite.position.x
 	sniper_sprite.flip_h = to_x < from
 	_sniper_play("walk")
+	sniper_sprite.speed_scale = 1.9
 	var tw = create_tween()
-	tw.tween_property(sniper_sprite, "position:x", to_x, max(0.1, abs(to_x - from) / 90.0))
+	tw.tween_property(sniper_sprite, "position:x", to_x, max(0.1, abs(to_x - from) / GUARD_WALK_SPEED))
 	await tw.finished
 	if not is_inside_tree():
 		return
+	sniper_sprite.speed_scale = 1.0
 	_sniper_play("idle")
 
 func _sniper_face_player() -> void:
@@ -5551,6 +5578,8 @@ func _sniper_scene_run(h: float, kill: bool) -> void:
 	if state == State.INSPECT:
 		_exit_inspect()
 	_sniper_floor_frames()
+	_cine_hold += 1
+	_lock_player_scene(true)
 	var z0 = sniper_sprite.z_index
 	var zr0 = sniper_sprite.z_as_relative
 	await _sniper_walk(SNIPER_DOOR_X, true)
@@ -5572,7 +5601,6 @@ func _sniper_scene_run(h: float, kill: bool) -> void:
 	await _await_elevator_anim("open")
 	if not is_inside_tree():
 		return
-	_lock_player_scene(true)
 	sniper_sprite.z_index = Z_GUARD_WALK
 	var px = player.global_position.x
 	await _sniper_floor_walk(px - (54.0 if kill else 80.0))
@@ -5594,7 +5622,6 @@ func _sniper_scene_run(h: float, kill: bool) -> void:
 	await _sniper_say(tr("Я стою над твоей головой на балконе справа."), 3.0)
 	if not is_inside_tree():
 		return
-	_lock_player_scene(false)
 	sniper_sprite.z_index = Z_GUARD_WALK
 	await _sniper_floor_walk(GUARD_LIFT_POSITION.x + 40.0)
 	if not is_inside_tree():
@@ -5615,6 +5642,8 @@ func _sniper_scene_run(h: float, kill: bool) -> void:
 	sniper_sprite.scale = Vector2.ONE
 	sniper_sprite.z_as_relative = zr0
 	sniper_sprite.z_index = z0
+	_cine_hold = max(0, _cine_hold - 1)
+	_lock_player_scene(false)
 	_sniper_leave_said = true
 	_force_sniper = true
 	var key = _key_name("inspect")

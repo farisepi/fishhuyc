@@ -162,7 +162,29 @@ func _drop_shard() -> void:
 		get_tree().current_scene.add_child(shard)
 	died.emit(shard_color)
 
+static var dark_mode: bool = false
+const DARK_HEAR := 430.0
+const DARK_FORGET_MS := 1400
+var _heard_ms: int = -100000
+
+func _player_noisy() -> bool:
+	if player == null:
+		return false
+	if player is CharacterBody2D and (abs(player.velocity.x) > 25.0 or player.velocity.y < -60.0):
+		return true
+	return bool(player.get("is_attacking"))
+
 func _update_aggro(dist: float) -> void:
+	if dark_mode:
+		if dist <= DARK_HEAR and _player_noisy():
+			_heard_ms = Time.get_ticks_msec()
+			is_aggro = true
+		elif dist <= 45.0:
+			_heard_ms = Time.get_ticks_msec()
+			is_aggro = true
+		elif Time.get_ticks_msec() - _heard_ms > DARK_FORGET_MS:
+			is_aggro = false
+		return
 	if not is_aggro:
 		if dist <= aggro_range:
 			is_aggro = true

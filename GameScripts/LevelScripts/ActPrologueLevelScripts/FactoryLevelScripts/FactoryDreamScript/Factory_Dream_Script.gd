@@ -865,14 +865,8 @@ func roll_family(sh: int, st: int) -> bool:
 	return family_ok(sh, st) and randf() < FAMILY_CHANCE
 
 const FISH_BODY := Color(0.38, 0.63, 0.73)
-const MARK_RED := Color(0.82, 0.22, 0.2)
-const MARK_YEL := Color(0.98, 0.82, 0.25)
-const MARK_DARK := Color(0.12, 0.12, 0.16)
-const MARK_GREY := Color(0.72, 0.74, 0.78)
-const MARK_WHITE := Color(0.95, 0.94, 0.88)
-const MARK_SCAR := Color(0.93, 0.66, 0.66)
 
-func _swim_frames(mark: String = "") -> SpriteFrames:
+func _swim_frames() -> SpriteFrames:
 	var sf = SpriteFrames.new()
 	sf.add_animation("swim")
 	sf.set_animation_speed("swim", 8.0)
@@ -895,59 +889,16 @@ func _swim_frames(mark: String = "") -> SpriteFrames:
 				var greyish = abs(c.r - c.g) < 0.06 and abs(c.g - c.b) < 0.08 and c.r > 0.35 and c.r < 0.62
 				if greenish or greyish:
 					img.set_pixel(x, y, FISH_BODY)
-		_mark_img(img, mark)
 		sf.add_frame("swim", ImageTexture.create_from_image(img))
 	if sf.has_animation("default"):
 		sf.remove_animation("default")
 	return sf
 
-func _mark_img(img: Image, mark: String) -> void:
-	var px = func(x: int, y: int, c: Color) -> void:
-		if x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height():
-			img.set_pixel(x, y, c)
-	match mark:
-		"hat":
-			for x in range(21, 26):
-				px.call(x, 26, MARK_RED if x % 2 == 1 else MARK_YEL)
-				px.call(x, 25, MARK_RED if x % 2 == 1 else MARK_YEL)
-			for x in range(22, 25):
-				px.call(x, 24, MARK_RED)
-			px.call(23, 23, MARK_DARK)
-			for x in range(20, 27):
-				px.call(x, 22, MARK_GREY)
-		"scar":
-			for q in [Vector2i(24, 29), Vector2i(25, 30), Vector2i(27, 32), Vector2i(28, 33)]:
-				px.call(q.x, q.y, MARK_SCAR)
-		"eye":
-			for ex in [21, 24]:
-				px.call(ex, 25, MARK_WHITE)
-				px.call(ex + 1, 25, MARK_WHITE)
-				px.call(ex, 24, MARK_WHITE)
-				px.call(ex + 1, 24, MARK_DARK)
-		"nohand":
-			for y in range(33, 37):
-				for x in range(27, 30):
-					var c = img.get_pixel(x, y)
-					if c.a > 0.0 and c.r > c.b:
-						img.set_pixel(x, y, Color(c.r * 0.8, c.g * 0.8, c.b * 0.8, c.a))
-
 const DREAM_LEN := 5.0
 const DREAM_FADE := 1.1
 const SKIP_HOLD := 0.8
-const FAMILY_KINDS := ["family", "school", "crew", "alone", "surface"]
+const FAMILY_KINDS := ["family", "school", "alone", "surface"]
 var _last_family: String = ""
-
-func _family_text(kind: String) -> String:
-	match kind:
-		"school":
-			return tr("Тысячи рыб — и [y]ни одного чипа[/y]. Так и должно быть.")
-		"crew":
-			return tr("Мы [y]все[/y] выбрались. Однажды [g]так и будет[/g].")
-		"alone":
-			return tr("Тихо. [y]Никаких конвейеров[/y]. Только вода.")
-		"surface":
-			return tr("Там, наверху, — [y]солнце[/y]. Надо [g]выбраться[/g].")
-	return tr("Родное [y]озеро[/y]. [y]Мама и папа[/y] ждут. Надо [g]выбраться[/g].")
 
 func _family_cast(kind: String, W: float, H: float, rng: RandomNumberGenerator) -> Dictionary:
 	var cast: Array = []
@@ -971,13 +922,6 @@ func _family_cast(kind: String, W: float, H: float, rng: RandomNumberGenerator) 
 				add.call(kid_sf, p, rng.randf_range(0.26, 0.42), palette[i % palette.size()], rng.randf_range(2.0, 5.0))
 			var kid = add.call(kid_sf, Vector2(W * 0.5, H * 0.48), 0.65, Color.WHITE)
 			emotes = [[1.5, kid, ":D"], [3.4, kid, "~"]]
-		"crew":
-			var kid = add.call(kid_sf, Vector2(W * 0.46, H * 0.5), 0.65, Color.WHITE)
-			var hat = add.call(_swim_frames("hat"), Vector2(W * 0.3, H * 0.32), 0.7, Color(0.95, 0.95, 1.0))
-			var scar = add.call(_swim_frames("scar"), Vector2(W * 0.64, H * 0.36), 0.72, Color(0.9, 0.98, 0.92))
-			var eye = add.call(_swim_frames("eye"), Vector2(W * 0.68, H * 0.6), 0.68, Color(1.05, 0.95, 0.88))
-			var noh = add.call(_swim_frames("nohand"), Vector2(W * 0.28, H * 0.62), 0.66, Color(0.92, 0.92, 1.05))
-			emotes = [[1.2, hat, "?"], [1.9, scar, ":)"], [2.6, eye, "o_o"], [3.3, noh, "<3"], [4.0, kid, ":D"]]
 		"alone":
 			var kid = add.call(kid_sf, Vector2(W * 0.5, H * 0.5), 0.75, Color.WHITE, 4.0)
 			emotes = [[2.0, kid, "..."], [3.8, kid, ":)"]]
@@ -1111,23 +1055,6 @@ func run_family(_sh: int, kind: String = "") -> void:
 			front.draw_rect(Rect2(pos.x - 1, br.end.y, 3, 2), Color(0.95, 0.95, 0.92, 0.95 * a))
 			front.draw_rect(Rect2(pos.x, br.end.y + 2, 1, 1), Color(0.95, 0.95, 0.92, 0.95 * a))
 			front.draw_string(font, Vector2(floor(pos.x - tw * 0.5), pos.y), e["text"], HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.1, 0.1, 0.12, a)))
-	var sub = RichTextLabel.new()
-	sub.bbcode_enabled = true
-	sub.fit_content = true
-	sub.scroll_active = false
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sub.size = Vector2(vs.x - 160.0, 0)
-	sub.position = Vector2(80.0, vs.y - 92.0)
-	if font:
-		sub.add_theme_font_override("normal_font", font)
-	sub.add_theme_font_size_override("normal_font_size", 16)
-	sub.add_theme_color_override("default_color", Color(0.95, 0.95, 0.9))
-	sub.add_theme_color_override("font_outline_color", Color(0.02, 0.04, 0.06))
-	sub.add_theme_constant_override("outline_size", 6)
-	sub.text = "[center]" + L.RICH_TEXT.fmt(_family_text(kind)) + "[/center]"
-	sub.modulate.a = 0.0
-	layer.add_child(sub)
 	var skip = Control.new()
 	skip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	skip.size = Vector2(300, 44)
@@ -1169,7 +1096,6 @@ func run_family(_sh: int, kind: String = "") -> void:
 		var k_in = clamp(tt / DREAM_FADE, 0.0, 1.0)
 		var k_out = 1.0 if out_t < 0.0 else clamp(1.0 - (tt - out_t) / (0.5 if skipped else DREAM_FADE), 0.0, 1.0)
 		cont.modulate.a = smoothstep(0.0, 1.0, k_in) * smoothstep(0.0, 1.0, k_out)
-		sub.modulate.a = clamp((tt - DREAM_FADE - 0.6) / 0.8, 0.0, 1.0) * smoothstep(0.0, 1.0, k_out)
 		skip.modulate.a = (0.85 if tt > 0.4 else tt / 0.4 * 0.85) * k_out
 		skip.queue_redraw()
 		for i in range(fish.size()):

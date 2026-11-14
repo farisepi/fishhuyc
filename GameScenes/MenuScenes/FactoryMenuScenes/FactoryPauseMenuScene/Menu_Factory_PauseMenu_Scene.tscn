@@ -1,0 +1,86 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" uid="uid://b774x8p38lb2q" path="res://GameScripts/MenuScripts/FactoryMenuScripts/PauseMenuFactoryScript/Menu_Factory_PauseMenu_Script.gd" id="4_pause"]
+[ext_resource type="StyleBox" uid="uid://dflds4xbh3rnm" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Normal_Material.tres" id="5_btnn"]
+[ext_resource type="StyleBox" uid="uid://cdb508kt3onl1" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Pressed_Material.tres" id="6_btnp"]
+[ext_resource type="StyleBox" uid="uid://dhcit2yj7m2m" path="res://GameAssets/SharedMaterials/UIMaterials/FactoryMenuMaterials/SmallButtonMaterials/Menu_Factory_Button_Small_Hover_Material.tres" id="7_btnh"]
+[ext_resource type="Texture2D" uid="uid://dh1t8xjydvmjh" path="res://GameAssets/Sprites/UserInterfaceSprites/PauseMenuSprites/PauseMenuFactorySprites/Menu_PauseMenu_Factory_Framing_Texture.png" id="8_framing"]
+
+[node name="Pausemenu" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("4_pause")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -10000.0
+offset_top = -10000.0
+offset_right = 10000.0
+offset_bottom = 10000.0
+color = Color(0, 0, 0, 0.69803923)
+
+[node name="ContinueButton" type="Button" parent="."]
+offset_left = 486.0
+offset_top = 176.5
+offset_right = 666.0
+offset_bottom = 231.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Продолжить"
+
+[node name="SaveButton" type="Button" parent="."]
+offset_left = 486.0
+offset_top = 236.5
+offset_right = 666.0
+offset_bottom = 291.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Сохраниться"
+
+[node name="RestartButton" type="Button" parent="."]
+offset_left = 486.0
+offset_top = 296.5
+offset_right = 666.0
+offset_bottom = 351.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Рестарт"
+
+[node name="SettingsButton" type="Button" parent="."]
+offset_left = 486.0
+offset_top = 356.5
+offset_right = 666.0
+offset_bottom = 411.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Настройки"
+
+[node name="ExitButton" type="Button" parent="."]
+offset_left = 486.0
+offset_top = 416.5
+offset_right = 666.0
+offset_bottom = 471.5
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = ExtResource("5_btnn")
+theme_override_styles/pressed = ExtResource("6_btnp")
+theme_override_styles/hover = ExtResource("7_btnh")
+text = "Выход"
+
+[node name="Framing" type="Sprite2D" parent="."]
+position = Vector2(575.99994, 324)
+scale = Vector2(3.9999993, 4)
+texture = ExtResource("8_framing")
+
+[connection signal="pressed" from="ContinueButton" to="." method="_on_continue_pressed"]
+[connection signal="pressed" from="SaveButton" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="SettingsButton" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="ExitButton" to="." method="_on_exit_pressed"]

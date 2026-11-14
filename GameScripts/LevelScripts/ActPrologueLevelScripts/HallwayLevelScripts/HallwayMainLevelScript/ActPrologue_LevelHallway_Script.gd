@@ -49,13 +49,9 @@ const FL_SLOWMO_RAMP: float = 0.5
 const FL_QTE_TIME: float = 2.0
 const FL_DASH_DIST: float = 100.0
 const FL_DASH_TIME: float = 0.28
-# общий план: погрузчик сначала показывают издалека, он ползёт, потом газует
-# погрузчик выезжает издалека и несётся; рыба бежит не останавливаясь, камера на ходу
-# коротко перебрасывается на погрузчик и обратно
 const FL_INTRO_AHEAD: float = 2500.0
 const FL_INTRO_LOOK_DELAY: float = 0.35
 const FL_INTRO_HOLD: float = 0.8
-# после попадания: виляя и замедляясь, доезжает и встаёт перед рыбой
 const FL_LIMP_SPEED: float = 260.0
 const FL_LIMP_STOP_GAP: float = 34.0
 
@@ -1013,7 +1009,6 @@ func _play_forklift_cutscene():
 			return
 
 	state = State.FORKLIFT_QTE
-	# водитель тормозит, камера берёт в кадр и рыбу, и погрузчик
 	var br = create_tween()
 	br.tween_property(self, "_fl_drive_speed", FL_SPEED * FL_BRAKE_MULT, 0.4)
 	_spawn_sparks(_forklift_center() + Vector2(-20, 30), Color(1, 0.8, 0.4, 0.9), 12)
@@ -1611,8 +1606,9 @@ func _win():
 	state = State.WIN
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
-	if player:
-		Global.player_position = player.global_position
+	Global.player_position = Vector2.ZERO
+	Global.storage_state["entry"] = ""
+	Global.storage_state["room"] = "nearfactory"
 	Global.autosave(Global.SCENE_STORAGE)
 
 	if has_node("/root/Achievements"):
@@ -1718,7 +1714,6 @@ const ARENA_INTRO_DELAY: float = 0.35
 const ARENA_ENGAGE_DIST: float = 230.0
 const ARENA_SPEED_MULT: float = 0.74
 const ARENA_HIT_BREATHER: float = 1.6
-# враги уже стоят в зоне и топчутся у своих мест; нападает только один, следующий — после паузы
 const ARENA_TURN_GAP: float = 1.1
 const ARENA_FOLLOW_GAP: float = 75.0
 const ARENA_FOLLOW_MIN: float = 120.0
@@ -1726,7 +1721,6 @@ const ARENA_FOLLOW_SPEED: float = 0.55
 const ARENA_IDLE_SWAY: float = 10.0
 const ARENA_ROW_GAP: float = 70.0
 const ARENA_ROW_MARGIN: float = 70.0
-# голубь «далеко»: на фоне, меньше и в дымке, бьёт сквозь всё
 const FAR_SNIPER_SCALE: float = 0.62
 const FAR_TINT := Color(0.55, 0.6, 0.74)
 const FAR_Z: int = -2
@@ -1742,7 +1736,6 @@ const ARENA1_MIN_ENEMIES: int = 2
 const ARENA1_MAX_ENEMIES: int = 3
 const ARENA1_MAX_ALIVE: int = 2
 
-# зона 3 — там, где был узкий проход: между погрузчиком и Obstacle8
 const ARENA3_LEFT_X: float = 5200.0
 const ARENA3_GAP_BEFORE_O8: float = 84.0
 const ARENA_TURN_HITS: int = 2
@@ -1867,7 +1860,6 @@ func _update_waiting(e: Node, x: float, mult: float) -> void:
 		e.patrol_speed_mult = 0.0
 		e.patrol_dir = 1 if player.global_position.x > e.global_position.x else -1
 
-# до боя строй переминается на месте
 func _update_row_idle(a: Dictionary) -> void:
 	var t = Time.get_ticks_msec() / 1000.0
 	var i := 0
@@ -1877,7 +1869,6 @@ func _update_row_idle(a: Dictionary) -> void:
 			_update_waiting(e, spot + sin(t * 0.7 + i * 1.9) * ARENA_IDLE_SWAY, 0.25)
 			i += 1
 
-# в бою ждущие неспешно идут следом за нападающим, держась позади
 func _update_followers(a: Dictionary, alive: Array, cur) -> void:
 	var waiting: Array = []
 	for e in alive:
@@ -1949,7 +1940,6 @@ func _update_hints_and_arena(delta: float):
 			Arena.FIGHT:
 				_update_arena(a, delta)
 
-# бой начинается, когда рыба подошла к строю
 func _arena_engage_x(a: Dictionary) -> float:
 	var front := INF
 	for e in a["enemies"]:
@@ -2301,7 +2291,6 @@ func _update_arena(a: Dictionary, delta: float):
 		cur = null
 		a["attacker"] = null
 		a["turn_t"] = ARENA_TURN_GAP
-	# ударили того, кто ждал, — он вступает, а прежний отходит к своему месту
 	for e in alive:
 		if e != cur and e.has_meta("arena_wait") and e.hp < int(e.get_meta("wait_hp", e.max_hp)):
 			if cur:
@@ -2310,7 +2299,6 @@ func _update_arena(a: Dictionary, delta: float):
 			cur = e
 			a["attacker"] = e
 			break
-	# по нападающему попали ARENA_TURN_HITS раз — он отходит в строй, бить идёт следующий
 	if cur and cur.hp <= int(cur.get_meta("turn_hp", cur.hp)) - ARENA_TURN_HITS:
 		var nxt = null
 		for e in alive:

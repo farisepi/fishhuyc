@@ -1,0 +1,294 @@
+[gd_scene load_steps=32 format=3]
+
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageRoomMainScript/ActStorage_Room_Script.gd" id="e1"]
+[ext_resource type="Script" path="res://GameScripts/LevelScripts/ActStorageLevelScripts/StorageRoomScripts/StorageDoorScript/ActStorage_Door_Script.gd" id="e2"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_WashBag_Texture.png" id="e3"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option2_Texture.png" id="e4"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option2_Texture.png" id="e5"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option3_Texture.png" id="e6"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Shelf_Option3_Texture.png" id="e7"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Box_Option4_Texture.png" id="e8"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Container_Option1_Back_Texture.png" id="e9"]
+[ext_resource type="Texture2D" path="res://GameAssets/LevelAssets/ActStorage/StorageTilesetTextures/NearFactoryLevelAssets/ActSrorage_LevelNearFactory_TileSet_Barrel_Option1_Texture.png" id="e10"]
+[ext_resource type="PackedScene" path="res://GameScenes/LevelScenes/ActStorageLevelScenes/NearFactoryLevelScenes/NearFactoryLevelEntityScenes/NearFactoryLadderScene/ActStorage_LevelNearFactory_Ladder_Scene.tscn" id="e11"]
+[ext_resource type="PackedScene" path="res://GameScenes/EntityScenes/PlayerEntityScenes/MechaFishPlayerScene/Player_MechaFish_Scene.tscn" id="e12"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryDeathScreenScene/Menu_Factory_DeathScreen_Scene.tscn" id="e13"]
+[ext_resource type="PackedScene" path="res://GameScenes/MenuScenes/FactoryMenuScenes/FactoryPauseMenuScene/Menu_Factory_PauseMenu_Scene.tscn" id="e14"]
+
+[sub_resource type="RectangleShape2D" id="s1"]
+size = Vector2(480, 40)
+
+[sub_resource type="RectangleShape2D" id="s2"]
+size = Vector2(540, 40)
+
+[sub_resource type="RectangleShape2D" id="s3"]
+size = Vector2(800, 40)
+
+[sub_resource type="RectangleShape2D" id="s4"]
+size = Vector2(220, 40)
+
+[sub_resource type="RectangleShape2D" id="s5"]
+size = Vector2(240, 40)
+
+[sub_resource type="RectangleShape2D" id="s6"]
+size = Vector2(780, 40)
+
+[sub_resource type="RectangleShape2D" id="s7"]
+size = Vector2(60, 35)
+
+[sub_resource type="RectangleShape2D" id="s8"]
+size = Vector2(80, 35)
+
+[sub_resource type="RectangleShape2D" id="s9"]
+size = Vector2(70, 35)
+
+[sub_resource type="RectangleShape2D" id="s10"]
+size = Vector2(60, 35)
+
+[sub_resource type="RectangleShape2D" id="s11"]
+size = Vector2(80, 1540)
+
+[sub_resource type="RectangleShape2D" id="s12"]
+size = Vector2(80, 1540)
+
+[sub_resource type="RectangleShape2D" id="s13"]
+size = Vector2(1100, 40)
+
+[sub_resource type="RectangleShape2D" id="s14"]
+size = Vector2(1100, 40)
+
+[sub_resource type="RectangleShape2D" id="s15"]
+size = Vector2(72, 264)
+
+[sub_resource type="RectangleShape2D" id="s16"]
+size = Vector2(72, 264)
+
+[sub_resource type="RectangleShape2D" id="s17"]
+size = Vector2(72, 264)
+
+[node name="StorageCluttered" type="Node2D"]
+script = ExtResource("e1")
+room_id = "cluttered"
+room_rect = Rect2(0, 60, 900, 980)
+
+[node name="Solids" type="Node2D" parent="."]
+
+[node name="Body" type="StaticBody2D" parent="Solids"]
+
+[node name="S0" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(140, 780)
+shape = SubResource("s1")
+
+[node name="S1" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(730, 780)
+shape = SubResource("s2")
+
+[node name="S2" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(300, 540)
+shape = SubResource("s3")
+
+[node name="S3" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(890, 540)
+shape = SubResource("s4")
+
+[node name="S4" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(20, 300)
+shape = SubResource("s5")
+
+[node name="S5" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(610, 300)
+shape = SubResource("s6")
+
+[node name="S6" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(590, 982.5)
+shape = SubResource("s7")
+
+[node name="S7" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(190, 742.5)
+shape = SubResource("s8")
+
+[node name="S8" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(435, 502.5)
+shape = SubResource("s9")
+
+[node name="S9" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(450, 262.5)
+shape = SubResource("s10")
+
+[node name="S10" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(-40, 330)
+shape = SubResource("s11")
+
+[node name="S11" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(940, 330)
+shape = SubResource("s12")
+
+[node name="S12" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(450, 1020)
+shape = SubResource("s13")
+
+[node name="S13" type="CollisionShape2D" parent="Solids/Body"]
+position = Vector2(450, 60)
+shape = SubResource("s14")
+
+[node name="Decor" type="Node2D" parent="."]
+
+[node name="D0_washbag" type="Sprite2D" parent="Decor"]
+position = Vector2(300, 917.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e3")
+
+[node name="D1_box2" type="Sprite2D" parent="Decor"]
+position = Vector2(800, 901)
+scale = Vector2(3, 3)
+texture = ExtResource("e4")
+
+[node name="D2_barrel2" type="Sprite2D" parent="Decor"]
+position = Vector2(60, 700)
+scale = Vector2(3, 3)
+texture = ExtResource("e5")
+
+[node name="D3_barrel3" type="Sprite2D" parent="Decor"]
+position = Vector2(110, 700)
+scale = Vector2(3, 3)
+texture = ExtResource("e6")
+
+[node name="D4_shelf3" type="Sprite2D" parent="Decor"]
+position = Vector2(620, 665.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e7")
+
+[node name="D5_box4" type="Sprite2D" parent="Decor"]
+position = Vector2(250, 464.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e8")
+
+[node name="D6_con1b" type="Sprite2D" parent="Decor"]
+position = Vector2(560, 185.5)
+scale = Vector2(3, 3)
+texture = ExtResource("e9")
+
+[node name="D7_barrel1" type="Sprite2D" parent="Decor"]
+position = Vector2(860, 220)
+scale = Vector2(3, 3)
+texture = ExtResource("e10")
+
+[node name="Ladder0" parent="." instance=ExtResource("e11")]
+position = Vector2(420, 842)
+
+[node name="CollisionShape2D" parent="Ladder0" index="0"]
+shape = SubResource("s15")
+
+[node name="Sprite2D" parent="Ladder0" index="1"]
+texture_repeat = 2
+position = Vector2(0, 38)
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 80)
+
+[node name="Ladder1" parent="." instance=ExtResource("e11")]
+position = Vector2(740, 602)
+
+[node name="CollisionShape2D" parent="Ladder1" index="0"]
+shape = SubResource("s16")
+
+[node name="Sprite2D" parent="Ladder1" index="1"]
+texture_repeat = 2
+position = Vector2(0, 38)
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 80)
+
+[node name="Ladder2" parent="." instance=ExtResource("e11")]
+position = Vector2(180, 362)
+
+[node name="CollisionShape2D" parent="Ladder2" index="0"]
+shape = SubResource("s17")
+
+[node name="Sprite2D" parent="Ladder2" index="1"]
+texture_repeat = 2
+position = Vector2(0, 38)
+region_enabled = true
+region_rect = Rect2(0, 0, 24, 80)
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="Door_c_f" type="Area2D" parent="Doors"]
+position = Vector2(110, 1000)
+script = ExtResource("e2")
+door_id = "c_f"
+target_room = "room_f"
+target_door = "f_c"
+kind = "door"
+lock = ""
+spawn_dir = 1
+arrow = "↓"
+
+[node name="Door_c_v" type="Area2D" parent="Doors"]
+position = Vector2(720, 280)
+script = ExtResource("e2")
+door_id = "c_v"
+target_room = "vent"
+target_door = "v_c"
+kind = "hatch"
+lock = ""
+spawn_dir = -1
+arrow = "↑"
+
+[node name="Lamps" type="Node2D" parent="."]
+
+[node name="L0" type="Marker2D" parent="Lamps"]
+position = Vector2(250, 816)
+metadata/beam_h = 184
+
+[node name="L1" type="Marker2D" parent="Lamps"]
+position = Vector2(650, 816)
+metadata/beam_h = 184
+metadata/flicker = true
+
+[node name="L2" type="Marker2D" parent="Lamps"]
+position = Vector2(300, 576)
+metadata/beam_h = 184
+
+[node name="L3" type="Marker2D" parent="Lamps"]
+position = Vector2(560, 576)
+metadata/beam_h = 184
+
+[node name="L4" type="Marker2D" parent="Lamps"]
+position = Vector2(420, 336)
+metadata/beam_h = 184
+
+[node name="L5" type="Marker2D" parent="Lamps"]
+position = Vector2(780, 336)
+metadata/beam_h = 184
+
+[node name="L6" type="Marker2D" parent="Lamps"]
+position = Vector2(300, 96)
+metadata/beam_h = 184
+
+[node name="L7" type="Marker2D" parent="Lamps"]
+position = Vector2(700, 96)
+metadata/beam_h = 184
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Dog1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(260, 720)
+metadata/enemy_type = "dog"
+
+[node name="Monkey1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(520, 480)
+metadata/enemy_type = "monkey"
+
+[node name="Pigeon1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(850, 240)
+metadata/enemy_type = "pigeon"
+
+[node name="Mecha_Fish" parent="." instance=ExtResource("e12")]
+position = Vector2(120, 970)
+
+[node name="DeathScreen" parent="." instance=ExtResource("e13")]
+visible = false
+
+[node name="Pausemenu" parent="." instance=ExtResource("e14")]
+visible = false

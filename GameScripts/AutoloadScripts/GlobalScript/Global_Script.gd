@@ -79,13 +79,17 @@ func format_save_time() -> String:
 	return "%02d.%02d.%s %02d:%02d" % [d.day, d.month, str(d.year).substr(2, 2), d.hour, d.minute]
 
 var factory_state: Dictionary = {}
+var storage_state: Dictionary = {}
 
 func write_factory_state(config: ConfigFile) -> void:
 	config.set_value("factory", "state", factory_state)
+	config.set_value("storage", "state", storage_state)
 
 func read_factory_state(config: ConfigFile) -> void:
 	var st = config.get_value("factory", "state", {})
 	factory_state = st.duplicate(true) if st is Dictionary else {}
+	var ss = config.get_value("storage", "state", {})
+	storage_state = ss.duplicate(true) if ss is Dictionary else {}
 
 func save_factory_state() -> void:
 	var save_path = "user://saves/save_" + str(save_slot) + ".cfg"
